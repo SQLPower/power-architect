@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +71,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
-import ca.sqlpower.sqlobject.SQLTypePhysicalProperties;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
@@ -95,6 +96,44 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private static final Font TITLE_FONT = UIManager.getFont("Label.font").deriveFont(Font.BOLD, 10f);
 
     /**
+     * A simple enum that gives a nicer name to true and false for combo boxes.
+     * <p>
+     * Used in testing
+     */
+    static enum YesNoEnum {
+        YES("yes", true),
+        NO("no", false);
+        
+        private final String displayName;
+        private final boolean value;
+
+        private YesNoEnum(String displayName, boolean value) {
+            this.displayName = displayName;
+            this.value = value;
+        }
+        
+        @Override
+        public String toString() {
+            return displayName;
+        }
+        
+        public boolean getValue() {
+            return value;
+        }
+        
+        public static YesNoEnum valueOf(Boolean bool) {
+            if (bool == null) {
+                return null;
+            } else if (bool) {
+                return YES;
+            } else {
+                return NO;
+            }
+
+        }
+    }
+
+    /**
      * The column we're editing.
      */
     private final List<SQLColumn> columns;
@@ -106,6 +145,14 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
      * or not the value should be applied.
      */
     private final Map<JComponent, JCheckBox> componentEnabledMap = new HashMap<JComponent, JCheckBox>();
+
+    /**
+     * Mapping of data entry components specific to data types to the check
+     * boxes that say if the value in the column editor window should override
+     * the value from the underlying type or if the underlying type should be
+     * used instead.
+     */
+    private final Map<JComponent, JCheckBox> typeOverrideMap = new HashMap<JComponent, JCheckBox>();
     
     /**
      * Label that shows where the column was reverse engineered from, or
@@ -123,7 +170,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     private final JSpinner colPrec;
 
-    private final JCheckBox colNullable;
+    private final JComboBox colNullable;
 
     private final JTextArea colRemarks;
 
@@ -131,7 +178,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     private final JCheckBox colInPK;
 
-    private final JCheckBox colAutoInc;
+    private final JComboBox colAutoInc;
 
     /**
      * Text field for the name of the sequence that will generate this column's
@@ -182,30 +229,31 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 //        }
         
         FormLayout layout = new FormLayout(
-                "pref, pref:grow, 4dlu, pref, pref:grow",
+                "pref, pref, pref:grow, 4dlu, pref, pref:grow",
                 "");
-        layout.setColumnGroups(new int[][] { { 2, 5 } } );
+        layout.setColumnGroups(new int[][] { { 3, 6 } } );
         panel = new JPanel(layout);
         CellConstraints cc = new CellConstraints();
         
         JCheckBox cb;
         int row = 1;
+        int width = 5;
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.source")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.source")), cc.xyw(2, row++, width)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(sourceLabel = new JLabel(), cc.xyw(2, row++, 4));
+        panel.add(sourceLabel = new JLabel(), cc.xyw(2, row++, width));
 
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
         
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.logicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.logicalName")), cc.xyw(2, row++, width)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colLogicalName = new JTextField(), cc.xyw(2, row++, 4));
+        panel.add(colLogicalName = new JTextField(), cc.xyw(2, row++, width));
         componentEnabledMap.put(colLogicalName, cb);
         colLogicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         colLogicalName.addComponentListener(new ComponentAdapter() {
@@ -227,13 +275,13 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         row++;
 
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.physicalName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.physicalName")), cc.xyw(2, row++, width)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colPhysicalName = new JTextField(), cc.xyw(2, row++, 4));
+        panel.add(colPhysicalName = new JTextField(), cc.xyw(2, row++, width));
         componentEnabledMap.put(colPhysicalName, cb);
         colPhysicalName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         colPhysicalName.addComponentListener(new ComponentAdapter() {
@@ -253,15 +301,28 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
-
-        layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.type")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        
         layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colType = new JComboBox(session.getSQLTypes().toArray()), cc.xyw(2, row++, 4));
+        panel.add(colInPK = new JCheckBox(Messages.getString("ColumnEditPanel.inPrimaryKey")), cc.xyw(2, row++, width)); //$NON-NLS-1$        
+        componentEnabledMap.put(colInPK, cb);
+        colInPK.addActionListener(this);
+        colInPK.addActionListener(checkboxEnabler);
+        
+        layout.appendRow(RowSpec.decode("5dlu"));
+        row++;
+
+        layout.appendRow(RowSpec.decode("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.type")), cc.xyw(2, row++, width)); //$NON-NLS-1$
+        layout.appendRow(RowSpec.decode("p"));
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
+        panel.add(colType = new JComboBox(session.getSQLTypes().toArray()), cc.xyw(2, row++, width));
         componentEnabledMap.put(colType, cb);
         colType.setSelectedItem(null);
         colType.addActionListener(this);
@@ -270,78 +331,148 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         row++;
 
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.precision")), cc.xy(2, row)); //$NON-NLS-1$
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.scale")), cc.xy(5, row++)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.precision")), cc.xy(3, row)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.scale")), cc.xy(6, row++)); //$NON-NLS-1$
 
         layout.appendRow(RowSpec.decode("p"));
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(1, row));
-        }
-        panel.add(colPrec = createPrecisionEditor(), cc.xy(2, row));
-        componentEnabledMap.put(colPrec, cb);
+        panel.add(colPrec = createPrecisionEditor(), cc.xy(3, row));
         colPrec.addChangeListener(checkboxEnabler);
         SPSUtils.makeJSpinnerSelectAllTextOnFocus(colPrec);
+        final JCheckBox colPrecCB = new JCheckBox();
+        panel.add(colPrecCB, cc.xy(2, row));
+        typeOverrideMap.put(colPrec, colPrecCB);
+        colPrecCB.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (colPrecCB.isSelected()) {
+                    colPrec.setEnabled(true);
+                } else {
+                    colPrec.setEnabled(false);
+                    if (colType.getSelectedItem() != null) {
+                        colPrec.setValue(((UserDefinedSQLType) colType.getSelectedItem()).getPrecision(
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
+                    }
+                }
+            }
+        });
+        colPrec.setEnabled(false);
         
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(4, row));
-        }
-        panel.add(colScale = createScaleEditor(), cc.xy(5, row++));
-        componentEnabledMap.put(colScale, cb);
+        final JCheckBox colScaleCB = new JCheckBox();
+        panel.add(colScaleCB, cc.xy(5, row));
+        panel.add(colScale = createScaleEditor(), cc.xy(6, row++));
+        typeOverrideMap.put(colScale, colScaleCB);
         colScale.addChangeListener(checkboxEnabler);
         SPSUtils.makeJSpinnerSelectAllTextOnFocus(colScale);
+        colScaleCB.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (colScaleCB.isSelected()) {
+                    colScale.setEnabled(true);
+                } else {
+                    colScale.setEnabled(false);
+                    if (colType.getSelectedItem() != null) {
+                        colScale.setValue(((UserDefinedSQLType) colType.getSelectedItem()).getScale(
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
+                    }
+                }
+            }
+        });
+        colScale.setEnabled(false);
         
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
         layout.appendRow(RowSpec.decode("p"));
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(1, row));
-        }
-        panel.add(colInPK = new JCheckBox(Messages.getString("ColumnEditPanel.inPrimaryKey")), cc.xyw(2, row++, 4)); //$NON-NLS-1$        
-        componentEnabledMap.put(colInPK, cb);
-        colInPK.addActionListener(this);
-        colInPK.addActionListener(checkboxEnabler);
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.allowsNulls")), cc.xyw(3, row++, width - 1)); //$NON-NLS-1$
         
-        layout.appendRow(RowSpec.decode("3dlu"));
-        row++;
-
         layout.appendRow(RowSpec.decode("p"));
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(1, row));
-        }
-        panel.add(colNullable = new JCheckBox(Messages.getString("ColumnEditPanel.allowsNulls")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        componentEnabledMap.put(colNullable, cb);
+        final JCheckBox colNullCB = new JCheckBox();
+        panel.add(colNullCB, cc.xy(2, row));
+        panel.add(colNullable = new JComboBox(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
+        typeOverrideMap.put(colNullable, colNullCB);
         colNullable.addActionListener(this);
         colNullable.addActionListener(checkboxEnabler);
+        colNullCB.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (colNullCB.isSelected()) {
+                    colNullable.setEnabled(true);
+                } else {
+                    colNullable.setEnabled(false);
+                    if (colType.getSelectedItem() != null) {
+                        colNullable.setSelectedItem(YesNoEnum.valueOf(
+                                ((UserDefinedSQLType) colType.getSelectedItem()).getNullability() == DatabaseMetaData.columnNullable));
+                    }
+                }
+                updateComponents();
+            }
+        });
+        colNullable.setEnabled(false);
 
         layout.appendRow(RowSpec.decode("3dlu"));
         row++;
 
         layout.appendRow(RowSpec.decode("p"));
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(1, row));
-        }
-        panel.add(colAutoInc = new JCheckBox(Messages.getString("ColumnEditPanel.autoIncrement")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        componentEnabledMap.put(colAutoInc, cb);
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.autoIncrement")), cc.xyw(3, row++, width - 1)); //$NON-NLS-1$
+        
+        layout.appendRow(RowSpec.decode("p"));
+        final JCheckBox colAutoIncCB = new JCheckBox();
+        panel.add(colAutoIncCB, cc.xy(2, row));
+        panel.add(colAutoInc = new JComboBox(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
+        typeOverrideMap.put(colAutoInc, colAutoIncCB);
         colAutoInc.addActionListener(this);
         colAutoInc.addActionListener(checkboxEnabler);
+        colAutoIncCB.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (colAutoIncCB.isSelected()) {
+                    colAutoInc.setEnabled(true);
+                } else {
+                    colAutoInc.setEnabled(false);
+                    if (colType.getSelectedItem() != null) {
+                        colAutoInc.setSelectedItem(YesNoEnum.valueOf(
+                                ((UserDefinedSQLType) colType.getSelectedItem()).getAutoIncrement()));
+                    }
+                }
+            }
+        });
+        colAutoInc.setEnabled(false);
+        
+        layout.appendRow(RowSpec.decode("5dlu"));
+        row++;
+
+        layout.appendRow(RowSpec.decode("p"));
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.defaultValue")), cc.xyw(3, row++, width - 1)); //$NON-NLS-1$
+        layout.appendRow(RowSpec.decode("p"));
+        final JCheckBox colDefaultCB = new JCheckBox();
+        panel.add(colDefaultCB, cc.xy(2, row));
+        panel.add(colDefaultValue = new JTextField(), cc.xyw(3, row++, width - 1));
+        colDefaultValue.setEnabled(false);
+            
+        typeOverrideMap.put(colDefaultValue, colDefaultCB);
+        colDefaultValue.addActionListener(this);
+        colDefaultCB.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (colDefaultCB.isSelected()) {
+                    colDefaultValue.setEnabled(true);
+                } else {
+                    colDefaultValue.setEnabled(false);
+                    if (colType.getSelectedItem() != null) {
+                        colDefaultValue.setText(((UserDefinedSQLType) colType.getSelectedItem()).getDefaultValue(
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
+                    }
+                }
+                updateComponents();
+            }
+        });
 
         layout.appendRow(RowSpec.decode("6dlu"));
         row++;
 
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.sequenceName")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.sequenceName")), cc.xyw(2, row++, width)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colAutoIncSequenceName = new JTextField(), cc.xyw(2, row++, 4));
+        panel.add(colAutoIncSequenceName = new JTextField(), cc.xyw(2, row++, width));
         componentEnabledMap.put(colAutoIncSequenceName, cb);
         colAutoIncSequenceName.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         
@@ -393,39 +524,44 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         row++;
 
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.remarks")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
+        panel.add(makeTitle(Messages.getString("ColumnEditPanel.remarks")), cc.xyw(2, row++, width)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("pref:grow"));
         cb = new JCheckBox();
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row, "center, top"));
         }
-        panel.add(new JScrollPane(colRemarks = new JTextArea()), cc.xyw(2, row++, 4, "fill, fill"));
+        panel.add(new JScrollPane(colRemarks = new JTextArea()), cc.xyw(2, row++, width, "fill, fill"));
         componentEnabledMap.put(colRemarks, cb);
         colRemarks.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
         colRemarks.setRows(5);
         colRemarks.setLineWrap(true);
         colRemarks.setWrapStyleWord(true);
 
-        layout.appendRow(RowSpec.decode("5dlu"));
-        row++;
-
-        layout.appendRow(RowSpec.decode("p"));
-        panel.add(makeTitle(Messages.getString("ColumnEditPanel.defaultValue")), cc.xyw(2, row++, 4)); //$NON-NLS-1$
-        layout.appendRow(RowSpec.decode("p"));
-        cb = new JCheckBox();
-        if (cols.size() > 1) {
-            panel.add(cb, cc.xy(1, row));
-        }
-        panel.add(colDefaultValue = new JTextField(), cc.xyw(2, row++, 4));
-        colDefaultValue.getDocument().addDocumentListener(new DocumentCheckboxEnabler(cb));
-        componentEnabledMap.put(colDefaultValue, cb);
-        colDefaultValue.addActionListener(this);
-
         // start with all components enabled; if there are multiple columns
         // to edit, these checkboxes will be turned off selectively for the
         // mismatching values
         for (JCheckBox checkbox : componentEnabledMap.values()) {
             checkbox.setSelected(true);
+        }
+        
+        //The type covers multiple fields and needs a different check to see if
+        //it should start enabled. All type info must match across the objects
+        //for the checkbox to start selected
+        if (cols.size() > 1) {
+            Iterator<SQLColumn> colIterator = cols.iterator();
+            SQLColumn firstCol = colIterator.next();
+            while (colIterator.hasNext()) {
+                SQLColumn nextCol = colIterator.next();
+                if (!firstCol.getTypeName().equals(nextCol.getTypeName()) ||
+                        firstCol.getPrecision() != nextCol.getPrecision() ||
+                        firstCol.getScale() != nextCol.getScale() ||
+                        firstCol.getNullable() != nextCol.getNullable() ||
+                        firstCol.isAutoIncrement() != nextCol.isAutoIncrement() ||
+                        !firstCol.getDefaultValue().equals(nextCol.getDefaultValue())) {
+                    componentEnabledMap.get(colType).setSelected(false);
+                    break;
+                }
+            }
         }
         
         for (SQLColumn col : cols) {
@@ -442,9 +578,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         panel.addAncestorListener(cleanupListener);
         colType.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-                if (e.getItem() instanceof UserDefinedSQLType) {
+                if (e.getItem() instanceof UserDefinedSQLType && e.getStateChange() == ItemEvent.SELECTED) {
                     UserDefinedSQLType sqlType = (UserDefinedSQLType) e.getItem();
-                    updateSQLTypeComponents(sqlType);
+                    updateSQLTypeComponents(sqlType, false);
                 }
             }
         });
@@ -494,14 +630,10 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         updateComponent(colLogicalName, col.getName());
         updateComponent(colPhysicalName, col.getPhysicalName());
         updateComponent(colType, col.getUserDefinedSQLType().getUpstreamType());
-        
-        updateComponent(colScale, col.getScale(), col.getScaleType());
-        updateComponent(colPrec, col.getPrecision(), col.getPrecisionType());
-        
-        updateComponent(colNullable, col.getNullable() == DatabaseMetaData.columnNullable);
+
+        updateSQLTypeComponents(col.getUserDefinedSQLType(), true);
         
         updateComponent(colRemarks, col.getRemarks());
-        updateComponent(colDefaultValue, col.getDefaultValue());
         
         boolean inPk;
         if (col.getParent() == null) {
@@ -514,7 +646,6 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         updateComponent(colInPK, inPk);
         logger.debug("Selected" + colInPK.isSelected());
         
-        updateComponent(colAutoInc, col.isAutoIncrement());
         
         updateComponent(colAutoIncSequenceName, col.getAutoIncrementSequenceName());
 
@@ -548,20 +679,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             componentEnabledMap.get(comp).setSelected(false);
         }
     }
-    
-    /** Subroutine of {@link #updateComponents(SQLColumn)}. */
-    private void updateComponent(JSpinner comp, int expectedValue, PropertyType propertyType) {
-        boolean unvisited = comp.getValue().equals(Integer.valueOf(0));
-        if (componentEnabledMap.get(comp).isSelected() &&
-                (unvisited || comp.getValue().equals(expectedValue)) &&
-                    propertyType != PropertyType.NOT_APPLICABLE) {
-            comp.setValue(expectedValue);
-        } else {
-            componentEnabledMap.get(comp).setSelected(false);
-        }
-        comp.setEnabled(propertyType == PropertyType.VARIABLE);
-    }
-    
+
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
     private void updateComponent(JCheckBox comp, boolean expectedValue) {
         // Checking if a checkbox was visited is not possible just by examining its value,
@@ -625,33 +743,34 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
      */
     private void updateComponents() {
         // allow nulls is free unless column is in PK
-        if (colInPK.isSelected()) {
+        if (colInPK.isSelected() || !typeOverrideMap.get(colNullable).isSelected()) {
             colNullable.setEnabled(false);
         } else {
             colNullable.setEnabled(true);
         }
 
         // primary key is free unless column allows nulls
-        if (colNullable.isSelected()) {
+        if (((YesNoEnum) colNullable.getSelectedItem()).getValue()) {
             colInPK.setEnabled(false);
         } else {
             colInPK.setEnabled(true);
         }
 
-        if (colInPK.isSelected() && colNullable.isSelected()) {
+        if (colInPK.isSelected() && ((YesNoEnum) colNullable.getSelectedItem()).getValue()) {
             // this should not be physically possible
-            colNullable.setSelected(false);
+            colNullable.setSelectedItem(false);
             colNullable.setEnabled(false);
         }
 
-        if (colAutoInc.isSelected()) {
+        if (((YesNoEnum) colAutoInc.getSelectedItem()).getValue() || 
+                !typeOverrideMap.get(colDefaultValue).isSelected()) {
             colDefaultValue.setText(""); //$NON-NLS-1$
             colDefaultValue.setEnabled(false);
         } else {
             colDefaultValue.setEnabled(true);
         }
 
-        colAutoIncSequenceName.setEnabled(colAutoInc.isSelected());
+        colAutoIncSequenceName.setEnabled(((YesNoEnum) colAutoInc.getSelectedItem()).getValue());
     }
 
     /**
@@ -683,34 +802,57 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     column.getUserDefinedSQLType().setUpstreamType((UserDefinedSQLType) colType.getSelectedItem());
                 }
                 
-                if (componentEnabledMap.get(colScale).isSelected()) {
-                    column.setScale(((Integer) colScale.getValue()).intValue());
+                if (componentEnabledMap.get(colType).isSelected()) {
+                    if (typeOverrideMap.get(colScale).isSelected()) {
+                        column.setScale(((Integer) colScale.getValue()).intValue());
+                    } else {
+                        column.getUserDefinedSQLType().setScale(
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
+                    }
                 }
                 
-                if (componentEnabledMap.get(colPrec).isSelected()) {
-                    column.setPrecision(((Integer) colPrec.getValue()).intValue());
+                if (componentEnabledMap.get(colType).isSelected()) {
+                    if (typeOverrideMap.get(colPrec).isSelected()) {
+                        column.setPrecision(((Integer) colPrec.getValue()).intValue());
+                    } else {
+                        column.getUserDefinedSQLType().setPrecision(
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
+                    }
                 }
                 
-                if (componentEnabledMap.get(colNullable).isSelected()) {
-                    column.setNullable(colNullable.isSelected() ? DatabaseMetaData.columnNullable
+                if (componentEnabledMap.get(colType).isSelected()) {
+                    if (typeOverrideMap.get(colNullable).isSelected()) {
+                        column.setNullable(((YesNoEnum) colNullable.getSelectedItem()).getValue() ? DatabaseMetaData.columnNullable
                             : DatabaseMetaData.columnNoNulls);
+                    } else {
+                        column.getUserDefinedSQLType().setMyNullability(null);
+                    }
                 }
                 
                 if (componentEnabledMap.get(colRemarks).isSelected()) {
                     column.setRemarks(colRemarks.getText());
                 }
 
-                if (componentEnabledMap.get(colDefaultValue).isSelected()) {
-                    // avoid setting default value to empty string
-                    if (!(column.getDefaultValue() == null && colDefaultValue.getText().equals(""))) { //$NON-NLS-1$
-                        column.setDefaultValue(colDefaultValue.getText());
+                if (componentEnabledMap.get(colType).isSelected()) {
+                    if (typeOverrideMap.get(colDefaultValue).isSelected()) {
+                        // avoid setting default value to empty string
+                        if (!(column.getDefaultValue() == null && colDefaultValue.getText().equals(""))) { //$NON-NLS-1$
+                            column.setDefaultValue(colDefaultValue.getText());
+                        }
+                    } else {
+                        column.getUserDefinedSQLType().setDefaultValue(
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
                     }
                 }
                 
                 // Autoincrement has to go before the primary key or
                 // this column will never allow nulls
-                if (componentEnabledMap.get(colAutoInc).isSelected()) {
-                    column.setAutoIncrement(colAutoInc.isSelected());
+                if (componentEnabledMap.get(colType).isSelected()) {
+                    if (typeOverrideMap.get(colAutoInc).isSelected()) {
+                        column.setAutoIncrement(((YesNoEnum) colAutoInc.getSelectedItem()).getValue());
+                    } else {
+                        column.getUserDefinedSQLType().setMyAutoIncrement(null);
+                    }
                 }
                 
                 if (componentEnabledMap.get(colInPK).isSelected()) {
@@ -763,7 +905,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JCheckBox getColAutoInc() {
+    public JComboBox getColAutoInc() {
         return colAutoInc;
     }
 
@@ -787,7 +929,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JCheckBox getColNullable() {
+    public JComboBox getColNullable() {
         return colNullable;
     }
 
@@ -983,13 +1125,77 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
      * 'Cancel' button.
      * 
      * @param sqlType
+     *            The data type to update all of the type fields to.
+     * @param overrideIfNotNull
+     *            If true the override check boxes will be checked and the field
+     *            enabled if the value in the type given is not null. If false
+     *            the override checkboxes will never be checked to start and
+     *            just use the defaults given by the data type.
      */
-    private void updateSQLTypeComponents(UserDefinedSQLType sqlType) {
-        SQLTypePhysicalProperties properties = sqlType.getDefaultPhysicalProperties();
-        updateComponent(colScale, properties.getScale(), properties.getScaleType());
-        updateComponent(colPrec, properties.getPrecision(), properties.getPrecisionType());
-        updateComponent(colNullable, sqlType.getNullability() == DatabaseMetaData.columnNullable);
-        updateComponent(colDefaultValue, properties.getDefaultValue());
-        updateComponent(colAutoInc, sqlType.getAutoIncrement());
+    private void updateSQLTypeComponents(UserDefinedSQLType sqlType, boolean overrideIfNotNull) {
+        
+        if (!componentEnabledMap.get(colType).isSelected()) {
+            //not editing any of these fields, setting to defaults
+            colScale.setValue(0);
+            colPrec.setValue(0);
+            colNullable.setSelectedItem(YesNoEnum.NO);
+            colAutoInc.setSelectedItem(YesNoEnum.NO);
+            colDefaultValue.setText("");
+            return;
+        }
+        
+        if (sqlType.getScaleType(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM) == PropertyType.NOT_APPLICABLE) {
+            typeOverrideMap.get(colScale).setSelected(false);
+            typeOverrideMap.get(colScale).setEnabled(false);
+        } else if (sqlType.getDefaultPhysicalProperties().getScale() == null || !overrideIfNotNull) {
+            typeOverrideMap.get(colScale).setSelected(false);
+            typeOverrideMap.get(colScale).setEnabled(true);
+        } else {
+            typeOverrideMap.get(colScale).setSelected(true);
+            typeOverrideMap.get(colScale).setEnabled(true);
+        }
+        colScale.setValue(sqlType.getScale(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
+        
+        
+        if (sqlType.getPrecisionType(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM) == PropertyType.NOT_APPLICABLE) {
+            typeOverrideMap.get(colPrec).setSelected(false);
+            typeOverrideMap.get(colPrec).setEnabled(false);
+        } else if (sqlType.getDefaultPhysicalProperties().getPrecision() == null || !overrideIfNotNull) {
+            typeOverrideMap.get(colPrec).setSelected(false);
+            typeOverrideMap.get(colPrec).setEnabled(true);
+        } else {
+            typeOverrideMap.get(colPrec).setSelected(true);
+            typeOverrideMap.get(colPrec).setEnabled(true);
+        }
+        colPrec.setValue(sqlType.getPrecision(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
+        
+        if (sqlType.getMyNullability() == null || !overrideIfNotNull) {
+            typeOverrideMap.get(colNullable).setSelected(false);
+        } else {
+            typeOverrideMap.get(colNullable).setSelected(true);
+        }
+        colNullable.setSelectedItem(YesNoEnum.valueOf(
+                sqlType.getNullability() == DatabaseMetaData.columnNullable));
+        
+        if (sqlType.getDefaultPhysicalProperties().getDefaultValue() == null || !overrideIfNotNull) {
+            typeOverrideMap.get(colDefaultValue).setSelected(false);
+        } else {
+            typeOverrideMap.get(colDefaultValue).setSelected(true);
+        }
+        colDefaultValue.setText(sqlType.getDefaultValue(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
+        
+        if (sqlType.getMyAutoIncrement() == null || !overrideIfNotNull) {
+            typeOverrideMap.get(colAutoInc).setSelected(false);
+        } else {
+            typeOverrideMap.get(colAutoInc).setSelected(true);
+        }
+        colAutoInc.setSelectedItem(YesNoEnum.valueOf(sqlType.getAutoIncrement()));
+    }
+    
+    /**
+     * For testing purposes only.
+     */
+    Map<JComponent, JCheckBox> getTypeOverrideMap() {
+        return typeOverrideMap;
     }
 }
