@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.sql.DatabaseMetaData;
 
 import junit.framework.TestCase;
+import ca.sqlpower.architect.swingui.ColumnEditPanel.YesNoEnum;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -87,9 +88,9 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals("Wrong Precision",col3.getPrecision(),((Integer) panel.getColPrec().getValue()).intValue());
 		assertEquals("Wrong type",col3.getType(),((UserDefinedSQLType)panel.getColType().getSelectedItem()).getType().intValue());
 		assertEquals("Wrong Scale",col3.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
-		assertEquals(col3.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
+		assertEquals(col3.isAutoIncrement(), ((YesNoEnum) panel.getColAutoInc().getSelectedItem()).getValue());
 		assertEquals(col3.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
-		assertEquals(col3.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
+		assertEquals(col3.getNullable() == DatabaseMetaData.columnNullable, ((YesNoEnum) panel.getColNullable().getSelectedItem()).getValue());
 		assertEquals("None Specified",panel.getSourceLabel().getText());
 
 		col2.getUserDefinedSQLType().setUpstreamType(session.getSQLTypes().get(1));
@@ -99,9 +100,9 @@ public class TestColumnEditPanel extends TestCase {
         assertEquals("Wrong Precision",col2.getPrecision(),((Integer) panel.getColPrec().getValue()).intValue());
         assertEquals("Wrong type",col2.getType(),((UserDefinedSQLType)panel.getColType().getSelectedItem()).getType().intValue());
         assertEquals("Wrong Scale",col2.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
-        assertEquals(col2.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
+        assertEquals(col2.isAutoIncrement(), ((YesNoEnum) panel.getColAutoInc().getSelectedItem()).getValue());
         assertEquals(col2.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
-        assertEquals(col2.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
+        assertEquals(col2.getNullable() == DatabaseMetaData.columnNullable, ((YesNoEnum) panel.getColNullable().getSelectedItem()).getValue());
         assertEquals("None Specified",panel.getSourceLabel().getText());
 	}
 
@@ -111,15 +112,19 @@ public class TestColumnEditPanel extends TestCase {
 		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColType().setSelectedIndex(1);
 		panel.getColPrec().setValue(new Integer(1234));
+		panel.getTypeOverrideMap().get(panel.getColPrec()).setSelected(true);
 		panel.getColScale().setValue(new Integer(5432));
+		panel.getTypeOverrideMap().get(panel.getColScale()).setSelected(true);
 		
 		
 		panel.getColInPK().getModel().setSelected(true);
-		panel.getColAutoInc().getModel().setSelected(true);			
-		panel.getColNullable().getModel().setSelected(true);
+		panel.getColAutoInc().setSelectedItem(YesNoEnum.YES);
+		panel.getTypeOverrideMap().get(panel.getColAutoInc()).setSelected(true);
+		panel.getColNullable().setSelectedItem(YesNoEnum.YES);
+		panel.getTypeOverrideMap().get(panel.getColNullable()).setSelected(true);
 		
 		panel.applyChanges();
-		assertEquals("Panel check boxes borked",true,panel.getColAutoInc().getModel().isSelected());
+		assertEquals("Panel check boxes borked",true, ((YesNoEnum) panel.getColAutoInc().getSelectedItem()).getValue());
 		assertEquals("Wrong column physical name","CHANGED",col2.getPhysicalName());
 		assertEquals("Wrong column logical name","Easier Use Column Name",col2.getName());
 		assertEquals("Wrong Precision",1234,col2.getPrecision());
@@ -138,9 +143,9 @@ public class TestColumnEditPanel extends TestCase {
 		panel.getColLogicalName().setText("Easier Use Column Name");
 		panel.getColPrec().setValue(new Integer(1234));
 		panel.getColScale().setValue(new Integer(5432));
-		panel.getColAutoInc().getModel().setSelected(true);	
+		panel.getColAutoInc().setSelectedItem(YesNoEnum.YES);	
 		panel.getColInPK().getModel().setSelected(true);
-		panel.getColNullable().getModel().setSelected(true);
+		panel.getColNullable().setSelectedItem(YesNoEnum.YES);
 		panel.discardChanges();
 		
 		assertEquals("Wrong column physical name","Physical Name 2",col2.getPhysicalName());
