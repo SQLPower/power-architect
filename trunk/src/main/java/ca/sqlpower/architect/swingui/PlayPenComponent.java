@@ -252,7 +252,7 @@ implements Selectable {
         setBounds(new Rectangle(x, y, width, height));
     }
     
-    @Mutator
+    @Transient @Mutator
     public void setBounds(Rectangle r) {
         Rectangle oldBounds = getBounds();   
         repaint();
@@ -271,7 +271,7 @@ implements Selectable {
     /**
      * Returns a copy of this component's bounding rectangle.
      */
-    @Accessor
+    @Transient @Accessor
     public Rectangle getBounds() {
         return getBounds(null);
     }
@@ -341,7 +341,7 @@ implements Selectable {
      * create a new point for you.
      * @return p if p was not null; a new point otherwise.
      */
-    @Transient @Accessor
+    @Accessor
     public Point getLocation(Point p) {
         if (p == null) p = new Point();
         p.x = bounds.x;
@@ -354,9 +354,28 @@ implements Selectable {
      * component to a negative co-ordinate, it will automatically be normalized (along
      * with everything else in the playpen) to non-negative coordinates.
      */
-    @Transient @Mutator
+    @Mutator
     public void setLocation(Point point) {
-        setBounds(point.x,point.y, getWidth(), getHeight());
+        Point oldLocation = bounds.getLocation();
+        
+        int width = getWidth();
+        int height = getHeight();
+        
+        if (getPlayPen() != null) {
+            PlayPenComponentUI ui = getUI();
+            
+            if (ui != null) {
+                ui.revalidate();
+                Dimension ps = ui.getPreferredSize();
+                if (ps != null) {
+                    width = ps.width;
+                    height = ps.height;
+                }
+            }
+        }
+        
+        setBounds(point.x,point.y, width, height);
+        firePropertyChange("location", oldLocation, point);
     }
 
     /**
@@ -366,7 +385,7 @@ implements Selectable {
      */
     @Transient @Mutator
     public void setLocation(int x, int y) {
-        setBounds(x, y, getWidth(), getHeight());
+        setLocation(new Point(x, y));
     }
     
     @NonBound
