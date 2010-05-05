@@ -240,9 +240,14 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 
                 PlDotIni plIni;
                 try {
-					plIni = new PlDotIni(
-                    		getServerURI(projectLocation.getServiceInfo(), "/jdbc/"),
-                    		getServerURI(projectLocation.getServiceInfo(), MONDRIAN_SCHEMA_REL_PATH));
+					plIni = new PlDotIni(getServerURI(projectLocation.getServiceInfo(), "/jdbc/"),
+                            getServerURI(projectLocation.getServiceInfo(), MONDRIAN_SCHEMA_REL_PATH)) {
+					    
+					    @Override
+					    public List<UserDefinedSQLType> getSQLTypes() {
+					        return ArchitectClientSideSession.this.getSQLTypes();
+					    }
+					};
                     plIni.read(response.getEntity().getContent());
                     logger.debug("Data source collection has URI " + plIni.getServerBaseURI());
                 } catch (URISyntaxException e) {
@@ -924,6 +929,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         return updater.getRevision();
     }
     
+    /*
+     * Do not remove this method without first changing the custom PlDotini in getDataSources().
+     * Doing so will cause infinite recursion when accessing the SQLTypes.
+     */
     @Override
     public List<UserDefinedSQLType> getSQLTypes() {
         return getSystemWorkspace().getSqlTypes();
