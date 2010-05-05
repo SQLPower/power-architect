@@ -132,7 +132,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
             int orphanStartY = frame.height - maxy;
             logger.debug("max y is "+maxy+". orphanStartY is "+orphanStartY);
             for (LayoutNode tp : orphanedTables) {
-                tp.setBounds(tp.getX(), tp.getY() + orphanStartY, tp.getWidth(), tp.getHeight());
+                tp.setLocation(tp.getX(), tp.getY() + orphanStartY);
             }
             frame.height -= maxy + ORPHAN_BUFFER;
         }
