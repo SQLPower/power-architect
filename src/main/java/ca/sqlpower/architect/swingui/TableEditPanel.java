@@ -143,19 +143,9 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
 	    if (tp != null) tp.removeSPListener(this);
 		table.begin(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
         try {	
-		    StringBuffer warnings = new StringBuffer();
-            //We need to check if the table name and/or primary key name is empty or not
-            //if they are, we need to warn the user since it will mess up the SQLScripts we create
-            if (logicalName.getText().trim().length() == 0) {
-                warnings.append(Messages.getString("TableEditPanel.blankTableNameWarning")); //$NON-NLS-1$
-                
-            }
-            if (pkName.isEnabled() &&
-                    pkName.getText().trim().length() == 0) {
-                warnings.append(Messages.getString("TableEditPanel.blankPkNameWarning"));                 //$NON-NLS-1$
-            }
+		    String warnings = generateWarnings();
 
-            if (warnings.toString().length() == 0) {
+            if (warnings.length() == 0) {
                 
                 // important: set the primary key name first, because if the primary
                 // key was called (for example) new_table_pk, and the table was called
@@ -188,7 +178,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
                 }
                 return true;
             } else {
-                JOptionPane.showMessageDialog(panel,warnings.toString());
+                JOptionPane.showMessageDialog(panel,warnings);
                 //this is done so we can go back to this dialog after the error message
                 return false;
             }            
@@ -198,6 +188,25 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
 			table.commit();
 		}
 	}
+
+    /**
+     * Returns a String of warning messages if the table name or primary key
+     * name is empty. An empty String is returned if both names are non-empty.
+     */
+    protected String generateWarnings() {
+        StringBuffer warnings = new StringBuffer();
+        //We need to check if the table name and/or primary key name is empty or not
+        //if they are, we need to warn the user since it will mess up the SQLScripts we create
+        if (logicalName.getText().trim().length() == 0) {
+            warnings.append(Messages.getString("TableEditPanel.blankTableNameWarning")); //$NON-NLS-1$
+            
+        }
+        if (pkName.isEnabled() &&
+                pkName.getText().trim().length() == 0) {
+            warnings.append(Messages.getString("TableEditPanel.blankPkNameWarning"));                 //$NON-NLS-1$
+        }
+        return warnings.toString();
+    }
 
 	public void discardChanges() {
 	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
@@ -217,7 +226,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
     }
     
     /**
-     * For testing only
+     * For testing only or when initially creating a table.
      * @param newName new logical name for the table
      */
     public void setNameText(String newName) {
@@ -233,7 +242,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
     }
     
     /**
-     * For testing only
+     * For testing only or when initially creating a table.
      * @param newPKName new primaryKeyName for the table
      */
     public void setPkNameText(String newPkName) {
@@ -249,7 +258,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
     }
     
     /**
-     * For testing only
+     * For testing only or when initially creating a table.
      * @param newPhysicalName new physical name for the table
      */
     public void setPhysicalNameText(String newPhysicalName) {
