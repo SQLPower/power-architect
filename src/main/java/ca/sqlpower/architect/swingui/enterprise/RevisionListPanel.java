@@ -43,12 +43,12 @@ import javax.swing.text.NumberFormatter;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.ArchitectPersisterSuperConverter;
 import ca.sqlpower.architect.enterprise.ArchitectSessionPersister;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
-import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -201,7 +201,7 @@ public class RevisionListPanel {
 
                 ArchitectSessionPersister sessionPersister = new ArchitectSessionPersister(
                         "inbound-" + location.getUUID(), revisionSession.getWorkspace(),
-                        new SessionPersisterSuperConverter(
+                        new ArchitectPersisterSuperConverter(
                                 revisionSession.getDataSources(), revisionSession.getWorkspace()));
 
                 sessionPersister.setWorkspaceContainer(revisionSession);

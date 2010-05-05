@@ -19,10 +19,12 @@
 
 package ca.sqlpower.architect.enterprise;
 
+import ca.sqlpower.dao.session.SPObjectConverter;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 /**
  * This converter contains specific conversions for Architect objects. This will
@@ -30,8 +32,11 @@ import ca.sqlpower.sql.SPDataSource;
  */
 public class ArchitectPersisterSuperConverter extends SessionPersisterSuperConverter {
 
+    private SPObjectConverter spObjectConverter;
+
     public ArchitectPersisterSuperConverter(DataSourceCollection<? extends SPDataSource> dsCollection, SPObject root) {
         super(dsCollection, root);
+        spObjectConverter = new SPObjectConverter(root);
     }
     
     @Override
@@ -41,7 +46,22 @@ public class ArchitectPersisterSuperConverter extends SessionPersisterSuperConve
     
     @Override
     public Object convertToComplexType(Object o, Class<? extends Object> type) {
-        return super.convertToComplexType(o, type);
+        if (o == null) {
+            return null;
+            
+        } else if (SPObject.class.isAssignableFrom(type)) {
+            SPObject foundObject = spObjectConverter.convertToComplexType((String) o);
+            if (foundObject == null && dsCollection != null) {
+                for (UserDefinedSQLType sqlType : dsCollection.getSQLTypes()) {
+                    if (sqlType.getUUID().equals((String) o)) {
+                        return sqlType;
+                    }
+                }
+            }
+            return foundObject;
+        } else {
+            return super.convertToComplexType(o, type);
+        }
     }
 
 }
