@@ -22,6 +22,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
@@ -32,7 +33,6 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -43,6 +43,9 @@ import ca.sqlpower.swingui.DataEntryPanel;
  */
 public class CreateTableAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(CreateTableAction.class);
+	
+	// The default name of a table when it is initially created.
+	private static final String NEW_TABLE_NAME = "New_Table";
 
 	private final ArchitectSwingSession session;
 	
@@ -60,7 +63,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 		SQLTable t = null; 
 		t = new SQLTable();
 		t.initFolders(true);
-		t.setName("New_Table"); //$NON-NLS-1$
+		//t.setName("New_Table"); //$NON-NLS-1$
 		
 		TablePane tp = new TablePane(t, playpen.getContentPane());
 		TablePlacer tablePlacer = new TablePlacer(playpen, tp);
@@ -82,33 +85,44 @@ public class CreateTableAction extends AbstractArchitectAction {
         }
 
         @Override
-        public DataEntryPanel place(Point p) throws SQLObjectException {
-            try {          
-                session.getWorkspace().begin("Creating a SQLTable and TablePane");                
-                session.getTargetDatabase().addChild(tp.getModel());
-                playpen.addTablePane(tp, p);
-                session.getWorkspace().commit();
-            } catch (Throwable t) {
-                session.getWorkspace().rollback("Error creating table and table pane");
-                throw new RuntimeException(t);
-            }
+        public DataEntryPanel place(final Point p) throws SQLObjectException {
             DataEntryPanel editPanel = null;
-            playpen.selectNone();
-            tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
 
             editPanel = new TableEditPanel(playpen.getSession(), tp.getModel()) {
                 @Override
-                public void discardChanges() {
-                    try {
-                        playpen.getSession().getTargetDatabase().removeChild(tp.getModel());
-                        playpen.getTableNames().remove(tp.getModel().getName());
-                    } catch (IllegalArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (ObjectDependentException e) {
-                        throw new RuntimeException(e);
+                public boolean applyChanges() {
+                    String warnings = generateWarnings();
+                    if (warnings.length() == 0) {
+                        try {          
+                            session.getWorkspace().begin("Creating a SQLTable and TablePane");
+                            if (super.applyChanges()) {
+                                tp.setName(table.getName());
+                                session.getTargetDatabase().addChild(tp.getModel());
+                                playpen.selectNone();
+                                playpen.addTablePane(tp, p);
+                                tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
+                                session.getWorkspace().commit();
+                                return true;
+                            } else {
+                                session.getWorkspace().rollback("Error creating table and table pane");
+                                return false;
+                            }
+                        } catch (Throwable t) {
+                            session.getWorkspace().rollback("Error creating table and table pane");
+                            throw new RuntimeException(t);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(getPanel(),warnings);
+                        //this is done so we can go back to this dialog after the error message
+                        return false;
                     }
                 }
             };
+            
+            ((TableEditPanel) editPanel).setNameText(NEW_TABLE_NAME);
+            ((TableEditPanel) editPanel).setPhysicalNameText(NEW_TABLE_NAME);
+            ((TableEditPanel) editPanel).setPkNameText(NEW_TABLE_NAME + "_pk");
+            
             return editPanel;
         }
 	}
