@@ -71,28 +71,28 @@ public class ArchitectUtilsTest extends TestCase {
 	}
 
 	public void testColumnsDiffer() {
-		SQLColumn col1 = new SQLColumn(null, "column_1", Types.VARCHAR, "VARCHAR", 25, 0, 0, "remarks", null, false);
-		SQLColumn col2 = new SQLColumn(null, "column_1", Types.VARCHAR, "VARCHAR", 25, -1, 0, "remarks", null, false);
+		SQLColumn col1 = new SQLColumn(null, "column_1", Types.VARCHAR, "VARCHAR", 25, 0, 0, "remarks", null, false, null);
+		SQLColumn col2 = new SQLColumn(null, "column_1", Types.VARCHAR, "VARCHAR", 25, -1, 0, "remarks", null, false, null);
 		assertFalse(ArchitectUtils.columnsDiffer(col1, col2));
 
-		col1 = new SQLColumn(null, "column_1", Types.CHAR, "CHAR", 25, 0, 0, "remarks", null, false);
-		col2 = new SQLColumn(null, "column_1", Types.CHAR, "CHAR", 25, -1, 0, "remarks", null, false);
+		col1 = new SQLColumn(null, "column_1", Types.CHAR, "CHAR", 25, 0, 0, "remarks", null, false, null);
+		col2 = new SQLColumn(null, "column_1", Types.CHAR, "CHAR", 25, -1, 0, "remarks", null, false, null);
 		assertFalse(ArchitectUtils.columnsDiffer(col1, col2));
 
-		col1 = new SQLColumn(null, "column_1", Types.INTEGER, "INTEGER", 33, 0, 0, "remarks", null, false);
-		col2 = new SQLColumn(null, "column_1", Types.INTEGER, "LONGINT", 42, -1, 0, "remarks", null, false);
+		col1 = new SQLColumn(null, "column_1", Types.INTEGER, "INTEGER", 33, 0, 0, "remarks", null, false, null);
+		col2 = new SQLColumn(null, "column_1", Types.INTEGER, "LONGINT", 42, -1, 0, "remarks", null, false, null);
 		assertFalse(ArchitectUtils.columnsDiffer(col1, col2));
 
-		col1 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 1, 0, 0, "remarks", null, false);
-		col2 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 2, 0, 0, "remarks", null, false);
+		col1 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 1, 0, 0, "remarks", null, false, null);
+		col2 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 2, 0, 0, "remarks", null, false, null);
 		assertTrue(ArchitectUtils.columnsDiffer(col1, col2));
 
-		col1 = new SQLColumn(null, "column_1", Types.NUMERIC, "NUMBER", 1, 0, 0, "remarks", null, false);
-		col2 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 2, 0, 0, "remarks", null, false);
+		col1 = new SQLColumn(null, "column_1", Types.NUMERIC, "NUMBER", 1, 0, 0, "remarks", null, false, null);
+		col2 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 2, 0, 0, "remarks", null, false, null);
 		assertTrue(ArchitectUtils.columnsDiffer(col1, col2));
 
-		col1 = new SQLColumn(null, "column_1", Types.NUMERIC, "NUMBER", 10, 5, 0, "remarks", null, false);
-		col2 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 10, 5, 0, "remarks", null, false);
+		col1 = new SQLColumn(null, "column_1", Types.NUMERIC, "NUMBER", 10, 5, 0, "remarks", null, false, null);
+		col2 = new SQLColumn(null, "column_1", Types.DECIMAL, "NUMBER", 10, 5, 0, "remarks", null, false, null);
 		assertFalse(ArchitectUtils.columnsDiffer(col1, col2));
 	}
 	/*
