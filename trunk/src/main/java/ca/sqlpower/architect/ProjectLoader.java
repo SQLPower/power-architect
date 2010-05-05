@@ -712,19 +712,24 @@ public class ProjectLoader {
             }
             
             String sqlTypeUUID = attributes.getValue("userDefinedTypeUUID");
-            UserDefinedSQLType sqlType;
+            UserDefinedSQLType sqlType = null;
             
-            // If sqlTypeUUID isn't in the file, probably because it's from an older version...
-            if (sqlTypeUUID == null) {
-                String type = attributes.getValue("type");
-                int jdbcType = Integer.valueOf(type);
-                sqlType = session.findSQLTypeByJDBCType(jdbcType);
-            } else {
+            if (sqlTypeUUID != null ){
                 sqlType = session.findSQLTypeByUUID(sqlTypeUUID);
             }
             
-            // TODO: Handle gracefully if sqlType is null, in which case, the
-            // user is probably loading a project from another user or server.
+            // If userDefinedTypeUUID isn't in the file, probably because it's
+            // from an older version... or if the userDefinedTypeUUID doesn't
+            // exist in this system, then try to guess it by JDBC type.
+            if (sqlTypeUUID == null || sqlType == null) {
+                String type = attributes.getValue("type");
+                int jdbcType = Integer.valueOf(type);
+                // TODO: If a session contains more than one UserDefinedSQLType
+                // (most likely when loading into a server) with the same JDBC
+                // type, then it may not pick the 'right' one.
+                sqlType = session.findSQLTypeByJDBCType(jdbcType);
+            }
+
             col.getUserDefinedSQLType().setUpstreamType(sqlType);
             
             LoadSQLObjectAttributes(col, attributes);
