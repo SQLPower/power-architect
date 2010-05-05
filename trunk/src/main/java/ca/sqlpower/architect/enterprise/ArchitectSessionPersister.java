@@ -19,31 +19,91 @@
 
 package ca.sqlpower.architect.enterprise;
 
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
+import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPSessionPersister;
 import ca.sqlpower.dao.helper.AbstractSPPersisterHelper;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * An architect specific persister.
  */
 public class ArchitectSessionPersister extends SPSessionPersister {
 
+    /**
+     * This listener is only attached to the {@link PlayPenContentPane} and it's
+     * children. It will cause the viewable components to revalidate after
+     * changes from the server since the persister has magic disabled while
+     * making changes and the components only revalidate if magic is enabled.
+     */
+    private final SPListener ppcRevalidateListener = new AbstractSPListener() {
+    
+        public void childAdded(SPChildEvent e) {
+            if (e.getChild() instanceof PlayPenContentPane) {
+                e.getChild().addSPListener(this);
+                for (PlayPenComponent ppc : ((PlayPenContentPane) e.getChild()).getChildren(PlayPenComponent.class)) {
+                    ppc.addSPListener(this);
+                }
+            } else if (e.getChild() instanceof PlayPenComponent) {
+                e.getChild().addSPListener(this);
+            }
+        }
+        
+        public void childRemoved(SPChildEvent e) {
+            e.getChild().removeSPListener(this);
+        }
+        
+        public void propertyChanged(PropertyChangeEvent evt) {
+            if (evt.getSource() instanceof PlayPenComponent) {
+                componentsToRevalidate.add(((PlayPenComponent) evt.getSource()));
+            }
+        }
+    
+    };
+    
+    /**
+     * This is the set of components that need to be revalidated at the end of
+     * a commit so they are revalidated when magic is enabled.
+     */
+    private final Set<PlayPenComponent> componentsToRevalidate = new HashSet<PlayPenComponent>();
+
     public ArchitectSessionPersister(String name, SPObject root, SessionPersisterSuperConverter converter) {
         super(name, root, converter);
+        SQLPowerUtils.listenToHierarchy(root, ppcRevalidateListener);
     }
 
+    @Override
+    public void commit() throws SPPersistenceException {
+        synchronized(getWorkspaceContainer().getWorkspace()) {
+            componentsToRevalidate.clear();
+            super.commit();
+            for (PlayPenComponent ppc : componentsToRevalidate) {
+                ppc.revalidate();
+            }
+            componentsToRevalidate.clear();
+        }
+    }
+    
     @Override
     protected void refreshRootNode(PersistedSPObject pso) {
         root.setUUID(pso.getUUID());

@@ -158,7 +158,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		dataSourceCollection = getDataSources();
 		
 		sessionPersister = new ArchitectSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
-		        new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
+		        new ArchitectPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		sessionPersister.setWorkspaceContainer(this);
 		
 		jsonMessageDecoder = new SPJSONMessageDecoder(sessionPersister);
@@ -274,7 +274,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	public void startUpdaterThread() {
 		
 		final SPPersisterListener listener = new SPPersisterListener(jsonPersister, sessionPersister,
-						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
+						new ArchitectPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		SQLPowerUtils.listenToHierarchy(getWorkspace(), listener);
 		
 		updater.setListener(listener);
@@ -304,7 +304,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	public void persistProjectToServer() throws SPPersistenceException {
 		final SPPersisterListener tempListener = new SPPersisterListener(jsonPersister,
-						new SessionPersisterSuperConverter(dataSourceCollection, getWorkspace()));
+						new ArchitectPersisterSuperConverter(dataSourceCollection, getWorkspace()));
 		tempListener.persistObject(getWorkspace(), 0);
 	}
 	
@@ -935,6 +935,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
      */
     @Override
     public List<UserDefinedSQLType> getSQLTypes() {
-        return getSystemWorkspace().getSqlTypes();
+        final List<UserDefinedSQLType> sqlTypes = getSystemWorkspace().getSqlTypes();
+        return sqlTypes;
     }
 }
