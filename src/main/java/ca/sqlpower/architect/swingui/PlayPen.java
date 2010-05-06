@@ -1013,30 +1013,35 @@ public class PlayPen extends JPanel
 	public void setScrollPane(Component ppScrollPane){
         this.ppScrollPane = ppScrollPane;
     }
-	
-	/**
-	 * Modifies the given point p in model space to apparent position
-	 * in screen space.
-	 *
-	 * @param p The point in model space (the space where the actual
-	 * components of the content pane live).  THIS PARAMETER IS MODIFIED.
-	 * @return The given point p, which has been modified.
-	 */
+
+    /**
+     * Modifies the given point p in model space to apparent position in screen
+     * space.
+     * 
+     * @param p
+     *            The point in model space (the space where the actual
+     *            components of the content pane live). THIS PARAMETER IS
+     *            MODIFIED.
+     * @return The given point p, which has been modified or null if p was null.
+     */
 	public Point zoomPoint(Point p) {
+	    if (p == null) return null;
 		p.x = (int) ((double) p.x * zoom);
 		p.y = (int) ((double) p.y * zoom);
 		return p;
 	}
 
-	/**
-	 * Modifies the given point p from apparent position in screen
-	 * space to model space.
-	 *
-	 * @param p The point in visible screen space (the space where
-	 * mouse events are reported).  THIS PARAMETER IS MODIFIED.
-	 * @return The given point p, which has been modified.
-	 */
+    /**
+     * Modifies the given point p from apparent position in screen space to
+     * model space.
+     * 
+     * @param p
+     *            The point in visible screen space (the space where mouse
+     *            events are reported). THIS PARAMETER IS MODIFIED.
+     * @return The given point p, which has been modified or null if p was null.
+     */
 	public Point unzoomPoint(Point p) {
+	    if (p == null) return null;
 		p.x = (int) ((double) p.x / zoom);
 		p.y = (int) ((double) p.y / zoom);
 		return p;
