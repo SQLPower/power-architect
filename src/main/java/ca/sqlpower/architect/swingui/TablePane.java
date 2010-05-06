@@ -834,11 +834,19 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             }
 
             try {
+                List<SQLColumn> droppedColumns = new ArrayList<SQLColumn>();
+                for (SQLObject o : droppedItems) {
+                    if (o instanceof SQLColumn) {
+                        droppedColumns.add((SQLColumn) o);
+                    } else if (o instanceof SQLTable) {
+                        droppedColumns.addAll(((SQLTable) o).getChildren(SQLColumn.class));
+                    }
+                }
                 for (int i = 0; i < importedKeys.size(); i++) {
                     // Not dealing with self-referencing tables right now.
                     if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
                     for (int j = 0; j < droppedItems.size(); j++) {
-                        if (importedKeys.get(i).containsFkColumn((SQLColumn)(droppedItems.get(j)))) {
+                        if (importedKeys.get(i).containsFkColumn(droppedColumns.get(j))) {
                             importedKeys.get(i).setIdentifying(newColumnsInPk);
                             break;
                         }

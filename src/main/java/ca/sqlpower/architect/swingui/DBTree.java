@@ -969,11 +969,16 @@ public class DBTree extends JTree implements DragSourceListener {
                     for (int j = i + 1; j < sortedLengths.size(); j++) {
                         for (SQLObject childObject : pathLengthsToSelectedObjectsMap.get(sortedLengths.get(j))) {
                             SQLObject parent = childObject;
+                            boolean parented = false;
                             for (int k = 0; k < sortedLengths.get(j) - pathCount; k++) {
                                 if (!(parent.getParent() instanceof SQLObject)) break;
                                 parent = (SQLObject) parent.getParent();
+                                if (parent == singleParent) {
+                                    parented = true;
+                                    break;
+                                }
                             }
-                            if (parent != singleParent) {
+                            if (!parented) {
                                 isParentOfAllSelected = false;
                                 break;
                             }
