@@ -372,6 +372,9 @@ implements Selectable {
         int width = getWidth();
         int height = getHeight();
         
+        Rectangle oldBounds = new Rectangle(getLocation().x, getLocation().y, 
+                getSize().width, getSize().height);
+        
         if (isMagicEnabled()) {
             if (getPlayPen() != null) {
                 PlayPenComponentUI ui = getUI();
@@ -390,6 +393,8 @@ implements Selectable {
         
         location = new Point(point.x, point.y);
         firePropertyChange("location", oldLocation, point);
+        firePropertyChange("bounds", oldBounds, new Rectangle(getLocation().x, getLocation().y, 
+                getSize().width, getSize().height));
         repaint();
     }
 
@@ -412,9 +417,13 @@ implements Selectable {
     
     @Mutator
     public void setSize(Dimension size) {
+        Rectangle oldBounds = new Rectangle(getLocation().x, getLocation().y, 
+                getSize().width, getSize().height);
         Dimension oldSize = this.size;
         this.size = new Dimension(size);
         firePropertyChange("size", oldSize, this.size);
+        firePropertyChange("bounds", oldBounds, new Rectangle(getLocation().x, getLocation().y, 
+                getSize().width, getSize().height));
     }
 
     /**
