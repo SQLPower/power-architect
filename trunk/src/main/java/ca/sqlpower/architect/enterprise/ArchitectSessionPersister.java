@@ -21,6 +21,7 @@ package ca.sqlpower.architect.enterprise;
 
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,16 +92,22 @@ public class ArchitectSessionPersister extends SPSessionPersister {
         super(name, root, converter);
         SQLPowerUtils.listenToHierarchy(root, ppcRevalidateListener);
     }
+    
+    /**
+     * Returns a collection of components that were updated by the
+     * last commit to the server. These components may need to be revalidated as
+     * they are used to display the UI.
+     */
+    public Set<PlayPenComponent> getComponentsToRevalidate() {
+        return Collections.unmodifiableSet(componentsToRevalidate);
+    }
+
 
     @Override
     public void commit() throws SPPersistenceException {
         synchronized(getWorkspaceContainer().getWorkspace()) {
             componentsToRevalidate.clear();
             super.commit();
-            for (PlayPenComponent ppc : componentsToRevalidate) {
-                ppc.revalidate();
-            }
-            componentsToRevalidate.clear();
         }
     }
     

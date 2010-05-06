@@ -62,8 +62,13 @@ implements Selectable {
     private static final Logger logger = Logger.getLogger(PlayPenComponent.class);    
 
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
+
+    /**
+     * The top left point of the component.
+     */
+    private Point location = new Point();
+    private Dimension size = new Dimension();
     
-    private Rectangle bounds = new Rectangle();
     private Dimension minimumSize = new Dimension();
     protected Color backgroundColor;
     protected Color foregroundColor;
@@ -135,8 +140,11 @@ implements Selectable {
     protected PlayPenComponent(PlayPenComponent copyMe, PlayPenContentPane parent) {
         this(copyMe.getName(), parent);
         backgroundColor = copyMe.backgroundColor;
-        if (copyMe.bounds != null) {
-            bounds = new Rectangle(copyMe.bounds);
+        if (copyMe.location != null) {
+            location = new Point(copyMe.location);
+        }
+        if (copyMe.size != null) {
+            size = new Dimension(copyMe.size);
         }
         componentPreviouslySelected = copyMe.componentPreviouslySelected;
         foregroundColor = copyMe.foregroundColor;
@@ -216,7 +224,7 @@ implements Selectable {
             logger.debug("getPlayPen() returned null.  Not generating repaint request."); //$NON-NLS-1$
             return;
         } else {
-            Rectangle r = new Rectangle(bounds);
+            Rectangle r = new Rectangle(location.x, location.y, size.width, size.height);
             if (isMagicEnabled()) { 
                 // This temporary disabling of magic is under the
                 // assumption that this method properly revalidates
@@ -262,8 +270,10 @@ implements Selectable {
                     +" to ["+r.x+","+r.y+","+r.width+","+r.height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
         }
 
-        bounds.setBounds(r.x,r.y,r.width,r.height);            
-        firePropertyChange("bounds", oldBounds, new Rectangle(bounds));
+        setLocation(r.x, r.y);
+        setSize(new Dimension(r.width, r.height));
+        firePropertyChange("bounds", oldBounds, new Rectangle(getLocation().x, getLocation().y, 
+                getSize().width, getSize().height));
 
         repaint();
     }
@@ -310,13 +320,13 @@ implements Selectable {
     @NonBound
     public Rectangle getBounds(Rectangle r) {
         if (r == null) r = new Rectangle();
-        r.setBounds(bounds);
+        r.setBounds(getLocation().x, getLocation().y, getSize().width, getSize().height);
         return r;
     }
 
-    @Transient @Accessor(isInteresting=true)
+    @Accessor(isInteresting=true)
     public Dimension getSize() {
-        return new Dimension(bounds.width, bounds.height);
+        return new Dimension(size);
     }
     
     /**
@@ -344,8 +354,8 @@ implements Selectable {
     @Accessor
     public Point getLocation(Point p) {
         if (p == null) p = new Point();
-        p.x = bounds.x;
-        p.y = bounds.y;
+        p.x = location.x;
+        p.y = location.y;
         return p;
     }
     
@@ -356,26 +366,31 @@ implements Selectable {
      */
     @Mutator
     public void setLocation(Point point) {
-        Point oldLocation = bounds.getLocation();
+        Point oldLocation = location;
+        repaint();
         
         int width = getWidth();
         int height = getHeight();
         
-        if (getPlayPen() != null) {
-            PlayPenComponentUI ui = getUI();
-            
-            if (ui != null) {
-                ui.revalidate();
-                Dimension ps = ui.getPreferredSize();
-                if (ps != null) {
-                    width = ps.width;
-                    height = ps.height;
+        if (isMagicEnabled()) {
+            if (getPlayPen() != null) {
+                PlayPenComponentUI ui = getUI();
+
+                if (ui != null) {
+                    ui.revalidate();
+                    Dimension ps = ui.getPreferredSize();
+                    if (ps != null) {
+                        width = ps.width;
+                        height = ps.height;
+                    }
                 }
             }
+            setSize(new Dimension(width, height));
         }
         
-        setBounds(point.x,point.y, width, height);
+        location = new Point(point.x, point.y);
         firePropertyChange("location", oldLocation, point);
+        repaint();
     }
 
     /**
@@ -395,9 +410,11 @@ implements Selectable {
         return (oldVal.x != newVal.x || oldVal.y != newVal.y);
     }
     
-    @Transient @Mutator
+    @Mutator
     public void setSize(Dimension size) {
-        setBounds(getX(), getY(), size.width, size.height);
+        Dimension oldSize = this.size;
+        this.size = new Dimension(size);
+        firePropertyChange("size", oldSize, this.size);
     }
 
     /**
@@ -424,22 +441,22 @@ implements Selectable {
     
     @Transient @Accessor
     public int getX() {
-        return bounds.x;
+        return getLocation().x;
     }
     
     @Transient @Accessor
     public int getY() {
-        return bounds.y;
+        return getLocation().y;
     }
     
     @Transient @Accessor
     public int getWidth() {
-        return bounds.width;
+        return getSize().width;
     }
     
     @Transient @Accessor
     public int getHeight() {
-        return bounds.height;
+        return getSize().height;
     }
     
     @Transient @Accessor

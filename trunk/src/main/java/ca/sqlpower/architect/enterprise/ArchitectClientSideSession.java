@@ -49,10 +49,11 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersisterListener;
-import ca.sqlpower.dao.SPSessionPersister;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.json.SPJSONPersister;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
@@ -110,7 +111,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	 * The persister that will update the project in this session with changes from
 	 * the server.
 	 */
-	private final SPSessionPersister sessionPersister;
+	private final ArchitectSessionPersister sessionPersister;
 	
 	/**
 	 * Used to convert JSON sent from the server into persist calls to forward the
@@ -131,6 +132,34 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         securitySessions = new HashMap<String, ArchitectClientSideSession>();
     }
 	
+    /**
+     * Calls revalidate on all UI components changed in the last commit since this
+     * must be done at a point when magic is enabled again so the revalidate
+     * actually takes effect.
+     */
+    private final UpdateListener revalidateUIComponentsListener = new UpdateListener() {
+    
+        public void workspaceDeleted() {
+            //do nothing
+        }
+    
+        @SuppressWarnings("unchecked")
+        public boolean updatePerformed(NetworkConflictResolver resolver) {
+            for (PlayPenComponent cp : sessionPersister.getComponentsToRevalidate()) {
+                cp.revalidate();
+            }
+            return false;
+        }
+    
+        public boolean updateException(NetworkConflictResolver resolver) {
+            //do nothing
+            return false;
+        }
+    
+        public void preUpdatePerformed(NetworkConflictResolver resolver) {
+            //do nothing
+        }
+    };
 	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
@@ -168,6 +197,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		        jsonMessageDecoder, 
 		        createHttpClient(projectLocation.getServiceInfo()), 
 		        outboundHttpClient, this);
+		
+		updater.addListener(revalidateUIComponentsListener);
 		
 		jsonPersister = new SPJSONPersister(updater);
 	}
