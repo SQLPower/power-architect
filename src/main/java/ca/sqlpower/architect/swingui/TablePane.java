@@ -845,7 +845,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 for (int i = 0; i < importedKeys.size(); i++) {
                     // Not dealing with self-referencing tables right now.
                     if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
-                    for (int j = 0; j < droppedItems.size(); j++) {
+                    for (int j = 0; j < droppedColumns.size(); j++) {
                         if (importedKeys.get(i).containsFkColumn(droppedColumns.get(j))) {
                             importedKeys.get(i).setIdentifying(newColumnsInPk);
                             break;
