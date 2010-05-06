@@ -201,6 +201,17 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		updater.addListener(revalidateUIComponentsListener);
 		
 		jsonPersister = new SPJSONPersister(updater);
+		
+		try {
+            ServerInfoProvider.getServerVersion(
+                    projectLocation.getServiceInfo().getServerAddress(), 
+                    String.valueOf(projectLocation.getServiceInfo().getPort()), 
+                    projectLocation.getServiceInfo().getPath(), 
+                    projectLocation.getServiceInfo().getUsername(), 
+                    projectLocation.getServiceInfo().getPassword());
+        } catch (Exception e) {
+            throw new AssertionError("Exception encountered while verifying the server license:" + e.getMessage());
+        }
 	}
 
 	// -
