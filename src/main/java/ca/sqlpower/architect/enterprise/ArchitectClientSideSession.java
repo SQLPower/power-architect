@@ -49,9 +49,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersisterListener;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
@@ -132,35 +130,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         securitySessions = new HashMap<String, ArchitectClientSideSession>();
     }
 	
-    /**
-     * Calls revalidate on all UI components changed in the last commit since this
-     * must be done at a point when magic is enabled again so the revalidate
-     * actually takes effect.
-     */
-    private final UpdateListener revalidateUIComponentsListener = new UpdateListener() {
-    
-        public void workspaceDeleted() {
-            //do nothing
-        }
-    
-        @SuppressWarnings("unchecked")
-        public boolean updatePerformed(NetworkConflictResolver resolver) {
-            for (PlayPenComponent cp : sessionPersister.getComponentsToRevalidate()) {
-                cp.revalidate();
-            }
-            return false;
-        }
-    
-        public boolean updateException(NetworkConflictResolver resolver) {
-            //do nothing
-            return false;
-        }
-    
-        public void preUpdatePerformed(NetworkConflictResolver resolver) {
-            //do nothing
-        }
-    };
-	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
 		super(context, name);
@@ -197,8 +166,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		        jsonMessageDecoder, 
 		        createHttpClient(projectLocation.getServiceInfo()), 
 		        outboundHttpClient, this);
-		
-		updater.addListener(revalidateUIComponentsListener);
 		
 		jsonPersister = new SPJSONPersister(updater);
 		

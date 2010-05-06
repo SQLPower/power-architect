@@ -283,7 +283,6 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     }
 
     public void revalidate() {
-        olapPane.setSize(getPreferredSize());
     }
 
     /**

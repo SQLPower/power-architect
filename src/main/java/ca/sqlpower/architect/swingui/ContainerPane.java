@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -656,15 +655,4 @@ implements DragSourceListener, LayoutNode {
         return getName();
     }
 
-    @Transient @Accessor
-    @Override
-    public Dimension getSize() {
-        return super.getSize();
-    }
-
-    @Transient @Mutator
-    @Override
-    public void setSize(Dimension size) {
-        super.setSize(size);
-    }
 }

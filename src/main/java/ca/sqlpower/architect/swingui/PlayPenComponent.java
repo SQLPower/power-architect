@@ -62,13 +62,8 @@ implements Selectable {
     private static final Logger logger = Logger.getLogger(PlayPenComponent.class);    
 
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
-
-    /**
-     * The top left point of the component.
-     */
-    private Point location = new Point();
-    private Dimension size = new Dimension();
     
+    private Rectangle bounds = new Rectangle();
     private Dimension minimumSize = new Dimension();
     protected Color backgroundColor;
     protected Color foregroundColor;
@@ -140,11 +135,8 @@ implements Selectable {
     protected PlayPenComponent(PlayPenComponent copyMe, PlayPenContentPane parent) {
         this(copyMe.getName(), parent);
         backgroundColor = copyMe.backgroundColor;
-        if (copyMe.location != null) {
-            location = new Point(copyMe.location);
-        }
-        if (copyMe.size != null) {
-            size = new Dimension(copyMe.size);
+        if (copyMe.bounds != null) {
+            bounds = new Rectangle(copyMe.bounds);
         }
         componentPreviouslySelected = copyMe.componentPreviouslySelected;
         foregroundColor = copyMe.foregroundColor;
@@ -224,7 +216,7 @@ implements Selectable {
             logger.debug("getPlayPen() returned null.  Not generating repaint request."); //$NON-NLS-1$
             return;
         } else {
-            Rectangle r = new Rectangle(location.x, location.y, size.width, size.height);
+            Rectangle r = new Rectangle(bounds);
             if (isMagicEnabled()) { 
                 // This temporary disabling of magic is under the
                 // assumption that this method properly revalidates
@@ -234,8 +226,6 @@ implements Selectable {
                 PlayPenComponentUI ui = getUI();
                 if (ui != null) {
                     ui.revalidate();
-                    Dimension ps = ui.getPreferredSize();
-                    if (ps != null) setSize(ps);
                 }            
                 if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
                 setMagicEnabled(true);
@@ -260,7 +250,7 @@ implements Selectable {
         setBounds(new Rectangle(x, y, width, height));
     }
     
-    @Transient @Mutator
+    @Mutator
     public void setBounds(Rectangle r) {
         Rectangle oldBounds = getBounds();   
         repaint();
@@ -270,10 +260,8 @@ implements Selectable {
                     +" to ["+r.x+","+r.y+","+r.width+","+r.height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
         }
 
-        setLocation(r.x, r.y);
-        setSize(new Dimension(r.width, r.height));
-        firePropertyChange("bounds", oldBounds, new Rectangle(getLocation().x, getLocation().y, 
-                getSize().width, getSize().height));
+        bounds.setBounds(r.x,r.y,r.width,r.height);            
+        firePropertyChange("bounds", oldBounds, new Rectangle(bounds));
 
         repaint();
     }
@@ -281,7 +269,7 @@ implements Selectable {
     /**
      * Returns a copy of this component's bounding rectangle.
      */
-    @Transient @Accessor
+    @Accessor
     public Rectangle getBounds() {
         return getBounds(null);
     }
@@ -320,13 +308,13 @@ implements Selectable {
     @NonBound
     public Rectangle getBounds(Rectangle r) {
         if (r == null) r = new Rectangle();
-        r.setBounds(getLocation().x, getLocation().y, getSize().width, getSize().height);
+        r.setBounds(bounds);
         return r;
     }
 
-    @Accessor(isInteresting=true)
+    @Transient @Accessor(isInteresting=true)
     public Dimension getSize() {
-        return new Dimension(size);
+        return new Dimension(bounds.width, bounds.height);
     }
     
     /**
@@ -351,11 +339,11 @@ implements Selectable {
      * create a new point for you.
      * @return p if p was not null; a new point otherwise.
      */
-    @Accessor
+    @Transient @Accessor
     public Point getLocation(Point p) {
         if (p == null) p = new Point();
-        p.x = location.x;
-        p.y = location.y;
+        p.x = bounds.x;
+        p.y = bounds.y;
         return p;
     }
     
@@ -364,38 +352,28 @@ implements Selectable {
      * component to a negative co-ordinate, it will automatically be normalized (along
      * with everything else in the playpen) to non-negative coordinates.
      */
-    @Mutator
+    @Transient @Mutator
     public void setLocation(Point point) {
-        Point oldLocation = location;
-        repaint();
+        Point oldLocation = bounds.getLocation();
         
         int width = getWidth();
         int height = getHeight();
         
-        Rectangle oldBounds = new Rectangle(getLocation().x, getLocation().y, 
-                getSize().width, getSize().height);
-        
-        if (isMagicEnabled()) {
-            if (getPlayPen() != null) {
-                PlayPenComponentUI ui = getUI();
-
-                if (ui != null) {
-                    ui.revalidate();
-                    Dimension ps = ui.getPreferredSize();
-                    if (ps != null) {
-                        width = ps.width;
-                        height = ps.height;
-                    }
+        if (getPlayPen() != null) {
+            PlayPenComponentUI ui = getUI();
+            
+            if (ui != null) {
+                ui.revalidate();
+                Dimension ps = ui.getPreferredSize();
+                if (ps != null) {
+                    width = ps.width;
+                    height = ps.height;
                 }
             }
-            setSize(new Dimension(width, height));
         }
         
-        location = new Point(point.x, point.y);
+        setBounds(point.x,point.y, width, height);
         firePropertyChange("location", oldLocation, point);
-        firePropertyChange("bounds", oldBounds, new Rectangle(getLocation().x, getLocation().y, 
-                getSize().width, getSize().height));
-        repaint();
     }
 
     /**
@@ -415,15 +393,9 @@ implements Selectable {
         return (oldVal.x != newVal.x || oldVal.y != newVal.y);
     }
     
-    @Mutator
+    @Transient @Mutator
     public void setSize(Dimension size) {
-        Rectangle oldBounds = new Rectangle(getLocation().x, getLocation().y, 
-                getSize().width, getSize().height);
-        Dimension oldSize = this.size;
-        this.size = new Dimension(size);
-        firePropertyChange("size", oldSize, this.size);
-        firePropertyChange("bounds", oldBounds, new Rectangle(getLocation().x, getLocation().y, 
-                getSize().width, getSize().height));
+        setBounds(getX(), getY(), size.width, size.height);
     }
 
     /**
@@ -450,22 +422,22 @@ implements Selectable {
     
     @Transient @Accessor
     public int getX() {
-        return getLocation().x;
+        return bounds.x;
     }
     
     @Transient @Accessor
     public int getY() {
-        return getLocation().y;
+        return bounds.y;
     }
     
     @Transient @Accessor
     public int getWidth() {
-        return getSize().width;
+        return bounds.width;
     }
     
     @Transient @Accessor
     public int getHeight() {
-        return getSize().height;
+        return bounds.height;
     }
     
     @Transient @Accessor
