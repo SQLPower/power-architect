@@ -118,7 +118,7 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
 	public void revalidate() {
 	    Rectangle OldBounds = computedBounds;
 	    Rectangle bounds = computeBounds();
-	    if (!computedBounds.equals(OldBounds)) {
+	    if (computedBounds.x != OldBounds.x || computedBounds.y != OldBounds.y) {
 	        relationship.setBounds(bounds.x,bounds.y,bounds.width,bounds.height);
 	    }
 	}
