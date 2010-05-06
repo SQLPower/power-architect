@@ -224,7 +224,7 @@
 		</not>
 	</condition>
 	
-	<target name="init" depends="checkAntVersion, checkBuildPath"
+	<target name="init" depends="checkAntVersion"
 		description="Checks build prereqs, creates output dir, and determines product version"
 		>
 		<tstamp/>
@@ -508,7 +508,7 @@
 	<!-- This target is used to make an architect library jar to embed
 	in other applications -->
 	<target name="library.jar" depends="compile">
-		<jar jarfile="dist/architect_library.jar" basedir="${build}"
+		<jar jarfile="dist/architect-core-${app.version}.jar" basedir="${build}"
 			includes="ca/sqlpower/architect/*.class,
 						ca/sqlpower/architect/ddl/*.class,
 						ca/sqlpower/architect/diff/*.class,
@@ -525,6 +525,9 @@
 			includes="ca/sqlpower/architect/swingui/dbtree/**,
 			          icons/parts/**">
 		</jar>
+		<copyfile 
+				dest="${dist.base}/architect-dbtree-${app.version}.jar" 
+				src="${build}/architect_dbtree_lib.jar"/>
 	</target>
 
 	<!-- DOCUMENTATION
@@ -620,7 +623,7 @@
 	 ** path (e.g., an Eclipse Workspace under "Documents and Settings"
 	 ** will fail out because it changes spaces in filenames to %20.
 	 -->
-	<target name="help" depends="checkBuildPath, xslt-stripwidths" description="Create JavaHelp">
+	<target name="help" depends="xslt-stripwidths" description="Create JavaHelp">
 		<mkdir dir="${build}/help"/>
 		<!-- This XSLT element is what's causing the problem with the
 			directories with spaces not working. It outputs the results
@@ -684,7 +687,7 @@
 	</target>
 
 	<!-- Build the HTML -->
-	<target name="html" depends="checkBuildPath, xslt-stripwidths" description="Create user guide in HTML">
+	<target name="html" depends="xslt-stripwidths" description="Create user guide in HTML">
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
 
 		<xslt
@@ -754,7 +757,7 @@
 
 	</target>
 	
-	<target name ="jar" depends="compile">
+	<target name ="jar" depends="compile" description="Builds the embedable JAR">
 		<jar jarfile="dist/architect.jar" basedir="${build}"/>
 	</target>
 
@@ -1148,7 +1151,7 @@
 		</launch4j>
 	</target>
 	
-	<target name="osx_adapter_jar" depends="checkBuildPath"
+	<target name="osx_adapter_jar"
 			description="Creates the osx_packaging_utils/osx_adapter.jar file (only works on OSX)">
 		<javac srcdir="osx_packaging_utils"
    			   destdir="${build}"
@@ -1435,62 +1438,6 @@
 					<antversion atleast="1.7.0"/>
 				</not>
 			</condition>
-		</fail>
-	</target>
-	
-	<!-- This is needed to prevent a problem with DocBook help file generation 
-		 in which the XSLT replaces the spaces in the path name with '%20', and
-		 doesn't convert it back when saving the files. It looks like this is
-		 related to the DocBook chunking functionality.
-		 We don't know of any good way to fix this yet, so we have this
-		 check for the time being.-->
-	<target name="checkBuildPath" 
-		description="Ensure the build path contains no spaces.">
-		<echo message="Note: Your build path cannot contain any spaces at this point because of a problem with help file generation."/>
-		<echo message="Checking build path..."/>
-		<!-- Check if the build path is absolute. If so, set buildPath -->
-		<condition property="buildPath" value="${build}">
-			<or>
-				<!-- Check for Windows style absolute pathnames-->
-				<and>
-					<or>
-						<!-- pathname with backslash only -->
-						<matches string="${build}" pattern="^\\{1}.*"/>
-						<!-- pathname with drive letter -->
-						<matches string="${build}" pattern="^[a-zA-Z]{1}:\\.*"/>
-					</or>
-					<os family="windows"/>
-				</and>
-				<!-- Check for Unix style absolute pathnames -->
-				<and>
-					<matches string="${build}" pattern="^//{1}.*"/>
-					<not>
-						<os family="windows"/>
-					</not>
-				</and>
-			</or>
-		</condition>
-		<!-- Check if buildPath is set. If not, then it's a relative buildpath-->
-		<condition property="buildPath" value="${basedir}\${build}">
-			<and>
-				<not>
-					<isset property="buildPath"/>
-				</not>
-				<os family="windows"/>
-			</and>
-		</condition>
-		<!-- Check if buildPath is set. If not, then it's not a windows buildpath (i.e. doesn't use '\')-->
-		<condition property="buildPath" value="${basedir}/${build}">
-			<not>
-				<isset property="buildPath"/>
-			</not>
-		</condition>
-		<echo message="Your build path is ${buildPath}"/>
-		<!-- Now check the build path for spaces -->
-	    <fail message="Your build path MUST NOT contain any spaces. See the file 'build.properties.example' to see how to set property 'build' to an absolute pathname that does not contain any spaces">
-	    	<condition>
-				<contains string="${buildPath}" substring=" "/>
-	    	</condition>
 		</fail>
 	</target>
 	
