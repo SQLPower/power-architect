@@ -32,8 +32,10 @@ import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -101,8 +103,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
      * Used in testing
      */
     static enum YesNoEnum {
-        YES("yes", true),
-        NO("no", false);
+        YES("Yes", true),
+        NO("No", false);
         
         private final String displayName;
         private final boolean value;
@@ -322,7 +324,15 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        panel.add(colType = new JComboBox(session.getSQLTypes().toArray()), cc.xyw(2, row++, width));
+        List<UserDefinedSQLType> typeList = session.getSQLTypes();
+        UserDefinedSQLType[] types = new UserDefinedSQLType[typeList.size()];
+        types = typeList.toArray(types);
+        Arrays.sort(types, new Comparator<UserDefinedSQLType>() {
+            public int compare(UserDefinedSQLType a, UserDefinedSQLType b) {
+                return a.getName().compareTo(b.getName());
+            }
+        });
+        panel.add(colType = new JComboBox(types), cc.xyw(2, row++, width));
         componentEnabledMap.put(colType, cb);
         colType.setSelectedItem(null);
         colType.addActionListener(this);
