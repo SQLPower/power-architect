@@ -133,6 +133,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.action.OpenUrlAction;
 import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
 
 /**
@@ -888,13 +889,22 @@ public class ArchitectFrame extends JFrame {
 
         JMenu helpMenu = new JMenu(Messages.getString("ArchitectFrame.helpMenu")); //$NON-NLS-1$
         helpMenu.setMnemonic('h');
+        
         if (!context.isMacOSX()) {
             helpMenu.add(aboutAction);
+            helpMenu.add(checkForUpdateAction);
             helpMenu.addSeparator();
         }
+        
+        helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_GS_URL, Messages.getString("ArchitectFrame.gettingStartedAction")));
+        helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_DEMO_URL, Messages.getString("ArchitectFrame.tutorialsAction")));
+        helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_FAQ_URL, Messages.getString("ArchitectFrame.faqAction")));
         helpMenu.add(SPSUtils.forumAction);
         helpMenu.addSeparator();
-        helpMenu.add(checkForUpdateAction);
+        helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_UPGRADE_URL, Messages.getString("ArchitectFrame.upgradeAction")));
+        helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_PS_URL, Messages.getString("ArchitectFrame.premiumSupportAction")));
+        helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_UG_URL, Messages.getString("ArchitectFrame.userGuideAction")));
+        
         menuBar.add(helpMenu);
         
         return menuBar;        
