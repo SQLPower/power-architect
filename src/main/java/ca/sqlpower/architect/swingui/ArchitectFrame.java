@@ -892,7 +892,7 @@ public class ArchitectFrame extends JFrame {
         
         if (!context.isMacOSX()) {
             helpMenu.add(aboutAction);
-            helpMenu.add(checkForUpdateAction);
+            
             helpMenu.addSeparator();
         }
         
@@ -904,7 +904,8 @@ public class ArchitectFrame extends JFrame {
         helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_UPGRADE_URL, Messages.getString("ArchitectFrame.upgradeAction")));
         helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_PS_URL, Messages.getString("ArchitectFrame.premiumSupportAction")));
         helpMenu.add(new OpenUrlAction(SPSUtils.ARCHITECT_UG_URL, Messages.getString("ArchitectFrame.userGuideAction")));
-        
+        helpMenu.addSeparator();
+        helpMenu.add(checkForUpdateAction);
         menuBar.add(helpMenu);
         
         return menuBar;        

@@ -69,7 +69,6 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AddDataSourceAction;
-import ca.sqlpower.architect.swingui.action.CheckForUpdateAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
@@ -449,7 +448,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 // The main registration method.  Takes quitAction, prefsAction, aboutAction.
                 Class[] defArgs = { Action.class, Action.class, Action.class };
                 Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs); //$NON-NLS-1$
-                Object[] args = { exitAction, prefAction, aboutAction, new CheckForUpdateAction(this) };
+                Object[] args = { exitAction, prefAction, aboutAction };
                 registerMethod.invoke(osxAdapter, args);
 
                 // The enable prefs method.  Takes a boolean.

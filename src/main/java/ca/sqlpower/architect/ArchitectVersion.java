@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.sqlpower.util.Version;
+
 /**
  * The ArchitectVersion class exists as a means of finding out which
  * version of the Architect application you are dealing with.  It is
@@ -200,5 +202,9 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
         
         // they're actually the same
         return 0;
+    }
+    
+    public static Version toSPVersion() {
+        return new Version(ArchitectVersion.APP_VERSION.toString());
     }
 }
