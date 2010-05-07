@@ -70,6 +70,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -127,6 +128,7 @@ import ca.sqlpower.architect.swingui.enterprise.ServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPEditAction;
 import ca.sqlpower.architect.swingui.olap.action.OLAPSchemaManagerAction;
+import ca.sqlpower.enterprise.client.ConnectionTestAction;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -273,13 +275,15 @@ public class ArchitectFrame extends JFrame {
                 }
             });
             
-            sim.setTestAction(new AbstractAction("Test Server") {
+            sim.setTestAction(new ConnectionTestAction("Test Server") {
                 public void actionPerformed(ActionEvent e) {
                     String msg = "Unable to connect to server";
                     try {
-                        List l = ArchitectClientSideSession.getWorkspaceNames(sim.getSelectedServer(), session);
+                        List<ProjectLocation> l = 
+                            ArchitectClientSideSession.getWorkspaceNames(
+                                findPanel((JButton) e.getSource()).getServerInfo(), session);
                         if (l != null) {
-                            msg = "Successfuly connected to server";
+                            msg = "Successfully connected to server";
                         }
                     } catch (Exception ex) {
                     }
