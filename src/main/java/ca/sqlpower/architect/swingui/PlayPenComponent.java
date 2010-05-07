@@ -226,6 +226,8 @@ implements Selectable {
                 PlayPenComponentUI ui = getUI();
                 if (ui != null) {
                     ui.revalidate();
+                    Dimension ps = ui.getPreferredSize();
+                    if (ps != null) setSize(ps);
                 }            
                 if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
                 setMagicEnabled(true);
@@ -354,26 +356,7 @@ implements Selectable {
      */
     @Transient @Mutator
     public void setLocation(Point point) {
-        Point oldLocation = bounds.getLocation();
-        
-        int width = getWidth();
-        int height = getHeight();
-        
-        if (getPlayPen() != null) {
-            PlayPenComponentUI ui = getUI();
-            
-            if (ui != null) {
-                ui.revalidate();
-                Dimension ps = ui.getPreferredSize();
-                if (ps != null) {
-                    width = ps.width;
-                    height = ps.height;
-                }
-            }
-        }
-        
-        setBounds(point.x,point.y, width, height);
-        firePropertyChange("location", oldLocation, point);
+        setBounds(point.x,point.y, getWidth(), getHeight());
     }
 
     /**
@@ -383,7 +366,7 @@ implements Selectable {
      */
     @Transient @Mutator
     public void setLocation(int x, int y) {
-        setLocation(new Point(x, y));
+		setBounds(x, y, getWidth(), getHeight());
     }
     
     @NonBound
