@@ -70,6 +70,7 @@ import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -842,6 +843,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         droppedColumns.addAll(((SQLTable) o).getChildren(SQLColumn.class));
                     }
                 }
+                
                 for (int i = 0; i < importedKeys.size(); i++) {
                     // Not dealing with self-referencing tables right now.
                     if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
@@ -852,6 +854,12 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         }
                     }
                 }
+                
+                // Note that it is safe to assign types to previously assigned
+                // columns, they will be ignored.
+                JDBCDataSource ds = getModel().getParentDatabase().getDataSource();
+                SQLColumn.assignTypes(droppedColumns, ds.getParentCollection(), ds.getName());
+                
                 ArchitectProject project = this.getParent().getParent();
                 success = false;
                 try {

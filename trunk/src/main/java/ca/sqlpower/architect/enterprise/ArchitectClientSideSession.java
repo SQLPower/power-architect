@@ -256,6 +256,16 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 					    public List<UserDefinedSQLType> getSQLTypes() {
 					        return ArchitectClientSideSession.this.getSQLTypes();
 					    }
+					    
+					    @Override
+					    public UserDefinedSQLType getNewSQLType(String name, int jdbcCode) {
+					        UserDefinedSQLType newType = new UserDefinedSQLType();
+					        newType.setName(name);
+					        newType.setType(jdbcCode);
+					        ArchitectProject systemWorkspace = ArchitectClientSideSession.this.getSystemWorkspace();
+                            systemWorkspace.addChild(newType, systemWorkspace.getChildren(UserDefinedSQLType.class).size());
+                            return newType;
+					    }
 					};
                     plIni.read(response.getEntity().getContent());
                     logger.debug("Data source collection has URI " + plIni.getServerBaseURI());
