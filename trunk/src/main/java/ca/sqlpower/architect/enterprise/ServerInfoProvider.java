@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2009, SQL Power Group Inc.
+ * Copyright (c) 2010, SQL Power Group Inc.
  *
- * This file is part of Wabit.
+ * This file is part of Power*Architect.
  *
- * Wabit is free software; you can redistribute it and/or modify
+ * Power*Architect is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
- * Wabit is distributed in the hope that it will be useful,
+ * Power*Architect is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -47,7 +47,7 @@ import ca.sqlpower.util.Version;
 
 public abstract class ServerInfoProvider {
 	
-	public static final String defaultWatermarkMessage = "This version of SQL Power Architect is for EVALUATION PURPOSES ONLY. To obtain a full Production License, please visit www.sqlpower.ca/wabit-ep";
+	public static final String defaultWatermarkMessage = "This version of SQL Power Architect is for EVALUATION PURPOSES ONLY. To obtain a full Production License, please visit www.sqlpower.ca/architect-e";
 	
 	private static Map<String,Version> version = new HashMap<String, Version>();
 	
@@ -147,7 +147,7 @@ public abstract class ServerInfoProvider {
 						JOptionPane.showMessageDialog(
 								null, 
 								watermarkMessage, 
-								"SQL Power Wabit Server License",
+								"SQL Power Architect Server License",
 								JOptionPane.WARNING_MESSAGE);						
 					}
 				});
