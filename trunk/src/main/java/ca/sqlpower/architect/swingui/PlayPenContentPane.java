@@ -149,10 +149,6 @@ public class PlayPenContentPane extends AbstractSPObject {
         if (owner != null) {
             owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
             firePropertyChange("playPen", null, owner);
-            
-            for (PlayPenComponent ppc : getChildren()) {
-                ppc.revalidate();
-            }
         }
     }
     
