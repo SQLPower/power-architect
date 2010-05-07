@@ -1266,6 +1266,8 @@ public class PlayPen extends JPanel
 	        SQLColumn sourceColumn = newTable.getColumnByName(column.getName());
 	        ASUtils.correctSourceColumn(sourceColumn, duplicateProperties, column, getSession().getSourceDatabases());
 	    }
+
+	    SQLColumn.assignTypes(newTable.getColumns(), newTable.getParentDatabase().getDataSource().getParentCollection(), newTable.getParentDatabase().getDataSource().getName());
 		
 		String key = source.getName().toLowerCase();
 		boolean isAlreadyOnPlaypen = false;
