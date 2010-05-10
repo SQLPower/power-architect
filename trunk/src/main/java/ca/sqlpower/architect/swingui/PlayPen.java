@@ -134,6 +134,7 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
@@ -144,6 +145,9 @@ import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.TransactionEvent.TransactionState;
+
+import com.google.common.collect.ArrayListMultimap;
+
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 
@@ -1238,15 +1242,28 @@ public class PlayPen extends JPanel
 	}
 
 	/**
+     * Adds or reverse engineers a copy of the given source table to this playpen, using
+     * preferredLocation as the layout constraint.  Tries to avoid
+     * adding two tables with identical names.
+     *
+     * @return A reference to the newly-created TablePane.
+     * @see SQLTable#inherit
+     * @see PlayPenLayout#addLayoutComponent(Component,Object)
+     */
+    public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation, DuplicateProperties duplicateProperties) throws SQLObjectException {
+        return importTableCopy(source, preferredLocation, duplicateProperties, true);
+    }
+
+    /**
 	 * Adds or reverse engineers a copy of the given source table to this playpen, using
 	 * preferredLocation as the layout constraint.  Tries to avoid
 	 * adding two tables with identical names.
-	 *
+	 * 
 	 * @return A reference to the newly-created TablePane.
 	 * @see SQLTable#inherit
 	 * @see PlayPenLayout#addLayoutComponent(Component,Object)
 	 */
-	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation, DuplicateProperties duplicateProperties) throws SQLObjectException {
+	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation, DuplicateProperties duplicateProperties, boolean assignTypes) throws SQLObjectException {
 	    SQLTable newTable;
 	    switch (duplicateProperties.getDefaultTransferStyle()) {
 	    case REVERSE_ENGINEER:
@@ -1267,7 +1284,18 @@ public class PlayPen extends JPanel
 	        ASUtils.correctSourceColumn(sourceColumn, duplicateProperties, column, getSession().getSourceDatabases());
 	    }
 
-	    SQLColumn.assignTypes(newTable.getColumns(), newTable.getParentDatabase().getDataSource().getParentCollection(), newTable.getParentDatabase().getDataSource().getName());
+	    // Although this method is called in AddObjectsTask.cleanup(), it
+        // remains here so that tests will use it as well. Columns that have
+        // upstream types are ignored, so this is safe.
+	    if (assignTypes) {
+	        String platform;
+	        if (source.getParentDatabase() != null && source.getParentDatabase().getDataSource() != null) {
+	            platform = source.getParentDatabase().getDataSource().getParentType().getName();
+	        } else {
+	            platform = SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM;
+	        }
+	        SQLColumn.assignTypes(newTable.getColumns(), newTable.getParentDatabase().getDataSource().getParentCollection(), platform, getSession());
+	    }
 		
 		String key = source.getName().toLowerCase();
 		boolean isAlreadyOnPlaypen = false;
@@ -1581,6 +1609,9 @@ public class PlayPen extends JPanel
 				// reset iterator
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 
+				// Track all columns added so we can assign types
+				ArrayListMultimap<String, SQLColumn> addedColumns = ArrayListMultimap.create();
+				
 				resetTableNames();
 				while (soIt.hasNext() && !isCancelled()) {
 					SQLObject someData = soIt.next();
@@ -1592,9 +1623,13 @@ public class PlayPen extends JPanel
 					}
 					
 					if (someData instanceof SQLTable) {
-						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation, duplicateProperties);
+						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation, duplicateProperties, false);
 						setMessage(ArchitectUtils.truncateString(((SQLTable)someData).getName()));
                         preferredLocation.x += tp.getPreferredSize().width + 5;
+                        
+                        String platform = ((SQLTable) someData).getParentDatabase().getDataSource().getParentType().getName();
+                        addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
+                        
                         increaseProgress();
 					} else if (someData instanceof SQLSchema) {
 						SQLSchema sourceSchema = (SQLSchema) someData;
@@ -1603,7 +1638,7 @@ public class PlayPen extends JPanel
                             Object nextTable = it.next();
 							SQLTable sourceTable = (SQLTable) nextTable;
 							setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
-							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
+							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, true);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
 							increaseProgress();
 						}
@@ -1618,7 +1653,7 @@ public class PlayPen extends JPanel
 									Object nextTable = it.next();
                                     SQLTable sourceTable = (SQLTable) nextTable;
 									setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
-									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
+									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, true);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
 									increaseProgress();
 								}
@@ -1628,7 +1663,7 @@ public class PlayPen extends JPanel
                                 Object nextTable = cit.next();
 								SQLTable sourceTable = (SQLTable) nextTable;
 								setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
-								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties);
+								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, true);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
 								increaseProgress();
 							}
@@ -1637,6 +1672,11 @@ public class PlayPen extends JPanel
 						logger.error("Unknown object dropped in PlayPen: "+someData); //$NON-NLS-1$
 					}
 				}
+				
+				for (String platform : addedColumns.keySet()) {
+				    SQLColumn.assignTypes(addedColumns.get(platform), session.getDataSources(), platform, session);
+				}
+				
 				session.getPlayPen().getContentPane().commit();
 			} catch (SQLObjectException e) {
 			    session.getPlayPen().getContentPane().rollback(e.getMessage());

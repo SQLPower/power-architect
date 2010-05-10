@@ -215,4 +215,8 @@ public class TestingArchitectSession implements ArchitectSession {
         // TODO Auto-generated method stub
         return null;
     }
+
+    public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
+        return defaultUPF.createListUserPrompter(question, responses, defaultResponse);
+    }
 }

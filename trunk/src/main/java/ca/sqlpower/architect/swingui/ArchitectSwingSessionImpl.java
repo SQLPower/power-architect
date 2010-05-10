@@ -1225,4 +1225,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public UserDefinedSQLType findSQLTypeByJDBCType(int type) {
         return delegateSession.findSQLTypeByJDBCType(type);
     }
+
+    public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
+        return swinguiUserPrompterFactory.createListUserPrompter(question, responses, defaultResponse);
+    }
 }
