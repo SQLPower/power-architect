@@ -79,7 +79,7 @@ public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
-                    KettleSettings.class, User.class, Group.class, DomainCategory.class, UserDefinedSQLType.class)));
+                    KettleSettings.class, User.class, Group.class, UserDefinedSQLType.class, DomainCategory.class)));
     
     /**
      * A hash map mapping all the descendants of this project.
