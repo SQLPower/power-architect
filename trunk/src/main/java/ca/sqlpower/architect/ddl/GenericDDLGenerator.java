@@ -773,9 +773,10 @@ public class GenericDDLGenerator implements DDLGenerator {
         StringBuffer def = new StringBuffer();
         UserDefinedSQLType columnType = c.getUserDefinedSQLType();
         if (columnType.getUpstreamType() != null) {
-            columnType = columnType.getUpstreamType();
+            def.append(columnType.getUpstreamType().getPhysicalName(getPlatformName()));
+        } else {
+            def.append(columnType.getPhysicalName(getPlatformName()));
         }
-        def.append(columnType.getPhysicalName(getPlatformName()));
 		if (columnType.getPrecisionType(getPlatformName()) != PropertyType.NOT_APPLICABLE) {
 			def.append("("+columnType.getPrecision(getPlatformName()));
 			if (columnType.getScaleType(getPlatformName()) != PropertyType.NOT_APPLICABLE) {
