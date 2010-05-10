@@ -76,6 +76,11 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
+    protected String getPlatformName() {
+        return "HSQLDB";
+    }
+    
+    @Override
     public String getDeferrabilityClause(SQLRelationship r) {
         if (supportsDeferrabilityPolicy(r)) {
             return "";

@@ -38,6 +38,11 @@ public class Oracle9PlusDDLGenerator extends OracleDDLGenerator {
     }
 
     @Override
+    protected String getPlatformName() {
+        return "Oracle 10g";
+    }
+    
+    @Override
     public void writeHeader() {
         println("-- Created by SQLPower Oracle 9i/10g DDL Generator "+GENERATOR_VERSION+" --");
     }

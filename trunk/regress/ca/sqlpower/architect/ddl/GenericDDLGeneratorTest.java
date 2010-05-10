@@ -24,6 +24,8 @@ import junit.framework.TestCase;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
+
 import java.sql.Types;
 import java.util.List;
 
@@ -81,19 +83,23 @@ public class GenericDDLGeneratorTest extends TestCase {
 		SQLTable tbl = new SQLTable();
 		tbl.initFolders(true);
 		tbl.setPhysicalName("test_table");
-
+		
 		SQLColumn col1 = new SQLColumn(tbl, "N_TEST", SQLType.NVARCHAR, "NVARCHAR", 1000, 0, 0, "",
 		  null, false);
+		col1.getUserDefinedSQLType().getDefaultPhysicalProperties().setScaleType(PropertyType.NOT_APPLICABLE);
 		assertEquals("NVARCHAR(1000)", ddl.getColumnDataTypeName(col1));
 		assertEquals("NVARCHAR(1000)", ddl.columnType(col1));
 
 		SQLColumn col2 = new SQLColumn(tbl, "N_CHARTEST", SQLType.NCHAR, "NCHAR", 1000, 0, 0, "",
 		  null, false);
+		col2.getUserDefinedSQLType().getDefaultPhysicalProperties().setScaleType(PropertyType.NOT_APPLICABLE);
 		assertEquals("NCHAR(1000)", ddl.getColumnDataTypeName(col2));
 		assertEquals("NCHAR(1000)", ddl.columnType(col2));
 
 		SQLColumn col3 = new SQLColumn(tbl, "N_CLOB_TEST", SQLType.NCLOB, "NCLOB", 1000, 0, 0, "",
 		  null, false);
+		col3.getUserDefinedSQLType().getDefaultPhysicalProperties().setPrecisionType(PropertyType.NOT_APPLICABLE);
+		col3.getUserDefinedSQLType().getDefaultPhysicalProperties().setScaleType(PropertyType.NOT_APPLICABLE);
 		assertEquals("NCLOB", ddl.getColumnDataTypeName(col3));
 		assertEquals("NCLOB", ddl.columnType(col3));
 

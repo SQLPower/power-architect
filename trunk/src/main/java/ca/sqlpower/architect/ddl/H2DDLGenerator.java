@@ -63,6 +63,11 @@ public class H2DDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
+    protected String getPlatformName() {
+        return "H2 Database";
+    }
+    
+    @Override
     public String columnType(SQLColumn c) {
         if (c.isAutoIncrement()) {
             return "IDENTITY";

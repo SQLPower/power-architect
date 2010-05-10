@@ -422,6 +422,11 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         }
     }
 
+    @Override
+    protected String getPlatformName() {
+        return "PostgreSQL";
+    }
+    
 	@Override
 	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
 		print("ALTER INDEX ");

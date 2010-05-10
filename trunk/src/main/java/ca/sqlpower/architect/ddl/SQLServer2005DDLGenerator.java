@@ -43,6 +43,11 @@ public class SQLServer2005DDLGenerator extends SQLServerDDLGenerator {
     }
     
     @Override
+    protected String getPlatformName() {
+        return "SQL Server 2005";
+    }
+    
+    @Override
     public boolean supportsDeleteAction(SQLRelationship r) {
         return r.getDeleteRule() != UpdateDeleteRule.RESTRICT;
     }
