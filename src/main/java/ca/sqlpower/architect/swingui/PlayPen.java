@@ -124,6 +124,7 @@ import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -1628,7 +1629,7 @@ public class PlayPen extends JPanel
 						setMessage(ArchitectUtils.truncateString(((SQLTable)someData).getName()));
                         preferredLocation.x += tp.getPreferredSize().width + 5;
                         
-                        String platform = ((SQLTable) someData).getParentDatabase().getDataSource().getParentType().getName();
+                        String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
                         addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
                         
                         increaseProgress();
@@ -1639,8 +1640,12 @@ public class PlayPen extends JPanel
                             Object nextTable = it.next();
 							SQLTable sourceTable = (SQLTable) nextTable;
 							setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
-							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, true);
+							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, false);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
+							
+							String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
+	                        addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
+							
 							increaseProgress();
 						}
 					} else if (someData instanceof SQLCatalog) {
@@ -1654,8 +1659,12 @@ public class PlayPen extends JPanel
 									Object nextTable = it.next();
                                     SQLTable sourceTable = (SQLTable) nextTable;
 									setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
-									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, true);
+									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, false);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
+									
+									String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
+		                            addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
+									
 									increaseProgress();
 								}
 							}
@@ -1664,8 +1673,12 @@ public class PlayPen extends JPanel
                                 Object nextTable = cit.next();
 								SQLTable sourceTable = (SQLTable) nextTable;
 								setMessage(ArchitectUtils.truncateString(sourceTable.getName()));
-								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, true);
+								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, false);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
+								
+								String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
+	                            addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
+								
 								increaseProgress();
 							}
 						}
