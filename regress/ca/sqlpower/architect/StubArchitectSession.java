@@ -179,4 +179,9 @@ public class StubArchitectSession implements ArchitectSession {
         // TODO Auto-generated method stub
         return null;
     }
+
+    public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

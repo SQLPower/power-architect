@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
@@ -70,7 +71,7 @@ import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.Transient;
-import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -86,6 +87,8 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
+
+import com.google.common.collect.ArrayListMultimap;
 
 public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
@@ -835,30 +838,33 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             }
 
             try {
-                List<SQLColumn> droppedColumns = new ArrayList<SQLColumn>();
+                ArrayListMultimap<String, SQLColumn> droppedColumns = ArrayListMultimap.create();
                 for (SQLObject o : droppedItems) {
                     if (o instanceof SQLColumn) {
-                        droppedColumns.add((SQLColumn) o);
+                        droppedColumns.put(((SQLColumn) o).getParent().getParentDatabase().getDataSource().getParentType().getName(), (SQLColumn) o);
                     } else if (o instanceof SQLTable) {
-                        droppedColumns.addAll(((SQLTable) o).getChildren(SQLColumn.class));
+                        droppedColumns.putAll(((SQLTable) o).getParentDatabase().getDataSource().getParentType().getName(), ((SQLTable) o).getChildren(SQLColumn.class));
                     }
                 }
                 
                 for (int i = 0; i < importedKeys.size(); i++) {
                     // Not dealing with self-referencing tables right now.
                     if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
-                    for (int j = 0; j < droppedColumns.size(); j++) {
-                        if (importedKeys.get(i).containsFkColumn(droppedColumns.get(j))) {
+                    for (Entry<String, SQLColumn> entry : droppedColumns.entries()) {
+                        if (importedKeys.get(i).containsFkColumn(entry.getValue())) {
                             importedKeys.get(i).setIdentifying(newColumnsInPk);
                             break;
                         }
                     }
                 }
                 
+                DataSourceCollection dsCollection = getModel().getParentDatabase().getDataSource().getParentCollection();
+                
                 // Note that it is safe to assign types to previously assigned
                 // columns, they will be ignored.
-                JDBCDataSource ds = getModel().getParentDatabase().getDataSource();
-                SQLColumn.assignTypes(droppedColumns, ds.getParentCollection(), ds.getName());
+                for (String platform : droppedColumns.keySet()) {
+                    SQLColumn.assignTypes(droppedColumns.get(platform), dsCollection, platform, getPlayPen().getSession());
+                }
                 
                 ArchitectProject project = this.getParent().getParent();
                 success = false;

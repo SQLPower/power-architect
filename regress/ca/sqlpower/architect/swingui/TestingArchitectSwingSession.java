@@ -492,4 +492,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
             return null;
         }
     }
+
+    public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
+        return new DefaultUserPrompterFactory().createListUserPrompter(question, responses, defaultResponse);
+    }
 }

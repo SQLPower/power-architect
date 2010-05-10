@@ -275,5 +275,9 @@ public class ArchitectSessionImpl implements ArchitectSession {
         }
         return null;
     }
+
+    public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
+        return userPrompterFactory.createListUserPrompter(question, responses, defaultResponse);
+    }
 }
 
