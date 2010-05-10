@@ -460,6 +460,11 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
+    protected String getPlatformName() {
+        return "MySQL";
+    }
+    
+    @Override
     public void addIndex(SQLIndex index) throws SQLObjectException {
 
         createPhysicalName(topLevelNames, index);

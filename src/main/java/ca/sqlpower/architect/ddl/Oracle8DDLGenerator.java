@@ -37,6 +37,11 @@ public class Oracle8DDLGenerator extends OracleDDLGenerator {
     }
 
     @Override
+    protected String getPlatformName() {
+        return "Oracle 8i";
+    }
+    
+    @Override
     public void writeHeader() {
         println("-- Created by SQLPower Oracle 8i DDL Generator "+GENERATOR_VERSION+" --");
     }

@@ -173,7 +173,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	}
 
 	public String getName() {
-	    return "Oracle";
+	    return "Oracle 8i";
 	}
 
     @Override

@@ -158,4 +158,8 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 		endStatement(DDLStatement.StatementType.ALTER, oldIndex);
 	}
 
+	@Override
+	protected String getPlatformName() {
+	    return "DB2";
+	}
 }

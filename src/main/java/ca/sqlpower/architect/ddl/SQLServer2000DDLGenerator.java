@@ -43,6 +43,11 @@ public class SQLServer2000DDLGenerator extends SQLServerDDLGenerator {
     }
 
     @Override
+    protected String getPlatformName() {
+        return "SQL Server 2000";
+    }
+    
+    @Override
     public boolean supportsDeleteAction(SQLRelationship r) {
         UpdateDeleteRule action = r.getDeleteRule();
         return (action == UpdateDeleteRule.CASCADE)

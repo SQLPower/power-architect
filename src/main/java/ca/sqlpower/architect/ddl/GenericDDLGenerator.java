@@ -46,10 +46,13 @@ import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 
 public class GenericDDLGenerator implements DDLGenerator {
 
@@ -735,10 +738,11 @@ public class GenericDDLGenerator implements DDLGenerator {
         def.append(" ");
         def.append(columnType(c));
 
-        if ( c.getDefaultValue() != null && !c.getDefaultValue().equals("")) {
+        String defaultValue = c.getUserDefinedSQLType().getDefaultValue(getPlatformName());
+        if ( defaultValue != null && !defaultValue.equals("")) {
             def.append(" ");
             def.append("DEFAULT ");
-            def.append(c.getDefaultValue());
+            def.append(defaultValue);
         }
 
         def.append(columnNullability(c));
@@ -760,15 +764,22 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
     }
 
+    protected String getPlatformName() {
+        return SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM;
+    }
+    
 	/** Columnn type */
     public String columnType(SQLColumn c) {
         StringBuffer def = new StringBuffer();
-		GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
-		def.append(td.getName());
-		if (td.getHasPrecision()) {
-			def.append("("+c.getPrecision());
-			if (td.getHasScale()) {
-				def.append(","+c.getScale());
+        UserDefinedSQLType columnType = c.getUserDefinedSQLType();
+        if (columnType.getUpstreamType() != null) {
+            columnType = columnType.getUpstreamType();
+        }
+        def.append(columnType.getPhysicalName(getPlatformName()));
+		if (columnType.getPrecisionType(getPlatformName()) != PropertyType.NOT_APPLICABLE) {
+			def.append("("+columnType.getPrecision(getPlatformName()));
+			if (columnType.getScaleType(getPlatformName()) != PropertyType.NOT_APPLICABLE) {
+				def.append(","+columnType.getScale(getPlatformName()));
 			}
 			def.append(")");
 		}
