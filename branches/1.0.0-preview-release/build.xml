@@ -1,0 +1,1480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+ Power*Architect Ant build file
+
+-->
+<project name="architect" default="dist" basedir=".">
+
+	<!-- $Id$ -->
+
+	<!-- Optional per-user customization -->
+	<property file="${user.home}/build.properties" />
+
+	<!-- Optional directory customization -->
+	<property file="build.properties" />
+
+	<!-- The directory where the Java source files are -->
+	<property name="src" value="src/main/java"/>
+	
+	<!-- The directory where resources are located (images, sounds, etc) -->
+	<property name="resources" value="src/main/resources"/>
+
+	<!-- The directory with all the JAR files that are required
+	     by the Architect at runtime -->
+	<property name="lib" value="lib"/>
+	
+	<!-- The directory with all the JAR files that are required
+		     by the Architect at compile time -->
+	<property name="buildlib" value="buildlib"/>
+	
+	<!-- The directory with all the JDBC JAR files that are required
+			     by the Architect at test time -->
+	<property name="jdbclib" value="jdbc_drivers"/>
+	
+	<!-- The target build directory for compiled classes, docs,
+	     resources, and more. The contents of this dir will eventually
+	     get added to the architect.jar file. -->
+	<property name="build" value="build"/>
+	
+	<!-- A target build directory to place a temporary build in to
+	     allow us to generate new files based on the annotations in the
+	     class files. -->
+	<property name="build_tmp" value="build_tmp"/>
+	
+	<!-- The location where generated java files will be stored at.-->
+	<property name="generated" value="generated"/>
+	
+	<property name="dist.base" value="dist"/>
+	
+	<!-- The target build directory for compiled test classes.
+		 The contents of this directory will get excluded form the architect.jar. -->
+	<property name="build.tests" value="build_tests"/>
+
+	<!-- The target build directory for compiled example classes.
+		 The contents of this directory will get excluded form the architect.jar. -->
+	<property name="build.examples" value="build_examples"/>
+
+	<!-- The java compiler to use. See Ant docs for details. -->
+	<property name="build.compiler" value="modern"/>
+
+	<!-- The staging directory is a temp dir that is used as a base for all
+	     the OS-dependant distributions -->
+	<property name="staging.dir" value="staging" />
+
+	<!-- Windows installer tool: izpack (needs both a jar and its own
+	     directory to run properly) -->
+	<property name="izpack.dir" value="ext-tools-home/izpack"/>
+	<taskdef name="izpack" classpath="${izpack.dir}/lib/standalone-compiler.jar"
+		     classname="com.izforge.izpack.ant.IzPackTask"/>
+
+	<!-- Base directory for the izpack (Windows) installer output -->
+	<property name="installer.dir" value="installer"/>
+	
+	<property name="only.copy.sqlpower.library" value="false"/>
+	
+	<path id="runtime.classpath"
+			description="All the runtime dependencies of the Architect code">
+		<fileset dir="${lib}">
+			<include name="*.jar"/>
+		</fileset>
+		<pathelement location="${generated}"/>
+	</path>
+
+	<path id="compile.classpath"
+			description="All the compile dependencies of the Architect">
+		<path refid="runtime.classpath"/>
+		<fileset dir="${buildlib}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
+	
+	<path id="apt.classpath"
+			description="All the APT generation dependencies of the Architect">
+		<path refid="compile.classpath"/>
+		<pathelement location="${build}"/>
+	</path>
+
+	
+	<path id="test.classpath"
+			description="All the test-time dependencies of the Wabit code, 
+						including the compiles Wabit code itself">
+		
+		<path refid="compile.classpath" />
+		<pathelement location="${build}"/>
+		<fileset dir="${jdbclib}">
+			<include name="*.jar"/>
+		</fileset>
+		
+	</path>
+	
+	
+	<!-- When the build runs on a Mac, we can create the .dmg disk image
+	     using the native hdiutil program.  Otherwise, we just make a .tar.gz.
+	-->
+	<condition property="isMac">
+		<os family="mac"/>
+	</condition>
+
+	<condition property="isNotMac">
+		<not>
+			<os family="mac"/>
+		</not>
+	</condition>
+
+	<!-- When the build runs on Windows, we can create the .exe executable
+	     using the izpack2exe's exe tool. Otherwise, we would use python
+	     along with the python izpack2exe python script.
+	-->
+	<condition property="isWindows">
+		<os family="windows"/>
+	</condition>
+
+	<condition property="isNotWindows">
+		<not>
+			<os family="windows"/>
+		</not>
+	</condition>
+
+	<!-- 
+		Actually, I wanted to test for if this is Linux so to know which
+		launch4j binaries to use, but unfortunately, there is no 'linux' 
+		value, just unix. So if it's unix, then we will try to use the linux binary.
+	-->
+	<condition property="isUnix">
+		<os family="unix"/>
+	</condition>
+
+	<condition property="isNotUnix">
+		<not>
+			<os family="unix"/>
+		</not>
+	</condition>
+	
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-macosx" >
+		<isset property="isMac"/>
+	</condition>
+	
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-linux" >
+		<isset property="isUnix"/>
+	</condition>
+	
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-win32" >
+		<isset property="isWindows"/>
+	</condition>
+	
+	<taskdef name="launch4j"
+	    classname="net.sf.launch4j.ant.Launch4jTask"
+	    classpath="${launch4j.dir}/launch4j.jar
+	        :${launch4j.dir}/lib/xstream.jar" />
+	
+	<!-- OS X .app bundling tool: jarbundler -->
+	<taskdef name="jarbundler" 
+		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
+		classname="net.sourceforge.jarbundler.JarBundler"/>
+
+	<!-- findbugs code checking tool -->
+	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
+	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
+
+	<!-- pmd code checking tool and its helper jar files -->
+	<property name="pmd.home" value="ext-tools-home/pmd"/>
+	<property name="pmd.jar" value="${pmd.home}/lib/pmd-4.2.jar"/>
+
+	<!-- clover test coverage tool -->
+	<property name="clover.home" value="ext-tools-home/clover"/>
+	<taskdef resource="cloverlib.xml" classpath="${clover.home}/clover.jar"/>
+
+	<!-- 
+		Sets if we want to actually run a build on the SQL Power Library.
+		It may be useful to set it to copy only if we already know that the
+		library has been built. For example, when running the builds on a 
+		continuous integration engine like Hudson, where the library can be
+		built separately.
+	-->
+	<condition property="buildSQLPowerLibrary">
+		<isfalse value="${only.copy.sqlpower.library}"/>
+	</condition>
+	
+	<!--
+		Set the format of the findbugs report to html by default
+	-->
+	<condition property="findbugs.report.format" value="html">
+		<not>
+			<isset property="findbugs.report.format"/>
+		</not>
+	</condition>
+	
+	<!--
+		Set the format of the pmd report to html by default
+	-->
+	<condition property="pmd.report.format" value="html">
+		<not>
+			<isset property="pmd.report.format"/>
+		</not>
+	</condition>
+	
+	<!--
+		Set the format of the clover report to html by default
+	-->
+	<condition property="clover.report.format" value="html">
+		<not>
+			<isset property="clover.report.format"/>
+		</not>
+	</condition>
+	
+	<target name="init" depends="checkAntVersion"
+		description="Checks build prereqs, creates output dir, and determines product version"
+		>
+		<tstamp/>
+		<mkdir dir="${build}"/>
+		<!-- get the version number from source code ArchitectUtils -->
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
+		<taskdef name="genVersion"
+					classname="ca.sqlpower.architect.antbuild.ArchitectVersionTask"
+			        classpath="${build}"/>
+		<genVersion/>
+		<tstamp>
+			<format property="date" pattern="yyyyMMddHHmmss"/>
+		</tstamp>
+		<!-- If the nightly build property is set, then version number uses the date as the suffix 
+			 Would be REALLY nice if Ant conditions support setting multiple properties, but doesn't as of 1.7.0 -->
+		<condition property="app.ver.suffix" value="-${date}">
+			<isset property="nightly"/>
+		</condition>
+		<!-- Else, if app_ver_suffix is empty, then don't use a suffix -->
+		<condition property="app.ver.suffix" value="">
+			<and>
+				<equals arg1="${app_ver_suffix}" arg2=""/>
+				<not><isset property="app.ver.suffix"/></not>
+			</and>
+		</condition>
+		<!-- otherwise, use the normal app_ver_suffix as the suffix -->
+		<condition property="app.ver.suffix" value="-${app_ver_suffix}">
+			<not><isset property="app.ver.suffix"/></not>
+		</condition>
+
+		<property name="app.version" value="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}${app.ver.suffix}"/>
+		<condition property="downloadLinkBase" value="http://nightlybuild.sqlpower.ca/architect/nightly/${app.version}">
+			<isset property="nightly"/>
+		</condition>
+		<condition property="docLinkBase" value="${downloadLinkBase}">
+			<isset property="nightly"/>		
+		</condition>
+		<condition property="downloadLinkBase"
+			value="http://power-architect.googlecode.com/files">
+			<not><isset property="downloadLinkBase"/></not>
+		</condition>
+		<condition property="docLinkBase" 
+			value="http://download.sqlpower.ca/architect/${app.version}">
+			<not><isset property="docLinkBase"/></not>
+		</condition>
+
+		<echo message="Building Architect version: ${app.version}"/>
+		<property name="dist.dir" value="${dist.base}/architect-${app.version}"/>
+		<mkdir dir="${dist.dir}"/>
+		<!-- The directory where junit HTML reports are generated.
+			 Other report files could eventually be placed here too. -->
+		<property name="reports" value="${dist.dir}/reports"/>
+	 	<mkdir dir="${reports}"/>
+	</target>
+	
+	<target name="alltests" depends="junit,pmd,findbugs"
+		description="Runs all testing and checking targets"
+	/>
+
+	<!-- A target to configure the Clover environment. This
+		needs to be executed if any Clover features are to
+		be used.
+		
+		To setup Clover:
+		1) Download "Clover for Ant" from Cenqua at 
+				http://www.cenqua.com/download.jspa
+		2) Extract Clover to any directory you wish
+			(NOTE: There is a directory set aside for Clover:
+				   ext-tools-home/clover)
+		3) Obtain a license file from Cenqua and
+				place it in the (CLOVER_HOME)/lib
+				directory with the clover.jar file
+		4) Add the clover.jar file to the classpath
+			    for the ant build
+			
+		To generate an HTML report, run the clover.report
+		target.
+		
+		Reports are sent to the reports directory, but you can 
+		choose your own directory by changing the 'outfile' 
+		attribute of the 'current' tag in the clover.report 
+		target.-->
+	<target name="with.clover" description="Activates Clover">
+	    <clover-setup initString="mycoverage.db" source="1.5"
+	    	flushpolicy="threaded" flushinterval="500">
+	    	<!-- This fileset includes all source files that are not
+	    	tests because we do not want to see the coverage results
+	    	of files in the test suite. -->
+	    	<fileset dir="${src}" casesensitive="yes">
+	    	    <include name="**/*.java"/>
+	    	    <exclude name="**/*Test*"/>
+	    	</fileset>
+	    </clover-setup>
+	</target>
+
+	<target name="clover.test.and.report" depends="with.clover, clover.junit, clover.report"
+		description="A simple target to initialize Clover, run the test suite
+		and generate an HTML report">
+	</target>
+	
+	<!-- A target to run the junit tests with clover report
+		generation enabled -->
+	<target name="clover.junit" depends="with.clover,junit" 
+		description="Run the tests with Clover report generation">
+	</target>
+	
+	<!-- A target that generates a Clover report in html
+		format. 
+		Note: The test suite must be run with clover
+		enabled BEFORE this is run. They CANNOT be run in the
+		same Ant session.
+		Also, the ouput directory is specified by the value of
+		the outfile attribute
+		-->
+	<target name="clover.report" depends="init, with.clover"
+		description="Generates coverage report based on previous 
+		Clover-enabled test run (clover.junit)"
+		>
+		
+		<mkdir dir="${reports}/clover"/>
+		
+		<condition property="clover.report.outfile" value="${reports}/clover" else="${reports}/clover/clover.${clover.report.format}">
+			<equals arg1="${clover.report.format}" arg2="html"/>
+		</condition>
+		
+	    <clover-report>
+	        <current outfile="${clover.report.outfile}">
+	            <format type="${clover.report.format}"/>
+		    	<fileset dir="${src}" casesensitive="yes">
+		    	    <include name="**/*.java"/>
+		    	    <exclude name="**/*Test*"/>
+		    	</fileset>
+	        </current>
+	    </clover-report>
+	</target>
+
+	<target name="pmd" depends="init"
+		description="Runs the PMD code checking tool, saving results to a file."
+		>
+		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
+			classpath="${pmd.jar}"/>
+		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
+		<pmd shortFilenames="true" targetjdk="1.5">
+			<ruleset>basic,imports</ruleset>
+			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+			</fileset>
+		</pmd>
+		<echo message="PMD completed, output is in ${pmd-results}."/>
+	</target>
+
+	<target name="pmd-cpd" depends="init"
+		description="Runs the PMD Copy/Paste Detection tool, and saves results to a file">
+		<taskdef name="cpd" classname="net.sourceforge.pmd.cpd.CPDTask"
+			classpath="${pmd.jar}"/>
+		<property name="cpd-results" value="${reports}/cpd-ant-results.xml"/>
+		<cpd encoding="UTF-8" minimumTokenCount="120" format="xml" outputfile="${cpd-results}">
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+				<exclude name="generated/**.java"/>
+			</fileset>
+		</cpd>
+		<xslt in="${cpd-results}" style="${pmd.home}/etc/xslt/cpdhtml.xslt" out="${reports}/cpd-ant-results.html" />
+		<echo message="CPD completed, output is in ${reports}/cpd-ant-results.html."/>
+	</target>
+
+	<target name="findbugs"
+		description="Runs the FindBugs tool, outputs results to a text file"
+		depends="compile">
+		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
+			classpath="${findbugs-ant.jar}"/>
+		<findbugs home="${findbugs.home}"
+			output="${findbugs.report.format}"
+			outputFile="${reports}/findbugs-ant-results.${findbugs.report.format}"
+			reportLevel="low"
+			jvmargs="-Xmx512m">  <!-- FindBugs can use up a lot of memory, so adjust the JVM memory here-->
+			<class location="${build}" />
+			<sourcePath path="${src}" />
+			<!-- Classes needed by our code but that we don't want tested -->
+			<auxClasspath path="${pmd.jar}" />
+			<systemProperty name="findbugs.maskedfields.locals" value='true'/>
+		</findbugs>
+	</target>
+
+	<!-- Runs the Business and Auto test suites. The Swing UI test suite is
+	 	 not run because it fails randomly -->
+	<target name="junit" depends="compile-tests">
+		<property name="reports.junit" value="${reports}/junit"/>
+		<mkdir dir="${reports.junit}"/>
+		<!-- Output all System.out and System.err messages -->
+	   <junit printsummary="on" showoutput="no">
+	   	   <sysproperty key="ca.sqlpower.architect.test.dir" value="${build.tests}"/>
+			<sysproperty key="ca.sqlpower.headless" value="true"/>
+	   		   	
+	       <classpath>
+	       		<path refid="test.classpath"/>
+	       		<path path="${build.tests}"/>
+	       </classpath>
+	       <test name="ca.sqlpower.ArchitectBusinessTestSuite" todir="${reports.junit}"/>
+	   	   <test name="ca.sqlpower.ArchitectSwingTestSuite" todir="${reports.junit}"/>
+           <test name="ca.sqlpower.ArchitectAutoTests" todir="${reports.junit}"/>
+	   	   <test name="ca.sqlpower.architect.profile.ProfileTests" todir="${reports.junit}"/>
+	   	   <formatter type="xml"/>
+	   </junit>
+		<!-- Generate HTML report -->
+		<junitreport todir="${reports.junit}">
+		  <fileset dir="${reports.junit}">
+		    <include name="TEST-*.xml" />
+		  </fileset>
+		  <report todir="${reports.junit}" />
+		</junitreport>
+	</target>
+	
+	<!-- Compiles the application source files -->
+	<target name="compile" depends="init, copyfiles, build.sqlpower.library, copy.sqlpower.library">
+	   	
+		<mkdir dir="${build_tmp}"/>
+
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
+		
+		<apt srcdir="${src}"
+            destdir="${build_tmp}"
+            classpathref="apt.classpath"
+            debug="true"
+            compile="true"
+            factory="ca.sqlpower.object.annotation.SPAnnotationProcessorFactory"
+            preprocessdir="${generated}">
+        </apt>
+        
+		<delete dir="${build}"/>
+        
+		<move todir="${build}">
+            <fileset dir="${build_tmp}"/>
+        </move>
+        
+		<copy todir="${build}" flatten="false">
+            <fileset dir="${resources}">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+	</target>
+	
+	<target name="compile-tests" depends="compile"
+		description="Compiles the regression test suite">
+		<mkdir dir="${build.tests}"/>
+		<javac srcdir="regress" destdir="${build.tests}"
+			classpathref="test.classpath"
+			debug="true"/>
+	</target>
+
+	<!-- This target is run as part of the CI build in order to validate the example code -->
+	<target name="compile-examples" depends="compile"
+		description="Compiles the example code that demonstrates use of the API">
+		<mkdir dir="${build.examples}"/>
+		<javac srcdir="example_code" destdir="${build.examples}"
+			classpathref="test.classpath"
+			debug="true"/>
+	</target>
+
+	<target name="copyfiles" depends="init, architect.version.properties"
+		description="Copies non-source files that need to be in the architect.jar">
+        <copy todir="${build}">
+			<fileset dir="${resources}/">
+				<include name="**"/>
+				<exclude name="**/*.java"/>
+				<exclude name="**/*.html"/>
+				<exclude name="**/*.class"/>
+				<exclude name="**/*.example"/>
+				<exclude name="**/Makefile"/>
+			</fileset>
+		</copy>
+		
+		<copy file="${dist.dir}/architect.version.properties" todir="${build}/ca/sqlpower/architect"/>
+			
+		<!-- copies the template log4j config file into the build dir -->
+		<copy overwrite="no" tofile="${build}/log4j.properties"
+			file="${resources}/log4j.properties.example"/>
+    </target>
+
+	<!-- This target is used to make an architect library jar to embed
+	in other applications -->
+	<target name="library.jar" depends="compile">
+		<jar jarfile="dist/architect-core-${app.version}.jar" basedir="${build}"
+			includes="ca/sqlpower/architect/*.class,
+						ca/sqlpower/architect/ddl/*.class,
+						ca/sqlpower/architect/diff/*.class,
+						ca/sqlpower/architect/undo/*.class,
+						ca/sqlpower/architect/profile/**/*.class">
+		</jar>
+	</target>
+
+	<!-- This target is used to make a dbtree library jar to embed
+	in other applications (the dbtree library depends on the architect library) -->
+	<target name="dbtree_library.jar" depends="library.jar">
+		<!-- TODO a manifest with author, version, and license info in it -->
+		<jar jarfile="${build}/architect_dbtree_lib.jar" basedir="${build}"
+			includes="ca/sqlpower/architect/swingui/dbtree/**,
+			          icons/parts/**">
+		</jar>
+		<copyfile 
+				dest="${dist.base}/architect-dbtree-${app.version}.jar" 
+				src="${build}/architect_dbtree_lib.jar"/>
+	</target>
+
+	<!-- DOCUMENTATION
+		There are THREE main documentation targets, all built from the
+		docbook XML file docs/PowerArchitectUsersGuide:
+			help - JavaHelp (jarred and shipped)
+			html - for quick viewing on our web site
+			PDF - because we can :-)
+	-->
+
+	<!-- NOTE: All XSLT steps currently require xalan on classpath since JDK1.5 is behind -->
+	<path id="docbookclasspath">
+		<fileset dir="doc/tools/xalan">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="userguide" depends="help,pdf" description="Creates user guide in HTML and PDF">
+	</target>
+
+	<!-- Create an intermediate docbook document - for use both by help and html -
+	with no width attributes on the images (the Swing HTML browser chokes
+	when there is width but no height in an image tag)
+	-->
+	<target name="xslt-stripwidths">
+		<xslt
+			style="doc/tools/strip-width.xsl"
+			in="doc/PowerArchitectUserGuide.xml"
+			out="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
+			classpathref="docbookclasspath">
+		</xslt>
+	</target>
+	
+
+	<!-- Build MondrianModel -->
+		<target name="mondrianModel">
+			<delete file="${src}/ca/sqlpower/architect/olap/MondrianModel.java"></delete>
+			<xslt 
+				style="${src}/ca/sqlpower/architect/olap/xml-to-java-classes.xsl"
+				in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
+				out="${src}/ca/sqlpower/architect/olap/MondrianModel.java"
+				classpathref="docbookclasspath">
+			</xslt>
+		</target>
+	
+    <!-- Build MondrianNewValueMaker -->
+        <target name="mondrianNewValueMaker">
+            <delete file="regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java"></delete>
+            <xslt 
+                style="${src}/ca/sqlpower/architect/olap/xml-to-new-value-maker.xsl"
+                in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
+                out="regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java"
+                classpathref="docbookclasspath">
+            </xslt>
+        </target>
+	
+    <!-- Build Mondrian persistence tests -->
+        <target name="mondrianPersistenceTests">
+            <delete file="regress/ca/sqlpower/architect/olap/MondrianModelTest.java"></delete>
+            <xslt 
+                style="${src}/ca/sqlpower/architect/olap/xml-to-persister-tests.xsl"
+                in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
+                out="regress/ca/sqlpower/architect/olap/MondrianModelTest.java"
+                classpathref="docbookclasspath">
+            </xslt>
+        </target>
+	
+	<!-- Build MondrianXMLReader -->
+		<target name="mondrianParser">
+			<delete file="${src}/ca/sqlpower/architect/olap/MondrianXMLReader.java"></delete>
+			<xslt 
+				style="${src}/ca/sqlpower/architect/olap/xml-to-parser.xsl"
+				in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
+				out="${src}/ca/sqlpower/architect/olap/MondrianXMLReader.java"
+				classpathref="docbookclasspath">
+			</xslt>
+		</target>
+	
+	<!-- Build MondrianXMLWriter -->
+	<target name="mondrianFormatter">
+		<delete file="${src}/ca/sqlpower/architect/olap/MondrianXMLWriter.java"></delete>
+		<xslt 
+			style="${src}/ca/sqlpower/architect/olap/xml-to-formatter.xsl"
+			in="${src}/ca/sqlpower/architect/olap/Mondrian.xml"
+			out="${src}/ca/sqlpower/architect/olap/MondrianXMLWriter.java"
+			classpathref="docbookclasspath">
+		</xslt>
+	</target>
+
+
+	<!-- Build the Help (JavaHelp, HTML-based format).
+	 ** Note that at this time you must NOT have spaces in your
+	 ** path (e.g., an Eclipse Workspace under "Documents and Settings"
+	 ** will fail out because it changes spaces in filenames to %20.
+	 -->
+	<target name="help" depends="xslt-stripwidths" description="Create JavaHelp">
+		<mkdir dir="${build}/help"/>
+		<!-- This XSLT element is what's causing the problem with the
+			directories with spaces not working. It outputs the results
+			to a new directory with spaces replaced with '%20'-->
+		<xslt
+			style="doc/tools/xslt/javahelp/javahelp.xsl"
+			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
+			out="${build}/help/zzz"
+			classpathref="docbookclasspath">
+		</xslt>
+
+		<!-- Index it I: limited-terms index: created manually, just copy it,
+		 *** overwriting empty one that DocBook Javahelp made.
+		 -->
+		<copy file="doc/jhelpidx.xml" todir="${build}/help" overwrite="true"/>
+
+		<!-- Index it II: full text search -->
+		<!-- DO NOT USE as it seems to have a built-in assumption
+		 *** that the help is all in one file.
+		<java classname="com.sun.java.help.search.Indexer"
+			classpath="lib/jhall.jar"
+			fork="true" failonerror="true">
+			<arg value="${build}/help"/>
+		</java>
+		<mkdir dir="${build}/help/JavaHelpSearch"/>
+		<move todir="${build}/help/JavaHelpSearch">
+			<fileset dir="JavaHelpSearch" includes="**"/>
+		</move>
+		-->
+		<!-- So, remove the search view from the JavaHelp config -->
+		<replace file="${build}/help/jhelpset.hs" value="">
+			<replacetoken><![CDATA[<view><name>Search</name><label>Search</label><type>javax.help.SearchView</type><data engine="com.sun.java.help.search.DefaultSearchEngine">JavaHelpSearch</data></view>]]></replacetoken>
+		</replace>
+
+		<!-- Add the Favorites/Bookmarks views into the JavaHelp Config -->
+		<replace file="${build}/help/jhelpset.hs"
+			token="jhelpidx.xml&lt;/data>&lt;/view>&lt;/helpset>"
+			value="jhelpidx.xml&lt;/data>&lt;/view>&lt;view>&lt;name>favorites&lt;/name>&lt;label>Favorites&lt;/label>&lt;type>javax.help.FavoritesView&lt;/type>&lt;/view>&lt;/helpset>"/>
+
+		<!-- Copy the images and icons; the DocBook files have
+			these horrid "src/" and "doc/" paths prepended
+			so we have to preserve these here -->
+		<mkdir dir="${build}/help/doc/images"/>
+		<copy todir="${build}/help/doc/images" overwrite="true">
+			<fileset dir="doc/images">
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+
+		<mkdir dir="${build}/help/${resources}/icons"/>
+		<copy todir="${build}/help/${resources}/icons" overwrite="true">
+			<fileset dir="${resources}/icons">
+				<include name="*.gif"/>
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+
+		<!-- Jar the whole mess up and add to working classpath -->
+		<jar file="${build}/architecthelp.jar" basedir="${build}/help" update="false">
+		</jar>
+	</target>
+
+	<!-- Build the HTML -->
+	<target name="html" depends="xslt-stripwidths" description="Create user guide in HTML">
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
+
+		<xslt
+			style="doc/tools/xslt/html/docbook.xsl"
+			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
+			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html"
+			classpathref="docbookclasspath">
+		</xslt>
+
+		<!-- Warning: This is an extremely evil hack to get the product out the door!
+		              See bugzilla 1195 for details -->
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/doc/images" />
+		<copy todir="${build}/ca/sqlpower/architect/doc/doc/images" overwrite="true">
+			<fileset dir="doc/images">
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/${resources}/icons" />
+		<copy todir="${build}/ca/sqlpower/architect/doc/${resources}/icons" overwrite="true">
+			<fileset dir="${resources}/icons">
+				<include name="*.gif"/>
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<!-- Convert User Manual from XML to FO -->
+	<target name="fo" depends="init" description="Create user guide in XML Formatting Objects">
+		<mkdir dir="${build}/doc/" />
+        <xslt
+			style="doc/tools/xslt/fo/docbook.xsl"
+			in="doc/PowerArchitectUserGuide.xml"
+			out="${build}/doc/PowerArchitectUserGuide-${app.version}.fo"
+			classpathref="docbookclasspath">
+		</xslt>
+	</target>
+
+	<!-- Finish it, from FO to PDF -->
+	<target name="pdf" depends="fo" description="Create user guide in PDF">
+		<path id="fop-classpath">
+			<fileset dir="doc/tools/xalan">
+			  <include name="*.jar"/>
+			</fileset>
+			<fileset dir="doc/tools/fop">
+			  <include name="*.jar"/>
+			</fileset>
+		</path>
+		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop" classpathref="fop-classpath"/>
+        <fop format="application/pdf" messagelevel="verbose" relativebase="true" >
+			<fileset dir="${build}/doc/">
+				<include name="*.fo"/>
+			</fileset>
+		</fop>
+
+    </target>
+
+    <!-- Creates a WebStart distribution under the webstart/ directory -->
+	<target name="webstart_dist" depends="stage">
+        <mkdir dir="webstart/lib"/>
+		<jar destfile="webstart/lib/architect.jar" update="no"
+			basedir="${build}" includes="ca/** icons/** log4j.properties"
+			manifest="${build}/manifest">
+		</jar>
+        <copy todir="webstart/">
+            <fileset dir="lib" includes="*.jar"/>
+        </copy>
+
+	</target>
+	
+	<target name ="jar" depends="compile" description="Builds the embedable JAR">
+		<jar jarfile="dist/architect.jar" basedir="${build}"/>
+	</target>
+
+    <target name="stage" depends="checkAntVersion,compile">
+    	<mkdir dir="${dist.dir}" />
+        <mkdir dir="${staging.dir}"/>
+        <mkdir dir="${staging.dir}/lib"/>
+        <mkdir dir="${staging.dir}/jdbc"/>
+    	<mkdir dir="${staging.dir}/doc"/>
+
+    	<copy todir="${staging.dir}/lib">
+    	    <fileset dir="${lib}" includes="*.jar"/>
+    		<fileset dir="${build}" includes="architecthelp.jar" />
+    	</copy>
+
+    	<!-- This is an Ant 1.7 feature. To upgrade if using Eclipse 3.x,
+    	     1. Download the latest Ant from http://ant.apache.org/bindownload.cgi
+    	     2. Extract it somewhere
+    	     3. Under window, preferences select Ant runtime in the tree
+    	     4. Set the Ant home to be the folder that Ant was extracted to -->
+    	<manifestclasspath property="architect.jar.classpath"
+    	    	                       jarfile="${staging.dir}/architect.jar">
+    	    		<classpath>
+    		    		<pathelement path="${staging.dir}/jdbc"/>
+    	    			<fileset dir="${staging.dir}/">
+    	    				<include name="lib/*.jar"/>
+    	    			</fileset>
+    	    		</classpath>
+    	    	 </manifestclasspath>
+
+    	<manifest file="${build}/manifest">
+    		<attribute name="Main-Class" value="ca.sqlpower.architect.swingui.ArchitectFrame"/>
+    		<attribute name="Class-Path" value="${architect.jar.classpath}" />
+    	</manifest>
+
+    	<jar destfile="${staging.dir}/architect.jar" update="no"
+    				basedir="${build}" 
+    				includes="ca/** icons/** sounds/** xsltStylesheets/** log4j.properties default_database_types.ini"
+    				manifest="${build}/manifest">
+    	</jar>
+    	
+    	<launch4j>
+			<config dontwrapjar="true" 
+					headertype="gui"
+					jarpath="architect.jar"
+					outfile="${staging.dir}/architect.exe"
+					errtitle="Java Runtime Required"
+					priority="normal"
+					downloadurl="http://java.com/download"
+					supporturl="http://www.sqlpower.ca/forum"
+					customprocname="false"
+					stayalive="false"
+					icon="${resources}/icons/architect.ico">
+				<jre minVersion="1.5.0"
+					 maxHeapSize="600"
+				/>
+			</config>
+		</launch4j>
+    	
+    	<launch4j>
+			<config dontwrapjar="true" 
+					headertype="gui"
+					jarpath="uninstaller.jar"
+					outfile="${staging.dir}/uninstaller.exe"
+					errtitle="Java Runtime Required"
+					priority="normal"
+					downloadurl="http://java.com/download"
+					supporturl="http://www.sqlpower.ca/forum"
+					customprocname="false"
+					stayalive="false"
+					icon="installer/uninstall.ico">
+				<singleInstance
+					mutexName="SQL Power Architect Uninstaller"
+					windowTitle="SQL Power Architect Uninstaller"
+				/>
+				<jre minVersion="1.5.0"/>
+			</config>
+		</launch4j>
+    	
+		<copy todir="${staging.dir}/jdbc">
+		    <fileset dir="jdbc_drivers" includes="*.jar"/>
+			<fileset dir="${src}" includes="default_database_types.ini"/>
+	    </copy>
+    	<copy todir="${staging.dir}/doc" file="doc/ReleaseNotes.txt"/>
+
+    	<copy todir="${staging.dir}" file="LICENSE"/>
+
+    	<!-- No point in signing until we have a certificate that's signed by a CA
+    	<signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
+    	   <fileset dir="webstart/lib"/>
+    	</signjar>
+    	-->
+	</target>
+
+	<target name="run" 
+		description="Runs the Architect application with the Swing UI"
+		depends="compile">
+		<java fork="true" classname="ca.sqlpower.architect.swingui.ArchitectFrame" classpathref="test.classpath">
+			<jvmarg value="-Dlog4j.configuration=log4j.properties"/>
+		</java>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}" failonerror="false"/>
+		<delete dir="${build.tests}" failonerror="false"/>
+		<delete dir="${build.examples}" failonerror="false"/>
+		<delete failonerror="false"><fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/></delete>
+		<delete dir="webstart/lib" failonerror="false"/>
+		<delete dir="${staging.dir}" failonerror="false"/>
+		<delete dir="${generated}/ca" failonerror="false"/>
+		<delete failonerror="false"><fileset dir="." includes="mycoverage.db*"/></delete>
+	</target>
+
+	<target name="dist-clean" depends="clean">
+		<delete dir="${dist.base}" />
+	</target>
+
+	<target name="javadoc" 
+		description="Generate the Javadoc documentation for the Architect API in the dist directory"
+		depends="compile">
+		<mkdir dir="${dist.dir}/doc/api"/>
+		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
+		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
+			packagenames="ca.sqlpower.*"
+			maxmemory="100m"
+			windowtitle="ca.sqlpower.architect.* SQL Power Architect"
+			Version="true" Author="true" Use="true"
+			Overview="html/overview.html"
+			classpathref="test.classpath"
+			access="private"
+			>
+			<packageset dir="${src}" defaultexcludes="yes">
+				<include name="ca/sqlpower/**" />
+				<exclude name="regress/**"/>
+			</packageset>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+		</javadoc>
+	</target>
+
+	<target name="javadoc.with.umlgraph" 
+		description="Generate the Javadoc documentation for the Architect API along with UML diagrams generated using UMLGraph"
+		depends="compile">
+		<mkdir dir="${dist.dir}/doc/api"/>
+		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
+		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
+			packagenames="ca.sqlpower.*"
+			maxmemory="100m"
+			windowtitle="ca.sqlpower.architect.* SQL Power Architect"
+			Version="true" Author="true" Use="true"
+			Overview="html/overview.html"
+			classpathref="test.classpath"
+			>
+			<doclet name="gr.spinellis.umlgraph.doclet.UmlGraphDoc"
+    		  path="buildlib/UmlGraph.jar">
+    	        <param name="-attributes" />
+    	        <param name="-operations" />
+    	        <param name="-qualify" />
+    	        <param name="-types" />
+    	        <param name="-visibility" />
+    	    </doclet>
+			<packageset dir="${src}" defaultexcludes="yes">
+				<include name="ca/sqlpower/**" />
+				<exclude name="regress/**"/>
+			</packageset>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+		</javadoc>
+		
+		<apply executable="dot" dest="${dist.dir}/doc" parallel="false">
+			<arg value="-Tpng"/>
+			<arg value="-o"/>
+			<targetfile/>
+			<srcfile/>
+			<fileset dir="${dist.dir}/doc" includes="*.dot"/>
+			<mapper type="glob" from="*.dot" to="*.png"/>
+		</apply>
+	</target>
+
+	<target name="windows_installer" depends="stage">
+		<izpack output="${dist.dir}/Architect-Setup-Windows-${app.version}.jar"
+		        installerType="standard"
+			    basedir="${installer.dir}"
+		        izPackDir="${izpack.dir}/">
+
+		<config><![CDATA[
+			<installation version="1.0">
+				<!-- comment -->
+				<info>
+					<appname>Power Architect</appname>
+					<appversion>@{app.version}</appversion>
+					<url>http://www.sqlpower.ca/</url>
+					<javaversion>1.5</javaversion>
+					<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
+					<!-- <pack200/> -->
+				</info>
+				<guiprefs height="600" resizable="yes" width="800">
+					<laf name="metouia">
+						<os family="unix"/>
+					</laf>
+				</guiprefs>
+
+				<locale>
+					<langpack iso3="eng"/>
+				</locale>
+				<resources>
+					<res id="Installer.image" src="../src/main/resources/icons/architect.png"/>
+					<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
+					<res id="LicencePanel.licence" src="../LICENSE" />
+					<res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
+				</resources>
+				<listeners>
+					<listener installer="SummaryLoggerInstallerListener"/>
+			       	<listener installer="RegistryInstallerListener"
+							  uninstaller="RegistryUninstallerListener">
+			          <os family="windows"/>
+			       </listener>
+				</listeners>
+				<panels>
+					<panel classname="HelloPanel"/>
+					<panel classname="LicencePanel"/>
+					<panel classname="TargetPanel"/>
+					<panel classname="InstallPanel"/>
+					<panel classname="ShortcutPanel"/>
+					<panel classname="SimpleFinishPanel"/>
+				</panels>
+				<packs>
+					<pack name="Core" required="yes">
+						<description>Architect Core Files</description>
+						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
+							<include name="architect.jar"/>
+							<include name="architect.exe"/>
+						</fileset>
+						<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
+							<include name="*.jar"/>
+						</fileset>
+						<!-- the directory jdbc is referenced in the manifest as well as
+							various targets. -->
+						<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
+							<include name="*.ini"/>
+						</fileset>
+						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
+							<include name="LICENSE"/>
+						</fileset>
+						<fileset dir="../src/main/resources/icons" targetdir="$INSTALL_PATH">
+							<include name="*.ico"/>
+						</fileset>
+					</pack>
+				</packs>
+				<native type="izpack" name="ShellLink.dll"/>
+				<native type="izpack" name="ShellLink_x64.dll"/>
+				<native type="3rdparty" name="COIOSHelper.dll" stage="both">
+			        <os family="windows"/>
+			    </native>
+			</installation>
+			]]>
+		</config>
+		</izpack>
+	</target>
+
+	<target name="windows_jdbc_installer" depends="stage">
+			<izpack output="${basedir}/${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
+			        installerType="standard"
+				    basedir="${basedir}/${installer.dir}"
+			        izPackDir="${basedir}/${izpack.dir}/">
+
+			<config><![CDATA[
+				<installation version="1.0">
+					<!-- comment -->
+					<info>
+						<appname>Power Architect</appname>
+						<appversion>@{app.version}</appversion>
+						<url>http://www.sqlpower.ca/</url>
+						<javaversion>1.5</javaversion>
+						<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
+						<!-- <pack200/> -->
+					</info>
+					<guiprefs height="600" resizable="yes" width="800">
+						<laf name="metouia">
+							<os family="unix"/>
+						</laf>
+					</guiprefs>
+
+					<locale>
+						<langpack iso3="eng"/>
+					</locale>
+					<resources>
+						<res id="Installer.image" src="../src/main/resources/icons/architect.png"/>
+						<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
+						<res id="LicencePanel.licence" src="../LICENSE" />
+						<res src="RegistrySpec.xml" id="RegistrySpec.xml"/>
+					</resources>
+					<listeners>
+						<listener installer="SummaryLoggerInstallerListener"/>
+				       	<listener installer="RegistryInstallerListener"
+								  uninstaller="RegistryUninstallerListener">
+				          <os family="windows"/>
+				       </listener>
+					</listeners>
+					<panels>
+						<panel classname="HelloPanel"/>
+						<panel classname="LicencePanel"/>
+						<panel classname="TargetPanel"/>
+						<panel classname="InstallPanel"/>
+						<panel classname="ShortcutPanel"/>
+						<panel classname="SimpleFinishPanel"/>
+					</panels>
+					<packs>
+						<pack name="Core" required="yes">
+							<description>Architect Core Files</description>
+							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
+								<include name="architect.jar"/>
+								<include name="architect.exe"/>
+							</fileset>
+							<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
+								<include name="*.jar"/>
+							</fileset>
+							<!-- the directory jdbc is referenced in the manifest as well as
+								various targets. -->
+							<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
+								<include name="*.jar"/>
+								<include name="*.ini"/>
+							</fileset>
+							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
+								<include name="LICENSE"/>
+							</fileset>
+							<fileset dir="../src/main/resources/icons" targetdir="$INSTALL_PATH">
+								<include name="*.ico"/>
+							</fileset>
+							<fileset dir="../staging/" targetdir="$INSTALL_PATH/uninstaller">
+								<include name="uninstaller.exe"/>
+							</fileset>
+						</pack>
+					</packs>
+					<native type="izpack" name="ShellLink.dll"/>
+					<native type="izpack" name="ShellLink_x64.dll"/>
+					<native type="3rdparty" name="COIOSHelper.dll" stage="both">
+				        <os family="windows"/>
+				    </native>
+				</installation>
+				]]>
+			</config>
+	      </izpack>
+		</target>
+	
+	<property name="izpack2exe.dir" value="${izpack.dir}/utils/izpack2exe"/>
+	
+	<target name="windows_exe_installer" depends="windows_exe_installer_launch4j"/>
+		
+	<target name="windows_exe_installer_launch4j" depends="windows_jdbc_installer">
+		<launch4j>
+			<config dontwrapjar="false" 
+					headertype="gui"
+					jar="${dist.dir}/Architect-Setup-Windows-${app.version}.jar"
+					outfile="${dist.dir}/Architect-Setup-Windows-${app.version}.exe"
+					errtitle="Java Runtime Required"
+					priority="normal"
+					downloadurl="http://java.com/download"
+					supporturl="http://www.sqlpower.ca/forum"
+					customprocname="false"
+					stayalive="false"
+					icon="${resources}/icons/architect.ico">
+				<singleInstance
+					mutexName="SQL Power Architect Installer"
+					windowTitle="SQL Power Architect Installer"
+				/>
+				<jre minVersion="1.5.0"/>
+			</config>
+		</launch4j>
+	</target>
+	
+	<target name="windows_jdbc_exe_installer" depends="windows_jdbc_exe_installer_launch4j"/>
+	
+	<target name="windows_jdbc_exe_installer_launch4j" depends="windows_jdbc_installer">
+		<launch4j>
+			<config dontwrapjar="false" 
+					headertype="gui"
+					jar="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
+					outfile="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"
+					errtitle="Java Runtime Required"
+					priority="normal"
+					downloadurl="http://java.com/download"
+					supporturl="http://www.sqlpower.ca/forum"
+					customprocname="false"
+					stayalive="false"
+					icon="${resources}/icons/architect.ico">
+				<singleInstance
+					mutexName="SQL Power Architect Installer"
+					windowTitle="SQL Power Architect Installer"
+				/>
+				<jre minVersion="1.5.0"/>
+			</config>
+		</launch4j>
+	</target>
+	
+	<target name="osx_adapter_jar"
+			description="Creates the osx_packaging_utils/osx_adapter.jar file (only works on OSX)">
+		<javac srcdir="osx_packaging_utils"
+   			   destdir="${build}"
+			   includes="ca/sqlpower/architect/swingui/OSXAdapter.java"
+			   />
+		<jar destfile="osx_packaging_utils/osx_adapter.jar"
+			 basedir="${build}"
+			 includes="ca/sqlpower/architect/swingui/OSXAdapter.class"/>
+	</target>
+
+	<target name="osx_dist" depends="stage">
+		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
+		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${staging.dir}/lib"/>
+
+		<!-- jarbundler is from sourceforge, defined near top of file -->
+		<jarbundler dir="${staging.dir}"
+           name="Power Architect"
+           version="${app.version}"
+           mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
+           icon="${resources}/icons/Power Architect.icns"
+           jvmversion="1.5+"
+           shortname="Architect"
+           stubfile="osx_packaging_utils/PowerArchitectStub"
+           vmoptions="-Xmx600m">
+			<jarfileset dir="${staging.dir}" includes="lib/*.jar"/>
+			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
+			<javafileset dir="${staging.dir}" includes="jdbc/*.ini"/>
+			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
+		</jarbundler>
+
+		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
+		<replace file="${staging.dir}/Power Architect.app/Contents/Info.plist"
+				 token="${basedir}/KICKME"
+				 value="$JAVAROOT" />
+	</target>
+
+	<target name="osx_jdbc_dist" depends="stage">
+		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
+		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${staging.dir}/lib"/>
+
+		<!-- jarbundler is from sourceforge, defined near top of file -->
+		<jarbundler dir="${staging.dir}"
+           name="Power Architect JDBC"
+           version="${app.version}.jdbc"
+           mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
+           icon="${resources}/icons/Power Architect.icns"
+           jvmversion="1.5+"
+           shortname="Architect"
+           stubfile="osx_packaging_utils/PowerArchitectStub"
+           vmoptions="-Xmx600m">
+			<jarfileset dir="${staging.dir}" includes="lib/*.jar"/>
+			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
+			<!-- Add any jdbc drivers as resources the directory jdbc is referenced
+					in the manifest as well as various targets. -->
+			<javafileset dir="${staging.dir}" includes="jdbc/*.jar jdbc/*.ini"/>
+			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
+		</jarbundler>
+
+		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
+		<replace file="${staging.dir}/Power Architect JDBC.app/Contents/Info.plist"
+				 token="${basedir}/KICKME"
+				 value="$JAVAROOT" />
+
+	</target>
+
+	<!-- This target will only work on OS X (it needs the hdiutil command) -->
+
+	<target name="osx_dmg" depends="osx_dist" if="isMac">
+		<!-- What this basically does is:
+                     hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
+				     hdiutil attach RWArchitect.dmg
+				     (copy architect.app over, position it, etc)
+				     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
+				     hdiutil detach /Volumes/Power\*Architect/
+				     rm Power_Architect-1.0.19.dmg
+				     hdiutil convert -format UDCO -o Power_Architect-1.0.19.dmg RWArchitect.dmg
+				  -->
+		<copy file="osx_packaging_utils/RWArchitect.dmg.sparseimage" tofile="${staging.dir}/RWArchitect.dmg.sparseimage" overwrite="true" />
+		<exec executable="hdiutil">
+					<arg value="detach" />
+					<arg value="/Volumes/SQL Power Architect" />
+		</exec>
+		<exec executable="hdiutil">
+			<arg value="attach" />
+			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
+		</exec>
+		<copy todir="/Volumes/SQL Power Architect/SQL Power Architect.app/" overwrite="true"  >
+			<fileset dir="${staging.dir}/Power Architect.app"></fileset>
+		</copy>
+		<exec executable="chmod">
+			<arg value="a+x"/>
+			<arg value="/Volumes/SQL Power Architect/SQL Power Architect.app/Contents/MacOS/PowerArchitectStub"/>
+		</exec>
+		<exec executable="hdiutil">
+			<arg value="detach" />
+			<arg value="/Volumes/SQL Power Architect" />
+		</exec>
+		<delete file="${dist.dir}/Architect-OSX-${app.version}.dmg" />
+		<exec executable="hdiutil">
+			<arg value="convert"/>
+			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage"/>
+			<arg value="-format"/>
+			<arg value="UDCO"/>
+			<arg value="-o"/>
+			<arg value="${dist.dir}/Architect-OSX-${app.version}.dmg"/>
+		</exec>
+
+		<taskdef name="addLicenseToDMG"
+				 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
+			     classpath="build"/>
+		<addLicenseToDMG
+				dmgFile="${dist.dir}/Architect-OSX-${app.version}.dmg"
+                licenseFile="${staging.dir}/LICENSE"
+		        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
+    </target>
+
+	<target name="osx_jdbc_dmg" depends="osx_jdbc_dist" if="isMac">
+			<!-- hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
+					     hdiutil attach RWArchitect.dmg
+					     (copy architect.app over, position it, etc)
+					     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
+					     hdiutil detach /Volumes/Power\*Architect/
+					     rm Power_Architect-1.0.19.dmg
+					     hdiutil convert -format UDCO -o Power_Architect-1.0.19.dmg RWArchitect.dmg
+					  -->
+			<copy file="osx_packaging_utils/RWArchitect.dmg.sparseimage" tofile="${staging.dir}/RWArchitect.dmg.sparseimage" overwrite="true" />
+			<exec executable="hdiutil">
+						<arg value="detach" />
+						<arg value="/Volumes/SQL Power Architect" />
+			</exec>
+			<exec executable="hdiutil">
+				<arg value="attach" />
+				<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
+			</exec>
+			<delete dir="/Volumes/SQL Power Architect/SQL Power Architect.app/Contents/Resources/Java"/>
+			<copy todir="/Volumes/SQL Power Architect/SQL Power Architect.app/" overwrite="true"  >
+				<fileset dir="${staging.dir}/Power Architect JDBC.app"></fileset>
+			</copy>
+			<exec executable="chmod">
+				<arg value="a+x"/>
+				<arg value="/Volumes/SQL Power Architect/SQL Power Architect.app/Contents/MacOS/PowerArchitectStub"/>
+			</exec>
+			<exec executable="hdiutil">
+				<arg value="detach" />
+				<arg value="/Volumes/SQL Power Architect" />
+			</exec>
+			<delete file="${dist.dir}/Architect-OSX-jdbc-${app.version}.dmg" />
+			<exec executable="hdiutil">
+				<arg value="convert"/>
+				<arg value="${staging.dir}/RWArchitect.dmg.sparseimage"/>
+				<arg value="-format"/>
+				<arg value="UDCO"/>
+				<arg value="-o"/>
+				<arg value="${dist.dir}/Architect-OSX-jdbc-${app.version}.dmg"/>
+			</exec>
+
+			<taskdef name="addLicenseToDMG"
+					 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
+				     classpath="build"/>
+			<addLicenseToDMG
+					dmgFile="${dist.dir}/Architect-OSX-jdbc-${app.version}.dmg"
+	                licenseFile="${staging.dir}/LICENSE"
+			        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
+	    </target>
+
+	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
+		<tar destfile="${dist.dir}/Architect-OSX-${app.version}.tar.gz"
+					compression="gzip">
+			<tarfileset dir="${staging.dir}" includes="SQL Power Architect.app/**"/>
+		</tar>
+	</target>
+
+	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotWindows">
+		<exec executable="tar" dir="${staging.dir}">
+			<arg value="-cpzf" />
+			<arg value="../${dist.dir}/Architect-OSX-${app.version}.tar.gz"/>
+			<arg value="Power Architect JDBC.app"/>
+		</exec>
+	</target>
+
+	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
+    <target name="generic_install" depends="stage">
+		<tar destfile="${dist.dir}/Architect-generic-${app.version}.tar.gz"
+			compression="gzip">
+			<tarfileset
+			    prefix="architect-${app.version}"
+				dir="${staging.dir}"
+				includes="LICENSE, lib/*.jar, architect.jar, jdbc/*.ini" />
+			<tarfileset
+			    prefix="architect-${app.version}"
+				dir="doc"
+				includes="README.generic" />
+		</tar>
+    </target>
+
+    <target name="generic_jdbc_install" depends="stage">
+		<tar destfile="${dist.dir}/Architect-generic-jdbc-${app.version}.tar.gz"
+			compression="gzip">
+			<tarfileset
+			    prefix="architect-${app.version}"
+				dir="${staging.dir}"
+				includes="LICENSE, lib/*.jar, architect.jar, jdbc/*.ini, jdbc/*.jar" />
+			<tarfileset
+			    prefix="architect-${app.version}"
+				dir="doc"
+				includes="README.generic" />
+		</tar>
+    </target>
+
+	<target name="source_tgz" depends="init"
+		description="Builds a source tarball of the Architect">
+		<tar destfile="${dist.dir}/Architect-src-${app.version}.tar.gz"
+			 compression="gzip" longfile="gnu">
+			<tarfileset dir="."
+				prefix="architect-src-${app.version}"
+				excludes="log4j.properties,build.properties,user.properties,build/**,**/*.bak,**/*~,**/TEST*,architect.log*,**/.fbwarnings,deploy/**,.fbprefs,staging/**,antbuild/**,dist/**,findbugs-ant-results.txt,pmd-ant-results.txt,cpd-ant-results.txt,build.log"/>
+		</tar>
+	</target>
+
+	<!-- Creates a tarball containing only the Java source files -->
+	<target name="source_only_tgz" depends="init"
+		description="Builds a source only tarball of the Architect">
+		<tar destfile="${dist.dir}/Architect-src-only-${app.version}.tar.gz"
+			 compression="gzip" longfile="gnu">
+			<tarfileset dir="."
+				prefix="architect-src-only-${app.version}"
+				includes="${src}/**/*.java,
+					  ${resources}/**/*.png,
+					  ${resources}/**/*.gif,
+					  regress/**/*.java,
+					  build.xml,
+					  build.properties.example,
+					  LICENSE,
+					  README.sourceonly
+					  "/>
+		</tar>
+	</target>
+	
+	<target name="jdbc_dist" depends="windows_jdbc_exe_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
+	<target name="no_jdbc_dist" depends="windows_exe_installer,generic_install,osx_tgz,osx_dmg" />
+
+	<target name="dist" depends="compile-examples,pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties,downloadpage"
+	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
+		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
+		<mkdir dir="${dist.dir}/doc"/>
+		<copy todir="${dist.dir}/doc" overwrite="true">
+			<fileset dir="${staging.dir}/doc">
+				<include name="*.txt"/>
+			</fileset>
+		</copy>
+		<copy todir="${dist.dir}" overwrite="true">
+			<fileset dir="${staging.dir}/doc">
+				<include name="*-${app.version}.pdf"/>
+			</fileset>
+		</copy>
+		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
+	</target>
+
+	<!-- ================================= 
+          target: downloadpage              
+         ================================= -->
+    <target name="downloadpage" depends="init">
+	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
+		<replace file="${dist.dir}/index.html">
+			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/page/&quot;&gt;"/>
+			<replacefilter token="@@app_version" value="${app.version}"/>
+			<replacefilter token="@@downloadLinkBase" value="${downloadLinkBase}"/>
+			<replacefilter token="@@docLinkBase" value="${docLinkBase}"/>
+		</replace>
+    </target>
+
+	<!-- Some of the Ant targets in this build.xml require Ant 1.7. 
+		 To upgrade if using Eclipse 3.x,
+	     1. Download the latest Ant from http://ant.apache.org/bindownload.cgi
+	     2. Extract it somewhere
+	     3. Under window, preferences select Ant runtime in the tree
+	     4. Set the Ant home to be the folder that Ant was extracted to -->
+	<target name="checkAntVersion" description="Ensure that we're running ant 1.7">
+		<echo message="Checking Ant version. Using ${ant.version}"/>
+		<echo message="Note: This build script requires Ant 1.7 or newer."/>
+		<fail message="This build script requires Ant 1.7 or newer">
+			<condition>
+				<not>
+					<antversion atleast="1.7.0"/>
+				</not>
+			</condition>
+		</fail>
+	</target>
+	
+	<!-- 
+		This build target checks for the sqlpower-library project, which is
+		required by the Power*Architect to build. 
+	-->
+	<target name="check.sqlpower.library.dir">
+		<echo message="Checking for sqlpower-library project..."/>
+		<fail message="Can't find sqlpower-library project! Set the property 'sqlpower.library.home' to point to the sqlpower-library project directory">
+			<condition>
+				<not>
+					<isset property="sqlpower.library.home"/>
+				</not>
+			</condition>
+		</fail>
+	</target>
+	
+	<target name="build.sqlpower.library" depends="check.sqlpower.library.dir" if="buildSQLPowerLibrary">
+		<echo message="Attempting to build sqlpower-library project..."/>
+		<ant inheritall="false" dir="${sqlpower.library.home}" target="clean">
+		</ant>
+		<ant inheritall="false" dir="${sqlpower.library.home}" target="jar">
+		</ant>
+	</target>
+	
+	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
+	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${buildlib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${buildlib}"/>
+	</target>
+	
+	<target name="architect.version.properties" depends="init">
+		<propertyfile
+		    file="${dist.dir}/architect.version.properties"
+		    comment="SQL Power Architect Version">
+		  <entry key="app.version" value="${app.version}"/>
+		</propertyfile>
+	</target>
+</project>
