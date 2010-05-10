@@ -1194,18 +1194,20 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         mi.setAction(af.getEditTableAction());
         mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
+        
+        if (!getPlayPen().getSession().isEnterpriseSession()) {
+            tablePanePopup.addSeparator();
+            
+            mi = new JMenuItem();
+            mi.setAction(getPlayPen().bringToFrontAction);
+            mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
+            tablePanePopup.add(mi);
 
-        tablePanePopup.addSeparator();
-
-        mi = new JMenuItem();
-        mi.setAction(getPlayPen().bringToFrontAction);
-        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
-        tablePanePopup.add(mi);
-
-        mi = new JMenuItem();
-        mi.setAction(getPlayPen().sendToBackAction);
-        mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
-        tablePanePopup.add(mi);
+            mi = new JMenuItem();
+            mi.setAction(getPlayPen().sendToBackAction);
+            mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
+            tablePanePopup.add(mi);
+        }
 
         if (logger.isDebugEnabled()) {
             tablePanePopup.addSeparator();
