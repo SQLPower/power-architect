@@ -42,20 +42,20 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      * complete and can remain stable for a period of time. Until then, we will
      * leave the major version at 0 and all bets are off.
      */
-    public static final String APP_VERSION_MAJOR  = "0";
+    public static final String APP_VERSION_MAJOR  = "1";
     
     /**
      * Minor version number. This changes when new features appear that might
      * break forward compatibility.
      */
-    public static final String APP_VERSION_MINOR  = "9";
+    public static final String APP_VERSION_MINOR  = "0";
     
     /**
      * Tiny version number.  This number changes with each release, but resets
      * back to 0 when the minor version changes.  All versions under the same
      * minor version number are fully compatible with each other.
      */
-    public static final String APP_VERSION_TINY   = "16";
+    public static final String APP_VERSION_TINY   = "0";
     
     /**
      * Suffixes indicate pre-release builds.  They normally progress from "alpha"
@@ -66,7 +66,7 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      * Full releases do not have a suffix.  In that case, the suffix is the empty
      * string (not null).
      */
-    public static final String APP_VERSION_SUFFIX = "";
+    public static final String APP_VERSION_SUFFIX = "preview";
     
     /**
      * The normal readable version number, formatted as Major.Minor.Tiny. 
