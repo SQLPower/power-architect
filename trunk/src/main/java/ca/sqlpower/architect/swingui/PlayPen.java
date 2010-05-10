@@ -65,6 +65,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -2716,15 +2717,57 @@ public class PlayPen extends JPanel
 		}
 
 		public void actionPerformed(ActionEvent e) {
+		    pp.getContentPane().begin("Bringing playpen components to front.");
+		    
+		    LinkedHashSet<PlayPenComponent> independentComponents = new LinkedHashSet<PlayPenComponent>();
+		    LinkedHashSet<PlayPenComponent> dependentComponents = new LinkedHashSet<PlayPenComponent>();
+		    
 			for (PlayPenComponent c : pp.getSelectedItems()) {
-			    try {
-			        pp.contentPane.removeChild(c);
-			    } catch (ObjectDependentException ex) {
-			        throw new RuntimeException(ex);
+			    if (PlayPenContentPane.isDependentComponentType(c.getClass())) {
+			        dependentComponents.add(c);
+			        
+			        try {
+			            pp.getContentPane().removeChild(c);
+			        } catch (ObjectDependentException ex) {
+			            throw new RuntimeException(ex);
+			        }
+			    } else {
+			        independentComponents.add(c);
 			    }
-				pp.contentPane.addChild(c, 0);				
+			    
+				if (c instanceof TablePane) {
+				    for (Relationship r : pp.getContentPane().getChildren(Relationship.class)) {
+				        if (c == r.getFkTable() || c == r.getPkTable()) {
+				            if (dependentComponents.add(r)) {
+				                try {
+				                    pp.getContentPane().removeChild(r);
+				                } catch (ObjectDependentException ex) {
+				                    throw new RuntimeException(ex);
+				                }
+				            }
+				        }
+				    }
+				}
 			}
+			
+			for (PlayPenComponent c : independentComponents) {
+                try {
+                    pp.getContentPane().removeChild(c);
+                } catch (ObjectDependentException ex) {
+                    throw new RuntimeException(ex);
+                }
+			}
+			
+			for (PlayPenComponent c : independentComponents) {
+			    pp.getContentPane().addChild(c, 0);
+			}
+			for (PlayPenComponent c : dependentComponents) {
+			    pp.getContentPane().addChild(
+			            c, pp.getContentPane().getFirstDependentComponentIndex());
+			}
+			
 			pp.repaint();
+			pp.getContentPane().commit();
 		}
 	}
 
@@ -2738,15 +2781,59 @@ public class PlayPen extends JPanel
 		}
 
 		public void actionPerformed(ActionEvent e) {
+		    pp.getContentPane().begin("Sending playpen components to back");
+		    
+		    LinkedHashSet<PlayPenComponent> independentComponents = new LinkedHashSet<PlayPenComponent>();
+		    LinkedHashSet<PlayPenComponent> dependentComponents = new LinkedHashSet<PlayPenComponent>();
+		    
 		    for (PlayPenComponent c : pp.getSelectedItems()) {
-		        try {
-		            pp.contentPane.removeChild(c);
-		        } catch (ObjectDependentException ex) {
-		            throw new RuntimeException(ex);
+		        
+		        if (PlayPenContentPane.isDependentComponentType(c.getClass())) {
+		            dependentComponents.add(c);
+		            
+		            try {
+		                pp.getContentPane().removeChild(c);
+		            } catch (ObjectDependentException ex) {
+		                throw new RuntimeException(ex);
+		            }
+		        } else {
+		            independentComponents.add(c);
 		        }
-		        pp.contentPane.addChild(c, pp.contentPane.getChildren().size());
+		        
+                if (c instanceof TablePane) {
+                    for (Relationship r : pp.getContentPane().getChildren(Relationship.class)) {
+                        if (c == r.getFkTable() || c == r.getPkTable()) {
+                            if (dependentComponents.add(r)) {
+                                try {
+                                    pp.getContentPane().removeChild(r);
+                                } catch (ObjectDependentException ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                            }
+                        }
+                    }
+                }
 			}
+		    
+		    for (PlayPenComponent c : independentComponents) {
+                try {
+                    pp.getContentPane().removeChild(c);
+                } catch (ObjectDependentException ex) {
+                    throw new RuntimeException(ex);
+                }
+		    }
+		    
+		    for (PlayPenComponent c : independentComponents) {
+		        pp.getContentPane().addChild(
+		                c, pp.getContentPane().getFirstDependentComponentIndex());
+		    }
+		    for (PlayPenComponent c : dependentComponents) {
+                pp.getContentPane().addChild(
+                        c, pp.getContentPane().getChildren().size());
+		    }
+		    
 			pp.repaint();
+			pp.getContentPane().commit();
 		}
 	}
 
