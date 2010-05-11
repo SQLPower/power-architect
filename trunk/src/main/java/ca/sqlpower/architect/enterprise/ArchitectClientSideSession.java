@@ -543,7 +543,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             JSONObject jsonItem = jsonArray.getJSONObject(i);
             TransactionInformation transaction = new TransactionInformation(
                     jsonItem.getLong("number"),                     
-                    TransactionInformation.DATE_FORMAT.parse(jsonItem.getString("time")),
+                    jsonItem.getLong("time"),
                     jsonItem.getString("author"),
                     jsonItem.getString("description"),
                     jsonItem.getString("simpleDescription"));

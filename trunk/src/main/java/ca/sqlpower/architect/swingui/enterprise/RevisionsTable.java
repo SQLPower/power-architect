@@ -29,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -95,7 +96,7 @@ public class RevisionsTable extends JTable {
             infoArea.setEditable(false);                  
             infoArea.append("Revision " + revisionNo);
             infoArea.append("\n\nAuthor: " + info.getVersionAuthor());
-            infoArea.append("\nTime created: " + info.getTimeCreated().toString());
+            infoArea.append("\nTime created: " + new Date(info.getTimeCreated()));
             String description = "";
             for (String line : info.getSimpleDescription().split(", ")) {
                 description += "\n" + line;
@@ -181,7 +182,7 @@ public class RevisionsTable extends JTable {
             for (int i = 0; i < transactions.size(); i++) {                
                 TransactionInformation transaction = transactions.get(i);
                 data[i][0] = String.valueOf(transaction.getVersionNumber()) + " ";
-                data[i][1] = transaction.getTimeString() + " ";
+                data[i][1] = new Date(transaction.getTimeCreated()) + " ";
                 data[i][2] = transaction.getVersionAuthor() + " ";
                 data[i][3] = transaction.getSimpleDescription();
                 
