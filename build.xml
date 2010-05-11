@@ -860,7 +860,7 @@
 		</java>
 	</target>
 
-	<target name="clean">
+	<target description="Cleans all build files" name="clean">
 		<delete dir="${build}" failonerror="false"/>
 		<delete dir="${build.tests}" failonerror="false"/>
 		<delete dir="${build.examples}" failonerror="false"/>
