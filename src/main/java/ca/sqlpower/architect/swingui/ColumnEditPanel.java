@@ -1062,26 +1062,13 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     };
 
     public void childAdded(SPChildEvent e) {
-        try {
-            if (e.getSource() == columns.get(0).getParent().getPrimaryKeyIndex()) {
-                // The column that was added may not be the one at index 0, but
-                // e.getChild() is a copied column, and it doesn't matter
-                // so long as a change is flagged, which it will be.
-                propertyChanged(new PropertyChangeEvent(columns.get(0), "inPK", false, true));
-            }
-        } catch (SQLObjectException ex) {            
-            throw new RuntimeException(ex);
-        }
+        //TODO Don't make the ColumnEditPanel a listener. 
+        //THEN make the PK check box go red if a conflicting update is received. 
     }
 
     public void childRemoved(SPChildEvent e) {
-        try {
-            if (e.getSource() == columns.get(0).getParent().getPrimaryKeyIndex()) {
-                propertyChanged(new PropertyChangeEvent(columns.get(0), "inPK", true, false));
-            }
-        } catch (SQLObjectException ex) {            
-            throw new RuntimeException(ex);
-        }
+        //TODO Don't make the ColumnEditPanel a listener. 
+        //THEN make the PK check box go red if a conflicting update is received.
     }
 
     public void propertyChanged(PropertyChangeEvent e) {
