@@ -443,7 +443,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         if (context.isMacOSX()) {
             try {
-                Class osxAdapter = ClassLoader.getSystemClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter"); //$NON-NLS-1$
+                Class<?> osxAdapter = ArchitectSwingSessionImpl.class.getClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter"); //$NON-NLS-1$
 
                 // The main registration method.  Takes quitAction, prefsAction, aboutAction.
                 Class[] defArgs = { Action.class, Action.class, Action.class };
