@@ -638,7 +638,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
     @NonBound
     public Color getColumnHighlight(SQLColumn column) {
         logger.debug("Checking column "+column); //$NON-NLS-1$
-        if (columnHighlight.get(column).isEmpty()) {
+        if (columnHighlight.get(column) == null || columnHighlight.get(column).isEmpty()) {
             return getForegroundColor();
         } else {
             float[] rgbsum = new float[3];
