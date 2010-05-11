@@ -473,6 +473,10 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		}
 		return !((SQLObject) parent).allowsChildren();
 	}
+	
+	public boolean isColumnsFolder(Object parent) {
+	    return parent instanceof FolderNode && ((FolderNode) parent).allowsChildType(SQLColumn.class);
+	}
 
 	public void valueForPathChanged(TreePath path, Object newValue) {
 		throw new UnsupportedOperationException("model doesn't support editing yet"); //$NON-NLS-1$
