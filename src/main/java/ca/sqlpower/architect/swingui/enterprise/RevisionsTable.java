@@ -195,7 +195,7 @@ public class RevisionsTable extends JTable {
             }                   
             
         } catch (Throwable e) {
-            throw new RuntimeException("Error getting revision list from server: " + e);
+            throw new RuntimeException("Error getting revision list from server ", e);
         } finally {
             this.setModel(new DefaultTableModel(data, HEADERS) {
                 public boolean isCellEditable(int x, int y) {
