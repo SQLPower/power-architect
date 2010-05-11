@@ -240,7 +240,7 @@ public class ServerProjectsManagerPanel {
         projects = new JList(new DefaultListModel());
         projects.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseReleased(MouseEvent e) {
                 refreshPanel();
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     openAction.actionPerformed(null);
@@ -288,7 +288,7 @@ public class ServerProjectsManagerPanel {
         servers = new JList(new DefaultListModel());
         servers.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseReleased(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     refreshInfoList();
                 }
@@ -309,7 +309,7 @@ public class ServerProjectsManagerPanel {
         projects = new JList(new DefaultListModel());
         projects.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseReleased(MouseEvent e) {
                 refreshPanel();
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     openAction.actionPerformed(null);
