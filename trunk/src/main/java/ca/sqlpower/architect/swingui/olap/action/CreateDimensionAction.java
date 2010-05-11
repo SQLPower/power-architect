@@ -50,6 +50,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         Dimension dim = new Dimension();
+        dim.setParent(schema);
         
         int count = 1;
         while (!OLAPUtil.isNameUnique(schema, Dimension.class, "New Dimension " + count)) {
@@ -80,28 +81,26 @@ public class CreateDimensionAction extends AbstractArchitectAction {
         }
 
         @Override
-        public DataEntryPanel place(Point p) throws SQLObjectException {
-            try {
-                session.getWorkspace().begin("Create a dimension");
-                schema.addDimension(dp.getModel());
-                playpen.selectNone();
-                playpen.addPlayPenComponent(dp, p);
-                dp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                session.getWorkspace().commit();
-            } catch (Throwable e) {
-                session.getWorkspace().rollback("Error occurred: " + e.toString());
-                throw new RuntimeException(e);
-            }
-
+        public DataEntryPanel place(final Point p) throws SQLObjectException {
             DimensionEditPanel editPanel = new DimensionEditPanel(dp.getModel()) {
                 @Override
-                public void discardChanges() {
-                    schema.removeDimension(dp.getModel());
-                }
-                
-                @Override
                 public boolean applyChanges() {
-                    return super.applyChanges();
+                    if (super.applyChanges()) {
+                        try {
+                            session.getWorkspace().begin("Create a dimension");
+                            schema.addDimension(dp.getModel());
+                            playpen.selectNone();
+                            playpen.addPlayPenComponent(dp, p);
+                            dp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+                            session.getWorkspace().commit();
+                            return true;
+                        } catch (Throwable e) {
+                            session.getWorkspace().rollback("Error occurred: " + e.toString());
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        return false;
+                    }
                 }
             };
             return editPanel;
