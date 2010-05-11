@@ -103,7 +103,7 @@ public class DDLExportPanel implements DataEntryPanel {
                     String generatorClass = dataSource.getParentType().getDDLGeneratorClass();
                     if (generatorClass != null) {
                         try {
-                            dbType.setSelectedItem(Class.forName(generatorClass));
+                            dbType.setSelectedItem(Class.forName(generatorClass, true, DDLExportPanel.class.getClassLoader()));
                         } catch (ClassNotFoundException ex) {
                             logger.error("Error when finding the DDLGenerator class for the selected database!", ex); //$NON-NLS-1$
                         }

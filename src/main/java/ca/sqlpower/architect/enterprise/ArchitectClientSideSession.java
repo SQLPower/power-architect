@@ -140,7 +140,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		String ddlgClass = prefs.get(this.projectLocation.getUUID() + ".ddlg", null);
 		if (ddlgClass != null) {
 		    try {
-                DDLGenerator ddlg = (DDLGenerator) Class.forName(ddlgClass).newInstance();
+                DDLGenerator ddlg = (DDLGenerator) Class.forName(ddlgClass, true, ArchitectClientSideSession.class.getClassLoader()).newInstance();
                 setDDLGenerator(ddlg);
                 ddlg.setTargetCatalog(prefs.get(this.projectLocation.getUUID() + ".targetCatalog", null));
                 ddlg.setTargetSchema(prefs.get(this.projectLocation.getUUID() + ".targetSchema", null));

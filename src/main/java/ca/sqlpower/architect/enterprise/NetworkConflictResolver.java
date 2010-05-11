@@ -513,7 +513,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     type = spo.getClass();
                     parentId = spo.getParent().getUUID();
                 } else if (o != null) {                    
-                    type = Class.forName(o.getType());
+                    type = Class.forName(o.getType(), true, NetworkConflictResolver.class.getClassLoader());
                     parentId = o.getParentUUID();
                 } else {
                     continue;
@@ -555,7 +555,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     iterator.remove();
                     PlayPenContentPane cp = session.getWorkspace().getPlayPenContentPane();
                     try {
-                        Class<PlayPenComponent> type = (Class<PlayPenComponent>) Class.forName(o.getType());
+                        Class<PlayPenComponent> type = (Class<PlayPenComponent>) Class.forName(o.getType(), true, NetworkConflictResolver.class.getClassLoader());
                         int newIndex = -1;
                         if (PlayPenContentPane.isDependentComponentType(type)) {
                             if (o.getIndex() < cp.getFirstDependentComponentIndex()) {

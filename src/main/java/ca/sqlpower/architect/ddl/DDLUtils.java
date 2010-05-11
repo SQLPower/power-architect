@@ -153,7 +153,7 @@ public class DDLUtils {
         for (JDBCDataSourceType dst : dsc.getDataSourceTypes()) {
             if (dst.getDDLGeneratorClass() != null) {
                 try {
-                    Class<?> loadedClass = Class.forName(dst.getDDLGeneratorClass());
+                    Class<?> loadedClass = Class.forName(dst.getDDLGeneratorClass(), true, DDLUtils.class.getClassLoader());
                     Class<? extends DDLGenerator> ddlgClass = loadedClass.asSubclass(DDLGenerator.class);
                     if ( (!dbTypeList.contains(ddlgClass)) && (!Modifier.isAbstract(ddlgClass.getModifiers())) ) {
                         dbTypeList.add(ddlgClass);
@@ -171,10 +171,10 @@ public class DDLUtils {
     public static DDLGenerator createDDLGenerator(JDBCDataSource ads)
                         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-        Class generatorClass;
+        Class<?> generatorClass;
         String className = ads.getParentType().getDDLGeneratorClass();
         if (className != null) {
-            generatorClass = Class.forName(className);
+            generatorClass = Class.forName(className, true, DDLUtils.class.getClassLoader());
         } else {
             generatorClass = DEFAULT_DDL_GENERATOR_CLASS;
         }

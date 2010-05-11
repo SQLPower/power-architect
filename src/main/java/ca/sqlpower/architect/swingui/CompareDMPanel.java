@@ -746,7 +746,7 @@ public class CompareDMPanel extends JPanel {
                         String generatorClass = dataSource.getParentType().getDDLGeneratorClass();
                         if (generatorClass != null) {
                             try {
-                                sqlTypeDropdown.setSelectedItem(Class.forName(generatorClass));
+                                sqlTypeDropdown.setSelectedItem(Class.forName(generatorClass, true, CompareDMPanel.class.getClassLoader()));
                             } catch (ClassNotFoundException ex) {
                                 logger.error("Error when finding the DDLGenerator class for the selected database!", ex); //$NON-NLS-1$
                             }

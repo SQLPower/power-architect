@@ -898,7 +898,7 @@ public class ProjectLoader {
         public Object createObject(Attributes attributes) throws SQLException {
             try {
                 GenericDDLGenerator ddlg =
-                    (GenericDDLGenerator) Class.forName(attributes.getValue("type")).newInstance();
+                    (GenericDDLGenerator) Class.forName(attributes.getValue("type"), true, ProjectLoader.class.getClassLoader()).newInstance();
                 ddlg.setTargetCatalog(attributes.getValue("target-catalog"));
                 ddlg.setTargetSchema(attributes.getValue("target-schema"));
                 return ddlg;
