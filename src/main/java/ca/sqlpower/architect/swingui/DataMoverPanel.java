@@ -56,11 +56,11 @@ import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLCatalog;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
@@ -110,12 +110,16 @@ public class DataMoverPanel {
         
         setupDBTrees();
         
-        sourceTree = new JTree(new DBTreeModel(treeRoot));
+        final DBTreeModel sourceTreeModel = new DBTreeModel(treeRoot);
+        sourceTree = new JTree(sourceTreeModel);
+        sourceTree.addTreeWillExpandListener(sourceTreeModel.getTreeWillExpandListener());
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
         sourceTree.setCellRenderer(new DBTreeCellRenderer());
         
-        destTree = new JTree(new DBTreeModel(treeRoot));
+        final DBTreeModel destTreeModel = new DBTreeModel(treeRoot);
+        destTree = new JTree(destTreeModel);
+        destTree.addTreeWillExpandListener(destTreeModel.getTreeWillExpandListener());
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
         destTree.setCellRenderer(new DBTreeCellRenderer());
