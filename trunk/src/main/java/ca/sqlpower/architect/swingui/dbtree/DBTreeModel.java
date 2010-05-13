@@ -32,8 +32,10 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.swing.SwingUtilities;
+import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -386,6 +388,26 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 */
 	protected final Map<SQLTable, List<FolderNode>> foldersInTables = 
 	    new HashMap<SQLTable, List<FolderNode>>();
+
+    /**
+     * A listener that should be added to any JTree, that is not a DBTree, using
+     * this model. It will populate the indices of a table before expanding it,
+     * to prevent removal events due to reordering from affecting the Tree in
+     * the middle of the expansion.
+     */
+    private TreeWillExpandListener treeWillExpandListener = new TreeWillExpandListener() {
+        public void treeWillCollapse(TreeExpansionEvent event) {
+        }
+        public void treeWillExpand(TreeExpansionEvent event) {
+            if (isColumnsFolder(event.getPath().getLastPathComponent())){
+                try {
+                    ((SQLTable) event.getPath().getPathComponent(event.getPath().getPathCount() -2)).getIndices();
+                } catch (SQLObjectException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    };
 	
 	/**
 	 * Creates a tree model with all of the SQLDatabase objects in the
@@ -406,6 +428,10 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		}
 		
 		setupTreeForNode(root);
+	}
+	
+	public TreeWillExpandListener getTreeWillExpandListener() {
+	    return treeWillExpandListener;
 	}
 	
 	/**
