@@ -217,9 +217,16 @@ public class PlayPenContentPane extends AbstractSPObject {
      */
     private class ZoomFixer implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent evt) {
-            for (PlayPenComponent ppc : getChildren()) {
-                // only table panes will need validation because they have text             
-                if (!(ppc instanceof Relationship)) ppc.revalidate();
+            try {
+                begin("Revalidating all UI components.");
+                for (PlayPenComponent ppc : getChildren()) {
+                    // only table panes will need validation because they have text             
+                    if (!(ppc instanceof Relationship)) ppc.revalidate();
+                }
+                commit();
+            } catch (Throwable t) {
+                rollback("Failed to revalidate UI. " + t.getMessage());
+                throw new RuntimeException(t);
             }
         }
     }
