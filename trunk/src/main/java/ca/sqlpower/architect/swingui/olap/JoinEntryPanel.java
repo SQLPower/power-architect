@@ -280,8 +280,8 @@ public class JoinEntryPanel implements DataEntryPanel {
         DBTree tree;
         try {
             root.addChild(db);
-            treeModel = new DBTreeModel(root);
             tree = new DBTree(session);
+            treeModel = new DBTreeModel(root, tree);
         } catch (SQLObjectException e) {
             throw new RuntimeException(e);
         }

@@ -110,16 +110,16 @@ public class DataMoverPanel {
         
         setupDBTrees();
         
-        final DBTreeModel sourceTreeModel = new DBTreeModel(treeRoot);
-        sourceTree = new JTree(sourceTreeModel);
-        sourceTree.addTreeWillExpandListener(sourceTreeModel.getTreeWillExpandListener());
+        sourceTree = new JTree();
+        final DBTreeModel sourceTreeModel = new DBTreeModel(treeRoot, sourceTree);
+        sourceTree.setModel(sourceTreeModel);
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
         sourceTree.setCellRenderer(new DBTreeCellRenderer());
         
-        final DBTreeModel destTreeModel = new DBTreeModel(treeRoot);
-        destTree = new JTree(destTreeModel);
-        destTree.addTreeWillExpandListener(destTreeModel.getTreeWillExpandListener());
+        destTree = new JTree();
+        final DBTreeModel destTreeModel = new DBTreeModel(treeRoot, sourceTree);
+        destTree.setModel(destTreeModel);
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
         destTree.setCellRenderer(new DBTreeCellRenderer());
