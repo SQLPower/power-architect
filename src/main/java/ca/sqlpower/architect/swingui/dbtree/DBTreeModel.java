@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeModelEvent;
@@ -418,9 +419,10 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 * root object associated with the given session, but it normally
 	 * will be.
 	 */
-	public DBTreeModel(SQLObjectRoot root) throws SQLObjectException {
+	public DBTreeModel(SQLObjectRoot root, JTree tree) throws SQLObjectException {
 		this.root = root;
 		this.treeModelListeners = new LinkedList();
+		tree.addTreeWillExpandListener(treeWillExpandListener);
 		SQLPowerUtils.listenToHierarchy(root, treeListener); 
 		
  		for (SPObject ancestor : SQLPowerUtils.getAncestorList(root)) {
@@ -428,10 +430,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		}
 		
 		setupTreeForNode(root);
-	}
-	
-	public TreeWillExpandListener getTreeWillExpandListener() {
-	    return treeWillExpandListener;
 	}
 	
 	/**

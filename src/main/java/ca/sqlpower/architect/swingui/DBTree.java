@@ -135,7 +135,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	public DBTree(final ArchitectSwingSession session) throws SQLObjectException {
         this.session = session;
-        treeModel = new DBTreeModel(session.getRootObject());
+        treeModel = new DBTreeModel(session.getRootObject(), this);
         setModel(treeModel);
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
@@ -282,15 +282,6 @@ public class DBTree extends JTree implements DragSourceListener {
 	public void expandPath(TreePath tp) {
 		try {
 			session.getArchitectFrame().setCursor(new Cursor(Cursor.WAIT_CURSOR));
-			if (treeModel.isColumnsFolder(tp.getLastPathComponent())) {
-			    // This is so that the indices of the table will be populated.
-                // When the indices are populated, there is a chance that
-                // columns will be moved around. If this is done while expanding
-                // the tree, the removal event will make it back to the tree,
-                // and cause exceptions.
-			    SQLTable table = (SQLTable) tp.getPathComponent(tp.getPathCount() - 2);
-			    table.getChildren(SQLIndex.class);
-			}
 			super.expandPath(tp);
 		} catch (Exception ex) {
 			logger.warn("Unexpected exception while expanding path "+tp, ex); //$NON-NLS-1$

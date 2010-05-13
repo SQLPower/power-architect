@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JTree;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
@@ -102,7 +103,7 @@ public class TestDBTreeModel extends TestCase {
 
     protected void setUp() throws Exception {
         session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
-        tm = new DBTreeModel(session.getRootObject());
+        tm = new DBTreeModel(session.getRootObject(), new JTree());
         tm.setRefireEventsOnAnyThread(true);
 	}
 	
