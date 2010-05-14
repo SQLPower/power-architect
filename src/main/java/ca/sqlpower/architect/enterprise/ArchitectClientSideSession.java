@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -254,7 +255,12 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 					    
 					    @Override
 					    public List<UserDefinedSQLType> getSQLTypes() {
-					        return ArchitectClientSideSession.this.getSQLTypes();
+					        List<UserDefinedSQLType> types = new ArrayList<UserDefinedSQLType>();
+					        types.addAll(ArchitectClientSideSession.this.getSQLTypes());
+					        for (DomainCategory dc : ArchitectClientSideSession.this.getDomainCategories()) {
+					            types.addAll(dc.getChildren(UserDefinedSQLType.class));
+					        }
+					        return types;
 					    }
 					    
 					    @Override
@@ -954,7 +960,17 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
      */
     @Override
     public List<UserDefinedSQLType> getSQLTypes() {
-        final List<UserDefinedSQLType> sqlTypes = getSystemWorkspace().getSqlTypes();
-        return sqlTypes;
+        return Collections.unmodifiableList(
+                getSystemWorkspace().getChildren(UserDefinedSQLType.class));
+    }
+
+    /**
+     * Returns the {@link List} of {@link DomainCategory}s in this session's
+     * system workspace.
+     */
+    @Override
+    public List<DomainCategory> getDomainCategories() {
+        return Collections.unmodifiableList(
+                getSystemWorkspace().getChildren(DomainCategory.class));
     }
 }

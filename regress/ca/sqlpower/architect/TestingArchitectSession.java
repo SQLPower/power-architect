@@ -36,6 +36,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -218,5 +219,10 @@ public class TestingArchitectSession implements ArchitectSession {
 
     public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
         return defaultUPF.createListUserPrompter(question, responses, defaultResponse);
+    }
+
+    public List<DomainCategory> getDomainCategories() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

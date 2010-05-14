@@ -23,6 +23,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
@@ -181,6 +182,11 @@ public class StubArchitectSession implements ArchitectSession {
     }
 
     public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public List<DomainCategory> getDomainCategories() {
         // TODO Auto-generated method stub
         return null;
     }

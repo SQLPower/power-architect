@@ -412,8 +412,8 @@ public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
         allChildren.add(kettleSettings);
         allChildren.addAll(users);
         allChildren.addAll(groups);
-        allChildren.addAll(domainCategories);
         allChildren.addAll(sqlTypes);
+        allChildren.addAll(domainCategories);
         return allChildren;
     }
     
@@ -574,15 +574,6 @@ public class ArchitectProject extends AbstractSPObject implements MappedSPTree {
         return true;
     }
     
-    /**
-     * Returns the list of all child {@link UserDefinedSQLType} for this
-     * {@link ArchitectProject}
-     */
-    @NonProperty
-    public List<UserDefinedSQLType> getSqlTypes() {
-        return sqlTypes;
-    }
-
     @NonBound
     public SPObject getObjectInTree(String uuid) {
         return projectMap.get(uuid);

@@ -41,6 +41,7 @@ import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
+import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -495,5 +496,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
         return new DefaultUserPrompterFactory().createListUserPrompter(question, responses, defaultResponse);
+    }
+
+    public List<DomainCategory> getDomainCategories() {
+        return Collections.emptyList();
     }
 }

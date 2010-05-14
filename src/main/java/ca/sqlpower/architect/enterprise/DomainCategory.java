@@ -86,6 +86,7 @@ public class DomainCategory extends AbstractSPObject {
     @Override
     protected void addChildImpl(SPObject child, int index) {
         children.add(index, (UserDefinedSQLType) child);
+        child.setParent(this);
         fireChildAdded(UserDefinedSQLType.class, child, index);
     }
     
