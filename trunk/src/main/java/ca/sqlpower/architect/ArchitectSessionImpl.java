@@ -23,10 +23,12 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -278,6 +280,10 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public <T> UserPrompter createListUserPrompter(String question, List<T> responses, T defaultResponse) {
         return userPrompterFactory.createListUserPrompter(question, responses, defaultResponse);
+    }
+
+    public List<DomainCategory> getDomainCategories() {
+        return Collections.emptyList();
     }
 }
 

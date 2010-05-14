@@ -27,20 +27,17 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -51,6 +48,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTree;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -60,7 +58,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.log4j.Logger;
 
@@ -166,7 +168,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     
     private final JTextField colPhysicalName;
 
-    private final JComboBox colType;
+    private final JButton typeChooserButton;
+    
+    private final JTree colType;
 
     private final JSpinner colScale;
 
@@ -181,7 +185,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private final JCheckBox colInPK;
 
     private final JComboBox colAutoInc;
-
+    
     /**
      * Text field for the name of the sequence that will generate this column's
      * default values. In multi-edit mode, this component will be null. 
@@ -210,7 +214,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         this(Collections.singleton(col), session);
     }
     
-    public ColumnEditPanel(Collection<SQLColumn> cols, ArchitectSwingSession session) throws SQLObjectException {
+    public ColumnEditPanel(Collection<SQLColumn> cols, final ArchitectSwingSession session) throws SQLObjectException {
         logger.debug("ColumnEditPanel called"); //$NON-NLS-1$
 
         if (session == null) {
@@ -324,19 +328,29 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         if (cols.size() > 1) {
             panel.add(cb, cc.xy(1, row));
         }
-        List<UserDefinedSQLType> typeList = session.getSQLTypes();
-        UserDefinedSQLType[] types = new UserDefinedSQLType[typeList.size()];
-        types = typeList.toArray(types);
-        Arrays.sort(types, new Comparator<UserDefinedSQLType>() {
-            public int compare(UserDefinedSQLType a, UserDefinedSQLType b) {
-                return a.getName().compareTo(b.getName());
-            }
-        });
-        panel.add(colType = new JComboBox(types), cc.xyw(2, row++, width));
-        componentEnabledMap.put(colType, cb);
-        colType.setSelectedItem(null);
-        colType.addActionListener(this);
+        
+        typeChooserButton = new JButton(Messages.getString("ColumnEditPanel.chooseType"));
+        
+        if (session.isEnterpriseSession()) {
+            colType = new JTree(new SQLTypeTreeModel(
+                    session.getEnterpriseSession()));
+        } else {
+            colType = new JTree(new SQLTypeTreeModel(session));
+        }
+        
+        colType.setCellRenderer(new SQLTypeTreeCellRenderer());
+        for (int i = 0; i < colType.getRowCount(); i++) {
+            colType.expandRow(i);
+        }
+        colType.setRootVisible(true);
+        colType.getSelectionModel().setSelectionMode(
+                TreeSelectionModel.SINGLE_TREE_SELECTION);
+        
+        typeChooserButton.addActionListener(new SQLTypeTreePopupAction(panel, colType, typeChooserButton));
 
+        componentEnabledMap.put(colType, cb);
+        panel.add(typeChooserButton, cc.xyw(2, row++, 2));
+        
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
 
@@ -357,8 +371,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     colPrec.setEnabled(true);
                 } else {
                     colPrec.setEnabled(false);
-                    if (colType.getSelectedItem() != null) {
-                        colPrec.setValue(((UserDefinedSQLType) colType.getSelectedItem()).getPrecision(
+                    if (colType.getLastSelectedPathComponent() instanceof UserDefinedSQLType) {
+                        colPrec.setValue(
+                                ((UserDefinedSQLType) colType.getLastSelectedPathComponent()).getPrecision(
                                 SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
                     }
                 }
@@ -378,8 +393,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     colScale.setEnabled(true);
                 } else {
                     colScale.setEnabled(false);
-                    if (colType.getSelectedItem() != null) {
-                        colScale.setValue(((UserDefinedSQLType) colType.getSelectedItem()).getScale(
+                    if (colType.getLastSelectedPathComponent() instanceof UserDefinedSQLType) {
+                        colScale.setValue(((UserDefinedSQLType) colType.getLastSelectedPathComponent()).getScale(
                                 SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
                     }
                 }
@@ -406,9 +421,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     colNullable.setEnabled(true);
                 } else {
                     colNullable.setEnabled(false);
-                    if (colType.getSelectedItem() != null) {
+                    if (colType.getLastSelectedPathComponent() instanceof UserDefinedSQLType) {
                         colNullable.setSelectedItem(YesNoEnum.valueOf(
-                                ((UserDefinedSQLType) colType.getSelectedItem()).getNullability() == DatabaseMetaData.columnNullable));
+                                ((UserDefinedSQLType) colType.getLastSelectedPathComponent()).getNullability() == DatabaseMetaData.columnNullable));
                     }
                 }
                 updateComponents();
@@ -435,9 +450,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     colAutoInc.setEnabled(true);
                 } else {
                     colAutoInc.setEnabled(false);
-                    if (colType.getSelectedItem() != null) {
+                    if (colType.getLastSelectedPathComponent() instanceof UserDefinedSQLType) {
                         colAutoInc.setSelectedItem(YesNoEnum.valueOf(
-                                ((UserDefinedSQLType) colType.getSelectedItem()).getAutoIncrement()));
+                                ((UserDefinedSQLType) colType.getLastSelectedPathComponent()).getAutoIncrement()));
                     }
                 }
             }
@@ -463,8 +478,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     colDefaultValue.setEnabled(true);
                 } else {
                     colDefaultValue.setEnabled(false);
-                    if (colType.getSelectedItem() != null) {
-                        colDefaultValue.setText(((UserDefinedSQLType) colType.getSelectedItem()).getDefaultValue(
+                    if (colType.getLastSelectedPathComponent() instanceof UserDefinedSQLType) {
+                        colDefaultValue.setText(((UserDefinedSQLType) colType.getLastSelectedPathComponent()).getDefaultValue(
                                 SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
                     }
                 }
@@ -586,11 +601,14 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         SQLPowerUtils.listenToHierarchy(session.getRootObject(), obsolesenceListener);
         SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
         panel.addAncestorListener(cleanupListener);
-        colType.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getItem() instanceof UserDefinedSQLType && e.getStateChange() == ItemEvent.SELECTED) {
-                    UserDefinedSQLType sqlType = (UserDefinedSQLType) e.getItem();
-                    updateSQLTypeComponents(sqlType, false);
+        
+        colType.addTreeSelectionListener(new TreeSelectionListener() {
+            public void valueChanged(TreeSelectionEvent e) {
+                TreePath path = e.getNewLeadSelectionPath();
+                Object selection = path.getLastPathComponent();
+                if (selection instanceof UserDefinedSQLType) {
+                    typeChooserButton.setText(((UserDefinedSQLType) selection).getName());
+                    updateSQLTypeComponents((UserDefinedSQLType) selection, false);
                 }
             }
         });
@@ -610,7 +628,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         return createScaleEditor(); // looks better if both spinners are same
                                     // size
     }
-
+    
     /**
      * Updates all the UI components to reflect the given column's properties.
      * <p>
@@ -667,6 +685,22 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         }
     }
 
+    private void updateComponent(JTree comp, Object expectedValue) {
+        if (componentEnabledMap.get(comp).isSelected() &&
+                (comp.isSelectionEmpty() || comp.getLastSelectedPathComponent() == expectedValue)) {
+            for (int i = 0; i < comp.getRowCount(); i++) {
+                if (comp.getPathForRow(i).getLastPathComponent() == expectedValue) {
+                    comp.setSelectionRow(i);
+                    typeChooserButton.setText(
+                            ((UserDefinedSQLType) expectedValue).getName());
+                }
+            }
+        } else {
+            comp.clearSelection();
+            componentEnabledMap.get(comp).setSelected(false);
+        }
+    }
+    
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
     private void updateComponent(JTextComponent comp, String expectedValue) {
         boolean unvisited = comp.getText().equals("");
@@ -678,18 +712,6 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         }
     }
     
-    /** Subroutine of {@link #updateComponents(SQLColumn)}. */
-    private void updateComponent(JComboBox comp, Object expectedValue) {
-        boolean unvisited = comp.getSelectedItem() == null;
-        if (componentEnabledMap.get(comp).isSelected() &&
-                (unvisited || comp.getSelectedItem().equals(expectedValue))) {
-            comp.setSelectedItem(expectedValue);
-        } else {
-            comp.setSelectedItem(null);
-            componentEnabledMap.get(comp).setSelected(false);
-        }
-    }
-
     /** Subroutine of {@link #updateComponents(SQLColumn)}. */
     private void updateComponent(JCheckBox comp, boolean expectedValue) {
         // Checking if a checkbox was visited is not possible just by examining its value,
@@ -809,7 +831,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     column.setPhysicalName(colPhysicalName.getText());
                 }                
                 if (componentEnabledMap.get(colType).isSelected()) {
-                    column.getUserDefinedSQLType().setUpstreamType((UserDefinedSQLType) colType.getSelectedItem());
+                    column.getUserDefinedSQLType().setUpstreamType((UserDefinedSQLType) colType.getLastSelectedPathComponent());
                 }
                 
                 if (componentEnabledMap.get(colType).isSelected()) {
@@ -959,7 +981,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JComboBox getColType() {
+    public JTree getColType() {
         return colType;
     }
 
@@ -1072,8 +1094,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     public void propertyChanged(PropertyChangeEvent e) {
+        String property = e.getPropertyName();
         if (columns.contains(e.getSource())) {
-            String property = e.getPropertyName();
             if (property.equals("name")) {
                 DataEntryPanelChangeUtil.incomingChange(colLogicalName, e);
             } else if (property.equals("physicalName")) {                
@@ -1096,9 +1118,18 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                 DataEntryPanelChangeUtil.incomingChange(colRemarks, e);
             } else if (property.equals("defaultValue")) { 
                 DataEntryPanelChangeUtil.incomingChange(colDefaultValue, e);
-            } else return;
+            } else {
+                return;
+            }
             setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
-        }       
+        } else if (e.getSource() instanceof UserDefinedSQLType && columns.contains(((UserDefinedSQLType) e.getSource()).getParent())) {
+            if (property.equals("type")) {
+                DataEntryPanelChangeUtil.incomingChange(colType, e);
+            } else {
+                return;
+            }
+            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+        }
     }
 
     public void transactionEnded(TransactionEvent e) {
