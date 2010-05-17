@@ -64,9 +64,9 @@ public class SQLTypeTreeModel implements TreeModel {
             }
             
             if (spo1 instanceof UserDefinedSQLType && spo2 instanceof UserDefinedSQLType) {
-                return Integer.signum(spo1.getName().compareTo(spo2.getName()));
+                return Integer.signum(spo1.getName().compareToIgnoreCase(spo2.getName()));
             } else if (spo1 instanceof DomainCategory && spo2 instanceof DomainCategory) {
-                return Integer.signum(spo1.getName().compareTo(spo2.getName()));
+                return Integer.signum(spo1.getName().compareToIgnoreCase(spo2.getName()));
             } else if (spo1 instanceof DomainCategory) {
                 return -1;
             } else {
