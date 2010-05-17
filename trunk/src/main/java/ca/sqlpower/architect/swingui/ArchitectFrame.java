@@ -1204,4 +1204,29 @@ public class ArchitectFrame extends JFrame {
         return focusToChildAction;
     }
 
+    /**
+     * Does a depth-first search of the menus for this frame starting at the
+     * left most menu and moves to the right.
+     * 
+     * @param menuAction
+     *            The type of action we are looking for in the menus.
+     * @return The first {@link JMenuItem} object found with the given action
+     *         type or null if no menu item is found to have that action type.
+     */
+    public JMenuItem getMenuByAction(Class<? extends Action> menuAction) {
+        for (int i = 0; i < menuBar.getMenuCount(); i++) {
+            JMenu innerMenu = menuBar.getMenu(i);
+            for (int j = 0; j < innerMenu.getItemCount(); j++) {
+                JMenuItem item = innerMenu.getItem(j);
+                
+                if (item == null || item.getAction() == null) continue; //separator found or no action
+                
+                if (menuAction.isAssignableFrom(item.getAction().getClass())) {
+                    return item;
+                }
+            }
+        }
+        return null;
+    }
+
 }
