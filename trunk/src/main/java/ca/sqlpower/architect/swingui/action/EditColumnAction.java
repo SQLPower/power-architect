@@ -37,9 +37,10 @@ import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditColumnAction extends AbstractArchitectAction implements SelectionListener {
@@ -109,7 +110,21 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
                 column = st.getColumn(colIdx);
 			} else {
 			    if (session.getSQLTypes().size() > 0) {
-			        column = new SQLColumn(session.getSQLTypes().get(0));
+			        
+			        // Iterate through the list of SQL Types, 
+			        // uses the default one (if defined) from the 
+			        // user preferences to create the SQLColumn.
+			        UserDefinedSQLType defaultType = null;
+			        for (UserDefinedSQLType type : session.getSQLTypes()) {
+			            if (type.getType() == SQLColumn.getDefaultType()) {
+			                defaultType = type;
+			                break;
+			            }
+			        }
+			        if (defaultType == null) {
+			            defaultType = session.getSQLTypes().get(0);
+			        }
+			        column = new SQLColumn(defaultType);
 			    } else {
 			        column = new SQLColumn();
 			    }
