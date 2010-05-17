@@ -86,6 +86,12 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	private static CookieStore cookieStore = new BasicCookieStore();
 	
 	public static final String MONDRIAN_SCHEMA_REL_PATH = "/mondrian";
+
+    /**
+     * All requests to the server will contain this tag after the enterprise
+     * server name (which is normally architect-enterprise).
+     */
+	static final String REST_TAG = "rest";
 	
 	/**
 	 * The prefs node that will store information about the current settings of
@@ -250,7 +256,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 
                 PlDotIni plIni;
                 try {
-					plIni = new PlDotIni(getServerURI(projectLocation.getServiceInfo(), "/jdbc/"),
+					plIni = new PlDotIni(getServerURI(projectLocation.getServiceInfo(), "/" + REST_TAG +"/jdbc/"),
                             getServerURI(projectLocation.getServiceInfo(), MONDRIAN_SCHEMA_REL_PATH)) {
 					    
 					    @Override
@@ -284,7 +290,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         };
         
         try {
-            dataSourceCollection = executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), "/data-sources/", plIniHandler);
+            dataSourceCollection = executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), 
+                    "/" + REST_TAG + "/data-sources/", plIniHandler);
         } catch (AccessDeniedException e) {
             throw e;
         } catch (Exception ex) {
@@ -374,7 +381,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	throws IOException, URISyntaxException, JSONException {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
-    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects"));
+    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/" + REST_TAG + "/jcr/projects"));
     		JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
     		List<ProjectLocation> workspaces = new ArrayList<ProjectLocation>();
     		JSONArray response = new JSONArray(message.getBody());
@@ -403,7 +410,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             
             logger.info("Getting transactions between " + fromVersion + " and " + toVersion);
             JSONMessage message = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/project/" + projectLocation.getUUID() + "/revision_list",
+                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/revision_list",
                     "versions=" + fromVersion + ":" + toVersion,
                     new JSONResponseHandler());
             
@@ -420,7 +427,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {
-    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/jcr/projects/new", "name=" + name));
+    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/" + REST_TAG + "/jcr/projects/new", "name=" + name));
     		JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
     		JSONObject response = new JSONObject(message.getBody());
     		return new ProjectLocation(
@@ -461,7 +468,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         try {
             JSONMessage message = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/project/" + projectLocation.getUUID() + "/revert",
+                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/revert",
                     "revisionNo=" + revisionNo, 
                     new JSONResponseHandler());    
             if (message.isSuccessful()) {
@@ -501,7 +508,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         try {
             JSONMessage response = executeServerRequest(httpClient, serviceInfo,
-                    "/project/" + projectLocation.getUUID() + "/" + revisionNo,
+                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/" + revisionNo,
                     new JSONResponseHandler());            
             
             if (response.isSuccessful()) {
@@ -527,7 +534,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         try {
             JSONMessage response = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/project/" + projectLocation.getUUID() + "/compare",
+                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/compare",
                     "versions=" + oldRevisionNo + ":" + newRevisionNo, 
                     new JSONResponseHandler());    
                                   
@@ -566,7 +573,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     	
     	try {
     		executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-    				"/jcr/" + projectLocation.getUUID() + "/delete", 
+    		        "/" + REST_TAG + "/jcr/" + projectLocation.getUUID() + "/delete", 
     				new JSONResponseHandler());
     	} catch (AccessDeniedException e) { 
     	    session.createUserPrompter("You do not have sufficient privileges to delete the selected workspace.", 
@@ -856,19 +863,19 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             if (!(jds instanceof JDBCDataSource)) throw new IllegalStateException("DataSource must be an instance of JDBCDataSource");
             
             return getServerURI(projectLocation.getServiceInfo(),
-                    "/data-sources/JDBCDataSource/" + jds.getName());
+                    "/" + REST_TAG + "/data-sources/JDBCDataSource/" + jds.getName());
         }
         
         private URI olapDataSourceURI(SPDataSource jds) throws URISyntaxException {
             if (!(jds instanceof Olap4jDataSource)) throw new IllegalStateException("DataSource must be an instance of JDBCDataSource");
             
             return getServerURI(projectLocation.getServiceInfo(),
-                    "/data-sources/Olap4jDataSource/" + jds.getName());
+                    "/" + REST_TAG + "/data-sources/Olap4jDataSource/" + jds.getName());
         }
         
         private URI jdbcDataSourceTypeURI(JDBCDataSourceType jdst) throws URISyntaxException {
             return getServerURI(projectLocation.getServiceInfo(),
-                    "/data-sources/type/" + jdst.getName());
+                    "/" + REST_TAG + "/data-sources/type/" + jdst.getName());
         }
 
         public void undoableEditHappened(UndoableEditEvent e) {

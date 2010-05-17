@@ -117,7 +117,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         this.outboundHttpClient = outboundHttpClient;
         this.session = session;
         
-        contextRelativePath = "/project/" + projectLocation.getUUID();
+        contextRelativePath = "/" + ArchitectClientSideSession.REST_TAG + "/project/" + projectLocation.getUUID();
     }
     
     public void setPromptSession(ArchitectSession promptSession) {
@@ -918,7 +918,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             URI serverURI = new URI("http", null, 
                     projectLocation.getServiceInfo().getServerAddress(), 
                     projectLocation.getServiceInfo().getPort(),
-                    projectLocation.getServiceInfo().getPath() + "/project/" + projectLocation.getUUID(), 
+                    projectLocation.getServiceInfo().getPath() + 
+                    "/" + ArchitectClientSideSession.REST_TAG + "/project/" + projectLocation.getUUID(), 
                     "currentRevision=" + currentRevision, null);
             HttpPost postRequest = new HttpPost(serverURI);
             postRequest.setEntity(new StringEntity(jsonArray)); 
