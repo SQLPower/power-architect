@@ -44,6 +44,8 @@ import ca.sqlpower.util.Version;
 public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     
     private static final Logger logger = Logger.getLogger(ArchitectSessionContextImpl.class);
+    
+    private static final String DEFAULT_PATH = "/architect-enterprise/";
 
     /**
      * The preferences node that user-specific preferences are stored in.
@@ -68,7 +70,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     private final Collection<ArchitectSession> sessions;
     
     private final SPServerInfoManager serverManager;
-    
+
     /**
      * Creates a new session context.  You will normally only need one of these
      * per JVM, but there is no technical barrier to creating multiple contexts.
@@ -118,7 +120,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
             setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(PlDotIniPath, "Architect"));
         }
         
-        SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, "/architect-enterprise/", "", "");
+        SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, DEFAULT_PATH, "", "");
         serverManager = new SPServerInfoManager(getPrefs().node("servers"), new Version(
                 ArchitectVersion.APP_FULL_VERSION.toString()), defaultSettings);
     }

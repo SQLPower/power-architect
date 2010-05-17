@@ -100,7 +100,9 @@ public abstract class ServerInfoProvider {
 		sb.append(":");
 		sb.append(port);
 		sb.append(path);
-		sb.append(path.endsWith("/")?"serverinfo":"/serverinfo");
+		sb.append(path.endsWith("/")?"":"/");
+		sb.append(ArchitectClientSideSession.REST_TAG);
+		sb.append("/serverinfo");
 		
 		// Spawn a connection object
 		return new URL(sb.toString());
