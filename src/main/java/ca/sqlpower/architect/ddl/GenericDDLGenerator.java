@@ -99,7 +99,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * A mapping from JDBC type code (Integer values) to
 	 * GenericTypeDescriptor objects which describe that data type.
 	 */
-	protected Map typeMap;
+	protected Map<Integer, GenericTypeDescriptor> typeMap;
 
 	/**
 	 * This variable will be a live, non-null connection to the target
@@ -125,7 +125,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * DDL is saved or executed (to give them a chance to fix the
 	 * warnings and try again).
 	 */
-	protected List warnings;
+	protected List<DDLWarning> warnings;
 
 	/**
 	 * The name of the catalog in the target database that the
@@ -157,8 +157,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
         this.allowConnection = allowConnection;
-        warnings = new ArrayList();
-        ddlStatements = new ArrayList();
+        warnings = new ArrayList<DDLWarning>();
+        ddlStatements = new ArrayList<DDLStatement>();
         ddl = new StringBuffer(500);
         println("");
         topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
@@ -173,13 +173,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
     public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
-        List statements = generateDDLStatements(tables);
+        List<DDLStatement> statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
 		writeHeader();
 		writeDDLTransactionBegin();
 
-		Iterator it = statements.iterator();
+		Iterator<DDLStatement> it = statements.iterator();
 		while (it.hasNext()) {
 			DDLStatement ddlStmt = (DDLStatement) it.next();
 			ddl.append(ddlStmt.getSQLText());
@@ -202,7 +202,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(Collection)
 	 */
 	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
-        warnings = new ArrayList();
+        warnings = new ArrayList<DDLWarning>();
 		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
         topLevelNames = new CaseInsensitiveHashMap();
@@ -700,7 +700,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	public void modifyColumn(SQLColumn c) {
-		Map colNameMap = new HashMap();
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
 		SQLTable t = c.getParent();
 		print("\nALTER TABLE ");
 		print(toQualifiedName(t));
@@ -729,7 +729,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * is not delimited at the beginning or end: you're responsible for properly putting
 	 * it in the context of a valid SQL statement.
 	 */
-	protected String columnDefinition(SQLColumn c, Map colNameMap) {
+	protected String columnDefinition(SQLColumn c, Map<String, SQLObject> colNameMap) {
         StringBuffer def = new StringBuffer();
 
         // Column name
@@ -829,8 +829,8 @@ public class GenericDDLGenerator implements DDLGenerator {
         return td;
     }
 
-    private boolean contains(List list, TypeMapDDLWarning o) {
-        Iterator iterator = list.iterator();
+    private boolean contains(List<DDLWarning> list, TypeMapDDLWarning o) {
+        Iterator<DDLWarning> iterator = list.iterator();
         while (iterator.hasNext()) {
             Object next = iterator.next();
             if (next instanceof TypeMapDDLWarning) {
@@ -843,14 +843,14 @@ public class GenericDDLGenerator implements DDLGenerator {
     }
 
 	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
-		Map colNameMap = new HashMap();  // for detecting duplicate column names
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();  // for detecting duplicate column names
 		// generate a new physical name if necessary
 		createPhysicalName(topLevelNames,t); // also adds generated physical name to the map
 		print("\nCREATE TABLE ");
 		print( toQualifiedName(t) );
 		println(" (");
 		boolean firstCol = true;
-		Iterator it = t.getColumns().iterator();
+		Iterator<SQLColumn> it = t.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
 
@@ -933,7 +933,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Adds statements for creating every exported key in the given table.
      */
 	protected void writeExportedRelationships(SQLTable t) throws SQLObjectException {
-		Iterator it = t.getExportedKeys().iterator();
+		Iterator<SQLRelationship> it = t.getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
 			addRelationship(rel);
@@ -947,7 +947,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * static, pre-defined type map.
 	 */
 	protected void createTypeMap() throws SQLException {
-		typeMap = new HashMap();
+		typeMap = new HashMap<Integer, GenericTypeDescriptor>();
 		if (con == null || !allowConnection) {
 			// Add generic type map
 			typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
@@ -1070,7 +1070,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 *
 	 * @return the value of typeMap
 	 */
-	public Map getTypeMap()  {
+	public Map<Integer, GenericTypeDescriptor> getTypeMap()  {
 		return this.typeMap;
 	}
 
@@ -1079,14 +1079,14 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 *
 	 * @param argTypeMap Value to assign to this.typeMap
 	 */
-	public void setTypeMap(Map argTypeMap) {
+	public void setTypeMap(Map<Integer, GenericTypeDescriptor> argTypeMap) {
 		this.typeMap = argTypeMap;
 	}
 
     public Map<String, ProfileFunctionDescriptor> getProfileFunctionMap() {
         return this.profileFunctionMap;
     }
-    public void setProfileFunctionMap(Map profileFunctionMap) {
+    public void setProfileFunctionMap(Map<String, ProfileFunctionDescriptor> profileFunctionMap) {
         this.profileFunctionMap = profileFunctionMap;
     }
 
@@ -1111,7 +1111,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/**
 	 * Returns {@link #warnings}.
 	 */
-	public List getWarnings() {
+	public List<DDLWarning> getWarnings() {
 		return warnings;
 	}
 
@@ -1361,7 +1361,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	public void addPrimaryKey(SQLTable t) throws SQLObjectException {
-		Map colNameMap = new HashMap();
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
 		StringBuffer sqlStatement = new StringBuffer();
 		boolean first = true;
 		sqlStatement.append("\nALTER TABLE "+ toQualifiedName(t.getName())
@@ -1439,7 +1439,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         print("\n ( ");
 
         boolean first = true;
-        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+        for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first) print(", ");
             if (c.getColumn() != null) {
                 print(c.getColumn().getPhysicalName());

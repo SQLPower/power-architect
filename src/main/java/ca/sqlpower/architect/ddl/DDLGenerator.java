@@ -252,19 +252,19 @@ public interface DDLGenerator {
      *
      * @return the value of typeMap
      */
-    public Map getTypeMap();
+    public Map<Integer, GenericTypeDescriptor> getTypeMap();
 
     /**
      * Sets the value of typeMap
      *
      * @param argTypeMap Value to assign to this.typeMap
      */
-    public void setTypeMap(Map argTypeMap);
+    public void setTypeMap(Map<Integer, GenericTypeDescriptor> argTypeMap);
 
     /**
      * Returns {@link #warnings}.
      */
-    public List getWarnings();
+    public List<DDLWarning> getWarnings();
 
     /**
      * See {@link #targetCatalog}.

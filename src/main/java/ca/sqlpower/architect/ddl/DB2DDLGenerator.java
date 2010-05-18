@@ -57,7 +57,7 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 
     @Override
 	protected void createTypeMap() throws SQLException {
-		typeMap = new HashMap();
+		typeMap = new HashMap<Integer, GenericTypeDescriptor>();
 
 		typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BLOB", Types.BINARY, 2147483647, "0x", null, DatabaseMetaData.columnNullable, true, false));

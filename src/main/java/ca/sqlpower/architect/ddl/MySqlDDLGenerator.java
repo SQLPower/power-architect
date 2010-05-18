@@ -24,7 +24,6 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -57,10 +56,10 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     private static final Logger logger = Logger.getLogger(MySqlDDLGenerator.class);
 
-    private static HashSet reservedWords;
+    private static HashSet<String> reservedWords;
 
     static {
-        reservedWords = new HashSet();
+        reservedWords = new HashSet<String>();
         reservedWords.add("ADD");
         reservedWords.add("ALL");
         reservedWords.add("ALTER");
@@ -290,7 +289,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     @Override
     protected void createTypeMap() throws SQLException {
-        typeMap = new HashMap();
+        typeMap = new HashMap<Integer, GenericTypeDescriptor>();
 
         typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null,
                 DatabaseMetaData.columnNullable, true, false));
@@ -484,7 +483,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print("\n ( ");
 
         boolean first = true;
-        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+        for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first)
                 print(", ");
             if (c.getColumn() != null) {
@@ -580,7 +579,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     @Override
     public void addColumn(SQLColumn c) {
-        Map colNameMap = new HashMap();
+        Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
         print("\nALTER TABLE ");
         print(toQualifiedName(c.getParent()));
         print(" ADD COLUMN ");
@@ -610,7 +609,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     
     @Override
     public void modifyColumn(SQLColumn c) {
-        Map colNameMap = new HashMap();
+        Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
         SQLTable t = c.getParent();
         print("\nALTER TABLE ");
         print(toQualifiedName(t));

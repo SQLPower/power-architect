@@ -24,7 +24,7 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -37,7 +37,6 @@ import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
-import java.util.Map;
 
 /**
  * The base class for version-specific SQL Server DDL generators. This class is
@@ -270,7 +269,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 
     @Override
 	protected void createTypeMap() throws SQLException {
-		typeMap = new HashMap();
+		typeMap = new HashMap<Integer, GenericTypeDescriptor>();
 
 		typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 2000, "0x", null, DatabaseMetaData.columnNullable, true, false));
@@ -436,7 +435,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         print("\nALTER TABLE ");
         print(toQualifiedName(c.getParent()));
         print(" ADD ");
-        print(columnDefinition(c,new HashMap()));
+        print(columnDefinition(c,new HashMap<String, SQLObject>()));
         endStatement(DDLStatement.StatementType.CREATE, c);
     }
 
@@ -472,7 +471,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         print("\n ( ");
 
         boolean first = true;
-        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+        for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first) print(", ");
             if (c.getColumn() != null) {
                 print(c.getColumn().getPhysicalName());
@@ -542,7 +541,6 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 
 	@Override
 	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
-		Map<String, SQLObject> empty = new HashMap<String, SQLObject>(0);
 		print("sp_rename @objname='");
 		print(toQualifiedName(oldIndex));
 		print("', @newname='");

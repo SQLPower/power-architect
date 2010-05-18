@@ -21,10 +21,13 @@ package ca.sqlpower.architect.ddl;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
@@ -38,10 +41,6 @@ import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
-import java.util.HashSet;
-import java.util.Set;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
 
 public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGenerator {
 
@@ -539,7 +538,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			print(getQuotedRemarks(t.getRemarks()));
 		}
 		println(">");
-		Iterator it = t.getColumns().iterator();
+		Iterator<SQLColumn> it = t.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
 			println(columnDefinition("  ", c));
@@ -705,7 +704,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
         }
 		println(">");
 
-        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+        for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
 
 			// ASC/DESC is currently not supported with Liqubase (1.8)
 //            print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");

@@ -23,19 +23,19 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sql.SQL;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
-import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 
 /**
  * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
@@ -49,10 +49,10 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 	private static final Logger logger = Logger.getLogger(PostgresDDLGenerator.class);
 
-	private static HashSet reservedWords;
+	private static HashSet<String> reservedWords;
 
 	static {
-		reservedWords = new HashSet();
+		reservedWords = new HashSet<String>();
         reservedWords.add("AND");
         reservedWords.add("ANY");
         reservedWords.add("ARRAY");
@@ -167,7 +167,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	 */
 	@Override
 	protected void createTypeMap() throws SQLException {
-		typeMap = new HashMap();
+		typeMap = new HashMap<Integer, GenericTypeDescriptor>();
 
 		typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 1000, null, null, DatabaseMetaData.columnNullable, false, false));
 		typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BYTEA", Types.BINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
@@ -273,7 +273,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
     @Override
     public void modifyColumn(SQLColumn c) {
-        Map colNameMap = new HashMap();
+        Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
         SQLTable t = c.getParent();
         print("\nALTER TABLE ONLY ");
         print( toQualifiedName(t) );
@@ -348,7 +348,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print("\n ( ");
 
         boolean first = true;
-        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+        for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first) print(", ");
             if (c.getColumn() != null) {
                 print(c.getColumn().getPhysicalName());
@@ -411,7 +411,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      * columns, the behaviour is the same as {@link GenericDDLGenerator#columnDefinition(SQLColumn, Map)}.
      */
     @Override
-    protected String columnDefinition(SQLColumn c, Map colNameMap) {
+    protected String columnDefinition(SQLColumn c, Map<String, SQLObject> colNameMap) {
         String nameAndType = super.columnDefinition(c, colNameMap);
 
         if (c.isAutoIncrement()) {

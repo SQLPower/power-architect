@@ -101,7 +101,7 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
 
     @Override
     protected void createTypeMap() throws SQLException {
-        typeMap = new HashMap();
+        typeMap = new HashMap<Integer, GenericTypeDescriptor>();
 
         typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 1000, null, null, DatabaseMetaData.columnNullable, true, false));
         typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
