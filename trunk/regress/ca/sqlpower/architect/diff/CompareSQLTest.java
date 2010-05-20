@@ -84,7 +84,7 @@ public class CompareSQLTest extends TestCase {
 
 
 
-		listWithATable = new ArrayList();
+		listWithATable = new ArrayList<SQLTable>();
 		listWithATable.add(tableNoColumn1);
 	}
 
@@ -106,7 +106,7 @@ public class CompareSQLTest extends TestCase {
 
 	public void testDiffListWithTablesOnly() throws SQLObjectException{
 		//Testing diffchunk with nothing and nothing
-		List <SQLTable> list1 = new ArrayList();
+		List<SQLTable> list1 = new ArrayList<SQLTable>();
 
 		CompareSQL compare1 = new CompareSQL ((Collection<SQLTable>)list1,
 												(Collection<SQLTable>)list1, false);
@@ -158,8 +158,8 @@ public class CompareSQLTest extends TestCase {
 
 
 	public void testDiffListWithTableHavingColumn() throws SQLObjectException{
-		List <SQLTable >tableList1 = new ArrayList();
-		List <SQLTable >tableList2 = new ArrayList();
+		List<SQLTable> tableList1 = new ArrayList<SQLTable>();
+		List<SQLTable> tableList2 = new ArrayList<SQLTable>();
 
 		//Testing table with column and nothing
 		tableList1.add(table1);
@@ -196,7 +196,7 @@ public class CompareSQLTest extends TestCase {
 		//Testing table with column against table with no column
 		SQLTable table1NoColumn = new SQLTable(null,"tableWithColumn1","it's lying!",
 				SQLTable.class.toString(), true);
-		List<SQLTable> tempList = new ArrayList();
+		List<SQLTable> tempList = new ArrayList<SQLTable>();
 		tempList.add(table1NoColumn);
 		CompareSQL worker3 = new CompareSQL((Collection<SQLTable>)tempList,
 				(Collection<SQLTable>)tableList1, false);
@@ -652,7 +652,7 @@ public class CompareSQLTest extends TestCase {
 
 		boolean first_table = true;
 
-		for (DiffChunk dc : diffs){
+		for (DiffChunk<SQLObject> dc : diffs){
 			if (dc.getData().getClass().equals(SQLTable.class)){
 				if(first_table){
 					assertEquals (DiffType.SAME ,dc.getType());
@@ -696,7 +696,7 @@ public class CompareSQLTest extends TestCase {
 
         boolean first_table = true;
 
-        for (DiffChunk dc : diffs){
+        for (DiffChunk<SQLObject> dc : diffs){
             if (dc.getData().getClass().equals(SQLTable.class)){
                 if(first_table){
                     assertEquals (DiffType.SAME ,dc.getType());
@@ -740,7 +740,7 @@ public class CompareSQLTest extends TestCase {
 
         boolean first_table = true;
 
-        for (DiffChunk dc : diffs){
+        for (DiffChunk<SQLObject> dc : diffs){
             if (dc.getData().getClass().equals(SQLTable.class)){
                 if(first_table){
                     assertEquals (DiffType.SAME ,dc.getType());
@@ -781,7 +781,7 @@ public class CompareSQLTest extends TestCase {
 
         boolean first_table = true;
 
-        for (DiffChunk dc : diffs){
+        for (DiffChunk<SQLObject> dc : diffs){
             if (dc.getData().getClass().equals(SQLTable.class)){
                 if(first_table){
                     assertEquals (DiffType.SAME ,dc.getType());
@@ -824,7 +824,7 @@ public class CompareSQLTest extends TestCase {
 
         boolean first_table = true;
 
-        for (DiffChunk dc : diffs){
+        for (DiffChunk<SQLObject> dc : diffs){
             if (dc.getData().getClass().equals(SQLTable.class)){
                 if(first_table){
                     assertEquals (DiffType.SAME ,dc.getType());

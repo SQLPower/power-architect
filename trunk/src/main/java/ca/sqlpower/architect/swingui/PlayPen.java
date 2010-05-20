@@ -725,7 +725,7 @@ public class PlayPen extends JPanel
     protected void addImpl(PlayPenComponent c, Object constraints) {        
         if (c instanceof Relationship || c instanceof UsageComponent) {
             contentPane.addChild(c, contentPane.getFirstDependentComponentIndex());
-        } else if (c instanceof ContainerPane) {
+        } else if (c instanceof ContainerPane<?, ?>) {
             if (constraints instanceof Point) {
                 c.setLocation((Point) constraints);
                 contentPane.addChild(c, 0);
@@ -1934,17 +1934,14 @@ public class PlayPen extends JPanel
 	/**
 	 * Returns a read-only view of the set of selected children in the PlayPen.
 	 */
-	public List <PlayPenComponent>getSelectedItems() {
+	public List<PlayPenComponent> getSelectedItems() {
 		// It would be possible to speed this up by maintaining a
 		// cache of which children are selected, but the need would
 		// have to be demonstrated first.
-		ArrayList selected = new ArrayList();
+		List<PlayPenComponent> selected = new ArrayList<PlayPenComponent>();
  		for (PlayPenComponent c : contentPane.getChildren()) {
- 			if (c instanceof Selectable) {
-				Selectable s = (Selectable) c;
-				if (s.isSelected()) {
-					selected.add(s);
-				}
+ 		    if (c.isSelected()) {
+ 		        selected.add(c);
 			}
 		}
 		return Collections.unmodifiableList(selected);
@@ -2350,7 +2347,7 @@ public class PlayPen extends JPanel
 			MouseEvent triggerEvent = (MouseEvent) dge.getTriggerEvent();
             PlayPenComponent c = contentPane.getComponentAt(unzoomPoint(triggerEvent.getPoint()));
 
-			if ( c instanceof ContainerPane ) {
+			if ( c instanceof ContainerPane<?,?> ) {
 				ContainerPane<?,?> tp = (ContainerPane<?,?>) c;
 
 				Point dragOrigin = tp.getPlayPen().unzoomPoint(new Point(dge.getDragOrigin()));

@@ -170,7 +170,7 @@ public class CompareDMFormatter {
 
             List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
             List<DiffChunk<SQLObject>> dropRelationships = new ArrayList<DiffChunk<SQLObject>>();
-            List<DiffChunk<SQLObject>> nonRelationship = new ArrayList<DiffChunk<SQLObject>>    ();
+            List<DiffChunk<SQLObject>> nonRelationship = new ArrayList<DiffChunk<SQLObject>>();
             for (DiffChunk<SQLObject> d : diff) {
                 if (logger.isDebugEnabled()) logger.debug(d);
                 if (d.getData() instanceof SQLRelationship) {
@@ -462,14 +462,12 @@ public class CompareDMFormatter {
     
 
     private boolean hasKey(SQLTable t) throws SQLObjectException {
-        boolean hasKey = false;
         for (SQLColumn c : t.getColumns()) {
             if (c.isPrimaryKey()) {
-                hasKey=true;
-                break;
+                return true;
             }
         }
-        return hasKey;
+        return false;
     }
     
 

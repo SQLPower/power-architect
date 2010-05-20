@@ -72,6 +72,7 @@ import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -80,7 +81,6 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.ColorIcon;
 import ca.sqlpower.swingui.ColourScheme;
 import ca.sqlpower.swingui.SPSUtils;
@@ -763,10 +763,6 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 }
                 
                 boolean success = false;
-                TransferStyles transferStyle = TransferStyles.REVERSE_ENGINEER;
-                if (dtde.getDropAction() == DnDConstants.ACTION_COPY) {
-                    transferStyle = TransferStyles.COPY;
-                }
                 success = addTransferable(loc, t, importFlavor, dtde.getDropAction() == DnDConstants.ACTION_MOVE);
                 if (success) {
                     dtde.acceptDrop(DnDConstants.ACTION_COPY); // XXX: not always true
@@ -858,7 +854,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                     }
                 }
                 
-                DataSourceCollection dsCollection = getModel().getParentDatabase().getDataSource().getParentCollection();
+                DataSourceCollection<SPDataSource> dsCollection = getModel().getParentDatabase().getDataSource().getParentCollection();
                 
                 // Note that it is safe to assign types to previously assigned
                 // columns, they will be ignored.
