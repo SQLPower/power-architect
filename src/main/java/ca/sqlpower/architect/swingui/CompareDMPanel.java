@@ -269,7 +269,7 @@ public class CompareDMPanel extends JPanel {
 		private Action newConnectionAction = new AbstractAction(Messages.getString("CompareDMPanel.newConnectionActionName")) { //$NON-NLS-1$
 			public void actionPerformed(ActionEvent e) {
 
-                final DataSourceCollection plDotIni = session.getDataSources();
+                final DataSourceCollection<JDBCDataSource> plDotIni = session.getDataSources();
                 final JDBCDataSource dataSource = new JDBCDataSource(plDotIni);
                 Runnable onAccept = new Runnable() {
                     public void run() {
@@ -475,8 +475,7 @@ public class CompareDMPanel extends JPanel {
 						public void cleanup() throws SQLObjectException {
 							setCleanupExceptionMessage(Messages.getString("CompareDMPanel.couldNotPopulateSchemaDropdown")); //$NON-NLS-1$
 
-							for (SQLObject item : (List<SQLObject>) finalSchemaParent
-									.getChildren()) {
+							for (SQLObject item : finalSchemaParent.getChildren()) {
 								schemaDropdown.addItem(item);
 							}
 
@@ -604,8 +603,7 @@ public class CompareDMPanel extends JPanel {
 						.getSelectedItem();
 						
 				if (populatedCat.isSchemaContainer()) {
-					for (SQLObject item : (List<SQLObject>) populatedCat
-							.getChildren()) {
+					for (SQLObject item : populatedCat.getChildren()) {
 					    schemaDropdown.addItem(item);
 					}
 
