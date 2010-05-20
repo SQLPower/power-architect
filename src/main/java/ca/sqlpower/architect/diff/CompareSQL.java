@@ -57,7 +57,7 @@ public class CompareSQL implements Monitorable {
 	 */
 	final static Comparator<SQLObject> nameComparator = new SQLObjectComparator();
 
-	/*
+	/**
 	 * A comparator that detects equality by comparing the UUID
 	 */
     final static Comparator<SQLObject> uuidComparator = new SQLObjectUUIDComparator();
@@ -185,6 +185,7 @@ public class CompareSQL implements Monitorable {
 
 				sourceContinue = true;
 				sourceTable = sourceIter.next();
+				sourceTable.populate();
 			} else {
 				sourceContinue = false;
 				sourceTable = null;
@@ -193,6 +194,7 @@ public class CompareSQL implements Monitorable {
 			if (targetIter.hasNext()) {
 				targetContinue = true;
 				targetTable = targetIter.next();
+				targetTable.populate();
 			} else {
 				targetContinue = false;
 				targetTable = null;
@@ -211,6 +213,7 @@ public class CompareSQL implements Monitorable {
 					//results.addAll(generateColumnDiffs(sourceTable, null));
 					if (sourceIter.hasNext()) {
 						sourceTable = (SQLTable) sourceIter.next();
+						sourceTable.populate();
 					} else {
 						sourceContinue = false;
 
@@ -225,6 +228,7 @@ public class CompareSQL implements Monitorable {
 					//results.addAll(generateColumnDiffs(null, targetTable));
 					if (targetIter.hasNext()) {
 						targetTable = (SQLTable) targetIter.next();
+						targetTable.populate();
 					} else {
 						targetContinue = false;
 					}
@@ -262,12 +266,14 @@ public class CompareSQL implements Monitorable {
 					}
 					if (targetIter.hasNext()) {
 						targetTable = (SQLTable) targetIter.next();
+						targetTable.populate();
 					} else {
 						targetContinue = false;
 					}
 
 					if (sourceIter.hasNext()) {
 						sourceTable = (SQLTable) sourceIter.next();
+						sourceTable.populate();
 					}
 
 					else {
@@ -287,6 +293,7 @@ public class CompareSQL implements Monitorable {
 				//results.addAll(generateColumnDiffs(sourceTable, null));
 				if (sourceIter.hasNext()) {
 					sourceTable = (SQLTable) sourceIter.next();
+					sourceTable.populate();
 				} else {
 					sourceContinue = false;
 				}
@@ -301,6 +308,7 @@ public class CompareSQL implements Monitorable {
 				//results.addAll(generateColumnDiffs(null, targetTable));
 				if (targetIter.hasNext()) {
 					targetTable = (SQLTable) targetIter.next();
+					targetTable.populate();
 				} else {
 					targetContinue = false;
 				}
@@ -774,7 +782,7 @@ public class CompareSQL implements Monitorable {
 			}
 		}
 
-		if ( keyChangeFlag ) {
+		if (keyChangeFlag) {
 		    if (sourceTable.getPkSize() > 0) {
 		        diffs.add(new DiffChunk<SQLObject>(sourceTable, DiffType.DROP_KEY));
 		    }
