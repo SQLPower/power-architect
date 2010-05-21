@@ -63,7 +63,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     private String plDotIniPath;
     
     /**
-     * All live sessions that exist in (and were created by) this conext.  Sessions
+     * All live sessions that exist in (and were created by) this context.  Sessions
      * will be removed from this list when they fire their sessionClosing lifecycle
      * event.
      */
@@ -82,20 +82,11 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * @throws BackingStoreException 
      */
     public ArchitectSessionContextImpl() throws SQLObjectException, BackingStoreException {
-        sessions = new HashSet<ArchitectSession>();
-        
-        ArchitectUtils.startup();
-
-        ArchitectUtils.configureLog4j();
-
-        setPlDotIniPath(prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null));
-        logger.debug("pl.ini path is " + getPlDotIniPath());
-
-        setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(getPlDotIniPath(), "Architect"));
-        
-        SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, "/architect-enterprise", "", "");
-        serverManager = new SPServerInfoManager(getPrefs().node("servers"), new Version(
-                ArchitectVersion.APP_FULL_VERSION.toString()), defaultSettings);
+        this(null);
+    }
+    
+    public ArchitectSessionContextImpl(boolean checkPlDotIni) throws SQLObjectException, BackingStoreException {
+        this(null, checkPlDotIni);
     }
     
     public ArchitectSessionContextImpl(String PlDotIniPath) throws SQLObjectException, BackingStoreException {
@@ -114,6 +105,10 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
         ArchitectUtils.configureLog4j();
 
+        if (PlDotIniPath == null) {
+            PlDotIniPath = prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null);
+        }
+        
         setPlDotIniPath(PlDotIniPath);
         
         if (checkPath) {
