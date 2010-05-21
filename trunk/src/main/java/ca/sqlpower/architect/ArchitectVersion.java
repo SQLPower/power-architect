@@ -66,7 +66,7 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      * Full releases do not have a suffix.  In that case, the suffix is the empty
      * string (not null).
      */
-    public static final String APP_VERSION_SUFFIX = "preview";
+    public static final String APP_VERSION_SUFFIX = "preview-02";
     
     /**
      * The normal readable version number, formatted as Major.Minor.Tiny. 

@@ -26,7 +26,7 @@ public class ArchitectVersionTest extends TestCase {
     private ArchitectVersion version;
     
     public void testParseWithSuffix() {
-        version = new ArchitectVersion("1.2.3.4-alpha");
+        version = new ArchitectVersion("1.2.3.4-alpha-2");
         
         assertEquals(5, version.getParts().length);
         
@@ -34,7 +34,7 @@ public class ArchitectVersionTest extends TestCase {
         assertEquals(2, version.getParts()[1]);
         assertEquals(3, version.getParts()[2]);
         assertEquals(4, version.getParts()[3]);
-        assertEquals("-alpha", version.getParts()[4]);
+        assertEquals("-alpha-2", version.getParts()[4]);
     }
 
     public void testParseWithoutSuffix() {
@@ -62,11 +62,15 @@ public class ArchitectVersionTest extends TestCase {
         ArchitectVersion older = new ArchitectVersion("1.2.3-cow");
         ArchitectVersion olderToo = new ArchitectVersion("1.2.3-cow");
         ArchitectVersion newer = new ArchitectVersion("1.2.3-moo");
+        ArchitectVersion singleDigitSuffix = new ArchitectVersion("1.2.3-cow-2");
+        ArchitectVersion doubleDigitSuffix = new ArchitectVersion("1.2.3-cow-12");
         
         assertTrue(older.compareTo(olderToo) == 0);
         assertTrue(older.compareTo(newer) < 0);
         assertTrue(newer.compareTo(older) > 0);
         assertTrue(ancient.compareTo(older) < 0);
+        assertTrue(singleDigitSuffix.compareTo(doubleDigitSuffix) < 0);
+        assertTrue(doubleDigitSuffix.compareTo(singleDigitSuffix) > 0);
     }
 
     public void testCompareFullNoSuffixes() {
