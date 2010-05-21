@@ -45,7 +45,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     
     private static final Logger logger = Logger.getLogger(ArchitectSessionContextImpl.class);
     
-    private static final String DEFAULT_PATH = "/architect-enterprise/";
+    private static final String DEFAULT_PATH = "/architect-enterprise";
 
     /**
      * The preferences node that user-specific preferences are stored in.
