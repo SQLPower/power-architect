@@ -110,7 +110,7 @@ public class RelationalPlayPenFactory {
             menu.add(mi);
 
             mi = new JMenuItem();
-            Icon icon = new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/wrench.png")); //$NON-NLS-1$
+            Icon icon = new ImageIcon(getClass().getResource("/icons/famfamfam/wrench.png")); //$NON-NLS-1$
             AutoLayoutAction layoutAction = new AutoLayoutAction(session, session.getPlayPen(), Messages
                     .getString("PlayPen.straightenLinesActionName"), //$NON-NLS-1$
                     Messages.getString("PlayPen.straightenLinesActionDescription"), //$NON-NLS-1$
