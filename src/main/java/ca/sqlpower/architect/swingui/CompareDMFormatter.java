@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ca.sqlpower.architect.swingui;
@@ -60,7 +60,7 @@ import ca.sqlpower.sqlobject.SQLTable;
 public class CompareDMFormatter {
 
     private static final Logger logger = Logger.getLogger(CompareDMFormatter.class);
-    
+
 
     private final ArchitectSwingSession session;
     private CompareDMSettings dmSetting;
@@ -69,7 +69,7 @@ public class CompareDMFormatter {
      * The dialog that owns any additional dialogs popped up by this formatter.
      */
     private final Dialog dialogOwner;
-    
+
 
     /**
      * A hash map of styles which dictate the color of different kinds of changes/differences.
@@ -91,7 +91,7 @@ public class CompareDMFormatter {
         att = new SimpleAttributeSet();
         StyleConstants.setForeground(att, Color.orange);
         DIFF_STYLES.put(DiffType.MODIFIED, att);
-        
+
         att = new SimpleAttributeSet();
         StyleConstants.setForeground(att, Color.orange);
         DIFF_STYLES.put(DiffType.SQL_MODIFIED, att);
@@ -109,18 +109,18 @@ public class CompareDMFormatter {
         this.dialogOwner = dialogOwner;
         dmSetting = compDMSet;
     }
-    
+
 
     public void formatForEnglishOutput(List<DiffChunk<SQLObject>> diff,
             List<DiffChunk<SQLObject>> diff1, SQLObject left, SQLObject right) {
-        
+
 
         try {
-            
+
 
             DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
             DefaultStyledDocument targetDoc = new DefaultStyledDocument();
-            
+
 
             sourceDoc = generateEnglishDescription(DIFF_STYLES, convertToDiffInfo(diff));
             targetDoc = generateEnglishDescription(DIFF_STYLES, convertToDiffInfo(diff1));
@@ -135,7 +135,7 @@ public class CompareDMFormatter {
 
             cf.pack();
             cf.setVisible(true);
-            
+
 
         } catch (SQLObjectException exp) {
             ASUtils.showExceptionDialog(session, "StartCompareAction failed", exp);
@@ -147,7 +147,7 @@ public class CompareDMFormatter {
         } catch (Exception ex) {
             ASUtils.showExceptionDialog(session, "Unxepected Exception!", ex);
             logger.error("Unxepected Exception!", ex);
-        } 
+        }
     }
 
     public void formatForSQLOutput(List<DiffChunk<SQLObject>> diff,
@@ -164,6 +164,8 @@ public class CompareDMFormatter {
                 gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
             } else if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.LIQUIBASE)) {
 				gen = new LiquibaseDDLGenerator();
+				LiquibaseDDLGenerator lbgen = (LiquibaseDDLGenerator)gen;
+				lbgen.applySettings(dmSetting.getLiquibaseSettings());
 			} else {
 			    throw new IllegalStateException("Don't know what kind of SQL script to generate");
 			}
@@ -186,7 +188,6 @@ public class CompareDMFormatter {
             sqlScriptGenerator(DIFF_STYLES, dropRelationships, gen);
             sqlScriptGenerator(DIFF_STYLES, nonRelationship, gen);
             sqlScriptGenerator(DIFF_STYLES, addRelationships, gen);
-           
 
             // get the title string for the compareDMFrame
             String titleString = "Generated SQL Script to turn "+ toTitleText(true, left)
@@ -220,7 +221,7 @@ public class CompareDMFormatter {
         } catch (Exception ex) {
             ASUtils.showExceptionDialog(session, "Unxepected Exception!", ex);
             logger.error("Unxepected Exception!", ex);
-        } 
+        }
 
     }
 
@@ -314,7 +315,7 @@ public class CompareDMFormatter {
             }
         }
     }
-    
+
 
     /**
      * This method generates english descriptions by taking in the diff list
@@ -327,10 +328,10 @@ public class CompareDMFormatter {
     public static DefaultStyledDocument generateEnglishDescription(
             Map<DiffType, AttributeSet> styles, List<DiffChunk<DiffInfo>> diff)
             throws BadLocationException, SQLObjectException {
-        
+
 
         DefaultStyledDocument resultDoc = new DefaultStyledDocument();
-        
+
 
         for (DiffChunk<DiffInfo> chunk : diff) {
 
@@ -345,7 +346,7 @@ public class CompareDMFormatter {
             AttributeSet attributes = styles.get(chunk.getType());
             MutableAttributeSet boldAttributes = new SimpleAttributeSet(attributes);
             StyleConstants.setBold(boldAttributes, true);
-            
+
             String diffTypeEnglish;
             switch (chunk.getType()) {
             case LEFTONLY:
@@ -368,7 +369,7 @@ public class CompareDMFormatter {
             case KEY_CHANGED:
                 diffTypeEnglish = "needs a different primary key";
                 break;
-                
+
 
             case DROP_KEY:
                 diffTypeEnglish = "needs to drop the source primary key";
@@ -388,14 +389,14 @@ public class CompareDMFormatter {
                     resultDoc.getLength(),
                     info.toString() + " " + diffTypeEnglish + "\n",
                     attributes);
-            
+
 
             for (PropertyChange change : chunk.getPropertyChanges()) {
                 logger.debug("Formatting property change");
                 String s = info.getIndent() + "\t" + change.getPropertyName();
                 s += " has been changed from " + change.getOldValue();
                 s += " to " + change.getNewValue() + "\n";
-                
+
 
                 resultDoc.insertString(
                         resultDoc.getLength(),
@@ -411,14 +412,14 @@ public class CompareDMFormatter {
         StringBuffer fileName = new StringBuffer();
         boolean needBrackets = false;
         SourceOrTargetSettings settings;
-        
+
 
         if (isSource) {
             settings = dmSetting.getSourceSettings();
         } else {
             settings = dmSetting.getTargetSettings();
         }
-        
+
 
         //Deals with the file name first if avaiable
         if (settings.getDatastoreType().equals(CompareDMSettings.DatastoreType.FILE)) {
@@ -447,7 +448,7 @@ public class CompareDMFormatter {
             }
             needBrackets = true;
         }
-        
+
 
         //Add in the database name
         if (needBrackets) {
@@ -459,7 +460,7 @@ public class CompareDMFormatter {
         }
         return fileName.toString();
     }
-    
+
 
     private boolean hasKey(SQLTable t) throws SQLObjectException {
         for (SQLColumn c : t.getColumns()) {
@@ -469,10 +470,10 @@ public class CompareDMFormatter {
         }
         return false;
     }
-    
+
 
     private List<DiffChunk<DiffInfo>> convertToDiffInfo(List<DiffChunk<SQLObject>> diff) {
-        
+
 
         List<DiffChunk<DiffInfo>> newDiff = new ArrayList<DiffChunk<DiffInfo>>();
         List<SQLObject> ancestors = new ArrayList<SQLObject>();
@@ -487,7 +488,7 @@ public class CompareDMFormatter {
                 name = data.getName();
             }
             DiffInfo info = new DiffInfo(data.getClass().getSimpleName().replaceFirst("SQL", ""), name);
-            
+
 
             // Set the depth property based on the object hierarchy.
             // If it is a relationship, we ignore depth, and there are only relationships left.
@@ -503,7 +504,7 @@ public class CompareDMFormatter {
                 }
                 ancestors.add(depth, data);
             }
-            
+
 
             info.setDepth(depth);
             DiffChunk<DiffInfo> newChunk = new DiffChunk<DiffInfo>(info, chunk.getType());
@@ -512,10 +513,10 @@ public class CompareDMFormatter {
             }
             newDiff.add(newChunk);
         }
-     
+
 
         return newDiff;
-        
+
 
     }
 }

@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package ca.sqlpower.architect;
@@ -48,6 +48,7 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
@@ -88,7 +89,7 @@ public class ProjectLoader {
         ConvertUtils.register(new UpdateDeleteRuleConverter(), UpdateDeleteRule.class);
         ConvertUtils.register(new AscendDescendConverter(), AscendDescend.class);
     }
-    
+
     /**
      * This will load the attributes in all SQLObjects that are not loaded by basic
      * setters through the digester.
@@ -103,15 +104,15 @@ public class ProjectLoader {
             }
         }
     }
-    
+
     //  ---------------- persistent properties -------------------
 
     protected File file;
-    
+
     // ------------------ load and save support -------------------
 
     private static final Logger logger = Logger.getLogger(ProjectLoader.class);
-    
+
     /**
      * Tracks whether or not this project has been modified since last saved.
      */
@@ -144,7 +145,7 @@ public class ProjectLoader {
      * This map maps String ID codes to SQLObject instances used in loading.
      */
     protected Map<String, SQLObject> sqlObjectLoadIdMap;
-    
+
     /**
      * This holds mappings from SQLObject instance to String ID used in saving.
      */
@@ -154,27 +155,27 @@ public class ProjectLoader {
      * This map maps String ID codes to OLAPObject instances used in loading.
      */
     protected Map<String, OLAPObject> olapObjectLoadIdMap;
-    
+
     /**
      * This holds mappings from OLAPObject instance to String ID used in saving.
      */
     protected Map<OLAPObject, String> olapObjectSaveIdMap;
-    
+
     /**
      * This map maps String ID codes to DBCS instances used in loading.
      */
     protected Map<String, JDBCDataSource> dbcsLoadIdMap;
-    
+
     /**
      * This holds mappings from DBCS instance to String ID used in saving.
      */
     protected Map<SPDataSource, String> dbcsSaveIdMap;
-    
+
     /**
      * The last value we sent to the progress monitor.
      */
     protected int progress = 0;
-    
+
     protected ArchitectSession session;
 
     /**
@@ -185,11 +186,11 @@ public class ProjectLoader {
      * is new).
      */
     protected String fileVersion;
-    
+
     public ProjectLoader(ArchitectSession session) {
         this.session = session;
     }
-    
+
 
     // ------------- READING THE PROJECT FILE ---------------
 
@@ -197,7 +198,7 @@ public class ProjectLoader {
      * Loads the project data from the given input stream.
      * <p>
      * Note: the input stream is always closed afterwards.
-     * 
+     *
      * @param in
      *            Used to load in the project data, must support mark.
      * @param dataSources
@@ -208,7 +209,7 @@ public class ProjectLoader {
         try {
             dbcsLoadIdMap = new HashMap<String, JDBCDataSource>();
             sqlObjectLoadIdMap = new HashMap<String, SQLObject>();
-            
+
             Digester digester = null;
 
             // use digester to read from file
@@ -226,7 +227,7 @@ public class ProjectLoader {
                 if (digester == null) {
                     message = "Couldn't create an XML parser";
                 } else {
-                    message = "There is an XML parsing error in project file at Line:" + 
+                    message = "There is an XML parsing error in project file at Line:" +
                     digester.getDocumentLocator().getLineNumber() + " Column:" +
                     digester.getDocumentLocator().getColumnNumber();
                 }
@@ -240,7 +241,7 @@ public class ProjectLoader {
             }
 
             SQLObject dbConnectionContainer = ((SQLObject) getSession().getRootObject());
-             
+
             // hook up data source parent types
             for (SQLDatabase db : dbConnectionContainer.getChildren(SQLDatabase.class)) {
                 JDBCDataSource ds = db.getDataSource();
@@ -304,18 +305,18 @@ public class ProjectLoader {
                 }
 
             }
-            
+
             setModified(false);
         } finally {
             uin.forceClose();
         }
     }
-    
+
     protected Digester setupDigester() throws ParserConfigurationException, SAXException {
         Digester d = new Digester(new UnescapingSaxParser());
         d.setValidating(false);
         d.push(session);
-        
+
         //app version number
         d.addRule("architect-project", new Rule() {
             @Override
@@ -337,9 +338,9 @@ public class ProjectLoader {
                     loadingMessage = "The version of the file cannot be understood.";
                 }
                 UserPrompter loadingWarningPrompt = session.createUserPrompter(
-                        loadingMessage + "\nDo you wish to try and open the file?", 
-                        UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL, 
-                        UserPromptResponse.OK, UserPromptResponse.OK, "Try loading", 
+                        loadingMessage + "\nDo you wish to try and open the file?",
+                        UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL,
+                        UserPromptResponse.OK, UserPromptResponse.OK, "Try loading",
                         "Upgrade...", "Cancel");
                 UserPromptResponse response = loadingWarningPrompt.promptUser();
                 if (response == UserPromptResponse.OK) {
@@ -376,8 +377,8 @@ public class ProjectLoader {
         // for the project-data-sources, these instances get picked out of the dbcsIdMap by the SQLDatabase factory
 
         // but for the create kettle job settings, we add them explicitly
-        
-        
+
+
         // source database hierarchy
         d.addObjectCreate("architect-project/source-databases", LinkedList.class);
         d.addSetNext("architect-project/source-databases", "setSourceDatabaseList");
@@ -400,7 +401,7 @@ public class ProjectLoader {
         d.addFactoryCreate("*/table", tableFactory);
         d.addSetProperties("*/table");
         d.addSetNext("*/table", "addChild");
-        
+
         d.addFactoryCreate("*/folder", new SQLFolderFactory());
 
         SQLColumnFactory columnFactory = new SQLColumnFactory();
@@ -447,23 +448,28 @@ public class ProjectLoader {
         // target database hierarchy
         d.addFactoryCreate("architect-project/target-database", targetDBFactory);
         d.addSetProperties("architect-project/target-database");
-     
+
         DDLGeneratorFactory ddlgFactory = new DDLGeneratorFactory();
         d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
         d.addSetProperties("architect-project/ddl-generator");
         d.addSetNext("architect-project/ddl-generator", "setDDLGenerator");
-        
+
+        LiquibaseSettingsFactory lbFactory = new LiquibaseSettingsFactory();
+        d.addFactoryCreate("architect-project/liquibase-settings", lbFactory);
+        d.addSetProperties("architect-project/liquibase-settings");
+        d.addSetNext("architect-project/liquibase-settings", "setLiquibaseSettings");
+
         ProfileManagerFactory profileManagerFactory = new ProfileManagerFactory();
         d.addFactoryCreate("*/profiles", profileManagerFactory);
         d.addSetProperties("*/profiles");
 
         ProfileResultFactory profileResultFactory = new ProfileResultFactory();
         d.addFactoryCreate("*/profiles/profile-result", profileResultFactory);
-        /* 
+        /*
          * backward compatibility: the exception property used to be a boolean, and now it's an actual exception.
          * this causes an IllegalArgumentException when parsing old files.
          * this workaround tells the digester not to auto-map the exception property.
-         */ 
+         */
         d.addRule("*/profiles/profile-result", new SetPropertiesRule(new String[] {"exception"}, new String[] {}));
         d.addSetNext("*/profiles/profile-result", "loadResult");
 
@@ -482,12 +488,12 @@ public class ProjectLoader {
         FileFactory fileFactory = new FileFactory();
         d.addFactoryCreate("*/file", fileFactory);
         d.addSetNext("*/file", "setFile");
-        
-        
-        
+
+
+
         return d;
     }
-    
+
     /**
      * Creates a SPDataSource object and puts a mapping from its
      * id (in the attributes) to the new instance into the dbcsIdMap.
@@ -495,7 +501,7 @@ public class ProjectLoader {
     private class DBCSFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             JDBCDataSource dbcs = new JDBCDataSource(getSession().getDataSources());
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 dbcsLoadIdMap.put(id, dbcs);
@@ -505,7 +511,7 @@ public class ProjectLoader {
             return dbcs;
         }
     }
-    
+
     /**
      * Gets the playpen SQLDatabase instance.
      * Also attaches the DBCS referenced by the dbcsref attribute, if
@@ -517,21 +523,21 @@ public class ProjectLoader {
         @Override
         public Object createObject(Attributes attributes) throws Exception {
             SQLDatabase ppdb = getSession().getTargetDatabase();
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 sqlObjectLoadIdMap.put(id, ppdb);
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
-            
+
             String dbcsid = attributes.getValue("dbcs-ref");
             if (dbcsid != null) {
                 ppdb.setDataSource(dbcsLoadIdMap.get(dbcsid));
             }
-            
+
             sqlObjectLoadIdMap.put(id, ppdb);
-            
+
             return ppdb;
         }
 
@@ -563,7 +569,7 @@ public class ProjectLoader {
             if (populated != null && populated.equals("false")) {
                 db.setPopulated(false);
             }
-            
+
             LoadSQLObjectAttributes(db, attributes);
 
             return db;
@@ -586,7 +592,7 @@ public class ProjectLoader {
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
-            
+
             LoadSQLObjectAttributes(schema, attributes);
 
             return schema;
@@ -624,9 +630,9 @@ public class ProjectLoader {
             }
 
             currentTable = tab;
-            
+
             LoadSQLObjectAttributes(tab, attributes);
-            
+
             return tab;
         }
     }
@@ -640,14 +646,14 @@ public class ProjectLoader {
         public Object createObject(Attributes attributes) throws Exception {
             String type = attributes.getValue("type"); //1=col, 2=import, 3=export, 4=index
             boolean isPopulated = Boolean.valueOf(attributes.getValue("populated"));
-            
+
             String message = attributes.getValue("sql-exception");
-            
+
             if (type.equals("1")) {
                 currentTable.setColumnsPopulated(isPopulated);
                 if (message != null) {
                     try {
-                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message),
                                 SQLColumn.class, false);
                     } catch (SQLObjectException e) {
                         throw new AssertionError("Unreachable code");
@@ -657,7 +663,7 @@ public class ProjectLoader {
                 currentTable.setImportedKeysPopulated(isPopulated);
                 if (message != null) {
                     try {
-                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message),
                                 SQLImportedKey.class, false);
                     } catch (SQLObjectException e) {
                         throw new AssertionError("Unreachable code");
@@ -667,7 +673,7 @@ public class ProjectLoader {
                 currentTable.setExportedKeysPopulated(isPopulated);
                 if (message != null) {
                     try {
-                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message),
                                 SQLRelationship.class, false);
                     } catch (SQLObjectException e) {
                         throw new AssertionError("Unreachable code");
@@ -677,17 +683,17 @@ public class ProjectLoader {
                 currentTable.setIndicesPopulated(isPopulated);
                 if (message != null) {
                     try {
-                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message), 
+                        currentTable.setChildrenInaccessibleReason(new SQLObjectException(message),
                                 SQLIndex.class, false);
                     } catch (SQLObjectException e) {
                         throw new AssertionError("Unreachable code");
                     }
                 }
             }
-            
+
             return currentTable;
         }
-        
+
     }
 
     /**
@@ -710,14 +716,14 @@ public class ProjectLoader {
             if (sourceId != null) {
                 col.setSourceColumn((SQLColumn) sqlObjectLoadIdMap.get(sourceId));
             }
-            
+
             String sqlTypeUUID = attributes.getValue("userDefinedTypeUUID");
             UserDefinedSQLType sqlType = null;
-            
+
             if (sqlTypeUUID != null ){
                 sqlType = session.findSQLTypeByUUID(sqlTypeUUID);
             }
-            
+
             // If userDefinedTypeUUID isn't in the file, probably because it's
             // from an older version... or if the userDefinedTypeUUID doesn't
             // exist in this system, then try to guess it by JDBC type.
@@ -731,7 +737,7 @@ public class ProjectLoader {
             }
 
             col.getUserDefinedSQLType().setUpstreamType(sqlType);
-            
+
             LoadSQLObjectAttributes(col, attributes);
 
             return col;
@@ -764,7 +770,7 @@ public class ProjectLoader {
             } else {
                 logger.warn("No ID found in relationship element while loading project!");
             }
-            
+
             String fkTableId = attributes.getValue("fk-table-ref");
             String pkTableId = attributes.getValue("pk-table-ref");
 
@@ -782,7 +788,7 @@ public class ProjectLoader {
             }
 
             LoadSQLObjectAttributes(rel, attributes);
-            
+
             return rel;
         }
     }
@@ -831,7 +837,7 @@ public class ProjectLoader {
         public Object createObject(Attributes attributes) {
             SQLIndex index = new SQLIndex();
             logger.debug("Loading index: "+attributes.getValue("name"));
-            
+
             String pkIndex = attributes.getValue("primaryKeyIndex");
             if (Boolean.valueOf(pkIndex)) {
                 try {
@@ -840,7 +846,7 @@ public class ProjectLoader {
                     throw new SQLObjectRuntimeException(e);
                 }
             }
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 sqlObjectLoadIdMap.put(id, index);
@@ -851,11 +857,11 @@ public class ProjectLoader {
                 logger.debug("Attribute: \"" + attributes.getQName(i) + "\" Value:"+attributes.getValue(i));
             }
             index.setType(attributes.getValue("index-type"));
-    
+
             currentIndex = index;
-            
+
             LoadSQLObjectAttributes(index, attributes);
-            
+
             return index;
         }
     }
@@ -883,17 +889,26 @@ public class ProjectLoader {
             for (int i = 0; i < attributes.getLength(); i++) {
                 logger.debug("Attribute: \"" + attributes.getQName(i) + "\" Value:"+attributes.getValue(i));
             }
-            
+
             if (attributes.getValue("ascendingOrDescending") != null) {
                 col.setAscendingOrDescending(SQLIndex.AscendDescend.valueOf(attributes.getValue("ascendingOrDescending")));
             }
-            
+
             LoadSQLObjectAttributes(col, attributes);
 
             return col;
         }
     }
-    
+
+    /**
+     * Creates a LiquibaseSettings instance and adds it to the objectIdMap.
+     */
+    private class LiquibaseSettingsFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+			return session.getLiquibaseSettings();
+        }
+    }
+
     private class DDLGeneratorFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) throws SQLException {
             try {
@@ -932,12 +947,12 @@ public class ProjectLoader {
          * The most recent table result encountered.
          */
         TableProfileResult tableProfileResult;
-    
+
         @Override
         public Object createObject(Attributes attributes) throws SQLObjectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String refid = attributes.getValue("ref-id");
             String className = attributes.getValue("type");
-            
+
             if (refid == null) {
                 throw new SQLObjectException("Missing mandatory attribute \"ref-id\" in <profile-result> element");
             }
@@ -946,10 +961,10 @@ public class ProjectLoader {
                 throw new SQLObjectException("Missing mandatory attribute \"type\" in <profile-result> element");
             } else if (className.equals(TableProfileResult.class.getName())) {
                 SQLTable t = (SQLTable) sqlObjectLoadIdMap.get(refid);
-                
+
                 // XXX we should actually store the settings together with each profile result, not rehash the current defaults
                 tableProfileResult = new TableProfileResult(t, session.getProfileManager().getDefaultProfileSettings());
-                
+
                 return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
                 SQLColumn c = (SQLColumn) sqlObjectLoadIdMap.get(refid);
@@ -988,13 +1003,13 @@ public class ProjectLoader {
         public Object createObject(Attributes attributes) throws SQLObjectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String className = attributes.getValue("type");
             int count = Integer.valueOf(attributes.getValue("count"));
-            
+
             String per = attributes.getValue("percent");
             double percent = -1;
             if (per != null) {
                 percent = Double.valueOf(per);
             }
-            
+
             String value = attributes.getValue("value");
 
             if (className == null || className.length() == 0 ) {
@@ -1010,7 +1025,7 @@ public class ProjectLoader {
             }
         }
     }
-    
+
     /**
      * See {@link #modified}.
      */
@@ -1025,11 +1040,11 @@ public class ProjectLoader {
         if (logger.isDebugEnabled()) logger.debug("Project modified: "+modified);
         this.modified = modified;
     }
-    
+
     protected ArchitectSession getSession() {
         return session;
     }
-    
+
     /**
      * Returns the file that this project was most recently
      * saved to or loaded from.
@@ -1045,15 +1060,15 @@ public class ProjectLoader {
     public void setFile(File argFile) {
         this.file = argFile;
     }
-    
+
     /**
-     * Clears the file version if the file to save to is being changed to a 
+     * Clears the file version if the file to save to is being changed to a
      * new location.
      */
     public void clearFileVersion() {
         fileVersion = null;
     }
-    
+
     /**
      * Adds all the tables in the given database into the playpen database.  This is really only
      * for loading projects, so please think twice about using it for other stuff.

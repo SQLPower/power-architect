@@ -91,6 +91,7 @@ import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.xml.XMLHelper;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * The SwingUIProject class is responsible for saving and loading projects.
@@ -250,7 +251,11 @@ public class SwingUIProjectLoader extends ProjectLoader {
         CompareDMStuffSettingFactory targetStuffFactory = new CompareDMStuffSettingFactory(false);
         d.addFactoryCreate("architect-project/compare-dm-settings/target-stuff", targetStuffFactory); //$NON-NLS-1$
         d.addSetProperties("architect-project/compare-dm-settings/target-stuff"); //$NON-NLS-1$
-        
+
+        LiquibaseSettingsFactory lbSettingsFactory = new LiquibaseSettingsFactory();
+        d.addFactoryCreate("architect-project/compare-dm-settings/liquibase-settings", lbSettingsFactory); //$NON-NLS-1$
+        d.addSetProperties("architect-project/compare-dm-settings/liquibase-settings"); //$NON-NLS-1$
+
         CreateKettleJobSettingsFactory ckjsFactory = new CreateKettleJobSettingsFactory();
         d.addFactoryCreate("architect-project/create-kettle-job-settings", ckjsFactory); //$NON-NLS-1$
         d.addSetProperties("architect-project/create-kettle-job-settings"); //$NON-NLS-1$
@@ -596,6 +601,19 @@ public class SwingUIProjectLoader extends ProjectLoader {
     }
 
     /**
+     * Creates a LiquibaseSettings instance and adds it to the objectIdMap.
+     */
+    private class LiquibaseSettingsFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+			LiquibaseSettings settings = getSession().getCompareDMSettings().getLiquibaseSettings();
+			if (settings == null) {
+				settings = new LiquibaseSettings();
+				getSession().getCompareDMSettings().setLiquibaseSettings(settings);
+			}
+            return settings;
+        }
+    }
+    /**
      * Creates a compareDM instance and adds it to the objectIdMap.
      */
     private class CompareDMSettingFactory extends AbstractObjectCreationFactory {
@@ -892,6 +910,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         }
         ioo.niprint(out, ">"); //$NON-NLS-1$
         ioo.println(out, "</ddl-generator>"); //$NON-NLS-1$
+		saveLiquibaseSettings(out, session.getLiquibaseSettings());
     }
     
     private void saveCreateKettleJobSettings(PrintWriter out) throws IOException {
@@ -921,18 +940,37 @@ public class SwingUIProjectLoader extends ProjectLoader {
             ioo.print(out, " ddlGenerator=\""+SQLPowerUtils.escapeXML(ddlgClass.getName())+"\""); //$NON-NLS-1$ //$NON-NLS-2$
         }
         ioo.print(out, " outputFormatAsString=\""+SQLPowerUtils.escapeXML(getSession().getCompareDMSettings().getOutputFormatAsString())+"\""); //$NON-NLS-1$ //$NON-NLS-2$
+
+		// this ensures that settings that are loaded from the project are written back to the project file
+		// even if the user did use the compare DM dialog
+		ioo.print(out, " saveFlag=\"true\"");
         ioo.println(out, ">"); //$NON-NLS-1$
         ioo.indent++;
         ioo.print(out, "<source-stuff"); //$NON-NLS-1$
         saveSourceOrTargetAttributes(out, getSession().getCompareDMSettings().getSourceSettings());
-        ioo.print(out, "/>"); //$NON-NLS-1$
+        ioo.println(out, "/>"); //$NON-NLS-1$
         ioo.print(out, "<target-stuff"); //$NON-NLS-1$
         saveSourceOrTargetAttributes(out, getSession().getCompareDMSettings().getTargetSettings());
-        ioo.print(out, "/>"); //$NON-NLS-1$
+        ioo.println(out, "/>"); //$NON-NLS-1$
+		saveLiquibaseSettings(out, getSession().getCompareDMSettings().getLiquibaseSettings());
         ioo.indent--;
         ioo.println(out, "</compare-dm-settings>"); //$NON-NLS-1$
     }
 
+	private void saveLiquibaseSettings(PrintWriter out, LiquibaseSettings settings) {
+		if (settings == null) return;
+		StringBuilder xml = new StringBuilder(150);
+		xml.append("<liquibase-settings");
+		xml.append(" useSeparateChangeSets=\"" + Boolean.toString(settings.getUseSeparateChangeSets()) + "\"");
+		String author = settings.getAuthor();
+		if (StringUtils.isNotBlank(author)) {
+			xml.append(" author=\"" + SQLPowerUtils.escapeXML(author) + "\"");
+		}
+		xml.append(" generateId=\"" + Boolean.toString(settings.getGenerateId()) + "\"");
+		xml.append(" idStart=\"" + Integer.toString(settings.getIdStart()) + "\"");
+		xml.append("/>");
+		ioo.println(out, xml.toString());
+	}
 
     private void saveSourceOrTargetAttributes(PrintWriter out, SourceOrTargetSettings sourceSettings) {
         ioo.print(out, " datastoreTypeAsString=\""+SQLPowerUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\""); //$NON-NLS-1$ //$NON-NLS-2$

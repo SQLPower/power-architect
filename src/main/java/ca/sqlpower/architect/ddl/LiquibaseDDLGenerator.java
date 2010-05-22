@@ -23,6 +23,7 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -47,6 +49,11 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	public static final String GENERATOR_VERSION = "$Revision: 3271 $";
 
 	private static final Logger logger = Logger.getLogger(LiquibaseDDLGenerator.class);
+
+	private boolean separateChangeSets;
+	private String author;
+	private boolean generateId;
+	private int currentId = 1;
 
     public LiquibaseDDLGenerator() throws SQLException {
 		super(false);
@@ -67,31 +74,136 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		return "";
 	}
 
+	public void applySettings(LiquibaseSettings options) {
+		setUseSeparateChangeSets(options.getUseSeparateChangeSets());
+		setAuthor(options.getAuthor());
+		setGenerateId(options.getGenerateId());
+		setIdStart(options.getIdStart());
+	}
 	/**
-	 * Does nothing.  Not needed for Liquibase
+	 * Control the usage of changeSets in the generated output.
+	 * <br/>
+	 * If true, each statement will be "enclosed" in a changeSet
+	 * If false, no changeSet tags will be generated
+	 * <br/>
+	 * If changeSet Generation is enabled, the author and id to be used
+	 * can be controlled through setAuthor() and setGenerateId()
+	 *
+	 * @param flag true, changeSets will be generated
+	 * @see #setAuthor(java.lang.String)
+	 * @see #setGenerateId(boolean)
 	 */
-	public void writeDDLTransactionBegin() {
-		println("<changeSet author=\"CHANGEME\" id=\"CHANGEME\">");
+	public void setUseSeparateChangeSets(boolean flag) {
+		separateChangeSets = flag;
 	}
 
 	/**
-	 * Does nothing.  Not needed for Liquibase
+	 * Define the autor name to be used in the changeSet tag.
+	 * <br/>
+	 * This is only relevant if setUseSeparateChangeSets() has been activated
+	 *
+	 * @param name the author to be used
+	 * @see #setUseSeparateChangeSets(boolean)
+	 * @see #setGenerateId(boolean)
 	 */
+	public void setAuthor(String name) {
+		author = name;
+	}
+
+	/**
+	 * Define the start value for the ID attribute of the changeSets.
+	 * <br/>
+	 * This is only used if changeSet generation has been enabled.
+	 *
+	 * @param startValue the value for the first changeSet that is generated
+	 * @see #setUseSeparateChangeSets(boolean)
+	 * @see #setGenerateId(flag)
+	 */
+	public void setIdStart(int startValue) {
+		currentId = startValue;
+	}
+
+	/**
+	 * Controls if the id attribute should be a generated (numeric) value
+	 * for each changeset
+	 *
+	 * @param flag turns the id generation on or off
+	 * @see #setIdStart(int)
+	 * @see #setUseSeparateChangeSets(boolean)
+	 */
+	public void setGenerateId(boolean flag) {
+		generateId = flag;
+	}
+
+	protected void startOfStatement() {
+		if (separateChangeSets) {
+			writeOpenChangeSet();
+		}
+	}
+
+	protected void writeOpenChangeSet() {
+		String tag = getChangeSetStartTag();
+		println(tag);
+	}
+
+	protected String getChangeSetStartTag() {
+		StringBuilder tag = new StringBuilder(100);
+		tag.append("<changeSet");
+		if (StringUtils.isBlank(author)) {
+			tag.append(" author=\"CHANGEME\"");
+		} else {
+			tag.append(" author=");
+			tag.append(escapeAttributeValue(author));
+		}
+
+		if (generateId) {
+			tag.append(" id=\"");
+			tag.append(Integer.toString(currentId));
+			tag.append("\"");
+			currentId++;
+		} else {
+			tag.append(" id=\"CHANGEME\"");
+		}
+		tag.append(">");
+		return tag.toString();
+	}
+
+	protected void endOfStatement() {
+		if (separateChangeSets) {
+			println("</changeSet>");
+		}
+	}
+
+	public void writeDDLTransactionBegin() {
+	}
+
 	public void writeDDLTransactionEnd() {
-		println("</changeSet>");
 	}
 
 	public void writeCreateDB(SQLDatabase db) {
 		// not necessary for Liquibase
 	}
 
-	public void dropRelationship(SQLRelationship r) {
+	@Override
+	public List<DDLStatement> getDdlStatements() {
+		List<DDLStatement> result = super.getDdlStatements();
+		if (!separateChangeSets) {
+			DDLStatement startTag = new DDLStatement((SQLObject)null, DDLStatement.StatementType.XMLTAG, getChangeSetStartTag() + EOL, "", null, null);
+			result.add(0, startTag);
+			DDLStatement endTag = new DDLStatement((SQLObject)null, DDLStatement.StatementType.XMLTAG, "</changeSet>", "", null, null);
+			result.add(endTag);
+		}
+		return result;
+	}
 
+	public void dropRelationship(SQLRelationship r) {
+		startOfStatement();
 		print("<dropForeignKeyConstraint ");
 		print(getTableQualifier(r.getFkTable(), "baseTableName", "baseSchemaName"));
 		print(" constraintName=\"");
 		print(getName(r));
 		println("\"/>");
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, r);
 	}
 
@@ -103,9 +215,11 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	}
 
 	public void renameRelationship(SQLRelationship oldFK, SQLRelationship newFK) {
+		startOfStatement();
         println("<comment>Renaming foreign key " + getName(oldFK) + " to " + getName(newFK) + "</comment>");
         dropRelationship(oldFK);
 		addRelationship(newFK);
+		endOfStatement();
 	}
 
     /**
@@ -205,8 +319,9 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		}
 
 		sql.append("/>");
+		startOfStatement();
         println(sql.toString());
-
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, r);
 	}
 
@@ -310,15 +425,17 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	private void modifyColumnComment(SQLColumn c) {
 		SQLTable t = c.getParent();
+		startOfStatement();
 		print("<modifyColumn ");
 		print(getTableQualifier(t));
 		println(">");
 		print("  <column name=\"");
 		print(getName(c));
 		print("\" remarks=");
-		print(getQuotedRemarks(c.getRemarks()));
+		print(escapeAttributeValue(c.getRemarks()));
 		println("/>");
 		println("</modifyColumn>");
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, c);
 	}
 
@@ -334,6 +451,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	 * Creates a <addColumn> definition tag
 	 */
 	public void addColumn(SQLColumn c) {
+		startOfStatement();
 		print("<addColumn ");
 		print(getTableQualifier(c.getParent()));
 		println(">");
@@ -344,10 +462,12 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			print(c.getAutoIncrementSequenceName());
 			println("\"/>");
 		}
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, c);
 	}
 
     public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
+		startOfStatement();
         print("<renameColumn ");
         print(getTableQualifier(oldCol.getParent()));
         print(" oldColumnName=\"");
@@ -355,6 +475,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
         print("\" newColumnName=\"");
         print(getName(newCol));
         println("\"/>");
+		endOfStatement();
         endStatement(DDLStatement.StatementType.XMLTAG, newCol);
     }
 
@@ -363,6 +484,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	 * Creates a <dropColumn> definition tag
 	 */
 	public void dropColumn(SQLColumn c) {
+		startOfStatement();
 		print("<dropColumn ");
 		print(getTableQualifier(c.getParent()));
 		print(" columnName=\"");
@@ -374,6 +496,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			print(c.getAutoIncrementSequenceName());
 			println("\"/>");
 		}
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, c);
 	}
 
@@ -381,12 +504,14 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	 * Creates a <modifyColumn> definition tag
 	 */
 	public void modifyColumn(SQLColumn c) {
+		startOfStatement();
 		SQLTable t = c.getParent();
 		print("<modifyColumn ");
 		print(getTableQualifier(t));
 		println(">");
 		println(columnDefinition("  ", c));
 		println("</modifyColumn>");
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, c);
 	}
 
@@ -394,16 +519,20 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	 * Creates a <dropTable> definition tag
 	 */
 	public void dropTable(SQLTable t) {
+		startOfStatement();
 		print("<dropTable ");
 		print(getTableQualifier(t));
 		println("/>");
+		endOfStatement();
 
 		try {
 			for (SQLColumn col : t.getColumns()) {
 				if (col.isAutoIncrement() && col.isAutoIncrementSequenceNameSet()) {
+					startOfStatement();
 					print("<dropSequence sequenceName=\"");
 					print(col.getAutoIncrementSequenceName());
 					println("\"/>");
+					endOfStatement();
 				}
 			}
 		} catch (Exception e) {
@@ -429,7 +558,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 		if (StringUtils.isNotBlank(c.getRemarks())) {
 			def.append(" remarks=");
-			def.append(getQuotedRemarks(c.getRemarks()));
+			def.append(escapeAttributeValue(c.getRemarks()));
 		}
 
         if (StringUtils.isNotBlank(c.getDefaultValue())) {
@@ -515,27 +644,38 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		return super.failsafeGetTypeDescriptor(c);
     }
 
-	private String getQuotedRemarks(String remarks) {
-		return "\"" + StringEscapeUtils.escapeXml(remarks) + "\"";
+	/**
+	 * Returns the passed string usable as the value for a tag attribute.
+	 * <br/>
+	 * The returned value is enclosed in double quotes and escapes necessary characters
+	 *
+	 * @param value
+	 * @return an escaped and quoted version of the passed value
+	 */
+	private String escapeAttributeValue(String value) {
+		return "\"" + StringEscapeUtils.escapeXml(value) + "\"";
 	}
 
     public void renameTable(SQLTable oldTable, SQLTable newTable) {
+		startOfStatement();
         print("<renameTable ");
         print(getTableQualifier(oldTable, "oldTableName", "schemaName"));
         print(" newTableName=\"");
         print(newTable.getPhysicalName());
         println("\"/>");
+		endOfStatement();
         endStatement(DDLStatement.StatementType.XMLTAG, newTable);
     }
 
 
 	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
 		Set<SQLColumn> sequenceColumns = new HashSet<SQLColumn>(t.getChildCount());
+		startOfStatement();
 		print("<createTable ");
 		print( getTableQualifier(t) );
 		if (StringUtils.isNotBlank(t.getRemarks())) {
 			print(" remarks=");
-			print(getQuotedRemarks(t.getRemarks()));
+			print(escapeAttributeValue(t.getRemarks()));
 		}
 		println(">");
 		Iterator<SQLColumn> it = t.getColumns().iterator();
@@ -547,6 +687,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			}
 		}
 		println("</createTable>");
+		endOfStatement();
 
 		SQLIndex pk = t.getPrimaryKeyIndex();
 		if (pk.getChildCount() > 0) {
@@ -554,9 +695,11 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		}
 
 		for (SQLColumn col : sequenceColumns) {
+			startOfStatement();
 			print("<createSequence sequenceName=\"");
 			print(col.getAutoIncrementSequenceName());
 			println("\"/>");
+			endOfStatement();
 		}
 
 		endStatement(DDLStatement.StatementType.XMLTAG, t);
@@ -577,6 +720,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	    if (!pk.isPrimaryKeyIndex()) {
 	        throw new IllegalArgumentException("The given index is not a primary key");
 	    }
+		startOfStatement();
 		print("<addPrimaryKey ");
 		print(getTableQualifier(pk.getParent()));
 		print(" constraintName=\"");
@@ -594,6 +738,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	        firstCol = false;
 	    }
 	    println("\"/>");
+		endOfStatement();
 	}
 
 	protected void writePrimaryKey(SQLTable t) throws SQLObjectException {
@@ -645,8 +790,10 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	public void dropPrimaryKey(SQLTable t) throws SQLObjectException {
 	    SQLIndex pk = t.getPrimaryKeyIndex();
+		startOfStatement();
 	    println("<dropPrimaryKey " + getTableQualifier(t)
 		  + " constraintName=\"" + getName(pk) + "\"/>");
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, t);
 	}
 
@@ -668,23 +815,27 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			}
 		}
 		sql.append("\"/>");
+		startOfStatement();
 		println(sql.toString());
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG,t);
 	}
 
 	@Override
 	public void renameIndex(SQLIndex oldIndex, SQLIndex newIndex) throws SQLObjectException {
-		// renaming an index is currently not supported in Liquibase 1.8
+		// renaming an index is currently not supported in Liquibase 1.9
 		dropIndex(oldIndex);
 		addIndex(newIndex);
 	}
 
 	public void dropIndex(SQLIndex index) throws SQLObjectException {
+		startOfStatement();
 		print("<dropIndex indexName=\"");
 		print(getName(index));
 		print("\" tableName=\"");
 		print(getName(index.getParent()));
 		println("\"/>");
+		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, index);
 	}
 
@@ -694,6 +845,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
      * @param index The specification of the index to create.
      */
     public void addIndex(SQLIndex index) throws SQLObjectException {
+		startOfStatement();
         print("<createIndex ");
 		print(getTableQualifier(index.getParent()));
 		print(" indexName=\"");
@@ -703,7 +855,6 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
             print(" unique=\"true\"");
         }
 		println(">");
-
         for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
 
 			// ASC/DESC is currently not supported with Liqubase (1.8)
@@ -712,6 +863,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
             println("  <column name=\"" + getName(c) + "\"/>") ;
         }
         println("</createIndex>");
+		endOfStatement();
         endStatement(DDLStatement.StatementType.XMLTAG, index);
     }
 
