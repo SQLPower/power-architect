@@ -14,10 +14,11 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -43,18 +44,21 @@ import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
+import java.awt.BorderLayout;
+import javax.swing.SwingUtilities;
 
 
 public class DDLExportPanel implements DataEntryPanel {
 	private static final Logger logger = Logger.getLogger(DDLExportPanel.class);
 
     private JPanel panel = new JPanel();
-    
+	private LiquibaseOptionsPanel lbOptions;
+
 	private final ArchitectSwingSession session;
 
     private JComboBox targetDB;
     private JButton newTargetDB;
-    
+
     /**
      * The selector for which DDL Generator to use.  The contents of this combo box
      * are all of type <tt>Class&lt;? extends DDLGenerator&gt;</tt>.
@@ -66,13 +70,13 @@ public class DDLExportPanel implements DataEntryPanel {
 
 	private JLabel schemaLabel;
 	private JTextField schemaField;
-	
+
 	private final DatabaseListChangeListener databaseListChangeListener = new DatabaseListChangeListener() {
-    
+
         public void databaseRemoved(DatabaseListChangeEvent e) {
             targetDB.removeItem(e.getDataSource());
         }
-    
+
         public void databaseAdded(DatabaseListChangeEvent e) {
             targetDB.addItem(e.getDataSource());
         }
@@ -89,8 +93,10 @@ public class DDLExportPanel implements DataEntryPanel {
 		panel.setVisible(true);
 	}
 
-	private void setup() {		
-        panel.setLayout(new FormLayout());
+	private void setup() {
+        panel.setLayout(new BorderLayout());
+
+		JPanel mainPanel = new JPanel(new FormLayout());
         JPanel panelProperties = new JPanel(new FormLayout());
 
         panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.createInLabel"))); //$NON-NLS-1$
@@ -98,7 +104,7 @@ public class DDLExportPanel implements DataEntryPanel {
         panelProperties.add(targetDB = new JComboBox());
         targetDB.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-                JDBCDataSource dataSource = (JDBCDataSource) targetDB.getSelectedItem();  
+                JDBCDataSource dataSource = (JDBCDataSource) targetDB.getSelectedItem();
                 if (dataSource != null) {
                     String generatorClass = dataSource.getParentType().getDDLGeneratorClass();
                     if (generatorClass != null) {
@@ -110,18 +116,18 @@ public class DDLExportPanel implements DataEntryPanel {
                     }
                 }
             }
-            
+
         });
         targetDB.setPrototypeDisplayValue(Messages.getString("DDLExportPanel.targetDatabase")); //$NON-NLS-1$
         ASUtils.setupTargetDBComboBox(session, targetDB);
-        
+
         newTargetDB = new JButton(Messages.getString("DDLExportPanel.propertiesButton")); //$NON-NLS-1$
         newTargetDB.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
                 }
             });
-        
+
         panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.generateDDLForDbType"))); //$NON-NLS-1$
         DDLGenerator ddlg = session.getDDLGenerator();
 		plDotIni = session.getDataSources();
@@ -133,22 +139,21 @@ public class DDLExportPanel implements DataEntryPanel {
         }
         panelProperties.add(dbType = new JComboBox(ddlTypes));
         dbType.setRenderer(new DDLGeneratorListCellRenderer());
-		dbType.setSelectedItem(ddlg.getClass());
 		dbType.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 						setUpCatalogAndSchemaFields();
 				}
 			});
-			
+
         panelProperties.add(catalogLabel = new JLabel(Messages.getString("DDLExportPanel.targetCatalog"))); //$NON-NLS-1$
         panelProperties.add(catalogField = new JTextField(ddlg.getTargetCatalog()));
         panelProperties.add(schemaLabel = new JLabel(Messages.getString("DDLExportPanel.targetSchema"))); //$NON-NLS-1$
         panelProperties.add(schemaField = new JTextField(ddlg.getTargetSchema()));
-        panel.add(panelProperties);
-        panel.add(newTargetDB);
+        mainPanel.add(panelProperties);
+        mainPanel.add(newTargetDB);
 
-        panel.add(liquibaseCheckbox = new JCheckBox(Messages.getString("DDLExportPanel.liqubaseScript"))); //$NON-NLS-1$
-		panel.add(new JPanel()); //dummy component to keep the two-column layout
+        mainPanel.add(liquibaseCheckbox = new JCheckBox(Messages.getString("DDLExportPanel.liqubaseScript"))); //$NON-NLS-1$
+		mainPanel.add(new JPanel()); //dummy component to keep the two-column layout
 
 
 		liquibaseCheckbox.addActionListener(new ActionListener() {
@@ -157,13 +162,34 @@ public class DDLExportPanel implements DataEntryPanel {
 				dbType.setEnabled(!liquibaseCheckbox.isSelected());
 				targetDB.setEnabled(!liquibaseCheckbox.isSelected());
 				newTargetDB.setEnabled(!liquibaseCheckbox.isSelected());
+				toggleLiquibaseOptions(liquibaseCheckbox.isSelected());
 			}
 		});
+		panel.add(mainPanel, BorderLayout.CENTER);
+		lbOptions = new LiquibaseOptionsPanel();
+		
+		lbOptions.restoreSettings(session.getLiquibaseSettings());
+		panel.add(lbOptions.getPanel(), BorderLayout.SOUTH);
+
+		if (ddlg instanceof LiquibaseDDLGenerator) {
+			liquibaseCheckbox.setSelected(true);
+			lbOptions.getPanel().setVisible(true);
+		} else {
+			dbType.setSelectedItem(ddlg.getClass());
+			lbOptions.getPanel().setVisible(false);
+		}
 
 		setUpCatalogAndSchemaFields();
 	}
-    
-    /**
+
+	private void toggleLiquibaseOptions(boolean visible) {
+		lbOptions.getPanel().setVisible(visible);
+		Window w = SwingUtilities.getWindowAncestor(panel);
+		if (w != null) {
+			w.pack();
+		}
+	}
+     /**
 	 * This method sets up the labels and enabledness of the catalog
 	 * and schema text fields.  It should be called every time a new
 	 * database type is chosen, and when this panel is set up for the
@@ -185,7 +211,7 @@ public class DDLExportPanel implements DataEntryPanel {
 				catalogField.setText(null);
 				catalogField.setEnabled(false);
 			}
-			
+
 			if (newGen.getSchemaTerm() != null) {
 				schemaLabel.setText(newGen.getSchemaTerm());
 				schemaLabel.setEnabled(true);
@@ -217,7 +243,11 @@ public class DDLExportPanel implements DataEntryPanel {
 	public DDLGenerator getGenerator() {
 		Class<? extends DDLGenerator> genClass = getSelectedGeneratorClass();
 		try {
-			return genClass.newInstance();
+			DDLGenerator gen = genClass.newInstance();
+			if (gen instanceof LiquibaseDDLGenerator) {
+				((LiquibaseDDLGenerator)gen).applySettings(lbOptions.getLiquibaseSettings());
+			}
+			return gen;
 		} catch (Exception ex) {
 			logger.error("Problem creating user-selected DDL generator", ex); //$NON-NLS-1$
 			throw new RuntimeException(Messages.getString("DDLExportPanel.couldNotCreateDdlGenerator"), ex); //$NON-NLS-1$
@@ -229,7 +259,7 @@ public class DDLExportPanel implements DataEntryPanel {
 	    disconnect();
 		DDLGenerator ddlg = session.getDDLGenerator();
 		Class<? extends DDLGenerator> selectedGeneratorClass = getSelectedGeneratorClass();
-		if (ddlg.getClass() != selectedGeneratorClass && selectedGeneratorClass != LiquibaseDDLGenerator.class) {
+		if (ddlg.getClass() != selectedGeneratorClass /*&& selectedGeneratorClass != LiquibaseDDLGenerator.class */) {
 			try {
 				ddlg = selectedGeneratorClass.newInstance();
 				session.setDDLGenerator(ddlg);
@@ -238,6 +268,7 @@ public class DDLExportPanel implements DataEntryPanel {
 				throw new RuntimeException(Messages.getString("DDLExportPanel.couldNotCreateDdlGenerator"), ex); //$NON-NLS-1$
 			}
 		}
+		session.setLiquibaseSettings(lbOptions.getLiquibaseSettings());
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {
 			ddlg.setAllowConnection(true);
 			JDBCDataSource dbcs = (JDBCDataSource)targetDB.getSelectedItem();
@@ -247,35 +278,35 @@ public class DDLExportPanel implements DataEntryPanel {
 
 				JOptionPane.showMessageDialog(panel,
 				        Messages.getString("DDLExportPanel.genericDdlGeneratorRequirements")); //$NON-NLS-1$
-								
+
 				ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
-				
+
 				return false;
 			}
 		} else {
 			ddlg.setAllowConnection(false);
 		}
 
-		if (catalogField.isEnabled() && 
+		if (catalogField.isEnabled() &&
 			catalogField.getText() != null && catalogField.getText().trim().length() > 0) {
-			
+
 			ddlg.setTargetCatalog(catalogField.getText().trim());
 		}
-		
+
 		if (schemaField.isEnabled() &&
 			schemaField.getText() != null && schemaField.getText().trim().length() > 0) {
 
 			ddlg.setTargetSchema(schemaField.getText().trim());
 		}
-			
+
 		return true;
-		
+
 	}
 
 	public void discardChanges() {
         disconnect();
 	}
-	
+
 	private void disconnect() {
 	    plDotIni.removeDatabaseListChangeListener(databaseListChangeListener);
 	}
@@ -291,7 +322,7 @@ public class DDLExportPanel implements DataEntryPanel {
 	public JPanel getPanel() {
 		return panel;
 	}
-    
+
     public JDBCDataSource getTargetDB(){
         return (JDBCDataSource)targetDB.getSelectedItem();
     }

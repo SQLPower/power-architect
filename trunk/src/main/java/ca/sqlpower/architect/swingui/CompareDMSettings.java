@@ -37,6 +37,8 @@ public class CompareDMSettings {
     private boolean suppressSimilarities;
     private SourceOrTargetStuff targetStuff;
     private SourceOrTargetStuff sourceStuff;
+	private LiquibaseSettings liquibaseOptions;
+	
     
     /**
      * This flag should be set to true after the user has potentially modified
@@ -188,4 +190,14 @@ public class CompareDMSettings {
 	public void setSaveFlag(boolean saveFlag) {
 		this.saveFlag = saveFlag;
 	}
+
+	public LiquibaseSettings getLiquibaseSettings() {
+		return liquibaseOptions;
+	}
+
+	public void setLiquibaseSettings(LiquibaseSettings liquibaseOptions) {
+		this.liquibaseOptions = liquibaseOptions;
+	}
+
+	
 }

@@ -79,6 +79,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private ArchitectUndoManager undoManager;
     private DBTree sourceDatabases;
     private CompareDMSettings compareDMSettings;
+	private LiquibaseSettings liquibaseSettings;
     private DDLGenerator ddlGenerator;
     private KettleJob kettleJob;
     private RecentMenu recent;
@@ -191,6 +192,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public boolean close() {
         return true;
     }
+
+	public LiquibaseSettings getLiquibaseSettings() {
+		return liquibaseSettings;
+	}
+
+	public void setLiquibaseSettings(LiquibaseSettings settings) {
+		liquibaseSettings = settings;
+	}
 
     public CompareDMSettings getCompareDMSettings() {
         return compareDMSettings;

@@ -90,7 +90,7 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public ArchitectUndoManager getUndoManager();
     
     public CompareDMSettings getCompareDMSettings();
-      
+	
     /**
      * Returns the JDialog containing the ProfileManagerView
      */

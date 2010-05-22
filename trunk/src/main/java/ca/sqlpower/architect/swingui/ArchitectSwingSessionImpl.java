@@ -807,9 +807,18 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return this.recent;    
     }
 
+	public LiquibaseSettings getLiquibaseSettings() {
+		return delegateSession.getLiquibaseSettings();
+	}
+
+	public void setLiquibaseSettings(LiquibaseSettings settings) {
+		delegateSession.setLiquibaseSettings(settings);
+	}
+
     public CompareDMSettings getCompareDMSettings() {
         return compareDMSettings;
     }
+
     public void setCompareDMSettings(CompareDMSettings compareDMSettings) {
         this.compareDMSettings = compareDMSettings;
     }

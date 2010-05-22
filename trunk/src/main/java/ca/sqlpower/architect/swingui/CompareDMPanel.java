@@ -165,6 +165,9 @@ public class CompareDMPanel extends JPanel {
 
 	private JPanel buttonPanel;
 
+	private LiquibaseOptionsPanel lbOptions;
+
+
     /**
      * The list of all DDL Generators available.  The items stored in this
      * combo box are of type <tt>Class&lt;? extends DDLGenerator&gt;</tt>.
@@ -1127,6 +1130,14 @@ public class CompareDMPanel extends JPanel {
 		builder.append(liquibaseButton);
 		temp = builder.append(Messages.getString("CompareDMPanel.liqubaseScript")); //$NON-NLS-1$
 		associate(temp, liquibaseButton);
+
+		this.lbOptions = new LiquibaseOptionsPanel();
+
+		builder.appendRow("pref"); //$NON-NLS-1$
+		builder.nextLine(1);
+		builder.nextColumn(2);
+		lbOptions.getPanel().setVisible(false);
+		builder.append(lbOptions.getPanel(), 9);
 		
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref"); //$NON-NLS-1$
@@ -1192,17 +1203,26 @@ public class CompareDMPanel extends JPanel {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			boolean wasVisible = lbOptions.getPanel().isVisible();
 			if (e.getActionCommand().equals(OUTPUT_SQL)) {
 				cb.setEnabled(true);
                 showNoChanges.setEnabled(false);
+				lbOptions.getPanel().setVisible(false);
 			} else if (e.getActionCommand().equals(OUTPUT_LIQUIBASE)) {
 				cb.setEnabled(false);
                 showNoChanges.setEnabled(false);
+				lbOptions.getPanel().setVisible(true);
 			} else {
 				cb.setEnabled(false);
+				lbOptions.getPanel().setVisible(false);
                 showNoChanges.setEnabled(true);
 			}
 			startCompareAction.setEnabled(isStartable());
+			if (wasVisible != lbOptions.getPanel().isVisible()) {
+				if (CompareDMPanel.this.isVisible())  {
+					CompareDMPanel.this.doLayout();
+				}
+			}
 		}
 
 	}
@@ -1376,6 +1396,7 @@ public class CompareDMPanel extends JPanel {
 			s.setOutputFormat(CompareDMSettings.OutputFormat.SQL);
 		} else if (liquibaseButton.isSelected()) {
 			s.setOutputFormat(CompareDMSettings.OutputFormat.LIQUIBASE);
+			s.setLiquibaseSettings(lbOptions.getLiquibaseSettings());
 		}
 		s.setSuppressSimilarities(showNoChanges.isSelected());
         
@@ -1390,7 +1411,8 @@ public class CompareDMPanel extends JPanel {
 		SourceOrTargetSettings targetSetting = s.getTargetSettings();
 		copySourceOrTargetSettingsToProject(targetSetting,target);
         s.setTargetStuff(target);
-
+		
+		s.setLiquibaseSettings(lbOptions.getLiquibaseSettings());
 	}
 
 	public void copySourceOrTargetSettingsToProject(SourceOrTargetSettings setting,
@@ -1432,6 +1454,8 @@ public class CompareDMPanel extends JPanel {
 
 		restoreSourceOrTargetSettingsFromProject(source,s.getSourceSettings());
 		restoreSourceOrTargetSettingsFromProject(target,s.getTargetSettings());
+		lbOptions.restoreSettings(s.getLiquibaseSettings());
+
 		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.ENGLISH )
 			englishButton.doClick();
 

@@ -25,6 +25,8 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.swingui.CompareDMSettings;
+import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -170,4 +172,22 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      *         exists in this session. If not, then it will return null.
      */
     public UserDefinedSQLType findSQLTypeByJDBCType(int type);
+
+	/**
+	 * Return the LiquibaseSettings to be used for forward engineering a model.
+	 * <br/>
+	 * The settings for the model compared are stored in CompareDMSettings
+	 * @return liquibase settings for forward engineering
+	 * @see #getCompareDMSettings()
+	 * @see CompareDMSettings#getLiquibaseOptions()
+	 */
+	public LiquibaseSettings getLiquibaseSettings();
+
+	/**
+	 * Store the LiquibaseSettings for forward engineering a model.
+	 * Settings for model compare are stored in CompareDMSettings.
+	 * @param settings
+	 */
+	public void setLiquibaseSettings(LiquibaseSettings settings);
+
 }

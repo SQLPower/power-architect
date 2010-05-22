@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ca.sqlpower.architect;
 
@@ -31,6 +31,7 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -56,16 +57,16 @@ import ca.sqlpower.util.UserPrompter.UserPromptResponse;
  * @author fuerth
  */
 public class ArchitectSessionImpl implements ArchitectSession {
-    
+
     private final ArchitectSessionContext context;
     private final ArchitectProject project;
-    private String name;  
-    
+    private String name;
+
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    
+
     private final List<SessionLifecycleListener<ArchitectSession>> lifecycleListeners =
         new ArrayList<SessionLifecycleListener<ArchitectSession>>();
-    
+
     /**
      * The factory that creates user prompters for this session. Defaults to a
      * factory that makes an "always OK" user prompter for headless/embedded use.
@@ -74,39 +75,42 @@ public class ArchitectSessionImpl implements ArchitectSession {
      * prompts the user.
      */
     private UserPrompterFactory userPrompterFactory = new DefaultUserPrompterFactory();
-        
+
     /**
      * The project associated with this session.  The project provides save
      * and load functionality, and houses the source database connections.
      */
     private ProjectLoader projectLoader;
-    
+
     private DDLGenerator ddlGenerator;
-    
+
+	private LiquibaseSettings liquibaseSettings;
+
     protected boolean isEnterpriseSession;
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
 	        String name) throws SQLObjectException {
-	    
+
 	    this.context = context;
 	    this.project = new ArchitectProject();
 	    project.setSession(this);
 	    ProfileManagerImpl manager = new ProfileManagerImpl();
 	    this.project.setProfileManager(manager);
-	    this.name = name;	           
-        this.projectLoader = new ProjectLoader(this);   
+	    this.name = name;
+        this.projectLoader = new ProjectLoader(this);
         this.isEnterpriseSession = false;
-          
+		this.liquibaseSettings = new LiquibaseSettings();
+
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
             throw new SQLObjectException("SQL Error in ddlGenerator",e);
-        } 
-        
+        }
+
 	}
 
 	// --------------- accessors and mutators ------------------
-	
+
     /**
      * Gets the value of name
      *
@@ -136,7 +140,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public ProjectLoader getProjectLoader() {
         return projectLoader;
     }
-    
+
     public void setProjectLoader(ProjectLoader project) {
         this.projectLoader = project;
     }
@@ -149,12 +153,12 @@ public class ArchitectSessionImpl implements ArchitectSession {
         return context;
     }
 
-    
-    
+
+
     public void setProfileManager(ProfileManagerImpl manager) {
         project.setProfileManager(manager);
     }
-    
+
     public UserPrompter createUserPrompter(String question, UserPromptType responseType,
             UserPromptOptions optionType, UserPromptResponse defaultResponseType,
             Object defaultResponse, String ... buttonNames) {
@@ -164,20 +168,20 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     /**
      * Changes the user prompter factory in use on this session.
-     * 
+     *
      * @param upFactory The new user prompter factory to use. Must not be null.
      */
     public void setUserPrompterFactory(UserPrompterFactory upFactory) {
         if (upFactory == null) {
             throw new NullPointerException("Null user prompter factory is not allowed!");
         }
-        userPrompterFactory = upFactory; 
+        userPrompterFactory = upFactory;
     }
 
     public SQLDatabase getDatabase(JDBCDataSource ds) {
         return project.getDatabase(ds);
     }
-    
+
     public DDLGenerator getDDLGenerator() {
         return ddlGenerator;
     }
@@ -186,7 +190,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
         ddlGenerator = generator;
     }
 
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {        
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
         project.setSourceDatabaseList(databases);
     }
 
@@ -206,19 +210,19 @@ public class ArchitectSessionImpl implements ArchitectSession {
     }
 
     public void runInBackground(Runnable runner) {
-        runner.run();        
+        runner.run();
     }
 
     public void runInForeground(Runnable runner) {
         runner.run();
     }
-    
+
     public void addPropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);        
+        pcs.addPropertyChangeListener(l);
     }
 
     public void removePropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);        
+        pcs.addPropertyChangeListener(l);
     }
 
     public boolean close() {
@@ -228,22 +232,22 @@ public class ArchitectSessionImpl implements ArchitectSession {
         //large Oracle DB).
 //        CleanupExceptions cleanupObject = SQLPowerUtils.cleanupSPObject(project);
 //        SQLPowerUtils.displayCleanupErrors(cleanupObject, userPrompterFactory);
-        
+
         SessionLifecycleEvent<ArchitectSession> lifecycleEvent =
             new SessionLifecycleEvent<ArchitectSession>(this);
         for (int i = lifecycleListeners.size() - 1; i >= 0; i--) {
             lifecycleListeners.get(i).sessionClosing(lifecycleEvent);
         }
-        
+
         return true;
     }
 
     public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
-        lifecycleListeners.add(l);        
+        lifecycleListeners.add(l);
     }
 
     public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
-        lifecycleListeners.remove(l);        
+        lifecycleListeners.remove(l);
     }
 
     public boolean isEnterpriseSession() {
@@ -257,7 +261,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public List<UserDefinedSQLType> getSQLTypes() {
         return getDataSources().getSQLTypes();
     }
-    
+
     public UserDefinedSQLType findSQLTypeByUUID(String uuid) {
         List<UserDefinedSQLType> types = getSQLTypes();
         for (UserDefinedSQLType type : types) {
@@ -267,7 +271,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
         }
         return null;
     }
-    
+
     public UserDefinedSQLType findSQLTypeByJDBCType(int jdbcType) {
         List<UserDefinedSQLType> types = getSQLTypes();
         for (UserDefinedSQLType type : types) {
@@ -285,5 +289,13 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public List<DomainCategory> getDomainCategories() {
         return Collections.emptyList();
     }
+
+	public LiquibaseSettings getLiquibaseSettings() {
+		return liquibaseSettings;
+	}
+
+	public void setLiquibaseSettings(LiquibaseSettings settings) {
+		liquibaseSettings = settings;
+	}
 }
 
