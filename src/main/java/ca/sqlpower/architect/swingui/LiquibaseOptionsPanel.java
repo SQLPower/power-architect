@@ -20,8 +20,6 @@ package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
 import ca.sqlpower.swingui.DataEntryPanel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -36,7 +34,7 @@ import net.miginfocom.swing.MigLayout;
  * @author Thomas Kellerer
  */
 public class LiquibaseOptionsPanel
-  implements DataEntryPanel, ActionListener {
+  implements DataEntryPanel {
 
 	private JPanel panel;
 	private LiquibaseDDLGenerator ddlGenerator;
@@ -76,9 +74,7 @@ public class LiquibaseOptionsPanel
 	private void setup() {
 		panel = new JPanel(new MigLayout());
 		useChangeSets = new JCheckBox(Messages.getString("LiquibaseOptionsPanel.useChangeSet")); //$NON-NLS-1$
-		useChangeSets.addActionListener(this);
 		generateId = new JCheckBox(Messages.getString("LiquibaseOptionsPanel.generateID")); //$NON-NLS-1$
-		generateId.addActionListener(this);
 		authorLabel = new JLabel(Messages.getString("LiquibaseOptionsPanel.authorName")); //$NON-NLS-1$
 		authorField = new JTextField(20);
 		startValueLabel = new JLabel(Messages.getString("LiquibaseOptionsPanel.idStart")); //$NON-NLS-1$
@@ -90,7 +86,6 @@ public class LiquibaseOptionsPanel
 		panel.add(generateId);
 		panel.add(startValueLabel);
 		panel.add(startId);
-		checkStates();
 	}
 
 	public void restoreSettings(LiquibaseSettings settings) {
@@ -103,7 +98,6 @@ public class LiquibaseOptionsPanel
 		if (start > 0) {
 			startId.setValue(Integer.valueOf(start));
 		}
-		checkStates();
 	}
 	
 	public LiquibaseSettings getLiquibaseSettings() {
@@ -135,13 +129,4 @@ public class LiquibaseOptionsPanel
 		return true;
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		checkStates();
-	}
-
-	private void checkStates() {
-//		authorField.setEnabled(useChangeSets.isSelected());
-//		generateId.setEnabled(useChangeSets.isSelected());
-//		startId.setEnabled(useChangeSets.isSelected() && generateId.isSelected());
-	}
 }
