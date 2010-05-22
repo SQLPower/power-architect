@@ -32,6 +32,7 @@
 
 package ca.sqlpower.architect;
 
+import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
@@ -225,4 +226,12 @@ public class TestingArchitectSession implements ArchitectSession {
         // TODO Auto-generated method stub
         return null;
     }
+
+	public LiquibaseSettings getLiquibaseSettings() {
+		return null;
+	}
+
+	public void setLiquibaseSettings(LiquibaseSettings settings) {
+
+	}
 }
