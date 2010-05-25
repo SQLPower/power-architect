@@ -73,7 +73,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     
     private SPPersisterListener listener;
     private SessionPersisterSuperConverter converter;
-    private ArchitectSession session;
+    private ArchitectClientSideSession session;
     private ArchitectSession promptSession;
     
     private int currentRevision = 0;
@@ -107,7 +107,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             SPJSONMessageDecoder jsonDecoder, 
             HttpClient inboundHttpClient, 
             HttpClient outboundHttpClient,
-            ArchitectSession session) 
+            ArchitectClientSideSession session) 
     {
         super("updater-" + projectLocation.getUUID());
         
@@ -957,10 +957,6 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         return currentRevision;
     }
     
-    public void setSession(ArchitectSession session) {
-        this.session = session;
-    }
-
     public void addListener(UpdateListener listener) {
         updateListeners.add(listener);
     }

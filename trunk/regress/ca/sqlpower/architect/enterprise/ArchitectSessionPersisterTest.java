@@ -19,8 +19,6 @@
 
 package ca.sqlpower.architect.enterprise;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
@@ -28,8 +26,6 @@ import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
-import ca.sqlpower.dao.MessageSender;
-import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersister.DataType;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.json.SPJSONPersister;
@@ -153,44 +149,8 @@ public class ArchitectSessionPersisterTest extends DatabaseConnectedTestCase {
         jsonPersister.persistObject("ArchitectProjectUUID", SQLObjectRoot.class.getName(), "SQLObjectRootUUID", 0);
         jsonPersister.persistObject("ArchitectProjectUUID", OLAPRootObject.class.getName(), "OLAPRootObjectUUID", 0);
         jsonPersister.persistProperty("ArchitectProjectUUID", "rootObject", DataType.STRING, "SQLObjectRootUUID");
-        jsonPersister.persistProperty("ArchitectProjectUUID", "olapRootObject", DataType.STRING, "OLAPRootObjectUUID");
-        jsonPersister.persistProperty("ArchitectProjectUUID", "kettleSettings", DataType.STRING, "KettleSettingsUUID");
         jsonPersister.commit();
         
-        assertEquals("KettleSettingsUUID", session.getWorkspace().getKettleSettings().getUUID());
         assertEquals("SQLObjectRootUUID", session.getWorkspace().getRootObject().getUUID());
-        assertEquals("OLAPRootObjectUUID", session.getWorkspace().getOlapRootObject().getUUID());
-    }
-    
-    /**
-     * Sends JSON messages directly to the JSON decoder
-     */
-    private class DirectJsonMessageSender implements MessageSender<JSONObject> {
-
-        private final SPJSONMessageDecoder decoder;
-
-        private JSONArray array;
-
-        public DirectJsonMessageSender(SPJSONMessageDecoder decoder) {
-            this.decoder = decoder;
-            this.array = new JSONArray();
-        }
-
-        public void clear() {
-            // messages get sent directly so no need to 'clear'
-        }
-
-        public void flush() throws SPPersistenceException {
-            decoder.decode(array.toString());
-            array = new JSONArray();
-            // I wish JSONArray had a clear, but since this is just a test
-            // class, I'm not that concerned of any performance hit from
-            // creating a new object at this point.
-        }
-
-        public void send(JSONObject content) throws SPPersistenceException {
-            array.put(content);
-        }
-
     }
 }

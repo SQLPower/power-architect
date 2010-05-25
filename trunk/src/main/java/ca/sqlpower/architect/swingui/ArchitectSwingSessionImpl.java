@@ -51,7 +51,6 @@ import javax.swing.ToolTipManager;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreUserSettings;
@@ -117,7 +116,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This is the core session that some tasks are delegated to.
      */
     private final ArchitectSession delegateSession;
-    
+
     /**
      * The Frame where the main part of the GUI for this session appears.
      */
@@ -235,17 +234,27 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws SQLObjectException {        
-        this(context, new ArchitectSessionImpl(context, name));
+        this(context, new ArchitectSessionImpl(context, name, new ArchitectSwingProject()));
     }
-    
+
+    /**
+     * The session passed into this swing session as a delegate must have a
+     * swing project in order to properly maintain the state of the swing
+     * components.
+     */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, ArchitectSession delegateSession)
     throws SQLObjectException {
 
+        if (!(delegateSession.getWorkspace() instanceof ArchitectSwingProject)) {
+            throw new IllegalStateException("The delegate session must have a swing project" +
+            		"as its workspace. If there is no way to pass in a delegate with a swing" +
+            		"project we may need to make the reference non-final.");
+        }
         swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(frame);
         this.isNew = true;
         this.context = context;
         this.delegateSession = delegateSession;
-        delegateSession.getWorkspace().setSession(this);
+        getWorkspace().setSession(this);
         ProfileManagerImpl profileManager = new ProfileManagerImpl();
         ((ArchitectSessionImpl)delegateSession).setProfileManager(profileManager);
         ((ArchitectSessionImpl)delegateSession).setUserPrompterFactory(this);
@@ -317,7 +326,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 }
         );
         
-        delegateSession.getWorkspace().setPlayPenContentPane(playPen.getContentPane());
+        getWorkspace().setPlayPenContentPane(playPen.getContentPane());
 
         lifecycleListeners = new ArrayList<SessionLifecycleListener<ArchitectSession>>();
 
@@ -338,7 +347,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 getPlayPen().repaint();
             }
         };
-        delegateSession.getWorkspace().addSPListener(new AbstractSPListener() {
+        getWorkspace().addSPListener(new AbstractSPListener() {
             public void childAdded(SPChildEvent evt) {
                 if (evt.getChildType() == ProjectSettings.class) {
                     evt.getChild().addSPListener(settingsListener);
@@ -350,7 +359,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 }
             }
         });
-        delegateSession.getWorkspace().getProjectSettings().addSPListener(settingsListener);            
+        getWorkspace().getProjectSettings().addSPListener(settingsListener);            
     }
 
     public void initGUI() throws SQLObjectException {
@@ -947,7 +956,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     public ProjectSettings getProjectSettings() {
-        return delegateSession.getWorkspace().getProjectSettings();
+        return getWorkspace().getProjectSettings();
     }
 
     public boolean isShowPkTag() {
@@ -1088,8 +1097,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 
-    public ArchitectProject getWorkspace() {
-        return delegateSession.getWorkspace();
+    public ArchitectSwingProject getWorkspace() {
+        return (ArchitectSwingProject) delegateSession.getWorkspace();
     }
 
     public boolean isForegroundThread() {

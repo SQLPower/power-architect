@@ -130,7 +130,17 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * @throws BackingStoreException 
      */
     public ArchitectSwingSessionContextImpl() throws SQLObjectException, BackingStoreException {
-        delegateContext = new ArchitectSessionContextImpl();
+        this(new ArchitectSessionContextImpl());
+    }
+    
+    public ArchitectSwingSessionContextImpl(String plIniPath, boolean checkPath) 
+            throws SQLObjectException, BackingStoreException {
+        this(new ArchitectSessionContextImpl(plIniPath, checkPath));
+    }
+    
+    private ArchitectSwingSessionContextImpl(ArchitectSessionContextImpl delegate) 
+            throws SQLObjectException, BackingStoreException {
+        delegateContext = delegate;
         
         System.setProperty("apple.laf.useScreenMenuBar", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         

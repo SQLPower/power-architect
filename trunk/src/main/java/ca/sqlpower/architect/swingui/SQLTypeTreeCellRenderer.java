@@ -28,7 +28,6 @@ import javax.swing.tree.TreeCellRenderer;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
@@ -52,10 +51,10 @@ public class SQLTypeTreeCellRenderer extends DefaultTreeCellRenderer {
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
             boolean leaf, int row, boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-        if (value instanceof ArchitectProject) {
+        if (value instanceof ArchitectSwingProject) {
             setIcon(null);
             
-            if (((ArchitectProject) value).getSession().isEnterpriseSession()) {
+            if (((ArchitectSwingProject) value).getSession().isEnterpriseSession()) {
                 setText("Domains & Data Types");
             } else {
                 setText("Data Types");

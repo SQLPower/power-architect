@@ -31,7 +31,6 @@ import java.util.List;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreUserSettings;
@@ -106,13 +105,13 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
                 System.out.println("Fake load file for recent menu");
             }
         };
-        this.delegateSession = new ArchitectSessionImpl(context, "test");
-        delegateSession.getWorkspace().setSession(this);
+        this.delegateSession = new ArchitectSessionImpl(context, "test", new ArchitectSwingProject());
+        getWorkspace().setSession(this);
         project = new SwingUIProjectLoader(this);
         userSettings = context.getUserSettings();
         sourceDatabases = new DBTree(this);
         playpen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
-        delegateSession.getWorkspace().setPlayPenContentPane(playpen.getContentPane());
+        getWorkspace().setPlayPenContentPane(playpen.getContentPane());
         undoManager = new ArchitectUndoManager(playpen);
         olapRootObject = new OLAPRootObject();
         
@@ -417,8 +416,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
                 optionType, defaultResponseType, defaultResponse, dsCollection, buttonNames);
     }
 
-    public ArchitectProject getWorkspace() {
-        return delegateSession.getWorkspace();
+    public ArchitectSwingProject getWorkspace() {
+        return (ArchitectSwingProject) delegateSession.getWorkspace();
     }
 
     public boolean isForegroundThread() {

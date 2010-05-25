@@ -19,8 +19,8 @@
 
 package ca.sqlpower.architect.etl.kettle;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.StubArchitectSession;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.util.ArchitectNewValueMaker;
 import ca.sqlpower.object.PersistedSPObjectTest;
 import ca.sqlpower.object.SPObject;
@@ -39,11 +39,11 @@ public class KettleSettingsTest extends PersistedSPObjectTest {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        final ArchitectProject project = (ArchitectProject) new ArchitectNewValueMaker(
-                getRootObject(), getPLIni()).makeNewValue(ArchitectProject.class, null, "");
+        final ArchitectSwingProject project = (ArchitectSwingProject) new ArchitectNewValueMaker(
+                getRootObject(), getPLIni()).makeNewValue(ArchitectSwingProject.class, null, "");
         project.setSession(new StubArchitectSession() {
             @Override
-            public ArchitectProject getWorkspace() {
+            public ArchitectSwingProject getWorkspace() {
                 return project;
             }
         });

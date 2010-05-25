@@ -119,8 +119,13 @@ public class KettleJob implements Monitorable {
     public KettleJob(ArchitectSession session) {
         super();
         this.session = session;
-        if (session.getWorkspace() != null) {
-            settings = session.getWorkspace().getKettleSettings();
+        if (session.getWorkspace() != null 
+                && session.getWorkspace().allowsChildType(KettleSettings.class)
+                && !session.getWorkspace().getChildren(KettleSettings.class).isEmpty()) {
+            KettleSettings newSettings = session.getWorkspace().getChildren(KettleSettings.class).get(0);
+            if (newSettings == null) throw new IllegalStateException(
+                    "The workspace should not have null settings if it reports to have them.");
+            settings = newSettings;
         } else {
             settings = new KettleSettings();
         }

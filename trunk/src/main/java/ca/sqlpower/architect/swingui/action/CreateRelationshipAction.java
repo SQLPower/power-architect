@@ -26,8 +26,8 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
@@ -97,7 +97,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	}
 
 	static public void doCreateRelationship(SQLTable pkTable, SQLTable fkTable, PlayPen pp, boolean identifying) {
-	    ArchitectProject project = pp.getSession().getWorkspace(); 
+	    ArchitectSwingProject project = pp.getSession().getWorkspace(); 
 		try {
 		    project.begin("Adding relationship");
 			pp.startCompoundEdit("Add Relationship"); //$NON-NLS-1$

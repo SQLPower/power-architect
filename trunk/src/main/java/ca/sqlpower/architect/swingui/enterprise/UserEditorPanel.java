@@ -51,10 +51,10 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.JSONResponseHandler;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
@@ -76,7 +76,7 @@ public class UserEditorPanel implements DataEntryPanel{
     private static final ImageIcon RIGHT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-right.png"));
     private static final ImageIcon LEFT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-left.png"));
     
-    private final ArchitectProject securityWorkspace;
+    private final ArchitectSwingProject securityWorkspace;
     private final User user;
     
     private final JPanel panel;
@@ -165,7 +165,7 @@ public class UserEditorPanel implements DataEntryPanel{
     
     public UserEditorPanel(User baseUser, String username, Action closeAction, final Dialog d, final ArchitectSession session) {
         this.user = baseUser;
-        this.securityWorkspace = (ArchitectProject) user.getParent();
+        this.securityWorkspace = (ArchitectSwingProject) user.getParent();
         this.username = username;
         this.closeAction = closeAction;
         
@@ -198,7 +198,7 @@ public class UserEditorPanel implements DataEntryPanel{
         
         Grant globalGrant = null;
         for (Grant grant : user.getChildren(Grant.class)) {
-            if (grant.getType() != null && grant.getType().equals(ArchitectProject.class.getName())) {
+            if (grant.getType() != null && grant.getType().equals(ArchitectSwingProject.class.getName())) {
                 if (globalGrant != null) {
                     throw new IllegalStateException("Multiple grants for Architect Project found");
                 }
@@ -209,10 +209,10 @@ public class UserEditorPanel implements DataEntryPanel{
 
         if (globalGrant != null) {
             privilegesEditorPanel = new PrivilegesEditorPanel(
-                    globalGrant, user, null, ArchitectProject.class.getName(), username, securityWorkspace);
+                    globalGrant, user, null, ArchitectSwingProject.class.getName(), username, securityWorkspace);
         } else {
             privilegesEditorPanel = new PrivilegesEditorPanel(
-                    null, user, null, ArchitectProject.class.getName(), username, securityWorkspace);
+                    null, user, null, ArchitectSwingProject.class.getName(), username, securityWorkspace);
         }
         
         JButton addButton = new JButton(addAction);
