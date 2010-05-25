@@ -41,7 +41,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.security.AccessDeniedException;
 
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.dao.MessageSender;
@@ -57,6 +56,7 @@ import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
@@ -74,7 +74,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private SPPersisterListener listener;
     private SessionPersisterSuperConverter converter;
     private ArchitectClientSideSession session;
-    private ArchitectSession promptSession;
+    
+    private UserPrompterFactory upf;
     
     private int currentRevision = 0;
     
@@ -120,12 +121,12 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         contextRelativePath = "/" + ArchitectClientSideSession.REST_TAG + "/project/" + projectLocation.getUUID();
     }
     
-    public void setPromptSession(ArchitectSession promptSession) {
-        this.promptSession = promptSession;
+    public void setUserPrompterFactory(UserPrompterFactory promptSession) {
+        this.upf = promptSession;
     }
     
-    public ArchitectSession getPromptSession() {
-        return promptSession;
+    public UserPrompterFactory getUserPrompterFactory() {
+        return upf;
     }
     
     public void setListener(SPPersisterListener listener) {
@@ -162,8 +163,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     }
                 }
                 updateListeners.removeAll(listenersToRemove);
-                if (promptSession != null) {
-                    promptSession.createUserPrompter(
+                if (upf != null) {
+                    upf.createUserPrompter(
                             "You do not have sufficient privileges to perform that action. " +
                             "Please hit the refresh button to synchonize with the server.", 
                             UserPromptType.MESSAGE, 
@@ -200,8 +201,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 //push the persist forward again.
                 if (!response.isSuccessful() && response.getStatusCode() == 412) {
                     logger.info("Friendly error occurred, " + response);
-                    if (promptSession != null) {
-                        promptSession.createUserPrompter(
+                    if (upf != null) {
+                        upf.createUserPrompter(
                                 response.getBody(), 
                                 UserPromptType.MESSAGE, 
                                 UserPromptOptions.OK, 
@@ -324,10 +325,10 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                                    }
                                }
                                updateListeners.removeAll(listenersToRemove);
-                               if (promptSession != null) {
-                                   promptSession.createUserPrompter(
+                               if (upf != null) {
+                                   upf.createUserPrompter(
                                            "You do not have sufficient privileges to perform that action. " +
-                                           "Please hit the refresh button to synchonize with the server.", 
+                                           "Please hit the refresh button to synchronize with the server.", 
                                            UserPromptType.MESSAGE, 
                                            UserPromptOptions.OK, 
                                            UserPromptResponse.OK, 
@@ -826,7 +827,6 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 throw new IllegalArgumentException(
                     "Number of arguments passed in does not match number requested by conflict type");
             }
-            String b = String.format("%s %s", "test", "not");
             try {
                 message = String.format(conflict.message, objectNames.toArray());
             } catch (Throwable t) {

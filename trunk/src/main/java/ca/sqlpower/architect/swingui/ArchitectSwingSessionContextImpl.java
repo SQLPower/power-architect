@@ -53,6 +53,7 @@ import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
@@ -238,7 +239,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         final ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
         final ArchitectSwingSessionImpl swingSession = new ArchitectSwingSessionImpl(this, clientSession);
-        clientSession.getUpdater().setPromptSession(swingSession);
+        clientSession.getUpdater().setUserPrompterFactory(new NonModalSwingUIUserPrompterFactory(swingSession.getArchitectFrame()));
         
         clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
             
