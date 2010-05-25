@@ -35,6 +35,7 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.profile.ProfileSettings;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -51,7 +52,7 @@ import ca.sqlpower.testutil.GenericNewValueMaker;
 
 public class ArchitectNewValueMaker extends GenericNewValueMaker {      
 
-    private final ArchitectProject valueMakerProject;
+    private final ArchitectSwingProject valueMakerProject;
     
     private final MondrianNewValueMaker mondrianValueMaker;
     
@@ -62,7 +63,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
     public ArchitectNewValueMaker(final SPObject root, DataSourceCollection<SPDataSource> dsCollection) {
         super(root, dsCollection);
         mondrianValueMaker = new MondrianNewValueMaker(root, dsCollection);
-        valueMakerProject = (ArchitectProject) makeNewValue(ArchitectProject.class, null, null);
+        valueMakerProject = (ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null);
         valueMakerProject.setPlayPenContentPane(new PlayPenContentPane());
     }    
     
@@ -77,7 +78,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             root.addChild(settings, 0);
             return settings;
         } else if (valueType == KettleSettings.class) {
-            return ((ArchitectProject) makeNewValue(ArchitectProject.class, null, null)).getKettleSettings();
+            return ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).getKettleSettings();
         } else if (valueType == ColumnVisibility.class) { 
             if (oldVal != ColumnVisibility.ALL) {
                 return ColumnVisibility.ALL;
@@ -100,10 +101,11 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             ColumnValueCount cvc = new ColumnValueCount(Integer.MAX_VALUE, 2, 42);
             getRootObject().addChild(cvc, 0);
             return cvc;
-        } else if (valueType == ArchitectProject.class) {
-            ArchitectProject project;
+        } else if (valueType == ArchitectSwingProject.class || valueType == ArchitectProject.class || 
+                valueType == ArchitectSwingProject.class) {
+            ArchitectSwingProject project;
             try {
-                project = new ArchitectProject();
+                project = new ArchitectSwingProject();
             } catch (SQLObjectException e) {
                 throw new RuntimeException(e);
             }
@@ -115,7 +117,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             return profileManager;
         } else if (valueType == PlayPenContentPane.class) {
             PlayPenContentPane pane = new PlayPenContentPane();
-            ((ArchitectProject) makeNewValue(ArchitectProject.class, null, null)).setPlayPenContentPane(pane);            
+            ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).setPlayPenContentPane(pane);            
             return pane;
         } else if (valueType == PlayPenComponent.class) {            
             return makeNewValue(TablePane.class, null, null);
@@ -147,7 +149,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             getRootObject().addChild(root, 0);
             return session;
         } else if (valueType == OLAPRootObject.class) {
-            return ((ArchitectProject) makeNewValue(ArchitectProject.class, null, null)).getOlapRootObject();
+            return ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).getOlapRootObject();
         } else if (OLAPObject.class.isAssignableFrom(valueType)) {
             return mondrianValueMaker.makeNewValue(valueType, oldVal, propName);
         } else {

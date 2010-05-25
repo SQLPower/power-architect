@@ -103,6 +103,8 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      */
     public CoreUserSettings getUserSettings();
     
+    public ArchitectSwingProject getWorkspace();
+    
     /**
      * Saves the project associated with this session, optionally showing a file
      * chooser, and optionally doing the work in a separate worker thread.

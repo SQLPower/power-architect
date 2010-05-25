@@ -28,7 +28,7 @@ import javax.swing.Action;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
-import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.GroupMember;
@@ -63,11 +63,11 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
     private final String type;
     private final String username;
     
-    private final ArchitectProject securityWorkspace;
+    private final ArchitectSwingProject securityWorkspace;
     
     private boolean hasUnsavedChanges = false;
     
-    public PrivilegesEditorPanel(Grant baseGrant, SPObject baseGroupOrUser, String subject, String type, String username, ArchitectProject securityWorkspace) {
+    public PrivilegesEditorPanel(Grant baseGrant, SPObject baseGroupOrUser, String subject, String type, String username, ArchitectSwingProject securityWorkspace) {
         this.securityWorkspace = securityWorkspace;
         this.grant = baseGrant;
         this.groupOrUser = baseGroupOrUser;
@@ -207,6 +207,7 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
         for (User aUser : securityWorkspace.getChildren(User.class)) {
             if (aUser.getUsername().equals(username)) {
                 user = aUser;
+                break;
             }
         }
         

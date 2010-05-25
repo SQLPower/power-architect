@@ -19,9 +19,9 @@
 
 package ca.sqlpower.architect.swingui.olap;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.util.ArchitectNewValueMaker;
@@ -48,7 +48,7 @@ public abstract class TestOLAPComponent extends PersistedSPObjectTest {
     
     public void setUp() throws Exception {
         super.setUp();
-        ArchitectProject project = new ArchitectProject();
+        ArchitectSwingProject project = new ArchitectSwingProject();
         getRootObject().addChild(project, 0);
         OLAPSession session = new OLAPSession(new Schema());
         project.getOlapRootObject().addChild(session);

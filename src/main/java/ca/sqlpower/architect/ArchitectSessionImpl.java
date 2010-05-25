@@ -90,9 +90,13 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
 	        String name) throws SQLObjectException {
-
+	    this(context, name, new ArchitectProject());
+	}
+	
+	public ArchitectSessionImpl(final ArchitectSessionContext context,
+	        String name, ArchitectProject project) throws SQLObjectException {
 	    this.context = context;
-	    this.project = new ArchitectProject();
+	    this.project = project;
 	    project.setSession(this);
 	    ProfileManagerImpl manager = new ProfileManagerImpl();
 	    this.project.setProfileManager(manager);

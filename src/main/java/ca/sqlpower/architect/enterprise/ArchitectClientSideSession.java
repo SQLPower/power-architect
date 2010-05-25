@@ -45,11 +45,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.security.AccessDeniedException;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.dao.SPPersistenceException;
 import ca.sqlpower.dao.SPPersisterListener;
@@ -128,7 +128,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	private final DataSourceCollectionUpdater dataSourceCollectionUpdater = new DataSourceCollectionUpdater();
 	
 	private DataSourceCollection <JDBCDataSource> dataSourceCollection;
-	
+
 	/**
 	 * Used to store sessions which hold nothing but security info.
 	 */
@@ -139,7 +139,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
-		super(context, name);
+		super(context, name, new ArchitectSwingProject());
 		
 		this.projectLocation = projectLocation;
 		this.isEnterpriseSession = true;
@@ -274,7 +274,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 					        UserDefinedSQLType newType = new UserDefinedSQLType();
 					        newType.setName(name);
 					        newType.setType(jdbcCode);
-					        ArchitectProject systemWorkspace = ArchitectClientSideSession.this.getSystemWorkspace();
+					        ArchitectSwingProject systemWorkspace = ArchitectClientSideSession.this.getSystemWorkspace();
                             systemWorkspace.addChild(newType, systemWorkspace.getChildren(UserDefinedSQLType.class).size());
                             return newType;
 					    }
@@ -340,7 +340,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		tempListener.persistObject(getWorkspace(), 0);
 	}
 	
-	public ArchitectProject getSystemWorkspace() {
+	public ArchitectSwingProject getSystemWorkspace() {
 		return getSecuritySessions().get(getProjectLocation().getServiceInfo().getServerAddress()).getWorkspace();
 	}
 	
@@ -979,5 +979,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     public List<DomainCategory> getDomainCategories() {
         return Collections.unmodifiableList(
                 getSystemWorkspace().getChildren(DomainCategory.class));
+    }
+    
+    @Override
+    public ArchitectSwingProject getWorkspace() {
+        return (ArchitectSwingProject) super.getWorkspace();
     }
 }

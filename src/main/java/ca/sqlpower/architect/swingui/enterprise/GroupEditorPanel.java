@@ -37,7 +37,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
@@ -70,7 +70,7 @@ public class GroupEditorPanel implements DataEntryPanel {
     private final JLabel availableUsersLabel;
     private final JScrollPane availableUsersScrollPane;
     
-    private final ArchitectProject securityWorkspace;
+    private final ArchitectSwingProject securityWorkspace;
     
     private final PrivilegesEditorPanel privilegesEditorPanel;
     
@@ -139,7 +139,7 @@ public class GroupEditorPanel implements DataEntryPanel {
     
     public GroupEditorPanel(Group baseGroup, String username, Action closeAction) {
         this.group = baseGroup;
-        this.securityWorkspace = (ArchitectProject) group.getParent();
+        this.securityWorkspace = (ArchitectSwingProject) group.getParent();
         this.username = username;
         this.closeAction = closeAction;
         
@@ -163,7 +163,7 @@ public class GroupEditorPanel implements DataEntryPanel {
         
         Grant globalGrant = null;
         for (Grant grant : baseGroup.getChildren(Grant.class)) {
-            if (grant.getType() != null && grant.getType().equals(ArchitectProject.class.getName())) {
+            if (grant.getType() != null && grant.getType().equals(ArchitectSwingProject.class.getName())) {
                 if (globalGrant != null) {
                     throw new IllegalStateException("Multiple grants for Architect Project found");
                 }
@@ -173,9 +173,9 @@ public class GroupEditorPanel implements DataEntryPanel {
         }
 
         if (globalGrant != null) {
-            privilegesEditorPanel = new PrivilegesEditorPanel(globalGrant, baseGroup, null, ArchitectProject.class.getName(), username, securityWorkspace);
+            privilegesEditorPanel = new PrivilegesEditorPanel(globalGrant, baseGroup, null, ArchitectSwingProject.class.getName(), username, securityWorkspace);
         } else {
-            privilegesEditorPanel = new PrivilegesEditorPanel(null, baseGroup, null, ArchitectProject.class.getName(), username, securityWorkspace);
+            privilegesEditorPanel = new PrivilegesEditorPanel(null, baseGroup, null, ArchitectSwingProject.class.getName(), username, securityWorkspace);
         }
         
         JButton addButton = new JButton(addAction);

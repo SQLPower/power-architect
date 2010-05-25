@@ -22,10 +22,10 @@ package ca.sqlpower.architect.enterprise;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
 import ca.sqlpower.dao.SPSessionPersister;
@@ -52,7 +52,7 @@ public class ArchitectSessionPersister extends SPSessionPersister {
         
         PersistedSPObject persistedRootObject = AbstractSPPersisterHelper.findPersistedSPObject(
                 pso.getUUID(), SQLObjectRoot.class.getName(), rootObjectUUID, persistedObjects);
-        ArchitectProject architectProject = (ArchitectProject) root;
+        ArchitectSwingProject architectProject = (ArchitectSwingProject) root;
         architectProject.getRootObject().setUUID(rootObjectUUID);
         persistedRootObject.setLoaded(true);
         

@@ -44,8 +44,6 @@ import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.etl.kettle.KettleSettings;
-import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
@@ -174,7 +172,7 @@ public class DataMoverPanel {
         try {
             if (treeRoot == null) {
                 treeRoot = new SQLObjectRoot();
-                ArchitectProject treeProject = new ArchitectProject(treeRoot, new OLAPRootObject(), new KettleSettings(), null);
+                ArchitectProject treeProject = new ArchitectProject(treeRoot, null);
                 treeProject.setSession(session);
                 treeRoot.begin("Setting up database trees in data mover panel.");
             } else {

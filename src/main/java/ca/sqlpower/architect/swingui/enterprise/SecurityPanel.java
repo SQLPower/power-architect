@@ -51,10 +51,10 @@ import javax.swing.tree.TreePath;
 
 import org.apache.commons.codec.binary.Hex;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.DomainCategory;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.SPServerInfo;
@@ -78,7 +78,7 @@ public class SecurityPanel {
     private final JPanel rightSidePanel;
     private final JScrollPane treePane;
 
-    private final ArchitectProject securityWorkspace;
+    private final ArchitectSwingProject securityWorkspace;
     
     private final String username;
 

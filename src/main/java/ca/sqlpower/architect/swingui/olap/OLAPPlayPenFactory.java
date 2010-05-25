@@ -38,13 +38,13 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Hierarchy;
 import ca.sqlpower.architect.olap.undo.OLAPUndoManager;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -83,7 +83,7 @@ public class OLAPPlayPenFactory {
             throw new NullPointerException("Null oSession");
         }
          
-        ArchitectProject project = session.getWorkspace();
+        ArchitectSwingProject project = session.getWorkspace();
         OLAPSession olapSession = oSession.getOlapSession();        
         PlayPenContentPane contentPane = project.getOlapContentPane(olapSession);
         PlayPen pp;

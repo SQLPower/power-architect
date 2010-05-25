@@ -23,6 +23,7 @@ import java.io.IOException;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import ca.sqlpower.architect.ArchitectCoreDependencyTest;
 import ca.sqlpower.architect.profile.ProfileTests;
 
 /**
@@ -44,6 +45,7 @@ public class ArchitectMegaTestSuite extends TestCase {
 		suite.addTest(ArchitectSwingTestSuite.suite());
         suite.addTest(ArchitectAutoTests.suite());
         suite.addTest(ProfileTests.suite());
+        suite.addTestSuite(ArchitectCoreDependencyTest.class);
 		//$JUnit-END$
 		return suite;
 	}

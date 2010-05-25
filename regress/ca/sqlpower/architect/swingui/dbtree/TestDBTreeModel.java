@@ -102,7 +102,7 @@ public class TestDBTreeModel extends TestCase {
     private DBTreeModel tm;
 
     protected void setUp() throws Exception {
-        session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession");
+        session = new ArchitectSessionImpl(new ArchitectSessionContextImpl("pl.regression.ini"), "TestSession");
         tm = new DBTreeModel(session.getRootObject(), new JTree());
         tm.setRefireEventsOnAnyThread(true);
 	}
