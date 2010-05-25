@@ -135,8 +135,10 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.action.OpenUrlAction;
 import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
+import ca.sqlpower.util.UserPrompterFactory;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
@@ -162,6 +164,8 @@ public class ArchitectFrame extends JFrame {
     private int oldHeight;
     private int prefWidth;
     private int prefHeight;
+    
+    private final UserPrompterFactory nonModalUserPrompterFactory;
 
     private JMenu connectionsMenu;
     private ArchitectLayout autoLayout;
@@ -334,7 +338,7 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
-            ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemSession().getUpdater().setPromptSession(session);
+            ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemSession().getUpdater().setUserPrompterFactory(nonModalUserPrompterFactory);
             SecurityPanel spm = new SecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo(), closeAction, d, session);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getSplitPane());
@@ -356,7 +360,7 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
-            ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemSession().getUpdater().setPromptSession(session);
+            ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemSession().getUpdater().setUserPrompterFactory(nonModalUserPrompterFactory);
             ProjectSecurityPanel spm = new ProjectSecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getSystemWorkspace(), 
                     session.getWorkspace(), ArchitectProject.class, ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) session).getDelegateSession()).getProjectLocation().getServiceInfo().getUsername(), d, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -491,6 +495,8 @@ public class ArchitectFrame extends JFrame {
         });
         
         refreshProjectAction = new RefreshProjectAction(session);
+        
+        nonModalUserPrompterFactory = new NonModalSwingUIUserPrompterFactory(this);
     }
 
     /**

@@ -87,7 +87,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
-import ca.sqlpower.swingui.ModalDialogUserPrompter;
+import ca.sqlpower.swingui.DialogUserPrompter;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -946,7 +946,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     /**
      * Creates a new user prompter that uses a modal dialog to pose the given question.
      * 
-     * @see ModalDialogUserPrompter
+     * @see DialogUserPrompter
      */
     public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
             Object defaultResponse, String ... buttonNames) {
