@@ -48,7 +48,6 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
