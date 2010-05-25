@@ -18,8 +18,6 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
-import ca.sqlpower.swingui.DataEntryPanel;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -27,7 +25,10 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+
 import net.miginfocom.swing.MigLayout;
+import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
  *
