@@ -219,11 +219,11 @@ public class DBTree extends JTree implements DragSourceListener {
 	public boolean dbcsAlreadyExists(SPDataSource spec) throws SQLObjectException {
 		SQLObject so = (SQLObject) getModel().getRoot();
 		// the children of the root, if they exists, are always SQLDatabase objects
-		Iterator it = so.getChildren().iterator();
+		Iterator<SQLDatabase> it = so.getChildren(SQLDatabase.class).iterator();
 		boolean found = false;
 		while (it.hasNext() && found == false) {
-			SPDataSource dbcs = ((SQLDatabase) it.next()).getDataSource();
-			if (spec==dbcs) {
+			SPDataSource dbcs = it.next().getDataSource();
+			if (dbcs.equals(spec)) {
 				found = true;
 			}
 		}
@@ -239,12 +239,12 @@ public class DBTree extends JTree implements DragSourceListener {
 	public SQLDatabase getDatabase(SPDataSource spec) throws SQLObjectException {
 	    SQLObject so = (SQLObject) getModel().getRoot();
         // the children of the root, if they exists, are always SQLDatabase objects
-        Iterator it = so.getChildren().iterator();
+        Iterator<SQLDatabase> it = so.getChildren(SQLDatabase.class).iterator();
         boolean found = false;
         while (it.hasNext() && found == false) {
             final SQLDatabase database = (SQLDatabase) it.next();
             SPDataSource dbcs = database.getDataSource();
-            if (spec==dbcs) {
+            if (dbcs.equals(spec)) {
                 return database;
             }
         }
