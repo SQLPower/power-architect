@@ -717,4 +717,14 @@ implements Selectable {
             }
         }
     }
+    
+    /**
+     * You must call this method when you are adding a TablePane component after
+     * the parent is defined. It will register the necessary listeners to all
+     * necessary parties.
+     */
+    public void connect() {
+        //by default do nothing.
+    }
+
 }
