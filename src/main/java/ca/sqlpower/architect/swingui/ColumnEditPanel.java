@@ -831,41 +831,34 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     column.setPhysicalName(colPhysicalName.getText());
                 }                
                 if (componentEnabledMap.get(colType).isSelected()) {
-                    column.getUserDefinedSQLType().setUpstreamType((UserDefinedSQLType) colType.getLastSelectedPathComponent());
-                }
-                
-                if (componentEnabledMap.get(colType).isSelected()) {
+                    // Set upstream type on column
+                    UserDefinedSQLType upstreamType = (UserDefinedSQLType) colType.getLastSelectedPathComponent();
+                    column.getUserDefinedSQLType().setUpstreamType(upstreamType);
+                    
+                    // Set scale
                     if (typeOverrideMap.get(colScale).isSelected()) {
                         column.setScale(((Integer) colScale.getValue()).intValue());
                     } else {
                         column.getUserDefinedSQLType().setScale(
                                 SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
                     }
-                }
-                
-                if (componentEnabledMap.get(colType).isSelected()) {
+                    
+                    // Set precision
                     if (typeOverrideMap.get(colPrec).isSelected()) {
                         column.setPrecision(((Integer) colPrec.getValue()).intValue());
                     } else {
                         column.getUserDefinedSQLType().setPrecision(
                                 SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
                     }
-                }
-                
-                if (componentEnabledMap.get(colType).isSelected()) {
+                    
+                    // Set nullability
                     if (typeOverrideMap.get(colNullable).isSelected()) {
                         column.setNullable(((YesNoEnum) colNullable.getSelectedItem()).getValue() ? DatabaseMetaData.columnNullable
-                            : DatabaseMetaData.columnNoNulls);
+                                : DatabaseMetaData.columnNoNulls);
                     } else {
                         column.getUserDefinedSQLType().setMyNullability(null);
                     }
-                }
-                
-                if (componentEnabledMap.get(colRemarks).isSelected()) {
-                    column.setRemarks(colRemarks.getText());
-                }
-
-                if (componentEnabledMap.get(colType).isSelected()) {
+                    
                     if (typeOverrideMap.get(colDefaultValue).isSelected()) {
                         // avoid setting default value to empty string
                         if (!(column.getDefaultValue() == null && colDefaultValue.getText().equals(""))) { //$NON-NLS-1$
@@ -875,11 +868,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                         column.getUserDefinedSQLType().setDefaultValue(
                                 SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
                     }
-                }
-                
-                // Autoincrement has to go before the primary key or
-                // this column will never allow nulls
-                if (componentEnabledMap.get(colType).isSelected()) {
+                    
+                    // Autoincrement has to go before the primary key or
+                    // this column will never allow nulls
                     if (typeOverrideMap.get(colAutoInc).isSelected()) {
                         column.setAutoIncrement(((YesNoEnum) colAutoInc.getSelectedItem()).getValue());
                     } else {
@@ -887,6 +878,10 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     }
                 }
                 
+                if (componentEnabledMap.get(colRemarks).isSelected()) {
+                    column.setRemarks(colRemarks.getText());
+                }
+
                 if (componentEnabledMap.get(colInPK).isSelected()) {
                     if (colInPK.isSelected() && !column.isPrimaryKey()) {
                         column.getParent().addToPK(column);
