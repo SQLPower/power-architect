@@ -100,13 +100,13 @@ public class ServerProjectsManagerPanel {
             
             if (getSelectedServerInfo() != null) {
                 
-                int [] indecies = projects.getSelectedIndices();
+                int [] indices = projects.getSelectedIndices();
                 
-                if (indecies.length >= 1) {
+                if (indices.length >= 1) {
                     
-                    final Object [] objs = new Object[indecies.length];
-                    for (int i = 0; i < indecies.length; i++) {
-                        objs[i] = projects.getModel().getElementAt(indecies[i]);
+                    final Object [] objs = new Object[indices.length];
+                    for (int i = 0; i < indices.length; i++) {
+                        objs[i] = projects.getModel().getElementAt(indices[i]);
                     }
                     
                     for (Object obj : objs) {

@@ -372,7 +372,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * the {@link #sessions} field.
      * 
      * @param projectName
-     *            The name of the project being opened in the new sesssion
+     *            The name of the project being opened in the new session
      * @param showGUI
      *            If true, then displays the GUI. If false, do not show the GUI
      * @param openingSession

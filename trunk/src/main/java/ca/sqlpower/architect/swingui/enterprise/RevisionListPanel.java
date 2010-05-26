@@ -197,6 +197,7 @@ public class RevisionListPanel {
             ArchitectSwingSession revisionSession = null;            
             try {            
                 revisionSession = swingSession.getContext().createSession(false);
+                revisionSession.getUndoManager().setLoading(true);
                 revisionSession.setName(location.getName() + " - Revision " + revisionNo);                
 
                 ArchitectSessionPersister sessionPersister = new ArchitectSessionPersister(
@@ -209,6 +210,7 @@ public class RevisionListPanel {
                 SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(sessionPersister);           
 
                 session.persistRevisionFromServer(revisionNo, decoder);
+                revisionSession.getUndoManager().setLoading(false);
                 revisionSession.initGUI(swingSession);
             } catch (Exception ex) {
                 if (revisionSession != null) {
