@@ -68,17 +68,6 @@ public class CompareRevisionsPanel {
     
     private final JPanel panel;
     
-    private final long fromRevision;
-    private final long toRevision;
-
-    private final Action refreshAction = new AbstractAction("Refresh...") {
-        public void actionPerformed(ActionEvent e) {            
-            revisionsTableLeft.refreshRevisionsList(fromRevision, toRevision);
-            revisionsTableRight.refreshRevisionsList(fromRevision, toRevision);
-            refreshPanel();
-        }
-    };
-
     private final Action compareAction = new AbstractAction("Compare...") {
         public void actionPerformed(ActionEvent e) {
             this.setEnabled(false);
@@ -87,7 +76,7 @@ public class CompareRevisionsPanel {
                 d.insertString(0, "...", new SimpleAttributeSet());
             } catch (BadLocationException ex) {
                 // Impossible
-                logger.error(ex);
+                throw new RuntimeException(ex);
             }
             comparePane.setStyledDocument(d);
             new Thread(new Runnable() {
@@ -102,8 +91,6 @@ public class CompareRevisionsPanel {
             Action closeAction, long fromRevision, long toRevision) {
 
         this.session = session;               
-        this.fromRevision = fromRevision;
-        this.toRevision = toRevision;
         
         revisionsTableLeft = new RevisionsTable(this.session, fromRevision, toRevision);
         revisionsTableRight = new RevisionsTable(this.session, fromRevision, toRevision);
@@ -145,7 +132,6 @@ public class CompareRevisionsPanel {
         revisionListsBuilder.add(revisionsTableRight.getScrollPane(), cc.xy(3, 3));
 
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
-        buttonBarBuilder.append(new JButton(refreshAction));
         buttonBarBuilder.append(new JButton(compareAction));
         buttonBarBuilder.append(new JButton(closeAction));  
         buttonBarBuilder.append(autoCompare);
