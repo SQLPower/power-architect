@@ -57,6 +57,8 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class RevisionListPanel {
     
+    public static final int DEFAULT_REVISION_RANGE = 100;
+    
     private class JLongField {
         
         private JFormattedTextField field;
@@ -123,12 +125,10 @@ public class RevisionListPanel {
             
             String message = null;            
             if (toVersion.getValue() > currentVersion) {
-                message = "Revisions up to " + toVersion.getValue() + " cannot be shown " +
-                "because the current revision is only " + currentVersion;
                 toVersion.setValue(currentVersion);
             } else if (fromVersion.getValue() > toVersion.getValue()) {
                 message = "Cannot show revisions from a higher version to a lower version";
-                long to = toVersion.getValue() - 100;
+                long to = toVersion.getValue() - DEFAULT_REVISION_RANGE;
                 if (to <= 0) to = 1;
                 fromVersion.setValue(to);
             }
@@ -163,29 +163,37 @@ public class RevisionListPanel {
                     "Revert...", JOptionPane.OK_CANCEL_OPTION);
             if (response == JOptionPane.OK_OPTION) {
                 revertAction.setEnabled(false);                
-                new Thread(new Runnable() {
+                swingSession.runInBackground(new Runnable() {
                     public void run() {
                         try {
-                            int currentVersion = session.revertServerWorkspace(revisionNo);
-                            if (currentVersion == -1) {
-                                JOptionPane.showMessageDialog(dialogOwner, "The server did not revert" +
-                                " because the target and current revisions are identical");
-                            } else {
-                                RevisionListPanel.this.currentVersion = currentVersion;
-                                long range = toVersion.getValue() - fromVersion.getValue();
-                                fromVersion.setValue(currentVersion - range);
-                                toVersion.setValue(currentVersion);
-                                revisionsTable.refreshRevisionsList(fromVersion.getValue(), toVersion.getValue());                                 
-                                int last = revisionsTable.getRowCount() - 1;
-                                revisionsTable.getSelectionModel().setSelectionInterval(last, last);
-                            }
+                            final int currentVersion = session.revertServerWorkspace(revisionNo);
+                            swingSession.runInForeground(new Runnable() {
+                                public void run() {
+                                    if (currentVersion == -1) {
+                                        JOptionPane.showMessageDialog(dialogOwner, "The server did not revert" +
+                                        " because the target and current revisions are identical");
+                                    } else {
+                                        // This is doing the refresh action's
+                                        // job for it, but this should probably
+                                        // auto refresh even when auto-refresh
+                                        // is turned off
+                                        RevisionListPanel.this.currentVersion = currentVersion;
+                                        long range = toVersion.getValue() - fromVersion.getValue();
+                                        fromVersion.setValue(currentVersion - range);
+                                        toVersion.setValue(currentVersion);
+                                        revisionsTable.refreshRevisionsList(fromVersion.getValue(), toVersion.getValue());                                 
+                                        int last = revisionsTable.getRowCount() - 1;
+                                        revisionsTable.getSelectionModel().setSelectionInterval(last, last);
+                                    }
+                                }
+                            });
                         } catch (Throwable t) {
                             throw new RuntimeException("Error requesting server revert", t);                    
                         } finally {
                             refreshPanel();
                         }   
                     }
-                }).start();
+                });
             }
         }
     };
@@ -253,7 +261,7 @@ public class RevisionListPanel {
                 "pref, 2dlu, default:grow"));
                
         int currentRevision = session.getUpdater().getRevision();
-        long from = currentRevision - 100;
+        long from = currentRevision - DEFAULT_REVISION_RANGE;
         if (from <= 0) from = 1;
         fromVersion = new JLongField(from);        
         toVersion = new JLongField(currentRevision);
