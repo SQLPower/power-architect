@@ -226,13 +226,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * You must call this method when you are adding a TablePane component after
      * the parent is defined. It will register the necessary listeners to all
      * necessary parties.
-     * <p>
-     * TODO : When there are multiple {@link PlayPenContentPane}s each
-     * {@link PlayPenComponent} will need to be able to re-connect to its model
-     * when it is added back into its parent content pane. At this point the
-     * interface will need a connect method and this will be implementing that
-     * connect method.
      */
+    @Override
     public void connect() {
         //Disconnect first in case the object is already connected. This ensures
         //a listener isn't addd twice.
@@ -247,12 +242,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	 * component.  It unregisters this instance (and its UI delegate)
 	 * on all event listener lists on which it was previously
 	 * registered.
-	 *
-	 * <p>FIXME: this should be done automatically when the SQLTable
-	 * model is removed, because the TablePane shouldn't have to be
-	 * destroyed separately of the model.
 	 */
-	public void destroy() {
+	private void destroy() {
 	    SQLPowerUtils.unlistenToHierarchy(model, columnListener);
 	    getParent().removeSPListener(containerPaneListener);
 	}

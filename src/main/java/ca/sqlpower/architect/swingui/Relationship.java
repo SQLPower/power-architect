@@ -109,12 +109,24 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 
 	private boolean selected;
 	
-	private TablePaneBehaviourListener tpbListener = new TablePaneBehaviourListener();
+	private final TablePaneBehaviourListener tpbListener = new TablePaneBehaviourListener();
 
     /**
 	 * The colour to highlight related columns with when this relationship is selected.
 	 */
     private Color columnHighlightColour = ColourScheme.SQLPOWER_ORANGE;
+    
+    /**
+     * This listener will disconnect this pane from the model if the pane is removed from the
+     * container.
+     */
+    private final AbstractSPListener containerPaneListener = new AbstractSPListener() {
+        public void childRemoved(SPChildEvent e) {
+            if (e.getChild() == Relationship.this) {
+                destroy();
+            }
+        }
+     };
  
     /**
      * This constructor is only for making a copy of an existing relationship component.
@@ -134,7 +146,6 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		this.pkConnectionPoint = new Point(r.getPkConnectionPoint());
 		this.fkConnectionPoint = new Point(r.getFkConnectionPoint());
 		this.selected = false;
-		this.tpbListener = new TablePaneBehaviourListener();
 		this.columnHighlightColour = r.columnHighlightColour;
 		
 		this.foregroundColor = r.getForegroundColor();
@@ -278,6 +289,36 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	@Override
 	public String toString() {
 		return "Relationship: "+model; //$NON-NLS-1$
+	}
+	
+	public void connect() {
+        //Disconnect first in case the object is already connected. This ensures
+        //a listener isn't addd twice.
+        destroy();
+        
+        if (pkTable != null) {
+            pkTable.addSPListener(tpbListener);
+        }
+        if (fkTable != null) {
+            fkTable.addSPListener(tpbListener);
+        }
+        getParent().addSPListener(containerPaneListener);
+	}
+	
+	/**
+	 * You must call this method when you are done with a TablePane
+	 * component.  It unregisters this instance (and its UI delegate)
+	 * on all event listener lists on which it was previously
+	 * registered.
+     */
+	private void destroy() {
+	    if (pkTable != null) {
+            pkTable.removeSPListener(tpbListener);
+        }
+        if (fkTable != null) {
+            fkTable.removeSPListener(tpbListener);
+        }
+	    getParent().removeSPListener(containerPaneListener);
 	}
 
 	// -------------------- PlayPenComponent overrides --------------------
