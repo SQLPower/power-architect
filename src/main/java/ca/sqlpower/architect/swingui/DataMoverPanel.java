@@ -37,6 +37,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.ArchitectProject;
@@ -103,10 +105,45 @@ public class DataMoverPanel {
      */
     private ArchitectSwingSession session;
     
+    private final TreeSelectionListener sourceListener = new TreeSelectionListener() {
+        public void valueChanged(TreeSelectionEvent e) {
+            JTree tree = (JTree) e.getSource();
+            boolean containsNonTable = false;
+            
+            if (tree.isSelectionEmpty()) {
+                containsNonTable = true;
+            } else {
+                for (TreePath path : tree.getSelectionPaths()) {
+                    if (!(path.getLastPathComponent() instanceof SQLTable)) {
+                        containsNonTable = true;
+                        break;
+                    }
+                }
+            }
+            // If the source selection contains an item which is not SQLTable,
+            // or if nothing is selected, disable the OK button to prevent
+            // the user from copying data from it. Otherwise, enable the button.
+            if (okAction.isEnabled() == containsNonTable) {
+                okAction.setEnabled(!containsNonTable);
+            }
+        }
+    };
+    
+    private final TreeSelectionListener destListener = new TreeSelectionListener() {
+        public void valueChanged(TreeSelectionEvent e) {
+            JTree tree = (JTree) e.getSource();
+            if (tree.isSelectionEmpty() == okAction.isEnabled()) {
+                okAction.setEnabled(!tree.isSelectionEmpty());
+            }
+        }
+    };
+    
     public DataMoverPanel(ArchitectSwingSession session) throws SQLObjectException {
         this.session = session;
         
         setupDBTrees();
+        
+        okAction.setEnabled(false);
         
         sourceTree = new JTree();
         final DBTreeModel sourceTreeModel = new DBTreeModel(treeRoot, sourceTree);
@@ -114,6 +151,7 @@ public class DataMoverPanel {
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
         sourceTree.setCellRenderer(new DBTreeCellRenderer());
+        sourceTree.addTreeSelectionListener(sourceListener);
         
         destTree = new JTree();
         final DBTreeModel destTreeModel = new DBTreeModel(treeRoot, sourceTree);
@@ -121,6 +159,7 @@ public class DataMoverPanel {
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
         destTree.setCellRenderer(new DBTreeCellRenderer());
+        destTree.addTreeSelectionListener(destListener);
         
         PanelBuilder pb = new PanelBuilder(
                 new FormLayout(
@@ -252,7 +291,7 @@ public class DataMoverPanel {
     /**
      * Moves the data from the table identified by 
      * @param sourcePath
-     * @return The number of rows moved, or -1 if the user canceled the operation.
+     * @return The number of rows moved, or -1 if the user cancelled the operation.
      * @throws SQLException
      * @throws SQLObjectException
      */
@@ -293,7 +332,7 @@ public class DataMoverPanel {
                 destTable.getPrimaryKeyIndex().addIndexColumn(destCol);
             }
             
-            // TODO indexes and foriegn keys
+            // TODO indexes and foreign keys
         }
         
         Connection sourceCon = null;
