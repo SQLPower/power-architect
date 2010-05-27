@@ -87,12 +87,14 @@ public class GenericDDLGeneratorTest extends TestCase {
 		SQLColumn col1 = new SQLColumn(tbl, "N_TEST", SQLType.NVARCHAR, "NVARCHAR", 1000, 0, 0, "",
 		  null, false);
 		col1.getUserDefinedSQLType().getDefaultPhysicalProperties().setScaleType(PropertyType.NOT_APPLICABLE);
+		col1.getUserDefinedSQLType().getDefaultPhysicalProperties().setPrecisionType(PropertyType.CONSTANT);
 		assertEquals("NVARCHAR(1000)", ddl.getColumnDataTypeName(col1));
 		assertEquals("NVARCHAR(1000)", ddl.columnType(col1));
 
 		SQLColumn col2 = new SQLColumn(tbl, "N_CHARTEST", SQLType.NCHAR, "NCHAR", 1000, 0, 0, "",
 		  null, false);
 		col2.getUserDefinedSQLType().getDefaultPhysicalProperties().setScaleType(PropertyType.NOT_APPLICABLE);
+		col2.getUserDefinedSQLType().getDefaultPhysicalProperties().setPrecisionType(PropertyType.CONSTANT);
 		assertEquals("NCHAR(1000)", ddl.getColumnDataTypeName(col2));
 		assertEquals("NCHAR(1000)", ddl.columnType(col2));
 

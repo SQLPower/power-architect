@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -87,10 +86,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             this.containingChildType = containingChildType;
             this.isPopulatedRunnable = isPopulatedRunnable;
 	    }
-	    
-	    public SQLTable getParentTable() {
-            return parentTable;
-        }
 	    
 	    public List<? extends SQLObject> getChildren() {
 	        return parentTable.getChildren(containingChildType);
@@ -192,47 +187,12 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	}
 	
 	/**
-	 * For use in the {@link DBTreeSPListener}.
-	 */
-	private enum EventType {
-	    INSERT,
-	    REMOVE,
-	    CHANGE
-	}
-	
-	/**
 	 * A {@link SPListener} implementation that will fire tree events as the underlying
 	 * objects change.
 	 */
 	private class DBTreeSPListener implements SPListener {
 	    
-	    /**
-	     * Small inner class to group the tree event with the type of event it is.
-	     */
-	    private class TreeEventWithType {
-	        private final TreeModelEvent evt;
-	        private final EventType type;
-	        
-	        public TreeEventWithType(TreeModelEvent evt, EventType type) {
-                this.evt = evt;
-                this.type = type;
-	        }
-	        
-	        public TreeModelEvent getEvt() {
-                return evt;
-            }
-	        
-	        public EventType getType() {
-                return type;
-            }
-	        
-	        @Override
-	        public String toString() {
-	            return evt.toString() + ", " + type;
-	        }
-	    }
-
-        public void childAdded(SPChildEvent e) {
+	    public void childAdded(SPChildEvent e) {
             if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
             
             if (!root.getRunnableDispatcher().isForegroundThread()) 
@@ -421,7 +381,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 */
 	public DBTreeModel(SQLObjectRoot root, JTree tree) throws SQLObjectException {
 		this.root = root;
-		this.treeModelListeners = new LinkedList();
+		this.treeModelListeners = new LinkedList<TreeModelListener>();
 		tree.addTreeWillExpandListener(treeWillExpandListener);
 		SQLPowerUtils.listenToHierarchy(root, treeListener); 
 		
@@ -521,7 +481,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	}
 
 	// -------------- treeModel event source support -----------------
-	protected LinkedList treeModelListeners;
+	protected LinkedList<TreeModelListener> treeModelListeners;
 
 	public void addTreeModelListener(TreeModelListener l) {		
 		treeModelListeners.add(l);
@@ -536,10 +496,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
-				Iterator it = treeModelListeners.iterator();
-				while (it.hasNext()) {
-					((TreeModelListener) it.next()).treeNodesInserted(ev);
-				}
+			    for (TreeModelListener listener : treeModelListeners) {
+					listener.treeNodesInserted(ev);
+			    }
 			}
 		};
 		// TODO FIXME XXX Replace this with an alternate method leads to nasty behavior.  There are 3 others too
@@ -552,9 +511,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
-				Iterator it = treeModelListeners.iterator();
-				while (it.hasNext()) {
-					((TreeModelListener) it.next()).treeNodesRemoved(ev);
+                for (TreeModelListener listener : treeModelListeners) {
+                    listener.treeNodesRemoved(ev);
 				}
 			}
 		};
@@ -567,9 +525,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
-				Iterator it = treeModelListeners.iterator();
-				while (it.hasNext()) {
-					((TreeModelListener) it.next()).treeNodesChanged(ev);
+                for (TreeModelListener listener : treeModelListeners) {
+                    listener.treeNodesChanged(ev);
 				}
 			}
 		};
@@ -584,9 +541,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 		
 		Runnable notifier = new Runnable(){
 			public void run() {
-				Iterator it = treeModelListeners.iterator();
-				while (it.hasNext()) {
-					((TreeModelListener) it.next()).treeStructureChanged(ev);
+                for (TreeModelListener listener : treeModelListeners) {
+                    listener.treeStructureChanged(ev);
 				}
 			}
 		};
@@ -618,7 +574,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 * @throws IllegalArgumentException if <code>node</code> is of class SQLRelationship.
 	 */
 	public SQLObject[] getPathToNode(SPObject node) {
-		LinkedList path = new LinkedList();
+		List<SPObject> path = new LinkedList<SPObject>();
 		while (node != null && node != root) {
 		    if (path.size() > 0 && node instanceof SQLTable) {
 		        for (FolderNode folder : foldersInTables.get(node)) {

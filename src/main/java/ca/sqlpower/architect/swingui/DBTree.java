@@ -69,6 +69,7 @@ import ca.sqlpower.architect.swingui.action.ShowTableContentsAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
@@ -653,7 +654,7 @@ public class DBTree extends JTree implements DragSourceListener {
 					public void actionPerformed(ActionEvent e) {
 						SQLObject so = (SQLObject) getLastSelectedPathComponent();
 						if (so != null) {
-							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSPListeners()))));
+							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector<SPListener>(so.getSPListeners()))));
 						}
 					}
 				});
