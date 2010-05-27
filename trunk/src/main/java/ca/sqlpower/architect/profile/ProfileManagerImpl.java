@@ -277,9 +277,22 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         List<TableProfileResult> oldResults = new ArrayList<TableProfileResult>(results);
         results.clear();
         fireProfilesRemoved(oldResults);
-        for (TableProfileResult oldResult : oldResults) {
-            SQLTable table = oldResult.getProfiledObject();
-            table.putClientProperty(ProfileManager.class, PROFILE_COUNT_PROPERTY, 0);
+        int index = 0;
+        try {
+            begin("Removing all profiles");
+            for (TableProfileResult oldResult : oldResults) {
+                fireChildRemoved(TableProfileResult.class, oldResult, index);
+                SQLTable table = oldResult.getProfiledObject();
+                table.putClientProperty(ProfileManager.class, PROFILE_COUNT_PROPERTY, 0);
+                index++;
+            }
+            commit();
+        } catch (RuntimeException e) {
+            rollback(e.getMessage());
+            throw e;
+        } catch (Throwable t) {
+            rollback(t.getMessage());
+            throw new RuntimeException(t);
         }
     }
 
