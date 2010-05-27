@@ -180,8 +180,8 @@ public class DepthFirstSearch {
         if (logger.isDebugEnabled()) {
             logger.debug("Performing Search on: " + tables);
         }
-        vertexInfo = new HashMap();
-        finishOrder = new LinkedList();
+        vertexInfo = new HashMap<SQLTable, VertexInfo>();
+        finishOrder = new LinkedList<SQLTable>();
         for (SQLTable u : tables) {
             vertexInfo.put(u, new VertexInfo());
         }

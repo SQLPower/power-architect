@@ -36,7 +36,8 @@ public class DDLUtils {
 
 	private static final Logger logger = Logger.getLogger(DDLUtils.class);
     
-    private static final Class DEFAULT_DDL_GENERATOR_CLASS = GenericDDLGenerator.class;
+    private static final Class<? extends DDLGenerator> DEFAULT_DDL_GENERATOR_CLASS = 
+        GenericDDLGenerator.class;
 
 	/**
 	 * DDLUtils is a container for static methods.  You can't make an instance of it.

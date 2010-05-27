@@ -22,7 +22,6 @@ package ca.sqlpower.architect.swingui.dbtree;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -152,7 +151,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             if (getIcon() == null) {
                 setIcon(ERROR_BADGE);
             } else {
-                setIcon(new ComposedIcon(Arrays.asList(getIcon(), ERROR_BADGE)));
+                setIcon(ComposedIcon.getInstance(getIcon(), ERROR_BADGE));
             }
             setToolTipText("Inaccessible: " + ((SQLObject) value).getChildrenInaccessibleReasons());
         }
