@@ -836,19 +836,23 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     column.getUserDefinedSQLType().setUpstreamType(upstreamType);
                     
                     // Set scale
-                    if (typeOverrideMap.get(colScale).isSelected()) {
+                    if (column.getScaleType() == PropertyType.CONSTANT
+                            || typeOverrideMap.get(colScale).isSelected()) {
                         column.setScale(((Integer) colScale.getValue()).intValue());
                     } else {
                         column.getUserDefinedSQLType().setScale(
-                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, 
+                                null);
                     }
                     
                     // Set precision
-                    if (typeOverrideMap.get(colPrec).isSelected()) {
+                    if (column.getPrecisionType() == PropertyType.CONSTANT
+                            || typeOverrideMap.get(colPrec).isSelected()) {
                         column.setPrecision(((Integer) colPrec.getValue()).intValue());
                     } else {
                         column.getUserDefinedSQLType().setPrecision(
-                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, null);
+                                SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, 
+                                null);
                     }
                     
                     // Set nullability
@@ -1167,10 +1171,12 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             return;
         }
         
-        if (sqlType.getScaleType(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM) == PropertyType.NOT_APPLICABLE) {
+        if (sqlType.getScaleType(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM) 
+                != PropertyType.VARIABLE) {
             typeOverrideMap.get(colScale).setSelected(false);
             typeOverrideMap.get(colScale).setEnabled(false);
-        } else if (sqlType.getDefaultPhysicalProperties().getScale() == null || !overrideIfNotNull) {
+        } else if (sqlType.getDefaultPhysicalProperties().getScale() == null 
+                || !overrideIfNotNull) {
             typeOverrideMap.get(colScale).setSelected(false);
             typeOverrideMap.get(colScale).setEnabled(true);
         } else {
@@ -1180,10 +1186,12 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         colScale.setValue(sqlType.getScale(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM));
         
         
-        if (sqlType.getPrecisionType(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM) == PropertyType.NOT_APPLICABLE) {
+        if (sqlType.getPrecisionType(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM) 
+                != PropertyType.VARIABLE) {
             typeOverrideMap.get(colPrec).setSelected(false);
             typeOverrideMap.get(colPrec).setEnabled(false);
-        } else if (sqlType.getDefaultPhysicalProperties().getPrecision() == null || !overrideIfNotNull) {
+        } else if (sqlType.getDefaultPhysicalProperties().getPrecision() == null 
+                || !overrideIfNotNull) {
             typeOverrideMap.get(colPrec).setSelected(false);
             typeOverrideMap.get(colPrec).setEnabled(true);
         } else {
