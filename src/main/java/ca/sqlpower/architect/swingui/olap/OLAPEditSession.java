@@ -300,7 +300,6 @@ public class OLAPEditSession implements SPListener {
             frame.setJMenuBar(swingSession.getArchitectFrame().createNewMenuBar());
         }
         
-        OLAPPlayPenFactory.setupOLAPMouseWheelActions(pp, this);
         OLAPPlayPenFactory.setupOLAPKeyboardActions(pp, this);
         
         undoManager.rememberPosition();

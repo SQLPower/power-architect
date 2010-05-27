@@ -182,25 +182,8 @@ public class OLAPPlayPenFactory {
 
         im.put((KeyStroke) oSession.getCreateLevelAction().getValue(Action.ACCELERATOR_KEY), "NEW LEVEL"); //$NON-NLS-1$
         am.put("NEW LEVEL", oSession.getCreateLevelAction()); //$NON-NLS-1$
-}
-    
-    /**
-     * Sets up scroll wheel actions on the playpen. This is done
-     * separately because the wheelMouseMoved event requires the scroll pane be
-     * built before it can work. The ZoomIn and ZoomOut actions also need a 
-     * playpen before the actions can be created.
-     * 
-     * @param pp
-     *            The playpen to register the mouse wheel actions on.
-     * @param oSession
-     *            The session pp belongs to, also the session that owns the
-     *            actions to register and ScrollPane.
-     */
-    public static void setupOLAPMouseWheelActions(PlayPen pp, OLAPEditSession oSession) {
-        pp.setMouseZoomInAction(oSession.getZoomInAction());
-        pp.setMouseZoomOutAction(oSession.getZoomOutAction());
-        pp.setScrollPane(oSession.getPPScrollPane());
     }
+
     /**
      * An instance of this OLAPChildListener will listen to tree model structural
      * changes.
