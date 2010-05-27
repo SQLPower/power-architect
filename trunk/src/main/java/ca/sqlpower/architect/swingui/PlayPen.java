@@ -53,8 +53,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -646,7 +644,6 @@ public class PlayPen extends JPanel
 		ppMouseListener = new PPMouseListener();
 		this.addMouseListener(ppMouseListener);
 		this.addMouseMotionListener(ppMouseListener);
-		this.addMouseWheelListener(ppMouseListener);
 		
 		cursorManager = new CursorManager(this);
 		dgl = new TablePaneDragGestureListener();
@@ -1009,17 +1006,6 @@ public class PlayPen extends JPanel
         return ppScrollPane;
     }
     
-	/**
-     * Sets the scrollPane that will be scrolled when the mouse wheel is moved
-     * for this PlayPen.
-     * 
-     * @param ppScrollPane
-     *            The scrollPane to be scrolled when the mouse wheel is moved
-     */
-	public void setScrollPane(Component ppScrollPane){
-        this.ppScrollPane = ppScrollPane;
-    }
-
     /**
      * Modifies the given point p in model space to apparent position in screen
      * space.
@@ -2405,7 +2391,7 @@ public class PlayPen extends JPanel
 	 * rubber band selection and popup menu triggering.
 	 */
 	protected class PPMouseListener
-		implements MouseListener, MouseMotionListener, MouseWheelListener  {
+		implements MouseListener, MouseMotionListener {
 
 
 		/**
@@ -2551,22 +2537,6 @@ public class PlayPen extends JPanel
 		            popup.show(pp, evt.getX(), evt.getY());
 		        }
 		    }
-		}
-
-		public void mouseWheelMoved(MouseWheelEvent e) {
-			if ( (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0 ) {
-				if ( e.getWheelRotation() > 0 ) {
-				    getMouseZoomInAction().actionPerformed(null);
-				}
-				else {
-				    getMouseZoomOutAction().actionPerformed(null);
-				}
-			}
-			else {
-				MouseWheelListener[] ml = getScrollPane().getMouseWheelListeners();
-				for ( MouseWheelListener m : ml )
-					m.mouseWheelMoved(e);
-			}
 		}
 	}
 
