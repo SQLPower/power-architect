@@ -123,17 +123,12 @@ public class RevisionListPanel {
             int difference = session.getUpdater().getRevision() - currentVersion;
             if (difference > 0) currentVersion += difference;
             
-            String message = null;            
             if (toVersion.getValue() > currentVersion) {
                 toVersion.setValue(currentVersion);
             } else if (fromVersion.getValue() > toVersion.getValue()) {
-                message = "Cannot show revisions from a higher version to a lower version";
                 long to = toVersion.getValue() - DEFAULT_REVISION_RANGE;
                 if (to <= 0) to = 1;
                 fromVersion.setValue(to);
-            }
-            if (message != null) {
-                JOptionPane.showMessageDialog(dialogOwner, message);
             }
 
             if (difference > 0) {                    
