@@ -104,36 +104,23 @@ public class DataMoverPanel {
      * The session that this Data Mover belongs to. 
      */
     private ArchitectSwingSession session;
-    
-    private final TreeSelectionListener sourceListener = new TreeSelectionListener() {
+
+    /**
+     * A {@link TreeSelectionListener} that listens to the {@link #sourceTree}
+     * and {@link #destTree} in order to verify a valid selection before
+     * proceeding to copy table data. This listener should be added to both
+     * these trees once they are created.
+     */
+    private final TreeSelectionListener dbTreeListener = new TreeSelectionListener() {
         public void valueChanged(TreeSelectionEvent e) {
-            JTree tree = (JTree) e.getSource();
-            boolean containsNonTable = false;
+            boolean buttonEnabled = okAction.isEnabled();
+            boolean sourceValid = isSourceTreeSelectionValid();
+            boolean destValid = isDestTreeSelectionValid();
             
-            if (tree.isSelectionEmpty()) {
-                containsNonTable = true;
-            } else {
-                for (TreePath path : tree.getSelectionPaths()) {
-                    if (!(path.getLastPathComponent() instanceof SQLTable)) {
-                        containsNonTable = true;
-                        break;
-                    }
-                }
-            }
-            // If the source selection contains an item which is not SQLTable,
-            // or if nothing is selected, disable the OK button to prevent
-            // the user from copying data from it. Otherwise, enable the button.
-            if (okAction.isEnabled() == containsNonTable) {
-                okAction.setEnabled(!containsNonTable);
-            }
-        }
-    };
-    
-    private final TreeSelectionListener destListener = new TreeSelectionListener() {
-        public void valueChanged(TreeSelectionEvent e) {
-            JTree tree = (JTree) e.getSource();
-            if (tree.isSelectionEmpty() == okAction.isEnabled()) {
-                okAction.setEnabled(!tree.isSelectionEmpty());
+            if (!buttonEnabled && sourceValid && destValid) {
+                okAction.setEnabled(true);
+            } else if (buttonEnabled && (!sourceValid || !destValid)) {
+                okAction.setEnabled(false);
             }
         }
     };
@@ -151,7 +138,7 @@ public class DataMoverPanel {
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
         sourceTree.setCellRenderer(new DBTreeCellRenderer());
-        sourceTree.addTreeSelectionListener(sourceListener);
+        sourceTree.addTreeSelectionListener(dbTreeListener);
         
         destTree = new JTree();
         final DBTreeModel destTreeModel = new DBTreeModel(treeRoot, sourceTree);
@@ -159,7 +146,7 @@ public class DataMoverPanel {
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
         destTree.setCellRenderer(new DBTreeCellRenderer());
-        destTree.addTreeSelectionListener(destListener);
+        destTree.addTreeSelectionListener(dbTreeListener);
         
         PanelBuilder pb = new PanelBuilder(
                 new FormLayout(
@@ -431,5 +418,32 @@ public class DataMoverPanel {
             sourceCon.close();
             destCon.close();
         }
+    }
+
+    /**
+     * Returns true if the source DB Tree selections are valid for the copy
+     * table data process. That is, everything that is selected in the source
+     * tree must be a SQLTable.
+     */
+    private boolean isSourceTreeSelectionValid() {
+        if (sourceTree.isSelectionEmpty()) {
+            return false;
+        } else {
+            for (TreePath path : sourceTree.getSelectionPaths()) {
+                if (!(path.getLastPathComponent() instanceof SQLTable)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Returns true if the destination DB Tree selection is valid for the copy
+     * table data process. That is, there must be at least one item in the
+     * destination tree that is selected.
+     */
+    private boolean isDestTreeSelectionValid() {
+        return !destTree.isSelectionEmpty();
     }
 }

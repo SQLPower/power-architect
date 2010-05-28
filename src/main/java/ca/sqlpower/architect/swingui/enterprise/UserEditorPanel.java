@@ -291,7 +291,7 @@ public class UserEditorPanel implements DataEntryPanel{
                                         "OK", "OK").promptUser("");
                             }
                         } else {
-                            JOptionPane.showMessageDialog(getPanel(), "The the passwords you entered were not the same");
+                            JOptionPane.showMessageDialog(getPanel(), "The passwords you entered were not the same");
                         }
                     }
                 }));
