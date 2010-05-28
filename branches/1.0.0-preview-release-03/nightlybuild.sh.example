@@ -1,0 +1,91 @@
+# This is a copy of the nightly build script for Power*Architect that 
+# we're running at SQL Power. If you would like to set up a nightly build,
+# you could use this script as an example, or you could suggest improvements 
+# to our nightly build process as well
+
+#!/bin/bash
+
+export PATH=$PATH:/usr/local/bin
+
+# Maximum number of nightly builds to keep
+MAX_NUM_NIGHTLY_BUILDS=7
+
+#Maximum number of weekly builds to keep
+MAX_NUM_WEEKLY_BUILDS=52
+
+# Checkout the latest Power*Architect source from Google Code Subversion
+svn update power-architect
+
+# Checkout the latest SQL Power Library source from Google Code Subversion
+svn update sqlpower-library
+
+# Build the Power*Architect
+cd power-architect
+
+# Get version string
+VERSION=`ant -Dnightly=true init | grep 'Building Architect version:' | awk -F 'Building Architect version: ' '{print $2}'`
+
+echo "Building Architect version: $VERSION" >dist/architect-$VERSION/build.log
+echo "Distributables and reports for this build will be made available at http://nightlybuild.sqlpower.ca/architect/nightly/$VERSION" >>dist/architect-$VERSION/build.log
+
+export ANT_OPTS="-Xmx1024m -Djava.awt.headless=true"
+
+# Run the Power*Architect Clover test coverage report generation
+ant -Dnightly=true clean clover.test.and.report >>dist/architect-$VERSION/build.log
+
+# Run the Power*Architect nightly build (This has to be done separate from the
+# Clover report build. Otherwise, the distributables will need Clover to run)
+ant -Dnightly=true clean dist >>dist/architect-$VERSION/build.log
+
+# Mail out the build log
+cd dist
+mail -s "Nightly build report for Power*Architect v$VERSION" architect-commits@googlegroups.com < architect-$VERSION/build.log
+
+# Copy stuff to the web server to make it accessible
+ditto architect-$VERSION /Users/nightly/Sites/architect/nightly/$VERSION
+
+# If it's Saturday, then copy to weekly builds too
+DOW=`date +%w`
+if [ $DOW -eq 6 ]; then
+  ditto architect-$VERSION /Users/nightly/Sites/architect/weekly/$VERSION
+fi
+
+# Delete extra nightly builds in the dist (determined by MAX_NUM_NIGHTLY_BUILDS)
+# defined below. For now, we set it to 7 (1 week) nightly builds
+# grab the number of builds in the dist
+NUM_BUILDS=`ls | grep --count ''` 
+if [ $NUM_BUILDS -gt $MAX_NUM_NIGHTLY_BUILDS ]; then
+  NUMDELETES=`expr $NUM_BUILDS - $MAX_NUM_NIGHTLY_BUILDS`
+  ls | tail -r | tail -$NUMDELETES | xargs rm -rf
+fi
+
+cd /Users/nightly/power-architect
+rm mycoverage.db*
+
+# Delete extra nightly builds in the web server (determined by MAX_NUM_NIGHTLY_BUILDS)
+cd /Users/nightly/Sites/architect/nightly
+# grab the number of builds in the dist
+NUM_BUILDS=`ls | grep --count ''` 
+if [ $NUM_BUILDS -gt $MAX_NUM_NIGHTLY_BUILDS ]; then
+  NUMDELETES=`expr $NUM_BUILDS - $MAX_NUM_NIGHTLY_BUILDS`
+  ls | tail -r | tail -$NUMDELETES | xargs rm -rf
+fi
+
+cd /Users/nightly/Sites/architect/weekly/
+
+# If a weekly build was made, then make sure to modify the links so that
+# they point to the weekly build, rather than the nighlty build
+if [ $DOW -eq 6 ]; then
+  cd $VERSION
+  sed s:/nightly/:/weekly/: <index.html >temp.html
+  mv ./temp.html ./index.html
+  cd ..
+fi
+
+# Delete extra weekly builds in the web server (determined by MAX_NUM_WEEKLY_BUILDS)
+# grab the number of builds in the dist
+NUM_BUILDS=`ls | grep --count ''` 
+if [ $NUM_BUILDS -gt $MAX_NUM_WEEKLY_BUILDS ]; then
+  NUMDELETES=`expr $NUM_BUILDS - $MAX_NUM_WEEKLY_BUILDS`
+  ls | tail -r | tail -$NUMDELETES | xargs rm -rf
+fi
