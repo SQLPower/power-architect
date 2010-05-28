@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -496,9 +497,10 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
-			    for (TreeModelListener listener : treeModelListeners) {
-					listener.treeNodesInserted(ev);
-			    }
+				Iterator<TreeModelListener> it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					it.next().treeNodesInserted(ev);
+				}
 			}
 		};
 		// TODO FIXME XXX Replace this with an alternate method leads to nasty behavior.  There are 3 others too
@@ -511,8 +513,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
-                for (TreeModelListener listener : treeModelListeners) {
-                    listener.treeNodesRemoved(ev);
+				Iterator<TreeModelListener> it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					it.next().treeNodesRemoved(ev);
 				}
 			}
 		};
@@ -525,8 +528,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 
 		Runnable notifier = new Runnable(){
 			public void run() {
-                for (TreeModelListener listener : treeModelListeners) {
-                    listener.treeNodesChanged(ev);
+				Iterator<TreeModelListener> it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					it.next().treeNodesChanged(ev);
 				}
 			}
 		};
@@ -541,8 +545,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		final TreeModelEvent ev =e; 		
 		Runnable notifier = new Runnable(){
 			public void run() {
-                for (TreeModelListener listener : treeModelListeners) {
-                    listener.treeStructureChanged(ev);
+				Iterator<TreeModelListener> it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					it.next().treeStructureChanged(ev);
 				}
 			}
 		};
