@@ -55,7 +55,6 @@ import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
-import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -207,8 +206,8 @@ public class DataMoverPanel {
                     treeRoot.removeChild(treeRoot.getChild(i));
                 }
             }
-            for (SPDataSource ds : session.getContext().getConnections()) {
-                treeRoot.addChild(new SQLDatabase((JDBCDataSource) ds));
+            for (JDBCDataSource ds : session.getDataSources().getConnections()) {
+                treeRoot.addChild(new SQLDatabase(ds));
             }
             treeRoot.commit();
         } catch (IllegalArgumentException e) {

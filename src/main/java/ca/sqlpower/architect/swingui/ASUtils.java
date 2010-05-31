@@ -135,7 +135,7 @@ public class ASUtils {
         JComboBox newTargetDB = new JComboBox();
         JDBCDataSource currentTarget = session.getTargetDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
-        for (JDBCDataSource dbcs : session.getContext().getConnections()) {
+        for (JDBCDataSource dbcs : session.getDataSources().getConnections()) {
             if(!dbcs.equals(currentTarget)) {
                 newTargetDB.addItem(dbcs);
             }
