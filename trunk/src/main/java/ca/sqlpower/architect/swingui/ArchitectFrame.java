@@ -159,7 +159,7 @@ public class ArchitectFrame extends JFrame {
     private JScrollPane playpenScrollPane;
     DBTree dbTree = null;
     private Navigator navigatorDialog;
-    private CompareDMDialog comapareDMDialog = null;
+    private CompareDMDialog compareDMDialog = null;
     private int oldWidth;
     private int oldHeight;
     private int prefWidth;
@@ -591,9 +591,9 @@ public class ArchitectFrame extends JFrame {
         autoLayout = new FruchtermanReingoldForceLayout();
         autoLayoutAction.setLayout(autoLayout);
         exportDDLAction = new ExportDDLAction(session);
-        comapareDMDialog = new CompareDMDialog(session);
+        compareDMDialog = new CompareDMDialog(session);
         
-        compareDMAction = new CompareDMAction(session,comapareDMDialog);
+        compareDMAction = new CompareDMAction(session,compareDMDialog);
         dataMoverAction = new DataMoverAction(this, session);
         sqlQueryAction = new SQLQueryAction(session);
 
@@ -1183,7 +1183,7 @@ public class ArchitectFrame extends JFrame {
     }
     
     public CompareDMDialog getCompareDMDialog() {
-        return comapareDMDialog;
+        return compareDMDialog;
     }
 
     public ReverseRelationshipAction getReverseRelationshipAction() {
