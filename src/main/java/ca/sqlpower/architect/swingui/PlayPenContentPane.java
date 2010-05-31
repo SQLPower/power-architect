@@ -98,6 +98,17 @@ public class PlayPenContentPane extends AbstractSPObject {
             }            
         }
     };
+    
+    private final SPListener componentBoundChanges = new AbstractSPListener() {
+        
+        @Override
+        public void propertyChanged(PropertyChangeEvent evt) {
+            if (evt.getPropertyName().equals("bounds") && playPen != null) {
+                playPen.revalidate();
+            }
+        }
+        
+    };
 	
 	@Constructor
 	public PlayPenContentPane(@ConstructorParameter(propertyName="modelContainer") SPObject modelContainer) {
@@ -242,9 +253,13 @@ public class PlayPenContentPane extends AbstractSPObject {
         if (getPlayPen() != null) {
             ppc.addSelectionListener(getPlayPen());
         }
+        ppc.addSPListener(componentBoundChanges);
         ppc.connect();
         fireChildAdded(ppc.getClass(), ppc, pos);
         ppc.revalidate();
+        if (playPen != null) {
+            playPen.revalidate();
+        }
     }
 
     @Override
@@ -262,6 +277,7 @@ public class PlayPenContentPane extends AbstractSPObject {
         if (getPlayPen() != null) {
             ((PlayPenComponent) child).removeSelectionListener(getPlayPen());
         }
+        child.removeSPListener(componentBoundChanges);
         if (playPen != null) {
             playPen.repaint();
         }
