@@ -67,6 +67,14 @@ import com.google.common.collect.Multimap;
 
 public class NetworkConflictResolver extends Thread implements MessageSender<JSONObject> {
 
+    /**
+     * If conflicts are found when trying to decide if an incoming change
+     * conflicts with the last user change only this many conflicting properties
+     * or reasons will be displayed at max to prevent the dialog from growing
+     * too large.
+     */
+    private static final int MAX_CONFLICTS_TO_DISPLAY = 10;
+
     private static final Logger logger = Logger.getLogger(NetworkConflictResolver.class);
     private AtomicBoolean postingJSON = new AtomicBoolean(false);
     private boolean updating = false;
@@ -245,8 +253,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 } else {
                     String message = "";
                     message += "Your changes have been discarded due to a conflict between you and another user: \n";
-                    for (ConflictMessage conflict : conflicts) {
-                        message += conflict.getMessage() + "\n";
+                    for (int i = 0; i < MAX_CONFLICTS_TO_DISPLAY && i < conflicts.size(); i++) {
+                        message += conflicts.get(i).getMessage() + "\n";
                     }
                     session.createUserPrompter(message, 
                             UserPromptType.MESSAGE, 
