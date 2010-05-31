@@ -72,7 +72,7 @@ public class InsertionPointWatcherTest extends TestCase {
         InsertionPointWatcher<StubSQLObject> watcher = new InsertionPointWatcher<StubSQLObject>(so, 2, StubSQLObject.class);
         
         so.removeChild(so.getChild(2));
-        assertEquals(1, watcher.getInsertionPoint());
+        assertEquals(2, watcher.getInsertionPoint());
     }
     
     public void testRemoveAfterInsertionPoint() throws Exception {

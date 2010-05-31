@@ -85,7 +85,7 @@ public class InsertionPointWatcher<T extends SQLObject> {
 
         @Override
         public void childRemovedImpl(SPChildEvent e) {
-            if (e.getChildType() == childType && e.getIndex() <= insertionPoint) {
+            if (e.getChildType() == childType && e.getIndex() < insertionPoint) {
                 insertionPoint--;
             }
         }
