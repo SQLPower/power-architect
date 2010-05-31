@@ -128,7 +128,7 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals("Wrong column physical name","CHANGED",col2.getPhysicalName());
 		assertEquals("Wrong column logical name","Easier Use Column Name",col2.getName());
 		assertEquals("Wrong Precision",1234,col2.getPrecision());
-		assertEquals("Wrong type",1,col2.getType());
+		assertEquals("Wrong type",4,col2.getType());
 		assertEquals("Wrong Scale",5432,col2.getScale());
 		assertTrue(col2.isAutoIncrement());
 		assertTrue(col2.isPrimaryKey());

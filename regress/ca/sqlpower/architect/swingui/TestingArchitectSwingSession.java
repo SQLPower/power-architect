@@ -135,21 +135,23 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         testType1.setName("Test Type 1");
         testType1.setPrecision(platform, 1);
         testType1.setScale(platform, 1);
-        testType1.setType(1);
+        testType1.setType(4);
         testType1.setMyNullability(DatabaseMetaData.columnNoNulls);
         testType1.setMyAutoIncrement(false);
         testType1.setPrecisionType(platform, PropertyType.VARIABLE);
         testType1.setScaleType(platform, PropertyType.VARIABLE);
+        testType1.setUUID("test-type-1-uuid");
         
         testType2 = new UserDefinedSQLType();
         testType2.setName("Test Type 2");
         testType2.setPrecision(platform, 1);
         testType2.setScale(platform, 1);
-        testType2.setType(2);
+        testType2.setType(12);
         testType2.setMyNullability(DatabaseMetaData.columnNoNulls);
         testType2.setMyAutoIncrement(false);
         testType2.setPrecisionType(platform, PropertyType.VARIABLE);
         testType2.setScaleType(platform, PropertyType.VARIABLE);
+        testType2.setUUID("test-type-2-uuid");
     }
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProjectLoader project) throws SQLObjectException {
