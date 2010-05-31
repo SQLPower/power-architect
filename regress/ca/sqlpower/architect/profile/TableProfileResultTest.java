@@ -19,11 +19,15 @@
 
 package ca.sqlpower.architect.profile;
 
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionContextImpl;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.util.ArchitectNewValueMaker;
 import ca.sqlpower.object.PersistedSPObjectTest;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.testutil.NewValueMaker;
 
 public class TableProfileResultTest extends PersistedSPObjectTest {
@@ -37,6 +41,7 @@ public class TableProfileResultTest extends PersistedSPObjectTest {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        
         tpr = (TableProfileResult) new ArchitectNewValueMaker(
                 getRootObject(), getPLIni()).makeNewValue(TableProfileResult.class, null, "");
     }
@@ -55,6 +60,28 @@ public class TableProfileResultTest extends PersistedSPObjectTest {
     public NewValueMaker createNewValueMaker(SPObject root, 
             DataSourceCollection<SPDataSource> dsCollection) {
         return new ArchitectNewValueMaker(root, dsCollection);
+    }
+
+    /**
+     * Regression test to ensure profiling a table does not null out the
+     * profile's parent pointer.
+     */
+    public void testParentSetCorrectly() throws Exception {
+        sqlx("Create table testProfileParent (col1 varchar(50), col2 varchar(50))");
+        SQLTable testTable = db.getTableByName("testProfileParent");
+        testTable.populate();
+        assertNotNull(testTable);
+        assertEquals(2, testTable.getColumns().size());
+        
+        ArchitectSession session = new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "testing session");
+        ProfileManager pm = new ProfileManagerImpl();
+        session.getWorkspace().setProfileManager(pm);
+        session.getWorkspace().getRootObject().addDatabase(db, 0);
+        TableProfileResult tpr = pm.createProfile(testTable);
+        
+        assertEquals(pm, tpr.getParent());
+        assertTrue(tpr.getCreateStartTime() >= 0);
+        assertTrue(tpr.getCreateEndTime() >= 1);
     }
 
 }

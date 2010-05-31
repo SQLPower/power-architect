@@ -54,6 +54,11 @@ public abstract class AbstractTableProfileCreator implements TableProfileCreator
         //Setting the profile result UUID to match which allows the
         //persister to update the actual tpr at the end.
         tpr.setUUID(actualTPR.getUUID());
+        //Need to do the same for the parent pointer but do not want
+        //to attach it to the actual profile manager.
+        ProfileManager backgroundPM = new ProfileManagerImpl();
+        backgroundPM.setUUID(actualTPR.getParent().getUUID());
+        tpr.setParent(backgroundPM);
         
         MonitorableImpl pm = (MonitorableImpl) tpr.getProgressMonitor();
         try {
