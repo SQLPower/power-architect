@@ -61,6 +61,7 @@ import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -68,6 +69,16 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+/**
+ * The panel that allows editing permissions on a specific project. This may
+ * look like a {@link DataEntryPanel}, may implement {@link DataEntryPanel} but
+ * don't be fooled, it does not use apply changes, discard changes, or can be
+ * put into
+ * {@link DataEntryPanelBuilder#createDataEntryPanelDialog(DataEntryPanel, Component, String, String)}
+ * . Instead this panel does a nasty hack of recreating the work of {@link DataEntryPanelBuilder}
+ * and makes its own buttons to call apply changes on inner classes that are
+ * {@link DataEntryPanel}s.
+ */
 public class ProjectSecurityPanel implements DataEntryPanel{
 
     private static final ImageIcon ADD_ICON = new ImageIcon(RefreshProjectAction.class.getResource("/icons/famfamfam/add.png"));
@@ -105,6 +116,11 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         refreshPanel();
     }
     
+    /**
+     * This rebuilds the panel based on the {@link #userModel} and {@link #groupModel}.
+     * To do this it also removes all of the panels from the main {@link #panel} and
+     * adds new ones to it.
+     */
     private void refreshPanel() {
         
         userModel = new GroupOrUserTableModel(User.class);
