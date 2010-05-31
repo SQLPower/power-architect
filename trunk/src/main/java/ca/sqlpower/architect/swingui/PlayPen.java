@@ -1834,6 +1834,7 @@ public class PlayPen extends JPanel
 	 * delegate) with a ChangeEvent.
 	 */
 	public void propertyChanged(PropertyChangeEvent e) {
+	    revalidate();
 	    this.firePropertyChange("model."+e.getPropertyName(), e.getOldValue(), e.getNewValue()); //$NON-NLS-1$
 	}
 	
