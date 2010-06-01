@@ -1200,8 +1200,8 @@ public static class Cube extends OLAPObject {
         fact = newval;
         if (fact != null) {
             fact.setParent(this);
+            fireChildAdded(Relation.class, fact, overallPosition);
         }
-        fireChildAdded(Relation.class, fact, overallPosition);
 	}
 
     /**  */
@@ -1790,8 +1790,8 @@ public static class VirtualCube extends OLAPObject {
         cubeUsage = newval;
         if (cubeUsage != null) {
             cubeUsage.setParent(this);
+            fireChildAdded(CubeUsages.class, cubeUsage, overallPosition);
         }
-        fireChildAdded(CubeUsages.class, cubeUsage, overallPosition);
 	}
 
     /**  */
@@ -3865,8 +3865,8 @@ public static class Hierarchy extends OLAPObject {
         relation = newval;
         if (relation != null) {
             relation.setParent(this);
+            fireChildAdded(RelationOrJoin.class, relation, overallPosition);
         }
-        fireChildAdded(RelationOrJoin.class, relation, overallPosition);
 	}
 
     /**  */
@@ -4650,8 +4650,8 @@ public static class Level extends OLAPObject {
         keyExp = newval;
         if (keyExp != null) {
             keyExp.setParent(this);
+            fireChildAdded(KeyExpression.class, keyExp, overallPosition);
         }
-        fireChildAdded(KeyExpression.class, keyExp, overallPosition);
 	}
 
     /** 
@@ -4678,8 +4678,8 @@ public static class Level extends OLAPObject {
         nameExp = newval;
         if (nameExp != null) {
             nameExp.setParent(this);
+            fireChildAdded(NameExpression.class, nameExp, overallPosition);
         }
-        fireChildAdded(NameExpression.class, nameExp, overallPosition);
 	}
 
     /** 
@@ -4705,8 +4705,8 @@ public static class Level extends OLAPObject {
         ordinalExp = newval;
         if (ordinalExp != null) {
             ordinalExp.setParent(this);
+            fireChildAdded(OrdinalExpression.class, ordinalExp, overallPosition);
         }
-        fireChildAdded(OrdinalExpression.class, ordinalExp, overallPosition);
 	}
 
     /** 
@@ -4733,8 +4733,8 @@ public static class Level extends OLAPObject {
         parentExp = newval;
         if (parentExp != null) {
             parentExp.setParent(this);
+            fireChildAdded(ParentExpression.class, parentExp, overallPosition);
         }
-        fireChildAdded(ParentExpression.class, parentExp, overallPosition);
 	}
 
     /**  */
@@ -4758,8 +4758,8 @@ public static class Level extends OLAPObject {
         closure = newval;
         if (closure != null) {
             closure.setParent(this);
+            fireChildAdded(Closure.class, closure, overallPosition);
         }
-        fireChildAdded(Closure.class, closure, overallPosition);
 	}
 
     /**  */
@@ -5118,8 +5118,8 @@ public static class Closure extends OLAPObject {
         table = newval;
         if (table != null) {
             table.setParent(this);
+            fireChildAdded(Table.class, table, overallPosition);
         }
-        fireChildAdded(Table.class, table, overallPosition);
 	}
 
 
@@ -5767,8 +5767,8 @@ public static class Measure extends OLAPObject {
         measureExp = newval;
         if (measureExp != null) {
             measureExp.setParent(this);
+            fireChildAdded(MeasureExpression.class, measureExp, overallPosition);
         }
-        fireChildAdded(MeasureExpression.class, measureExp, overallPosition);
 	}
 
     /**  */
@@ -6180,8 +6180,8 @@ public static class CalculatedMember extends OLAPObject {
         formulaElement = newval;
         if (formulaElement != null) {
             formulaElement.setParent(this);
+            fireChildAdded(Formula.class, formulaElement, overallPosition);
         }
-        fireChildAdded(Formula.class, formulaElement, overallPosition);
 	}
 
     /**  */
@@ -6725,8 +6725,8 @@ public static class NamedSet extends OLAPObject {
         formulaElement = newval;
         if (formulaElement != null) {
             formulaElement.setParent(this);
+            fireChildAdded(Formula.class, formulaElement, overallPosition);
         }
-        fireChildAdded(Formula.class, formulaElement, overallPosition);
 	}
 
 
@@ -7942,8 +7942,8 @@ public static class Join extends RelationOrJoin {
         left = newval;
         if (left != null) {
             left.setParent(this);
+            fireChildAdded(RelationOrJoin.class, left, overallPosition);
         }
-        fireChildAdded(RelationOrJoin.class, left, overallPosition);
 	}
 
     /**  */
@@ -7967,8 +7967,8 @@ public static class Join extends RelationOrJoin {
         right = newval;
         if (right != null) {
             right.setParent(this);
+            fireChildAdded(RelationOrJoin.class, right, overallPosition);
         }
-        fireChildAdded(RelationOrJoin.class, right, overallPosition);
 	}
 
 
@@ -8241,8 +8241,8 @@ public static class Table extends Relation {
         filter = newval;
         if (filter != null) {
             filter.setParent(this);
+            fireChildAdded(SQL.class, filter, overallPosition);
         }
-        fireChildAdded(SQL.class, filter, overallPosition);
 	}
 
     /**  */
@@ -8605,8 +8605,8 @@ public static class InlineTable extends Relation {
         columnDefs = newval;
         if (columnDefs != null) {
             columnDefs.setParent(this);
+            fireChildAdded(ColumnDefs.class, columnDefs, overallPosition);
         }
-        fireChildAdded(ColumnDefs.class, columnDefs, overallPosition);
 	}
 
     /**  */
@@ -8630,8 +8630,8 @@ public static class InlineTable extends Relation {
         rows = newval;
         if (rows != null) {
             rows.setParent(this);
+            fireChildAdded(Rows.class, rows, overallPosition);
         }
-        fireChildAdded(Rows.class, rows, overallPosition);
 	}
 
 
@@ -9781,8 +9781,8 @@ public abstract static class AggTable extends OLAPObject {
         factcount = newval;
         if (factcount != null) {
             factcount.setParent(this);
+            fireChildAdded(AggFactCount.class, factcount, overallPosition);
         }
-        fireChildAdded(AggFactCount.class, factcount, overallPosition);
 	}
 
     /**  */
@@ -13019,8 +13019,8 @@ public static class Role extends OLAPObject {
         union = newval;
         if (union != null) {
             union.setParent(this);
+            fireChildAdded(Union.class, union, overallPosition);
         }
-        fireChildAdded(Union.class, union, overallPosition);
 	}
 
 
