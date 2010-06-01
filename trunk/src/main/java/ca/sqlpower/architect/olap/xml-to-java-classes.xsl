@@ -308,8 +308,8 @@ public abstract static class <xsl:value-of select="@class"/> extends <xsl:call-t
         <xsl:value-of select="@name"/> = newval;
         if (<xsl:value-of select="@name"/> != null) {
             <xsl:value-of select="@name"/>.setParent(this);
+            fireChildAdded(<xsl:call-template name="attribute-type"/>.class, <xsl:value-of select="@name"/>, overallPosition);
         }
-        fireChildAdded(<xsl:call-template name="attribute-type"/>.class, <xsl:value-of select="@name"/>, overallPosition);
 	}
 </xsl:template>
 
