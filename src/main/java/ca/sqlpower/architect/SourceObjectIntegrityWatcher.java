@@ -38,23 +38,27 @@ public class SourceObjectIntegrityWatcher implements SQLObjectPreEventListener {
                 Messages.getString("cancel")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         for (SQLObject so : e.getChildren()) {
             SQLDatabase db = (SQLDatabase) so;
-            try {
-                List<SQLColumn> refs = SQLObjectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), db);
-                if (!refs.isEmpty()) {
-                    UserPromptResponse response = up.promptUser(refs.size(), db.getName());
-                    if (response == UserPromptResponse.OK) {
-                        // disconnect those columns' source columns
-                        for (SQLColumn col : refs) {
-                            col.setSourceColumn(null);
+            // Setting source columns is a magical side effect, and the user
+            // shouldn't be prompted if the change came from the server.
+            if (db.isMagicEnabled()) {
+                try {
+                    List<SQLColumn> refs = SQLObjectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), db);
+                    if (!refs.isEmpty()) {
+                        UserPromptResponse response = up.promptUser(refs.size(), db.getName());
+                        if (response == UserPromptResponse.OK) {
+                            // disconnect those columns' source columns
+                            for (SQLColumn col : refs) {
+                                col.setSourceColumn(null);
+                            }
+                        } else if (response == UserPromptResponse.NOT_OK) {
+                            e.veto();
+                        } else if (response == UserPromptResponse.CANCEL) {
+                            e.veto();
                         }
-                    } else if (response == UserPromptResponse.NOT_OK) {
-                        e.veto();
-                    } else if (response == UserPromptResponse.CANCEL) {
-                        e.veto();
                     }
+                } catch (SQLObjectException ex) {
+                    throw new SQLObjectRuntimeException(ex);
                 }
-            } catch (SQLObjectException ex) {
-                throw new SQLObjectRuntimeException(ex);
             }
         }
     }
