@@ -21,6 +21,13 @@ package ca.sqlpower.architect.ddl.critic;
 
 import java.util.List;
 
+/**
+ * A critic is used by a {@link Criticizer} to find mistakes in a project.
+ * The critic does the actual work of analyzing an object or structure of
+ * the project and highlights errors by creating {@link Criticism}s.
+ * 
+ * @param <S> The object type that will be analyzed to be criticized.
+ */
 public interface Critic<S> {
 
     public List<Criticism<S>> criticize(S subject);
