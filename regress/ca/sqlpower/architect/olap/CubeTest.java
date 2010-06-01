@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Relation;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
-import ca.sqlpower.object.PersistedSPObjectTest.CountingSPListener;
+import ca.sqlpower.object.CountingSPListener;
 
 public class CubeTest extends TestCase {
 
