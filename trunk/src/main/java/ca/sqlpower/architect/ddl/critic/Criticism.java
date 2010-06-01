@@ -22,6 +22,14 @@ package ca.sqlpower.architect.ddl.critic;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * If the enabled {@link Critic}s in the system find problems with the project
+ * it will create criticisms. The criticisms can be used by users to help
+ * understand errors in their model and do quick fixes for them as well.
+ * 
+ * @param <S>
+ *            The object type this criticism can be found on.
+ */
 public class Criticism<S> {
 
     private final S subject;
