@@ -142,8 +142,6 @@ import ca.sqlpower.swingui.CursorManager;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
-import ca.sqlpower.swingui.event.TaskTerminationEvent;
-import ca.sqlpower.swingui.event.TaskTerminationListener;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.TransactionEvent.TransactionState;
@@ -1465,19 +1463,9 @@ public class PlayPen extends JPanel
 		                      0,
 			                  100);
 		
-		contentPane.begin("PlayPen.copyingObjectsToThePlaypen"); //$NON-NLS-1$
 		AddObjectsTask t = new AddObjectsTask(list,
 				preferredLocation, pm, session, transferStyle);
 		t.setNextProcess(nextProcess);
-		t.addTaskTerminationListener(new TaskTerminationListener() {
-            public void taskFinished(TaskTerminationEvent e) {
-                session.runInForeground(new Runnable() {
-                    public void run() {
-                        contentPane.commit();
-                    }
-                });
-            }
-		});
 		new Thread(t, "Objects-Adder").start(); //$NON-NLS-1$
 	}
 
