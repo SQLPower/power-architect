@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -68,7 +69,7 @@ public class KettleDataSourceOptionsPanel implements DataEntryPanel {
      * 
      * @param dbcs The data source to edit.  Null is not allowed.
      */
-    public KettleDataSourceOptionsPanel(JDBCDataSource dbcs) {
+    public KettleDataSourceOptionsPanel(@Nonnull JDBCDataSource dbcs) {
         this.panel = buildKettleOptionsPanel();
         this.dbcs = dbcs;
         
