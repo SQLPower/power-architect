@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 
 import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.Criticizer;
+import ca.sqlpower.architect.ddl.critic.MySQLCommentCritic;
 import ca.sqlpower.architect.ddl.critic.PhysicalNameCritic;
 import ca.sqlpower.architect.ddl.critic.PrimaryKeyCritic;
 import ca.sqlpower.architect.ddl.critic.RelationshipMappingTypeCritic;
@@ -58,6 +59,7 @@ public class CriticizeAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent e) {
         List<Critic<SQLObject>> critics = new ArrayList<Critic<SQLObject>>();
         critics.add(new PhysicalNameCritic("Oracle", Pattern.compile("^[a-z_][a-z0-9_]*$", Pattern.CASE_INSENSITIVE), 30));
+        critics.add(new MySQLCommentCritic());
         critics.add(new PrimaryKeyCritic());
         critics.add(new RelationshipMappingTypeCritic());
         Criticizer<SQLObject> criticizer = new Criticizer<SQLObject>(critics);
