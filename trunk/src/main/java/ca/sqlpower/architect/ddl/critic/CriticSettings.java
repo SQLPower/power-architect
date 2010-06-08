@@ -19,134 +19,27 @@
 
 package ca.sqlpower.architect.ddl.critic;
 
-import java.util.Collections;
-import java.util.List;
-
-import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
-import ca.sqlpower.object.annotation.Constructor;
-import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
-import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * The settings of a specific {@link Critic}. Includes if the critic is enabled
  * and any additional settings to decide how to criticize the object model.
  */
-public class CriticSettings extends AbstractSPObject {
-    
-    /**
-     * Defines an absolute ordering of the child types of this class.
-     */
-    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
-
-    public enum Severity {
-        ERROR,
-        WARNING,
-        IGNORE
-    }
-    
-    /**
-     * Some of the types used in our critics. Any of the critics written in a class
-     * should use one of these platform types but there is no real need to restrict
-     * user-defined platform types to these types in the future.
-     */
-    public enum StarterPlatformTypes {
-        GENERIC("Generic"),
-        MY_SQL("MySQL"),
-        ORACLE("Oracle");
-        
-        private final String name;
-
-        private StarterPlatformTypes(String name) {
-            this.name = name;
-        }
-        
-        public String getName() {
-            return name;
-        }
-        
-    }
-    
-    /**
-     * Decides what level of error to display on objects.
-     */
-    private Severity severity;
+public interface CriticSettings extends SPObject {
 
     /**
-     * The critic that we are setting settings for. The critic factory must be
-     * able to create critics of this type.
+     * Returns the severity level of this critic.
      */
-    private final Class<? extends Critic<SQLObject>> criticType;
+    @Accessor
+    public Severity getSeverity();
 
     /**
-     * Critics will be grouped by this value. While this is normally a platform
-     * type it does not necessarily have to be restricted as such. This type
-     * is normally from {@link StarterPlatformTypes}.
+     * Sets the severity level of this critic. For used to identify how
+     * important the criticisms created by this critic is to users.
      */
-    private final String platformType;
-    
-    @Constructor
-    public CriticSettings(
-            @ConstructorParameter(propertyName="criticType") Class<? extends Critic<SQLObject>> criticType,
-            @ConstructorParameter(propertyName="platformType") String platformType) {
-        this.criticType = criticType;
-        this.platformType = platformType;
-        severity = Severity.ERROR;
-        setName("Settings for critic " + criticType.getClass().getSimpleName());
-    }
-    
     @Mutator
-    public void setSeverity(Severity severity) {
-        Severity oldSeverity = this.severity;
-        this.severity = severity;
-        firePropertyChange("severity", oldSeverity, severity);
-    }
-
-    @Accessor
-    public Severity getSeverity() {
-        return severity;
-    }
-
-    @Override
-    protected boolean removeChildImpl(SPObject child) {
-        return false;
-    }
-
-    public boolean allowsChildren() {
-        return false;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        return 0;
-    }
-
-    public List<Class<? extends SPObject>> getAllowedChildTypes() {
-        return allowedChildTypes;
-    }
-
-    public List<? extends SPObject> getChildren() {
-        return Collections.emptyList();
-    }
-
-    public List<? extends SPObject> getDependencies() {
-        return Collections.emptyList();
-    }
-
-    public void removeDependency(SPObject dependency) {
-        //do nothing
-    }
-
-    @Accessor
-    public Class<? extends Critic<SQLObject>> getCriticType() {
-        return criticType;
-    }
-
-    @Accessor
-    public String getPlatformType() {
-        return platformType;
-    }
-    
-    
+    public void setSeverity(Severity severity);
 }

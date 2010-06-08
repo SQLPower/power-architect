@@ -22,7 +22,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.ddl.critic.CriticGrouping;
-import ca.sqlpower.architect.ddl.critic.CriticSettings;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -35,7 +35,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class CriticGroupingPanel implements DataEntryPanel {
 
     /**
-     * A tree cell editor that allows editing the {@link CriticSettings} in the
+     * A tree cell editor that allows editing the {@link CriticAndSettings} in the
      * tree in the {@link CriticGroupingPanel}.
      */
     private class GroupingTreeCellEditor implements TreeCellEditor {
@@ -67,7 +67,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
     
         public boolean isCellEditable(EventObject e) {
             if (lastSelectedPath != null && 
-                    lastSelectedPath instanceof CriticSettings) return true;
+                    lastSelectedPath instanceof CriticAndSettings) return true;
             return false;
         }
     
@@ -86,8 +86,8 @@ public class CriticGroupingPanel implements DataEntryPanel {
     
         public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
                 boolean leaf, int row) {
-            if (value instanceof CriticSettings) {
-                return settingsPanels.get((CriticSettings) value).getPanel();
+            if (value instanceof CriticAndSettings) {
+                return settingsPanels.get((CriticAndSettings) value).getPanel();
             }
             return null;
         }
@@ -137,7 +137,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
         }
     
         public boolean isLeaf(Object node) {
-            if (node instanceof CriticSettings) return true;
+            if (node instanceof CriticAndSettings) return true;
             return false;
         }
     
@@ -171,8 +171,8 @@ public class CriticGroupingPanel implements DataEntryPanel {
                 boolean leaf, int row, boolean hasFocus) {
             if (value instanceof CriticGrouping) {
                 return new JLabel(((CriticGrouping) value).getPlatformType());
-            } else if (value instanceof CriticSettings) {
-                JComponent thisSettingsPanel = settingsPanels.get((CriticSettings) value).getPanel();
+            } else if (value instanceof CriticAndSettings) {
+                JComponent thisSettingsPanel = settingsPanels.get((CriticAndSettings) value).getPanel();
                 return thisSettingsPanel;
             }
             return null;
@@ -183,8 +183,8 @@ public class CriticGroupingPanel implements DataEntryPanel {
      * Each of the settings grouped by this class's grouping will have a data entry panel
      * associated with it.
      */
-    private final Map<CriticSettings, DataEntryPanel> settingsPanels = 
-        new HashMap<CriticSettings, DataEntryPanel>();
+    private final Map<CriticAndSettings, DataEntryPanel> settingsPanels = 
+        new HashMap<CriticAndSettings, DataEntryPanel>();
 
     public CriticGroupingPanel(CriticGrouping grouping) {
         this.grouping = grouping;
@@ -192,7 +192,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
         panel = new JPanel();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
                 "pref, 5dlu, pref:grow", "top:pref"), panel);
-        for (CriticSettings settings : grouping.getSettings()) {
+        for (CriticAndSettings settings : grouping.getSettings()) {
             final CriticSettingsPanel settingsPanel = new CriticSettingsPanel(settings);
             settingsPanels.put(settings, settingsPanel);
         }

@@ -43,13 +43,13 @@ public class CriticGrouping extends AbstractSPObject {
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Collections.singletonList(CriticSettings.class)));
+                Collections.singletonList(CriticAndSettings.class)));
     
     /**
      * Contains all of the settings for each critic known to the group. Each
-     * critic in this list must have the same {@link CriticSettings#getPlatformType()} value.
+     * critic in this list must have the same {@link CriticAndSettings#getPlatformType()} value.
      */
-    private final List<CriticSettings> settings = new ArrayList<CriticSettings>();
+    private final List<CriticAndSettings> settings = new ArrayList<CriticAndSettings>();
 
     /**
      * Flags if the critics in this group should be enabled or disabled as a
@@ -75,19 +75,19 @@ public class CriticGrouping extends AbstractSPObject {
     }
 
     /**
-     * {@link CriticSettings} added to this grouping must match in {@link #platformType}.
+     * {@link CriticAndSettings} added to this grouping must match in {@link #platformType}.
      */
     @Override
     protected void addChildImpl(SPObject child, int index) {
-        if (child instanceof CriticSettings) {
-            final CriticSettings critic = (CriticSettings) child;
+        if (child instanceof CriticAndSettings) {
+            final CriticAndSettings critic = (CriticAndSettings) child;
             if (!getPlatformType().equals(critic.getPlatformType())) {
                 throw new IllegalArgumentException("The platform type " + critic.getPlatformType() + 
                         " does not match this groups type of " + getPlatformType());
             }
             settings.add(index, critic);
             critic.setParent(this);
-            fireChildAdded(CriticSettings.class, child, index);
+            fireChildAdded(CriticAndSettings.class, child, index);
         } else {
             throw new IllegalStateException("Invalid child type " + child);
         }
@@ -98,7 +98,7 @@ public class CriticGrouping extends AbstractSPObject {
         int index = settings.indexOf(child);
         boolean removed = settings.remove(child);
         if (removed) {
-            fireChildRemoved(CriticSettings.class, child, index);
+            fireChildRemoved(CriticAndSettings.class, child, index);
         }
         return removed;
     }
@@ -124,7 +124,7 @@ public class CriticGrouping extends AbstractSPObject {
     }
 
     public void removeDependency(SPObject dependency) {
-        for (CriticSettings setting : settings) {
+        for (CriticAndSettings setting : settings) {
             setting.removeDependency(dependency);
         }
     }
@@ -147,7 +147,7 @@ public class CriticGrouping extends AbstractSPObject {
     }
     
     @NonProperty
-    public List<CriticSettings> getSettings() {
+    public List<CriticAndSettings> getSettings() {
         return Collections.unmodifiableList(settings);
     }
 }

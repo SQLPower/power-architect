@@ -23,22 +23,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 
-public class CommentCritic extends AbstractCritic<SQLObject> {
+public class CommentCritic extends CriticAndSettings {
 
     private final int maxTableCommentLength;
     private final int maxColumnCommentLength;
     private final String platformName;
 
-    public CommentCritic(String platformName, int maxLengthTable, int maxLengthColumn, 
-            Severity severity) {
-        super(severity);
+    @Constructor
+    public CommentCritic(
+            @ConstructorParameter(propertyName="platformName") String platformName, 
+            @ConstructorParameter(propertyName="maxTableCommentLength") int maxLengthTable, 
+            @ConstructorParameter(propertyName="maxColumnCommentLength")int maxLengthColumn) {
+        super(platformName, "Comment restriction critic");
         this.platformName = platformName;
         this.maxColumnCommentLength = maxLengthColumn;
         this.maxTableCommentLength = maxLengthTable;
@@ -53,29 +59,29 @@ public class CommentCritic extends AbstractCritic<SQLObject> {
 
         if (so instanceof SQLTable) {
             remarks = ((SQLTable)so).getRemarks();
-            maxLength = maxTableCommentLength;
+            maxLength = getMaxTableCommentLength();
         } else if (so instanceof SQLColumn) {
             remarks = ((SQLColumn)so).getRemarks();
-            maxLength = maxColumnCommentLength;
+            maxLength = getMaxColumnCommentLength();
         }
         
         List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
         if (remarks != null && remarks.length() > maxLength && maxLength > 0) {
             criticisms.add(new Criticism<SQLObject>(
                     so,
-                    "Comment too long for " + platformName,
+                    "Comment too long for " + getPlatformName(),
                     this,
                     new QuickFix("Truncate comment to " + maxLength + " characters") {
                         public void apply() {
                             if (so instanceof SQLTable) {
                                 SQLTable tbl = (SQLTable)so;
-                                if (tbl.getRemarks() != null && tbl.getRemarks().length() > maxTableCommentLength) {
-                                    tbl.setRemarks(tbl.getRemarks().substring(maxTableCommentLength));
+                                if (tbl.getRemarks() != null && tbl.getRemarks().length() > getMaxTableCommentLength()) {
+                                    tbl.setRemarks(tbl.getRemarks().substring(getMaxTableCommentLength()));
                                 }
                             } else if (so instanceof SQLColumn) {
                                 SQLColumn col = (SQLColumn)so;
-                                if (col.getRemarks() != null && col.getRemarks().length() > maxColumnCommentLength) {
-                                    col.setRemarks(col.getRemarks().substring(maxColumnCommentLength));
+                                if (col.getRemarks() != null && col.getRemarks().length() > getMaxColumnCommentLength()) {
+                                    col.setRemarks(col.getRemarks().substring(getMaxColumnCommentLength()));
                                 }
                             }
                         }
@@ -84,8 +90,20 @@ public class CommentCritic extends AbstractCritic<SQLObject> {
         
         return criticisms;
     }
-    
-    public String getName() {
-        return "Comment restriction critic";
+
+    @Accessor
+    public int getMaxTableCommentLength() {
+        return maxTableCommentLength;
     }
+
+    @Accessor
+    public int getMaxColumnCommentLength() {
+        return maxColumnCommentLength;
+    }
+
+    @Accessor
+    public String getPlatformName() {
+        return platformName;
+    }
+    
 }

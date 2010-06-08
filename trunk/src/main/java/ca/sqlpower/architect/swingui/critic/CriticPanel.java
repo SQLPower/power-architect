@@ -30,7 +30,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.swingui.SPSUtils;
