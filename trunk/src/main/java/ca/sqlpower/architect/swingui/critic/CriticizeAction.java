@@ -20,19 +20,11 @@
 package ca.sqlpower.architect.swingui.critic;
 
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
-import javax.swing.JDialog;
-import javax.swing.JScrollPane;
+import javax.swing.Icon;
 
-import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.Criticizer;
-import ca.sqlpower.architect.ddl.critic.MySQLCommentCritic;
-import ca.sqlpower.architect.ddl.critic.PhysicalNameCritic;
-import ca.sqlpower.architect.ddl.critic.PrimaryKeyCritic;
-import ca.sqlpower.architect.ddl.critic.RelationshipMappingTypeCritic;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
@@ -43,7 +35,6 @@ import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.swingui.table.FancyExportableJTable;
 
 /**
  * Proof-of-concept action that criticizes a whole SQLObject tree and pops up
@@ -52,31 +43,29 @@ import ca.sqlpower.swingui.table.FancyExportableJTable;
  */
 public class CriticizeAction extends AbstractArchitectAction {
 
+    public static final Icon CRITIC_ICON = SPSUtils.createIcon("critic", Messages.getString("CriticizeAction.description"));
+    
     public CriticizeAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("CriticizeAction.name"), Messages.getString("CriticizeAction.description"));
+        super(session, Messages.getString("CriticizeAction.name"), Messages.getString("CriticizeAction.description"), CRITIC_ICON);
     }
     
     public void actionPerformed(ActionEvent e) {
-        List<Critic<SQLObject>> critics = new ArrayList<Critic<SQLObject>>();
-        critics.add(new PhysicalNameCritic("Oracle", Pattern.compile("^[a-z_][a-z0-9_]*$", Pattern.CASE_INSENSITIVE), 30));
-        critics.add(new MySQLCommentCritic());
-        critics.add(new PrimaryKeyCritic());
-        critics.add(new RelationshipMappingTypeCritic());
-        Criticizer<SQLObject> criticizer = new Criticizer<SQLObject>(critics);
+        criticize();
+    }
+    
+    /**
+     * Call to do a full critique of the given session's play pen.
+     */
+    public void criticize() {
+        Criticizer<SQLObject> criticizer = new Criticizer<SQLObject>(
+                session.getWorkspace().getCriticManager().createCritics());
         try {
             recursivelyCriticize(session.getTargetDatabase(), criticizer);
         } catch (SQLObjectException ex) {
             throw new RuntimeException("Unexpected exception (because playpen is already populted)", ex);
         }
-        
-        FancyExportableJTable table = new FancyExportableJTable(new CriticismTableModel(criticizer));
-        JDialog d = SPSUtils.makeOwnedDialog(session.getPlayPen(), "Data Model Evaluation");
-        SPSUtils.makeJDialogCancellable(d, null);
-        d.setContentPane(new JScrollPane(table));
-        d.pack();
-        d.setSize(table.getPreferredSize().width, d.getHeight());
-        d.setLocationRelativeTo(session.getPlayPen());
-        d.setVisible(true);
+        //XXX Train wreck.
+        session.getArchitectFrame().updateCriticPanel(criticizer);
     }
 
     /**

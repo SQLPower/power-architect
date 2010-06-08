@@ -29,6 +29,7 @@ import java.util.Map;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ProjectSettings;
+import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
@@ -73,7 +74,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
-                    KettleSettings.class, User.class, Group.class, UserDefinedSQLType.class, DomainCategory.class)));
+                    CriticManager.class, KettleSettings.class, User.class, Group.class, UserDefinedSQLType.class, 
+                    DomainCategory.class)));
     
     /**
      * A hash map mapping all the descendants of this project.
@@ -158,6 +160,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     
     private final KettleSettings kettleSettings;
     
+    private final CriticManager criticManager;
+    
     /**
      * Constructs an architect project. The init method must be called immediately
      * after creating a project.
@@ -173,6 +177,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         
         setName("Architect Project");
         projectMap = new HashMap<String, SPObject>();
+        criticManager = new CriticManager();
+        criticManager.setParent(this);
         projectMapListener.childAdded(new SPChildEvent(this, null, this, 0, null));
     }
     
@@ -185,13 +191,16 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
             @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject,
             @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="kettleSettings") KettleSettings kettleSettings,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager 
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager,
+            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="criticManager") CriticManager criticManager
             ) throws SQLObjectException {
         super(rootObject, profileManager);
         this.olapRootObject = olapRootObject;
         olapRootObject.setParent(this);
         this.kettleSettings = kettleSettings;
         kettleSettings.setParent(this);
+        this.criticManager = criticManager;
+        criticManager.setParent(this);
         
         setName("Architect Project");
         projectMap = new HashMap<String, SPObject>();
@@ -259,6 +268,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             allChildren.add(getProfileManager());
         }
         allChildren.add(getProjectSettings());
+        allChildren.add(criticManager);
         allChildren.add(kettleSettings);
         //TODO make specific getters for these types.
         allChildren.addAll(getUsers());
@@ -276,6 +286,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     public void removeDependency(SPObject dependency) {
         super.removeDependency(dependency);
         getOlapRootObject().removeDependency(dependency);
+        getCriticManager().removeDependency(dependency);
         getKettleSettings().removeDependency(dependency);
         getPlayPenContentPane().removeDependency(dependency);
         for (PlayPenContentPane ppcp : getOlapContentPanes()) {
@@ -400,5 +411,10 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     @NonBound
     public <T extends SPObject> T getObjectInTree(String uuid, Class<T> expectedType) {
         return expectedType.cast(getObjectInTree(uuid));
+    }
+    
+    @NonProperty
+    public CriticManager getCriticManager() {
+        return criticManager;
     }
 }

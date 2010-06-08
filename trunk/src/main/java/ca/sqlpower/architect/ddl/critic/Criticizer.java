@@ -20,25 +20,39 @@
 package ca.sqlpower.architect.ddl.critic;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+/**
+ * A Criticizer uses a collection of critics to analyze objects and come up with
+ * criticisms based on the given objects. This object is immutable and can only
+ * create a new set of criticisms.
+ * 
+ * @param <S>
+ *            The object type that can be criticized with this criticizer.
+ */
 public class Criticizer<S> {
 
-    private List<Critic<S>> critics;
-    private List<Criticism<S>> criticisms;
+    private final List<Critic<S>> critics;
 
+    /**
+     * The collection of criticisms of the objects last calculated by this criticizer.
+     */
+    private final List<Criticism<S>> criticisms;
+    
     public Criticizer(List<Critic<S>> critics) {
-        this.critics = new ArrayList<Critic<S>>(critics);
+        this.critics = Collections.unmodifiableList(new ArrayList<Critic<S>>(critics));
         criticisms = new ArrayList<Criticism<S>>();
     }
     
+    /**
+     * Runs one object through the list of active critics.
+     */
     public void criticize(S subject) {
         for (Critic<S> critic : critics) {
-            // TODO wipe out the criticisms we're about to replace
             List<Criticism<S>> newCriticisms = critic.criticize(subject);
             criticisms.addAll(newCriticisms);
             // TODO record the critic-subject combination so it can be wiped out later
-            // TODO fire event(s) about new criticisms
         }
     }
     
@@ -52,4 +66,6 @@ public class Criticizer<S> {
     public List<Criticism<S>> getCriticisms() {
         return criticisms;
     }
+    
+    
 }

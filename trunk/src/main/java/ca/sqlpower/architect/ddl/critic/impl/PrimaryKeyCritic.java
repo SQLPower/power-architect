@@ -17,23 +17,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.ddl.critic;
+package ca.sqlpower.architect.ddl.critic.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 
-public class PrimaryKeyCritic implements Critic<SQLObject> {
+/**
+ * Critic to ensure the primary key is not empty.
+ */
+public class PrimaryKeyCritic extends AbstractCritic<SQLObject> {
+    
+    public PrimaryKeyCritic(Severity severity) {
+        super(severity);
+    }
 
     public List<Criticism<SQLObject>> criticize(final SQLObject so) {
         if (!(so instanceof SQLTable)) return Collections.emptyList();
         SQLTable t = (SQLTable) so;
         List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
         if (t.getPkSize() == 0) {
-            criticisms.add(new Criticism<SQLObject>(t, "Table has no primary key defined"));
+            criticisms.add(new Criticism<SQLObject>(t, "Table has no primary key defined", this));
         }
         return criticisms;
+    }
+
+    public String getName() {
+        return "Non-empty primary key";
     }
 }

@@ -36,9 +36,16 @@ public class Criticism<S> {
     private final String description;
     private final QuickFix[] fixes;
 
-    public Criticism(S subject, String description, QuickFix ... fixes) {
+    /**
+     * The critic that created this criticism. Used to revalidate the criticism
+     * and find out the error level of the criticism.
+     */
+    private final Critic<S> critic;
+
+    public Criticism(S subject, String description, Critic<S> critic, QuickFix ... fixes) {
         this.subject = subject;
         this.description = description;
+        this.critic = critic;
         this.fixes = fixes;
     }
     
@@ -52,5 +59,9 @@ public class Criticism<S> {
     
     public List<QuickFix> getFixes() {
         return Arrays.asList(fixes);
+    }
+
+    public Critic<S> getCritic() {
+        return critic;
     }
 }
