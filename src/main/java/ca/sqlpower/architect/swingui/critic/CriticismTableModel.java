@@ -22,18 +22,65 @@ package ca.sqlpower.architect.swingui.critic;
 import javax.swing.table.AbstractTableModel;
 
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.Criticizer;
+import ca.sqlpower.architect.ddl.critic.CriticismBucket;
+import ca.sqlpower.architect.ddl.critic.CriticismEvent;
+import ca.sqlpower.architect.ddl.critic.CriticismListener;
+import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 
 public class CriticismTableModel extends AbstractTableModel {
-
-    private final Criticizer<?> criticizer;
     
-    public CriticismTableModel(Criticizer<?> criticizer) {
+    private final CriticismBucket<?> criticizer;
+    
+    private final CriticismListener criticListener = new CriticismListener() {
+    
+        public void criticismRemoved(CriticismEvent e) {
+            fireTableRowsDeleted(e.getIndex(), e.getIndex());
+        }
+    
+        public void criticismAdded(CriticismEvent e) {
+            fireTableRowsInserted(e.getIndex(), e.getIndex());
+        }
+    };
+
+    /**
+     * The project that holds a critic manager to access critic settings. The
+     * settings will be used to display the criticisms.
+     */
+    private final ArchitectSwingProject project;
+    
+    public CriticismTableModel(ArchitectSwingProject project, CriticismBucket<?> criticizer) {
+        this.project = project;
         this.criticizer = criticizer;
+        criticizer.addCriticismListener(criticListener);
     }
     
     public int getColumnCount() {
-        return 2;
+        return 3;
+    }
+    
+    @Override
+    public String getColumnName(int column) {
+        if (column == 1) {
+            return "Object";
+        } else if (column == 2) {
+            return "Description";
+        } else {
+            return null;
+        }
+    }
+    
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        if (columnIndex == 0) {
+            return Severity.class;
+        } else if (columnIndex == 1) {
+            return String.class;
+        } else if (columnIndex == 2) {
+            return String.class;
+        } else {
+            return null;
+        }
     }
 
     public int getRowCount() {
@@ -43,8 +90,10 @@ public class CriticismTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         Criticism<?> rowVal = criticizer.getCriticisms().get(rowIndex);
         if (columnIndex == 0) {
-            return rowVal.getSubject();
+            return rowVal.getCritic().getSeverity();
         } else if (columnIndex == 1) {
+            return rowVal.getSubject();
+        } else if (columnIndex == 2) {
             return rowVal.getDescription();
         } else {
             throw new IllegalArgumentException(

@@ -17,23 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.ddl.critic;
+package ca.sqlpower.architect.ddl.critic.impl;
 
-import ca.sqlpower.sqlobject.SQLColumn;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 
-public class CommentCritic implements Critic<SQLObject> {
+public class CommentCritic extends AbstractCritic<SQLObject> {
 
     private final int maxTableCommentLength;
     private final int maxColumnCommentLength;
     private final String platformName;
 
-    public CommentCritic(String platformName, int maxLengthTable, int maxLengthColumn) {
+    public CommentCritic(String platformName, int maxLengthTable, int maxLengthColumn, 
+            Severity severity) {
+        super(severity);
         this.platformName = platformName;
         this.maxColumnCommentLength = maxLengthColumn;
         this.maxTableCommentLength = maxLengthTable;
@@ -59,6 +64,7 @@ public class CommentCritic implements Critic<SQLObject> {
             criticisms.add(new Criticism<SQLObject>(
                     so,
                     "Comment too long for " + platformName,
+                    this,
                     new QuickFix("Truncate comment to " + maxLength + " characters") {
                         public void apply() {
                             if (so instanceof SQLTable) {
@@ -77,5 +83,9 @@ public class CommentCritic implements Critic<SQLObject> {
         }
         
         return criticisms;
+    }
+    
+    public String getName() {
+        return "Comment restriction critic";
     }
 }

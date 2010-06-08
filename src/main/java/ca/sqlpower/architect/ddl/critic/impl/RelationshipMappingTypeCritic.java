@@ -17,20 +17,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.ddl.critic;
+package ca.sqlpower.architect.ddl.critic.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 
-public class RelationshipMappingTypeCritic implements Critic<SQLObject> {
+/**
+ * Critic that checks for relationships that do not map any columns between
+ * tables or an invalid column type is mapped (ie integer to varchar).
+ */
+public class RelationshipMappingTypeCritic extends AbstractCritic<SQLObject> {
+    
+    public RelationshipMappingTypeCritic(Severity severity) {
+        super(severity);
+    }
 
+    /**
+     * XXX This critic accesses children of the object it is criticizing. This
+     * is more difficult to make safe when we move the critics to the background
+     * thread.
+     */
     public List<Criticism<SQLObject>> criticize(SQLObject so) {
         if (!(so instanceof SQLRelationship)) return Collections.emptyList();
         SQLRelationship subject = (SQLRelationship) so;
@@ -45,6 +61,7 @@ public class RelationshipMappingTypeCritic implements Critic<SQLObject> {
                 criticisms.add(new Criticism<SQLObject>(
                         subject,
                         "Columns related by FK constraint have different types",
+                        this,
                         new QuickFix("Change type of " + childTable.getName() + "." + childColumn.getName() + " (child column) to parent's type") {
                             @Override
                             public void apply() {
@@ -67,4 +84,7 @@ public class RelationshipMappingTypeCritic implements Critic<SQLObject> {
         return criticisms;
     }
 
+    public String getName() {
+        return "Valid mapping";
+    }
 }

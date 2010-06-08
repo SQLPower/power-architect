@@ -17,22 +17,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.ddl.critic;
+package ca.sqlpower.architect.ddl.critic.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import ca.sqlpower.architect.ddl.critic.Critic;
+import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
 import ca.sqlpower.sqlobject.SQLObject;
 
-public class PhysicalNameCritic implements Critic<SQLObject> {
+/**
+ * Criticizes the physical name of all SQLObjects based on the parameters given
+ * to the constructor.
+ */
+public class PhysicalNameCritic extends AbstractCritic<SQLObject> {
 
     private final Pattern legalNamePattern;
     private final int maxNameLength;
     private final String platformName;
 
-    public PhysicalNameCritic(String platformName, Pattern legalNamePattern, int maxNameLength) {
+    /**
+     * If the {@link SQLObject}s criticized do not match the pattern or is
+     * longer than the given max length criticisms will be created to warn the
+     * user.
+     * 
+     * @param platformName
+     *            The name of the platform we are criticizing. See
+     *            {@link Critic.StarterPlatformTypes} for examples.
+     * @param legalNamePattern
+     *            A {@link Pattern} that the names must match to prevent errors.
+     * @param maxNameLength
+     *            Names longer than this value in character count will be marked
+     *            as an error.
+     */
+    public PhysicalNameCritic(String platformName, Pattern legalNamePattern, int maxNameLength, 
+            Severity severity) {
+        super(severity);
         this.platformName = platformName;
         this.legalNamePattern = legalNamePattern;
         this.maxNameLength = maxNameLength;
@@ -49,6 +73,7 @@ public class PhysicalNameCritic implements Critic<SQLObject> {
             criticisms.add(new Criticism<SQLObject>(
                     so,
                     "Physical name too long for " + platformName,
+                    this,
                     new QuickFix("Truncate name to " + maxNameLength + " characters") {
                         public void apply() {
                             if (so.getPhysicalName() != null && so.getPhysicalName().length() > maxNameLength) {
@@ -60,11 +85,16 @@ public class PhysicalNameCritic implements Critic<SQLObject> {
         if (!legalNamePattern.matcher(physName).matches()) {
             criticisms.add(new Criticism<SQLObject>(
                     so,
-                    "Physical name not legal for " + platformName
+                    "Physical name not legal for " + platformName,
+                    this
                     // TODO: need replacement pattern to enable quickfix
                     ));
         }
         
         return criticisms;
+    }
+
+    public String getName() {
+        return "Physical name restrictions";
     }
 }

@@ -55,6 +55,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -69,6 +70,7 @@ import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.ddl.critic.Criticizer;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.layout.ArchitectLayout;
@@ -121,6 +123,9 @@ import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
+import ca.sqlpower.architect.swingui.critic.CriticManagerPanel;
+import ca.sqlpower.architect.swingui.critic.CriticPanel;
+import ca.sqlpower.architect.swingui.critic.CriticizeAction;
 import ca.sqlpower.architect.swingui.enterprise.ProjectSecurityPanel;
 import ca.sqlpower.architect.swingui.enterprise.RevisionListPanel;
 import ca.sqlpower.architect.swingui.enterprise.SecurityPanel;
@@ -132,8 +137,10 @@ import ca.sqlpower.enterprise.client.ConnectionTestAction;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.action.OpenUrlAction;
@@ -223,6 +230,16 @@ public class ArchitectFrame extends JFrame {
     private PasteSelectedAction pasteAction;
     
     private RefreshProjectAction refreshProjectAction;
+    
+    private Action showCriticsManagerAction = new AbstractAction(Messages.getString("ArchitectFrame.criticManagerName")) {
+        public void actionPerformed(ActionEvent e) {
+            JDialog criticManagerDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                    new CriticManagerPanel(session), ArchitectFrame.this, 
+                    Messages.getString("ArchitectFrame.criticManagerName"), "OK");
+            criticManagerDialog.pack();
+            criticManagerDialog.setVisible(true);
+        }
+    };
     
     /**
      * Closes all sessions and terminates the JVM.
@@ -394,6 +411,27 @@ public class ArchitectFrame extends JFrame {
             
         }        
     };
+
+    /**
+     * The panel to display criticisms about the play pen on.
+     */
+    private final CriticPanel criticPanel;
+    
+    /**
+     * This button allows users to toggle the critic panel's visibility.
+     */
+    private final JToggleButton criticPanelToggleButton = new JToggleButton(
+            new AbstractAction("", CriticizeAction.CRITIC_ICON) {
+    
+        public void actionPerformed(ActionEvent e) {
+            if (criticPanelToggleButton.isSelected()) {
+                new CriticizeAction(session).criticize();
+                criticPanel.getPanel().setVisible(true);
+            } else {
+                criticPanel.getPanel().setVisible(false);
+            }
+        }
+    });
     
     /**
      * This constructor is used by the session implementation. To obtain an
@@ -426,8 +464,14 @@ public class ArchitectFrame extends JFrame {
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(new JScrollPane(SPSUtils.getBrandedTreePanel(dbTree)));
         playpenScrollPane = new JScrollPane(playpen);
+        rightPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        rightPanel.setTopComponent(playpenScrollPane);
+        criticPanel = new CriticPanel(session);
+        rightPanel.setBottomComponent(criticPanel.getPanel());
+        criticPanel.getPanel().setVisible(false);
+        criticPanelToggleButton.setSelected(false);
         
-        splitPane.setRightComponent(playpenScrollPane);
+        splitPane.setRightComponent(rightPanel);
         playpen.setInitialViewPosition();
 
         final Preferences prefs = context.getPrefs();
@@ -650,6 +694,7 @@ public class ArchitectFrame extends JFrame {
         projectBar.addSeparator();
         projectBar.add(autoLayoutAction);
         projectBar.add(profileAction);
+        projectBar.add(criticPanelToggleButton);
         projectBar.setToolTipText(Messages.getString("ArchitectFrame.projectToolbarToolTip")); //$NON-NLS-1$
         projectBar.setName(Messages.getString("ArchitectFrame.projectToolbarName")); //$NON-NLS-1$
         
@@ -700,6 +745,8 @@ public class ArchitectFrame extends JFrame {
 
         cp.add(splitPane, BorderLayout.CENTER);
         logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
+        
+        criticPanel.init();
     }
     
     public JMenuBar createNewMenuBar() { 
@@ -894,6 +941,7 @@ public class ArchitectFrame extends JFrame {
                 session.getProfileDialog().setVisible(true);
             }
         });
+        windowMenu.add(new JMenuItem(showCriticsManagerAction));
         
         menuBar.add(windowMenu);
 
@@ -922,6 +970,11 @@ public class ArchitectFrame extends JFrame {
     }
    
     private JMenu enterpriseMenu;
+
+    /**
+     * The split pane that is the right side of the main ArchitectFrame.
+     */
+    private JSplitPane rightPanel;
     
     public JMenu getEnterpriseMenu() {
         return enterpriseMenu;
@@ -1233,6 +1286,20 @@ public class ArchitectFrame extends JFrame {
             }
         }
         return null;
+    }
+
+    /**
+     * Updates the critic panel to use the criticisms in the given criticizer.
+     * Will also display the critic panel if it is not visible.
+     */
+    public void updateCriticPanel(Criticizer<SQLObject> criticizer) {
+        criticPanel.getCriticismBucket().updateCriticismsToMatch(criticizer);
+        criticPanel.getPanel().setVisible(true);
+        final double screenHeight = splitPane.getHeight();
+        double viewHeight = Math.min(criticPanel.getPanel().getPreferredSize().getHeight(), 
+                screenHeight / 3);
+        rightPanel.setDividerLocation((int) (screenHeight - viewHeight));
+        criticPanelToggleButton.setSelected(true);
     }
 
 }

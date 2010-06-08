@@ -17,14 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ca.sqlpower.architect.ddl.critic;
+package ca.sqlpower.architect.ddl.critic.impl;
+
+import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+
 
 public class MySQLCommentCritic
     extends CommentCritic {
 
-    public MySQLCommentCritic() {
-        super("MySQL", 255, 60);
+    public MySQLCommentCritic(Severity severity) {
+        super("MySQL", 255, 60, severity);
     }
 
-
+    @Override
+    public String getName() {
+        return "MySQL comment restriction critic";
+    }
 }
