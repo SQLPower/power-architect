@@ -24,9 +24,9 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
@@ -36,10 +36,10 @@ import ca.sqlpower.sqlobject.SQLTable;
  * Critic that checks for relationships that do not map any columns between
  * tables or an invalid column type is mapped (ie integer to varchar).
  */
-public class RelationshipMappingTypeCritic extends AbstractCritic<SQLObject> {
+public class RelationshipMappingTypeCritic extends CriticAndSettings {
     
-    public RelationshipMappingTypeCritic(Severity severity) {
-        super(severity);
+    public RelationshipMappingTypeCritic() {
+        super(StarterPlatformTypes.GENERIC.getName(), "Valid mapping");
     }
 
     /**
@@ -82,9 +82,5 @@ public class RelationshipMappingTypeCritic extends AbstractCritic<SQLObject> {
             }
         }
         return criticisms;
-    }
-
-    public String getName() {
-        return "Valid mapping";
     }
 }

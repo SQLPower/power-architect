@@ -24,17 +24,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * Criticizes the physical name of all SQLObjects based on the parameters given
  * to the constructor.
  */
-public class PhysicalNameCritic extends AbstractCritic<SQLObject> {
+public class PhysicalNameCritic extends CriticAndSettings {
 
     private final Pattern legalNamePattern;
     private final int maxNameLength;
@@ -54,9 +57,12 @@ public class PhysicalNameCritic extends AbstractCritic<SQLObject> {
      *            Names longer than this value in character count will be marked
      *            as an error.
      */
-    public PhysicalNameCritic(String platformName, Pattern legalNamePattern, int maxNameLength, 
-            Severity severity) {
-        super(severity);
+    @Constructor
+    public PhysicalNameCritic(
+            @ConstructorParameter(propertyName="platformName") String platformName, 
+            @ConstructorParameter(propertyName="legalNamePattern") Pattern legalNamePattern, 
+            @ConstructorParameter(propertyName="maxNameLength") int maxNameLength) {
+        super(platformName, "Physical name restrictions");
         this.platformName = platformName;
         this.legalNamePattern = legalNamePattern;
         this.maxNameLength = maxNameLength;
@@ -69,23 +75,23 @@ public class PhysicalNameCritic extends AbstractCritic<SQLObject> {
         if (physName == null) return Collections.emptyList();
         
         List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
-        if (physName.length() > maxNameLength) {
+        if (physName.length() > getMaxNameLength()) {
             criticisms.add(new Criticism<SQLObject>(
                     so,
-                    "Physical name too long for " + platformName,
+                    "Physical name too long for " + getPlatformName(),
                     this,
-                    new QuickFix("Truncate name to " + maxNameLength + " characters") {
+                    new QuickFix("Truncate name to " + getMaxNameLength() + " characters") {
                         public void apply() {
-                            if (so.getPhysicalName() != null && so.getPhysicalName().length() > maxNameLength) {
-                                so.setPhysicalName(so.getPhysicalName().substring(maxNameLength));
+                            if (so.getPhysicalName() != null && so.getPhysicalName().length() > getMaxNameLength()) {
+                                so.setPhysicalName(so.getPhysicalName().substring(getMaxNameLength()));
                             }
                         }
                     }));
         }
-        if (!legalNamePattern.matcher(physName).matches()) {
+        if (!getLegalNamePattern().matcher(physName).matches()) {
             criticisms.add(new Criticism<SQLObject>(
                     so,
-                    "Physical name not legal for " + platformName,
+                    "Physical name not legal for " + getPlatformName(),
                     this
                     // TODO: need replacement pattern to enable quickfix
                     ));
@@ -94,7 +100,18 @@ public class PhysicalNameCritic extends AbstractCritic<SQLObject> {
         return criticisms;
     }
 
-    public String getName() {
-        return "Physical name restrictions";
+    @Accessor
+    public Pattern getLegalNamePattern() {
+        return legalNamePattern;
+    }
+
+    @Accessor
+    public int getMaxNameLength() {
+        return maxNameLength;
+    }
+
+    @Accessor
+    public String getPlatformName() {
+        return platformName;
     }
 }

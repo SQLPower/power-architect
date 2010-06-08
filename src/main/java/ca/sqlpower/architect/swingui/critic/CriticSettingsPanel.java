@@ -23,8 +23,8 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-import ca.sqlpower.architect.ddl.critic.CriticSettings;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -39,7 +39,7 @@ public class CriticSettingsPanel implements DataEntryPanel {
      * The critic settings the panel will allow editing of. The settings will
      * not change until apply changes has been called.
      */
-    private final CriticSettings settings;
+    private final CriticAndSettings settings;
     
     /**
      * The main panel of this data entry panel.
@@ -51,7 +51,7 @@ public class CriticSettingsPanel implements DataEntryPanel {
      */
     private final JComboBox severityCombo;
 
-    public CriticSettingsPanel(CriticSettings settings) {
+    public CriticSettingsPanel(CriticAndSettings settings) {
         this.settings = settings;
         
         panel = new JPanel();
@@ -60,7 +60,7 @@ public class CriticSettingsPanel implements DataEntryPanel {
         //It would be nice if the layout used a pref:grow style for the first
         //column but it makes it difficult to set the preferred size correctly.
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("175dlu, 5dlu, pref"), panel);
-        builder.append(settings.getCriticType().getSimpleName());
+        builder.append(settings.getName());
         builder.append(severityCombo);
     }
 

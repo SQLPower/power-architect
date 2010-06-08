@@ -21,7 +21,7 @@ package ca.sqlpower.architect.ddl.critic;
 
 import java.util.List;
 
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 
 /**
  * A critic is used by a {@link Criticizer} to find mistakes in a project.

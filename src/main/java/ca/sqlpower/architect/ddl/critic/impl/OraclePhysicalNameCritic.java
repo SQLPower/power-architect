@@ -21,9 +21,6 @@ package ca.sqlpower.architect.ddl.critic.impl;
 
 import java.util.regex.Pattern;
 
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.StarterPlatformTypes;
-
 /**
  * This is the physical name critic for Oracle name length restrictions. In the
  * future we will allow users to specify parameters for the critics so they can
@@ -31,14 +28,10 @@ import ca.sqlpower.architect.ddl.critic.CriticSettings.StarterPlatformTypes;
  */
 public class OraclePhysicalNameCritic extends PhysicalNameCritic {
 
-    public OraclePhysicalNameCritic(Severity severity) {
+    public OraclePhysicalNameCritic() {
         super(StarterPlatformTypes.ORACLE.getName(), 
                 Pattern.compile("^[a-z_][a-z0-9_]*$", Pattern.CASE_INSENSITIVE), 
-                30, severity);
+                30);
     }
     
-    @Override
-    public String getName() {
-        return "Oracle name restrictions";
-    }
 }

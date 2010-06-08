@@ -22,18 +22,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * Critic to ensure the primary key is not empty.
  */
-public class PrimaryKeyCritic extends AbstractCritic<SQLObject> {
+public class PrimaryKeyCritic extends CriticAndSettings {
     
-    public PrimaryKeyCritic(Severity severity) {
-        super(severity);
+    public PrimaryKeyCritic() {
+        super(StarterPlatformTypes.GENERIC.getName(), "Non-empty primary key");
     }
 
     public List<Criticism<SQLObject>> criticize(final SQLObject so) {
@@ -46,7 +46,4 @@ public class PrimaryKeyCritic extends AbstractCritic<SQLObject> {
         return criticisms;
     }
 
-    public String getName() {
-        return "Non-empty primary key";
-    }
 }

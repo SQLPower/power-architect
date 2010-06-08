@@ -24,8 +24,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.StarterPlatformTypes;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLCommentCritic;
 import ca.sqlpower.architect.ddl.critic.impl.OraclePhysicalNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.PrimaryKeyCritic;
@@ -53,22 +53,17 @@ public class CriticManager extends AbstractSPObject {
      * These are the critics that the critic manager will start with when it is
      * first created.
      */
-    private static final List<CriticSettings> STARTING_CRITICS = 
+    private static final List<CriticAndSettings> STARTING_CRITICS = 
         Collections.unmodifiableList(Arrays.asList(
-                new CriticSettings(OraclePhysicalNameCritic.class, StarterPlatformTypes.ORACLE.getName()),
-                new CriticSettings(MySQLCommentCritic.class, StarterPlatformTypes.MY_SQL.getName()),
-                new CriticSettings(PrimaryKeyCritic.class, StarterPlatformTypes.GENERIC.getName()), 
-                new CriticSettings(RelationshipMappingTypeCritic.class, StarterPlatformTypes.GENERIC.getName())));
+                new OraclePhysicalNameCritic(), 
+                new MySQLCommentCritic(),
+                new PrimaryKeyCritic(),
+                new RelationshipMappingTypeCritic()));
 
     /**
      * All of the critic groups known to this system.
      */
     private final List<CriticGrouping> criticGroupings = new ArrayList<CriticGrouping>();
-    
-    /**
-     * A factory for creating critics.
-     */
-    private final CriticFactory criticFactory = new CriticFactory();
     
     @Constructor
     public CriticManager() {
@@ -76,12 +71,20 @@ public class CriticManager extends AbstractSPObject {
     }
 
     /**
+     * Returns the list of starting critics. This list is final and will always
+     * return the critics in the same order.
+     */
+    public List<CriticAndSettings> getStartingCritics() {
+        return STARTING_CRITICS;
+    }
+
+    /**
      * Call this method to register the critics that come by default with
      * Architect.
      */
     public void registerStartingCritics() {
-        for (CriticSettings criticType : STARTING_CRITICS) {
-            registerCritic(criticType.getCriticType(), criticType.getPlatformType());
+        for (CriticAndSettings criticType : STARTING_CRITICS) {
+            registerCritic(criticType);
         }
     }
 
@@ -101,21 +104,17 @@ public class CriticManager extends AbstractSPObject {
      *            {@link StarterPlatformTypes} but can really be any value. It
      *            is used to group critics defined in the system logically.
      */
-    public void registerCritic(Class<? extends Critic<SQLObject>> criticClass, String platformType) {
+    public void registerCritic(CriticAndSettings critic) {
         for (CriticGrouping grouping : criticGroupings) {
-            if (grouping.getPlatformType().equals(platformType)) {
-                for (CriticSettings singleSettings : grouping.getSettings()) {
-                    //already registered
-                    if (singleSettings.getCriticType().equals(criticClass)) return;
-                }
-                grouping.addChild(new CriticSettings(criticClass, platformType), 
-                        grouping.getSettings().size());
+            if (grouping.getPlatformType().equals(critic.getPlatformType())) {
+                //already registered
+                grouping.addChild(critic, grouping.getSettings().size());
                 return;
             }
         }
-        final CriticGrouping newGrouping = new CriticGrouping(platformType);
+        final CriticGrouping newGrouping = new CriticGrouping(critic.getPlatformType());
         addChild(newGrouping, criticGroupings.size());
-        newGrouping.addChild(new CriticSettings(criticClass, platformType), 0);
+        newGrouping.addChild(critic, 0);
     }
     
     /**
@@ -126,10 +125,9 @@ public class CriticManager extends AbstractSPObject {
         List<Critic<SQLObject>> critics = new ArrayList<Critic<SQLObject>>();
         for (CriticGrouping grouping : criticGroupings) {
             if (!grouping.isEnabled()) continue;
-            for (CriticSettings singleSettings : grouping.getSettings()) {
+            for (CriticAndSettings singleSettings : grouping.getSettings()) {
                 if (Severity.IGNORE.equals(singleSettings.getSeverity())) continue;
-                critics.add(criticFactory.createCritic(
-                        singleSettings.getCriticType(), singleSettings.getSeverity()));
+                critics.add(singleSettings);
             }
         }
         return Collections.unmodifiableList(critics);
@@ -152,7 +150,7 @@ public class CriticManager extends AbstractSPObject {
         int index = criticGroupings.indexOf(child);
         boolean removed = criticGroupings.remove(child);
         if (removed) {
-            fireChildRemoved(CriticSettings.class, child, index);
+            fireChildRemoved(CriticAndSettings.class, child, index);
         }
         return removed;
     }

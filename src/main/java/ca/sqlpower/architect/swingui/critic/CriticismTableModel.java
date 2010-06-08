@@ -25,7 +25,7 @@ import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.ddl.critic.CriticismEvent;
 import ca.sqlpower.architect.ddl.critic.CriticismListener;
-import ca.sqlpower.architect.ddl.critic.CriticSettings.Severity;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 
 public class CriticismTableModel extends AbstractTableModel {
