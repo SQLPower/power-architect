@@ -78,7 +78,16 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
      * is normally from {@link StarterPlatformTypes}.
      */
     private final String platformType;
-    
+
+    /**
+     * @param platformType
+     *            A string that will group critics together. This is normally a
+     *            platform type name and can come from one of the
+     *            {@link StarterPlatformTypes}.
+     * @param name
+     *            A short name of the critic. Should give the user an idea of
+     *            what the critic will warn the user about.
+     */
     @Constructor
     public CriticAndSettings(
             @ConstructorParameter(propertyName="platformType") String platformType,
