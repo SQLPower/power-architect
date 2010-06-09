@@ -24,7 +24,6 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 
 /**
@@ -36,12 +35,12 @@ public class PrimaryKeyCritic extends CriticAndSettings {
         super(StarterPlatformTypes.GENERIC.getName(), "Non-empty primary key");
     }
 
-    public List<Criticism<SQLObject>> criticize(final SQLObject so) {
+    public List<Criticism> criticize(final Object so) {
         if (!(so instanceof SQLTable)) return Collections.emptyList();
         SQLTable t = (SQLTable) so;
-        List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
+        List<Criticism> criticisms = new ArrayList<Criticism>();
         if (t.getPkSize() == 0) {
-            criticisms.add(new Criticism<SQLObject>(t, "Table has no primary key defined", this));
+            criticisms.add(new Criticism(t, "Table has no primary key defined", this));
         }
         return criticisms;
     }

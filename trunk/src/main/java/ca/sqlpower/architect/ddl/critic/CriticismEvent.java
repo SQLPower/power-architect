@@ -24,15 +24,15 @@ package ca.sqlpower.architect.ddl.critic;
  */
 public class CriticismEvent {
 
-    private final Criticism<?> criticism;
+    private final Criticism criticism;
     private final int index;
     
-    public CriticismEvent(Criticism<?> criticism, int index) {
+    public CriticismEvent(Criticism criticism, int index) {
         this.criticism = criticism;
         this.index = index;
     }
 
-    public Criticism<?> getCriticism() {
+    public Criticism getCriticism() {
         return criticism;
     }
 

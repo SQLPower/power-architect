@@ -28,7 +28,6 @@ import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
 import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 
@@ -47,10 +46,10 @@ public class RelationshipMappingTypeCritic extends CriticAndSettings {
      * is more difficult to make safe when we move the critics to the background
      * thread.
      */
-    public List<Criticism<SQLObject>> criticize(SQLObject so) {
+    public List<Criticism> criticize(Object so) {
         if (!(so instanceof SQLRelationship)) return Collections.emptyList();
         SQLRelationship subject = (SQLRelationship) so;
-        List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
+        List<Criticism> criticisms = new ArrayList<Criticism>();
         for (SQLRelationship.ColumnMapping cm : subject.getChildren(
                 SQLRelationship.ColumnMapping.class)) {
             if (ArchitectUtils.columnsDiffer(cm.getFkColumn(), cm.getPkColumn())) {
@@ -58,7 +57,7 @@ public class RelationshipMappingTypeCritic extends CriticAndSettings {
                 final SQLTable parentTable = parentColumn.getParent();
                 final SQLColumn childColumn = cm.getFkColumn();
                 final SQLTable childTable = childColumn.getParent();
-                criticisms.add(new Criticism<SQLObject>(
+                criticisms.add(new Criticism(
                         subject,
                         "Columns related by FK constraint have different types",
                         this,

@@ -34,17 +34,15 @@ import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
  * be used.
  * <p>
  * Classes of this type must be immutable.
- * 
- * @param <S> The object type that will be analyzed to be criticized.
  */
-public interface Critic<S> {
+public interface Critic {
     
     /**
      * Analyzes the subject and returns a set of criticisms if there are
      * problems with the object. This should not change the subject in any way
      * including causing the subject to populate.
      */
-    public List<Criticism<S>> criticize(S subject);
+    public List<Criticism> criticize(Object subject);
 
     /**
      * The error level this critic was defined to be at when it was created.

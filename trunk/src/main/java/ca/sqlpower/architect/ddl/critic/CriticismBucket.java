@@ -29,22 +29,22 @@ import java.util.List;
  * creates them so the creation of the {@link Criticism}s is easier to done on a
  * separate thread.
  */
-public class CriticismBucket<S> {
+public class CriticismBucket {
 
     /**
      * The collection of most recent criticisms of the objects last passed to
      * this criticizer.
      */
-    private final List<Criticism<S>> criticisms = new ArrayList<Criticism<S>>();
+    private final List<Criticism> criticisms = new ArrayList<Criticism>();
     
     private final List<CriticismListener> listeners = new ArrayList<CriticismListener>();
     
-    public void updateCriticismsToMatch(Criticizer<S> criticizer) {
+    public void updateCriticismsToMatch(Criticizer criticizer) {
         clearCriticisms();
-        List<Criticism<S>> newCriticisms = criticizer.getCriticisms();
+        List<Criticism> newCriticisms = criticizer.getCriticisms();
         criticisms.addAll(newCriticisms);
         int index = criticisms.size();
-        for (Criticism<S> newCriticism : newCriticisms) {
+        for (Criticism newCriticism : newCriticisms) {
             for (int i = listeners.size() - 1; i >=0; i--) {
                 listeners.get(i).criticismAdded(new CriticismEvent(newCriticism, index));
             }
@@ -56,17 +56,17 @@ public class CriticismBucket<S> {
      * Removes all current criticisms from the criticizer.
      */
     private void clearCriticisms() {
-        ArrayList<Criticism<S>> oldCriticisms = new ArrayList<Criticism<S>>(criticisms);
+        ArrayList<Criticism> oldCriticisms = new ArrayList<Criticism>(criticisms);
         criticisms.clear();
         for (int i = oldCriticisms.size() - 1; i >= 0; i--) {
-            Criticism<S> oldCriticism = oldCriticisms.get(i);
+            Criticism oldCriticism = oldCriticisms.get(i);
             for (int j = listeners.size() - 1; j >=0; j--) {
                 listeners.get(j).criticismRemoved(new CriticismEvent(oldCriticism, i));
             }
         }
     }
     
-    public List<Criticism<S>> getCriticisms() {
+    public List<Criticism> getCriticisms() {
         return Collections.unmodifiableList(criticisms);
     }
     

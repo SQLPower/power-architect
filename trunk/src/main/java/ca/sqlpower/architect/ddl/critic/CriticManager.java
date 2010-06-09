@@ -34,7 +34,6 @@ import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.NonProperty;
-import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * A collection of settings that defines what critics are enabled in the system
@@ -121,8 +120,8 @@ public class CriticManager extends AbstractSPObject {
      * Returns a list of critics to calculate criticisms of objects passed to
      * them. These critics are immutable after they are created.
      */
-    public List<Critic<SQLObject>> createCritics() {
-        List<Critic<SQLObject>> critics = new ArrayList<Critic<SQLObject>>();
+    public List<Critic> createCritics() {
+        List<Critic> critics = new ArrayList<Critic>();
         for (CriticGrouping grouping : criticGroupings) {
             if (!grouping.isEnabled()) continue;
             for (CriticAndSettings singleSettings : grouping.getSettings()) {
