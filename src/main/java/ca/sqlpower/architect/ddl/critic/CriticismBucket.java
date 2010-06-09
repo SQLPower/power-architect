@@ -24,10 +24,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This bucket holds all of the current criticisms about the state of the system.
- * The bucket of current criticisms is separate from the {@link Criticizer} which
- * creates them so the creation of the {@link Criticism}s is easier to done on a
- * separate thread.
+ * This bucket holds all of the current criticisms about the state of the
+ * system. The bucket of current criticisms is separate from the
+ * {@link Criticizer} which creates them so the creation of the
+ * {@link Criticism}s is easier to done on a separate thread. Additionally, the
+ * criticism bucket can decide if criticisms being added should be appended to
+ * the existing list of criticisms, replace criticisms, or clear the list to
+ * start over.
  */
 public class CriticismBucket {
 
@@ -39,9 +42,8 @@ public class CriticismBucket {
     
     private final List<CriticismListener> listeners = new ArrayList<CriticismListener>();
     
-    public void updateCriticismsToMatch(Criticizer criticizer) {
+    public void updateCriticismsToMatch(List<Criticism> newCriticisms) {
         clearCriticisms();
-        List<Criticism> newCriticisms = criticizer.getCriticisms();
         criticisms.addAll(newCriticisms);
         int index = criticisms.size();
         for (Criticism newCriticism : newCriticisms) {

@@ -70,7 +70,7 @@ import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
-import ca.sqlpower.architect.ddl.critic.Criticizer;
+import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.layout.ArchitectLayout;
@@ -1288,11 +1288,11 @@ public class ArchitectFrame extends JFrame {
     }
 
     /**
-     * Updates the critic panel to use the criticisms in the given criticizer.
+     * Updates the critic panel to use the criticisms.
      * Will also display the critic panel if it is not visible.
      */
-    public void updateCriticPanel(Criticizer criticizer) {
-        criticPanel.getCriticismBucket().updateCriticismsToMatch(criticizer);
+    public void updateCriticPanel(List<Criticism> criticisms) {
+        criticPanel.getCriticismBucket().updateCriticismsToMatch(criticisms);
         criticPanel.getPanel().setVisible(true);
         final double screenHeight = splitPane.getHeight();
         double viewHeight = Math.min(criticPanel.getPanel().getPreferredSize().getHeight(), 

@@ -115,12 +115,13 @@ public class CriticManager extends AbstractSPObject {
         addChild(newGrouping, criticGroupings.size());
         newGrouping.addChild(critic, 0);
     }
-    
+
     /**
-     * Returns a list of critics to calculate criticisms of objects passed to
-     * them. These critics are immutable after they are created.
+     * Returns a list of criticisms calculated by critics in this manager based
+     * on the object passed to them. These criticisms are immutable after they
+     * are created.
      */
-    public List<Critic> createCritics() {
+    public List<Criticism> criticize(Object root) {
         List<Critic> critics = new ArrayList<Critic>();
         for (CriticGrouping grouping : criticGroupings) {
             if (!grouping.isEnabled()) continue;
@@ -129,7 +130,8 @@ public class CriticManager extends AbstractSPObject {
                 critics.add(singleSettings);
             }
         }
-        return Collections.unmodifiableList(critics);
+        Criticizer criticizer = new Criticizer(critics);
+        return Collections.unmodifiableList(criticizer.criticize(root));
     }
     
     @Override
