@@ -27,30 +27,27 @@ import java.util.List;
  * A Criticizer uses a collection of critics to analyze objects and come up with
  * criticisms based on the given objects. This object is immutable and can only
  * create a new set of criticisms.
- * 
- * @param <S>
- *            The object type that can be criticized with this criticizer.
  */
-public class Criticizer<S> {
+public class Criticizer {
 
-    private final List<Critic<S>> critics;
+    private final List<Critic> critics;
 
     /**
      * The collection of criticisms of the objects last calculated by this criticizer.
      */
-    private final List<Criticism<S>> criticisms;
+    private final List<Criticism> criticisms;
     
-    public Criticizer(List<Critic<S>> critics) {
-        this.critics = Collections.unmodifiableList(new ArrayList<Critic<S>>(critics));
-        criticisms = new ArrayList<Criticism<S>>();
+    public Criticizer(List<Critic> critics) {
+        this.critics = Collections.unmodifiableList(new ArrayList<Critic>(critics));
+        criticisms = new ArrayList<Criticism>();
     }
     
     /**
      * Runs one object through the list of active critics.
      */
-    public void criticize(S subject) {
-        for (Critic<S> critic : critics) {
-            List<Criticism<S>> newCriticisms = critic.criticize(subject);
+    public void criticize(Object subject) {
+        for (Critic critic : critics) {
+            List<Criticism> newCriticisms = critic.criticize(subject);
             criticisms.addAll(newCriticisms);
             // TODO record the critic-subject combination so it can be wiped out later
         }
@@ -63,7 +60,7 @@ public class Criticizer<S> {
      * 
      * @return an unmodifiable list of criticisms
      */
-    public List<Criticism<S>> getCriticisms() {
+    public List<Criticism> getCriticisms() {
         return criticisms;
     }
     

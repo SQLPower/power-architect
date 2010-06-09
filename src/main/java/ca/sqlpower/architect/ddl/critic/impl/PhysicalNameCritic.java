@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Critic;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
 import ca.sqlpower.object.annotation.Accessor;
@@ -69,14 +69,17 @@ public class PhysicalNameCritic extends CriticAndSettings {
         
     }
     
-    public List<Criticism<SQLObject>> criticize(final SQLObject so) {
+    public List<Criticism> criticize(final Object subject) {
+        if (!(subject instanceof SQLObject)) return Collections.emptyList();
+        
+        final SQLObject so = (SQLObject) subject;
         String physName = so.getPhysicalName();
         
         if (physName == null) return Collections.emptyList();
         
-        List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
+        List<Criticism> criticisms = new ArrayList<Criticism>();
         if (physName.length() > getMaxNameLength()) {
-            criticisms.add(new Criticism<SQLObject>(
+            criticisms.add(new Criticism(
                     so,
                     "Physical name too long for " + getPlatformName(),
                     this,
@@ -89,7 +92,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
                     }));
         }
         if (!getLegalNamePattern().matcher(physName).matches()) {
-            criticisms.add(new Criticism<SQLObject>(
+            criticisms.add(new Criticism(
                     so,
                     "Physical name not legal for " + getPlatformName(),
                     this

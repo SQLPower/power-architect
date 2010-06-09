@@ -28,13 +28,12 @@ import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
-import ca.sqlpower.sqlobject.SQLObject;
 
 /**
  * The settings of a specific {@link Critic}. Includes if the critic is enabled
  * and any additional settings to decide how to criticize the object model.
  */
-public abstract class CriticAndSettings extends AbstractSPObject implements CriticSettings, Critic<SQLObject> {
+public abstract class CriticAndSettings extends AbstractSPObject implements CriticSettings, Critic {
     
     /**
      * Defines an absolute ordering of the child types of this class.

@@ -26,13 +26,10 @@ import java.util.List;
  * If the enabled {@link Critic}s in the system find problems with the project
  * it will create criticisms. The criticisms can be used by users to help
  * understand errors in their model and do quick fixes for them as well.
- * 
- * @param <S>
- *            The object type this criticism can be found on.
  */
-public class Criticism<S> {
+public class Criticism {
 
-    private final S subject;
+    private final Object subject;
     private final String description;
     private final QuickFix[] fixes;
 
@@ -40,16 +37,16 @@ public class Criticism<S> {
      * The critic that created this criticism. Used to revalidate the criticism
      * and find out the error level of the criticism.
      */
-    private final Critic<S> critic;
+    private final Critic critic;
 
-    public Criticism(S subject, String description, Critic<S> critic, QuickFix ... fixes) {
+    public Criticism(Object subject, String description, Critic critic, QuickFix ... fixes) {
         this.subject = subject;
         this.description = description;
         this.critic = critic;
         this.fixes = fixes;
     }
     
-    public S getSubject() {
+    public Object getSubject() {
         return subject;
     }
     
@@ -61,7 +58,7 @@ public class Criticism<S> {
         return Arrays.asList(fixes);
     }
 
-    public Critic<S> getCritic() {
+    public Critic getCritic() {
         return critic;
     }
 }

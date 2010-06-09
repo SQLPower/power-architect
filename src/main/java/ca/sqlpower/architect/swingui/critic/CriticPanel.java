@@ -32,7 +32,6 @@ import javax.swing.table.TableCellRenderer;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.table.FancyExportableJTable;
 
@@ -89,13 +88,13 @@ public class CriticPanel {
      * The criticisms in the panel can be updated in this bucket to be valid
      * criticisms of the current project.
      */
-    private final CriticismBucket<SQLObject> criticismBucket;
+    private final CriticismBucket criticismBucket;
 
     private final ArchitectSwingSession session;
 
     public CriticPanel(ArchitectSwingSession session) {
         this.session = session;
-        criticismBucket = new CriticismBucket<SQLObject>();
+        criticismBucket = new CriticismBucket();
         
         CriticismTableModel tableModel = new CriticismTableModel(session.getWorkspace(), 
                 criticismBucket);
@@ -116,7 +115,7 @@ public class CriticPanel {
         return panel;
     }
     
-    public CriticismBucket<SQLObject> getCriticismBucket() {
+    public CriticismBucket getCriticismBucket() {
         return criticismBucket;
     }
     

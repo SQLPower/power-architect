@@ -30,7 +30,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 
 public class CriticismTableModel extends AbstractTableModel {
     
-    private final CriticismBucket<?> criticizer;
+    private final CriticismBucket criticizer;
     
     private final CriticismListener criticListener = new CriticismListener() {
     
@@ -49,7 +49,7 @@ public class CriticismTableModel extends AbstractTableModel {
      */
     private final ArchitectSwingProject project;
     
-    public CriticismTableModel(ArchitectSwingProject project, CriticismBucket<?> criticizer) {
+    public CriticismTableModel(ArchitectSwingProject project, CriticismBucket criticizer) {
         this.project = project;
         this.criticizer = criticizer;
         criticizer.addCriticismListener(criticListener);
@@ -88,7 +88,7 @@ public class CriticismTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Criticism<?> rowVal = criticizer.getCriticisms().get(rowIndex);
+        Criticism rowVal = criticizer.getCriticisms().get(rowIndex);
         if (columnIndex == 0) {
             return rowVal.getCritic().getSeverity();
         } else if (columnIndex == 1) {

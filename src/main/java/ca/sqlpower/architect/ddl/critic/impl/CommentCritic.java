@@ -30,7 +30,6 @@ import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 
 public class CommentCritic extends CriticAndSettings {
@@ -50,7 +49,7 @@ public class CommentCritic extends CriticAndSettings {
         this.maxTableCommentLength = maxLengthTable;
     }
     
-    public List<Criticism<SQLObject>> criticize(final SQLObject so) {
+    public List<Criticism> criticize(final Object so) {
         
         if (!(so instanceof SQLTable || so instanceof SQLColumn)) return Collections.emptyList();
 
@@ -65,9 +64,9 @@ public class CommentCritic extends CriticAndSettings {
             maxLength = getMaxColumnCommentLength();
         }
         
-        List<Criticism<SQLObject>> criticisms = new ArrayList<Criticism<SQLObject>>();
+        List<Criticism> criticisms = new ArrayList<Criticism>();
         if (remarks != null && remarks.length() > maxLength && maxLength > 0) {
-            criticisms.add(new Criticism<SQLObject>(
+            criticisms.add(new Criticism(
                     so,
                     "Comment too long for " + getPlatformName(),
                     this,

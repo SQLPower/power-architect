@@ -137,7 +137,6 @@ import ca.sqlpower.enterprise.client.ConnectionTestAction;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
@@ -1292,7 +1291,7 @@ public class ArchitectFrame extends JFrame {
      * Updates the critic panel to use the criticisms in the given criticizer.
      * Will also display the critic panel if it is not visible.
      */
-    public void updateCriticPanel(Criticizer<SQLObject> criticizer) {
+    public void updateCriticPanel(Criticizer criticizer) {
         criticPanel.getCriticismBucket().updateCriticismsToMatch(criticizer);
         criticPanel.getPanel().setVisible(true);
         final double screenHeight = splitPane.getHeight();

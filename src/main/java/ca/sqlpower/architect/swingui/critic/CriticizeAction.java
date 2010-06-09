@@ -57,14 +57,13 @@ public class CriticizeAction extends AbstractArchitectAction {
      * Call to do a full critique of the given session's play pen.
      */
     public void criticize() {
-        Criticizer<SQLObject> criticizer = new Criticizer<SQLObject>(
+        Criticizer criticizer = new Criticizer(
                 session.getWorkspace().getCriticManager().createCritics());
         try {
             recursivelyCriticize(session.getTargetDatabase(), criticizer);
         } catch (SQLObjectException ex) {
             throw new RuntimeException("Unexpected exception (because playpen is already populted)", ex);
         }
-        //XXX Train wreck.
         session.getArchitectFrame().updateCriticPanel(criticizer);
     }
 
@@ -80,7 +79,7 @@ public class CriticizeAction extends AbstractArchitectAction {
      *             attempt to populate it fails
      */
     @SuppressWarnings("unchecked")
-    private void recursivelyCriticize(SQLObject root, Criticizer<SQLObject> criticizer) throws SQLObjectException {
+    private void recursivelyCriticize(SQLObject root, Criticizer criticizer) throws SQLObjectException {
         
         // skip types that don't warrant criticism
         if ( (!(root instanceof SQLDatabase)) &&
