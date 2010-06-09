@@ -23,46 +23,79 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.object.SPObject;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
+
 /**
  * A Criticizer uses a collection of critics to analyze objects and come up with
  * criticisms based on the given objects. This object is immutable and can only
- * create a new set of criticisms.
+ * create a new set of criticisms. The criticizer is used to define how the 
+ * object and its descendants will be traversed as well as which critics will be
+ * informed of objects to criticize.
+ * <p>
+ * Package private because classes outside of the critics do not need to know about
+ * the implementation.
  */
-public class Criticizer {
+class Criticizer {
 
     private final List<Critic> critics;
 
-    /**
-     * The collection of criticisms of the objects last calculated by this criticizer.
-     */
-    private final List<Criticism> criticisms;
-    
     public Criticizer(List<Critic> critics) {
         this.critics = Collections.unmodifiableList(new ArrayList<Critic>(critics));
-        criticisms = new ArrayList<Criticism>();
     }
     
     /**
-     * Runs one object through the list of active critics.
+     * Runs an object through the list of active critics. This will also criticize all
+     * descendants if it is an {@link SPObject}.
      */
-    public void criticize(Object subject) {
-        for (Critic critic : critics) {
-            List<Criticism> newCriticisms = critic.criticize(subject);
-            criticisms.addAll(newCriticisms);
-            // TODO record the critic-subject combination so it can be wiped out later
-        }
+    public List<Criticism> criticize(Object subject) {
+        return recursivelyCriticize(subject);
     }
     
     /**
-     * Returns a linear view of the criticisms.
-     * <p>
-     * XXX decide what should dictate the order
      * 
-     * @return an unmodifiable list of criticisms
+     * @param root
+     *            The SQLObject to criticize
+     * @param criticizer
+     *            The criticizer that will examine the subtree at root and
+     *            accumulate criticisms about it
+     * @throws SQLObjectException
+     *             if the (sub)tree under root is not already populated, and an
+     *             attempt to populate it fails
      */
-    public List<Criticism> getCriticisms() {
+    @SuppressWarnings("unchecked")
+    private List<Criticism> recursivelyCriticize(Object root) {
+        List<Criticism> criticisms = new ArrayList<Criticism>();
+        
+        // skip types that don't warrant criticism
+        if ( (!(root instanceof SQLDatabase)) &&
+             (!(root instanceof SQLRelationship.ColumnMapping)) ) {
+            for (Critic critic : critics) {
+                List<Criticism> newCriticisms = critic.criticize(root);
+                criticisms.addAll(newCriticisms);
+                // TODO record the critic-subject combination so it can be wiped out later
+            }
+        }
+        
+        if (root instanceof SPObject) {
+            for (SPObject child : (List<SPObject>) ((SPObject) root).getChildren()) {
+                try {
+                    if (child instanceof SQLImportedKey
+                            && ((SQLTable) root).getImportedKeys().contains(child)) {
+                        // skip contents of every imported keys folder, or else we will visit every relationship twice
+                        continue;
+                    }
+                } catch (SQLObjectException e) {
+                    throw new RuntimeException(e);
+                }
+                recursivelyCriticize(child);
+            }
+        }
         return criticisms;
     }
-    
     
 }

@@ -96,8 +96,7 @@ public class CriticPanel {
         this.session = session;
         criticismBucket = new CriticismBucket();
         
-        CriticismTableModel tableModel = new CriticismTableModel(session.getWorkspace(), 
-                criticismBucket);
+        CriticismTableModel tableModel = new CriticismTableModel(criticismBucket);
         FancyExportableJTable table = new FancyExportableJTable(tableModel);
         table.setDefaultRenderer(Severity.class, tableRenderer);
         panel = new JPanel(new BorderLayout());

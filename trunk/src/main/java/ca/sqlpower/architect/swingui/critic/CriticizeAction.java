@@ -24,16 +24,10 @@ import java.util.List;
 
 import javax.swing.Icon;
 
-import ca.sqlpower.architect.ddl.critic.Criticizer;
+import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
-import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -57,43 +51,9 @@ public class CriticizeAction extends AbstractArchitectAction {
      * Call to do a full critique of the given session's play pen.
      */
     public void criticize() {
-        Criticizer criticizer = new Criticizer(
-                session.getWorkspace().getCriticManager().createCritics());
-        try {
-            recursivelyCriticize(session.getTargetDatabase(), criticizer);
-        } catch (SQLObjectException ex) {
-            throw new RuntimeException("Unexpected exception (because playpen is already populted)", ex);
-        }
-        session.getArchitectFrame().updateCriticPanel(criticizer);
+        List<Criticism> criticisms = session.getWorkspace().getCriticManager().criticize(
+                session.getTargetDatabase());
+        session.getArchitectFrame().updateCriticPanel(criticisms);
     }
 
-    /**
-     * 
-     * @param root
-     *            The SQLObject to criticize
-     * @param criticizer
-     *            The criticizer that will examine the subtree at root and
-     *            accumulate criticisms about it
-     * @throws SQLObjectException
-     *             if the (sub)tree under root is not already populated, and an
-     *             attempt to populate it fails
-     */
-    @SuppressWarnings("unchecked")
-    private void recursivelyCriticize(SQLObject root, Criticizer criticizer) throws SQLObjectException {
-        
-        // skip types that don't warrant criticism
-        if ( (!(root instanceof SQLDatabase)) &&
-             (!(root instanceof SQLRelationship.ColumnMapping)) ) {
-            criticizer.criticize(root);
-        }
-        
-        for (SQLObject child : (List<SQLObject>) root.getChildren()) {
-            if (child instanceof SQLImportedKey
-                    && ((SQLTable) root).getImportedKeys().contains(child)) {
-                // skip contents of every imported keys folder, or else we will visit every relationship twice
-                continue;
-            }
-            recursivelyCriticize(child, criticizer);
-        }
-    }
 }

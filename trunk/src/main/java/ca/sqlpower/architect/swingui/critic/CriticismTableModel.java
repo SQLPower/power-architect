@@ -26,7 +26,6 @@ import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.ddl.critic.CriticismEvent;
 import ca.sqlpower.architect.ddl.critic.CriticismListener;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
-import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 
 public class CriticismTableModel extends AbstractTableModel {
     
@@ -43,14 +42,7 @@ public class CriticismTableModel extends AbstractTableModel {
         }
     };
 
-    /**
-     * The project that holds a critic manager to access critic settings. The
-     * settings will be used to display the criticisms.
-     */
-    private final ArchitectSwingProject project;
-    
-    public CriticismTableModel(ArchitectSwingProject project, CriticismBucket criticizer) {
-        this.project = project;
+    public CriticismTableModel(CriticismBucket criticizer) {
         this.criticizer = criticizer;
         criticizer.addCriticismListener(criticListener);
     }
