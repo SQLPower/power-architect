@@ -38,7 +38,7 @@ import ca.sqlpower.sqlobject.SQLTable;
 public class RelationshipMappingTypeCritic extends CriticAndSettings {
     
     public RelationshipMappingTypeCritic() {
-        super(StarterPlatformTypes.GENERIC.getName(), "Valid mapping");
+        super(StarterPlatformTypes.GENERIC.getName(), "Relationships map columns of different types");
     }
 
     /**
