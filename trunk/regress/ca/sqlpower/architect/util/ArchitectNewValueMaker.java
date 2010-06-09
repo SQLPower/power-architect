@@ -22,6 +22,7 @@ package ca.sqlpower.architect.util;
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ProjectSettings;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
+import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPRootObject;
@@ -79,6 +80,8 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             return settings;
         } else if (valueType == KettleSettings.class) {
             return ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).getKettleSettings();
+        } else if (valueType == CriticManager.class) {
+            return ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).getCriticManager();
         } else if (valueType == ColumnVisibility.class) { 
             if (oldVal != ColumnVisibility.ALL) {
                 return ColumnVisibility.ALL;
