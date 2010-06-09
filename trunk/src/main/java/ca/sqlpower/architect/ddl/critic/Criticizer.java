@@ -92,7 +92,7 @@ class Criticizer {
                 } catch (SQLObjectException e) {
                     throw new RuntimeException(e);
                 }
-                recursivelyCriticize(child);
+                criticisms.addAll(recursivelyCriticize(child));
             }
         }
         return criticisms;
