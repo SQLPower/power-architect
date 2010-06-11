@@ -28,6 +28,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.object.AbstractPoolingSPListener;
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.CleanupExceptions;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
@@ -59,10 +60,10 @@ public class CriticBadge extends PlayPenComponent {
      * Listener attached to the {@link #UIOfSubject} object to be notified when
      * it moves. This lets us correct our location to give chase.
      */
-    private final SPListener UISubjectMoveListener = new AbstractPoolingSPListener() {
+    private final SPListener UISubjectMoveListener = new AbstractSPListener() {
         
         @Override
-        public void propertyChangeImpl(PropertyChangeEvent evt) {
+        public void propertyChanged(PropertyChangeEvent evt) {
             revalidate();
         }
     };
