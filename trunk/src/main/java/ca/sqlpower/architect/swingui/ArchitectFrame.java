@@ -1300,5 +1300,9 @@ public class ArchitectFrame extends JFrame {
         rightPanel.setDividerLocation((int) (screenHeight - viewHeight));
         criticPanelToggleButton.setSelected(true);
     }
+    
+    public CriticPanel getCriticPanel() {
+        return criticPanel;
+    }
 
 }

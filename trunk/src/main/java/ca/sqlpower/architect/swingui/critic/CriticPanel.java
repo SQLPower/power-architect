@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.critic;
 
 import java.awt.BorderLayout;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -29,6 +30,7 @@ import javax.swing.JScrollPane;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
+import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.swingui.table.FancyExportableJTable;
@@ -73,11 +75,13 @@ public class CriticPanel {
 
     private final ArchitectSwingSession session;
 
+    private final FancyExportableJTable table;
+
     public CriticPanel(ArchitectSwingSession session) {
         this.session = session;
         
         CriticismTableModel tableModel = new CriticismTableModel(session.getPlayPen().getCriticismBucket());
-        FancyExportableJTable table = new FancyExportableJTable(tableModel);
+        table = new FancyExportableJTable(tableModel);
         table.setDefaultRenderer(Severity.class, tableRenderer);
         panel = new JPanel(new BorderLayout());
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -94,4 +98,11 @@ public class CriticPanel {
         return panel;
     }
     
+    public void selectCriticisms(List<Criticism> selectMe) {
+        table.clearSelection();
+        for (Criticism criticism : selectMe) {
+            int index = session.getPlayPen().getCriticismBucket().getCriticisms().indexOf(criticism);
+            table.changeSelection(index, index, true, false);
+        }
+    }
 }

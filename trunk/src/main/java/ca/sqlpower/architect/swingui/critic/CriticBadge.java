@@ -168,6 +168,10 @@ public class CriticBadge extends PlayPenComponent {
     
     @Override
     public void handleMouseEvent(MouseEvent evt) {
+        if ((evt.getID() == MouseEvent.MOUSE_RELEASED || evt.getID() == MouseEvent.MOUSE_CLICKED) && 
+                evt.getButton() == MouseEvent.BUTTON1) {
+            getPlayPen().getSession().getArchitectFrame().getCriticPanel().selectCriticisms(criticisms);
+        }
         // TODO left click should highlight criticisms in the panel in the play pen
         // TODO right click should give a menu option to ignore a critic on the subject.
     }
