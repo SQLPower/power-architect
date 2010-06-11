@@ -262,4 +262,7 @@ public class UsageComponentUI implements PlayPenComponentUI {
         uc.getPane2().addSPListener(componentEventHandler);
     }
 
+    public Point getPointForModelObject(Object modelObject) {
+        return c.getLocation();
+    }
 }

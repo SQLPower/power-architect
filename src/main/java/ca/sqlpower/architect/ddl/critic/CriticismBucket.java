@@ -20,8 +20,12 @@
 package ca.sqlpower.architect.ddl.critic;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 
 /**
  * This bucket holds all of the current criticisms about the state of the
@@ -70,6 +74,24 @@ public class CriticismBucket {
     
     public List<Criticism> getCriticisms() {
         return Collections.unmodifiableList(criticisms);
+    }
+    
+    public List<Criticism> getCriticismsByObject(Object subject) {
+        List<Criticism> selectedCriticisms = new ArrayList<Criticism>();
+        for (Criticism criticism : criticisms) {
+            if (criticism.getSubject().equals(subject)) {
+                selectedCriticisms.add(criticism);
+            }
+        }
+        return selectedCriticisms;
+    }
+    
+    public Collection<Object> getCriticismSubjects() {
+        Set<Object> subjects = new HashSet<Object>();
+        for (Criticism criticism : criticisms) {
+            subjects.add(criticism.getSubject());
+        }
+        return subjects;
     }
     
     public void addCriticismListener(CriticismListener l) {

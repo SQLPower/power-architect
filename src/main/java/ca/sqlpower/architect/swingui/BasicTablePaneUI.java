@@ -521,4 +521,36 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
             return fullTag.toString();
         }
     }
+    
+    public Point getPointForModelObject(Object modelObject) {
+        Point location = tablePane.getLocation();
+        if (!tablePane.getItems().contains(modelObject) || tablePane.getFont() == null) {
+            return location;
+        }
+        
+        //This should line up with painting the columns
+        int y = location.y;
+        Font font = tablePane.getFont();
+        FontMetrics metrics = tablePane.getFontMetrics(font);
+        int fontHeight = metrics.getHeight();
+        //Title
+        y += fontHeight;
+        
+        if (!((SQLColumn) modelObject).isPrimaryKey()) {
+            y += PK_GAP;
+        }
+        Iterator<SQLColumn> colNameIt = tablePane.getItems().iterator();
+        while (colNameIt.hasNext()) {
+            SQLColumn col = colNameIt.next();
+            
+            if (col.equals(modelObject)) {
+                return new Point(location.x, y);
+            }
+            
+            y += fontHeight;
+        }
+        
+        //This should never really be reached.
+        return tablePane.getLocation();
+    }
 }

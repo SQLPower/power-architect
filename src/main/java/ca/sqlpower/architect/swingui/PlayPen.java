@@ -92,6 +92,7 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -404,7 +405,7 @@ public class PlayPen extends JPanel
 	    List<PlayPenComponent> relationshipsLast = new ArrayList<PlayPenComponent>();
 	    List<Relationship> relations = contentPane.getChildren(Relationship.class);
 	    List<UsageComponent> usages = contentPane.getChildren(UsageComponent.class);
-	    relationshipsLast.addAll(contentPane.getChildren());
+	    relationshipsLast.addAll(contentPane.getAllChildren());
 	    relationshipsLast.removeAll(relations);
 	    relationshipsLast.addAll(relations);
 	    relationshipsLast.removeAll(usages);	  
@@ -604,6 +605,13 @@ public class PlayPen extends JPanel
 	 */
 	private boolean ignoreTreeSelection = false;
 	
+    /**
+     * The {@link CriticismBucket} that stays around for the life of the panel.
+     * The criticisms in the panel can be updated in this bucket to be valid
+     * criticisms of the current project.
+     */
+    private final CriticismBucket criticismBucket = new CriticismBucket();
+    
 	public PlayPen(ArchitectSwingSession session) {
 	    this(session, session.getTargetDatabase());
 	}
@@ -3437,6 +3445,10 @@ public class PlayPen extends JPanel
         for (int i = lifecycleListeners.size() - 1; i >= 0; i--) {
             lifecycleListeners.get(i).PlayPenLifeEnding(evt);
         }
+    }
+    
+    public CriticismBucket getCriticismBucket() {
+        return criticismBucket;
     }
 
 }
