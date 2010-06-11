@@ -165,9 +165,11 @@ public class CriticBadge extends PlayPenComponent {
     
     private void updateToolTipText() {
         StringBuffer buffer = new StringBuffer();
+        buffer.append("<html>");
         for (Criticism criticism : criticisms) {
-            buffer.append(criticism.getDescription() + "\n");
+            buffer.append(criticism.getDescription() + "<br>");
         }
+        buffer.append("</html>");
         setToolTipText(buffer.toString());
     }
     
