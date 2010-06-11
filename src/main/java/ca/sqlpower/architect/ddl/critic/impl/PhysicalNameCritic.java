@@ -86,7 +86,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
                     new QuickFix("Truncate name to " + getMaxNameLength() + " characters") {
                         public void apply() {
                             if (so.getPhysicalName() != null && so.getPhysicalName().length() > getMaxNameLength()) {
-                                so.setPhysicalName(so.getPhysicalName().substring(getMaxNameLength()));
+                                so.setPhysicalName(so.getPhysicalName().substring(0, getMaxNameLength()));
                             }
                         }
                     }));
