@@ -92,7 +92,7 @@ public class CriticPanel {
     public CriticPanel(ArchitectSwingSession session) {
         this.session = session;
         
-        CriticismTableModel tableModel = new CriticismTableModel(session.getPlayPen().getCriticismBucket());
+        CriticismTableModel tableModel = new CriticismTableModel(session, session.getPlayPen().getCriticismBucket());
         table = new FancyExportableJTable(tableModel);
         table.setDefaultRenderer(Severity.class, tableRenderer);
         panel = new JPanel(new BorderLayout());
