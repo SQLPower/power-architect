@@ -21,6 +21,9 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -47,6 +50,25 @@ public class SQLTypeTreePopupAction extends AbstractAction {
     private final JTree colType;
     private final JButton typeChooserButton;
     private PopupListenerHandler popupListenerHandler;
+    
+    private final TreeSelectionListener treeListener = new TreeSelectionListener() {
+        public void valueChanged(TreeSelectionEvent e) {
+            TreePath path = e.getNewLeadSelectionPath();
+            if (path != null) {
+                Object node = path.getLastPathComponent();
+                if (node instanceof UserDefinedSQLType) {
+                    popupCleanup();
+                }
+            }
+        }
+    };
+    
+    private final FocusListener focusListener = new FocusAdapter() {
+        @Override
+        public void focusLost(FocusEvent e) {
+            popupCleanup();
+        }
+    };
 
     /**
      * Creates a new {@link SQLTypeTreePopupAction} given the {@link JPanel} the
@@ -76,7 +98,7 @@ public class SQLTypeTreePopupAction extends AbstractAction {
      */
     public void actionPerformed(ActionEvent e) {
         if (popupListenerHandler != null && popupListenerHandler.isPopupVisible()) {
-            popupListenerHandler.cleanup();
+            popupCleanup();
         } else {
             Point windowLocation = new Point(0, 0);
             SwingUtilities.convertPointToScreen(windowLocation, typeChooserButton);
@@ -86,16 +108,27 @@ public class SQLTypeTreePopupAction extends AbstractAction {
             // popup listener handler to the tree
             popupListenerHandler = 
                 SPSUtils.popupComponent(panel, colType, windowLocation);
+            popupConnect();
+        }
+    }
+    
+    private void popupConnect() {
+        if (popupListenerHandler != null) {
             popupListenerHandler.connect();
-            colType.addTreeSelectionListener(new TreeSelectionListener() {
-                public void valueChanged(TreeSelectionEvent e) {
-                    TreePath path = e.getNewLeadSelectionPath();
-                    Object node = path.getLastPathComponent();
-                    if (node instanceof UserDefinedSQLType) {
-                        popupListenerHandler.cleanup();
-                    }
-                }
-            });
+        }
+        if (colType != null) {
+            colType.addTreeSelectionListener(treeListener);
+            colType.addFocusListener(focusListener);
+        }
+    }
+    
+    private void popupCleanup() {
+        if (popupListenerHandler != null && popupListenerHandler.isPopupVisible()) {
+            popupListenerHandler.cleanup();
+        }
+        if (colType != null) {
+            colType.removeTreeSelectionListener(treeListener);
+            colType.removeFocusListener(focusListener);
         }
     }
 

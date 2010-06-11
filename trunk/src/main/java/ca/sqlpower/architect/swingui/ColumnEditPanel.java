@@ -186,6 +186,10 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     private final JComboBox colAutoInc;
     
+    private final JCheckBox colPrecCB;
+    
+    private final JCheckBox colScaleCB;
+    
     /**
      * Text field for the name of the sequence that will generate this column's
      * default values. In multi-edit mode, this component will be null. 
@@ -362,7 +366,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         panel.add(colPrec = createPrecisionEditor(), cc.xy(3, row));
         colPrec.addChangeListener(checkboxEnabler);
         SPSUtils.makeJSpinnerSelectAllTextOnFocus(colPrec);
-        final JCheckBox colPrecCB = new JCheckBox();
+        colPrecCB = new JCheckBox();
         panel.add(colPrecCB, cc.xy(2, row));
         typeOverrideMap.put(colPrec, colPrecCB);
         colPrecCB.addChangeListener(new ChangeListener() {
@@ -381,7 +385,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         });
         colPrec.setEnabled(false);
         
-        final JCheckBox colScaleCB = new JCheckBox();
+        colScaleCB = new JCheckBox();
         panel.add(colScaleCB, cc.xy(5, row));
         panel.add(colScale = createScaleEditor(), cc.xy(6, row++));
         typeOverrideMap.put(colScale, colScaleCB);
@@ -836,8 +840,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     column.getUserDefinedSQLType().setUpstreamType(upstreamType);
                     
                     // Set scale
-                    if (column.getScaleType() == PropertyType.CONSTANT
-                            || typeOverrideMap.get(colScale).isSelected()) {
+                    if (typeOverrideMap.get(colScale).isSelected()) {
                         column.setScale(((Integer) colScale.getValue()).intValue());
                     } else {
                         column.getUserDefinedSQLType().setScale(
@@ -846,8 +849,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     }
                     
                     // Set precision
-                    if (column.getPrecisionType() == PropertyType.CONSTANT
-                            || typeOverrideMap.get(colPrec).isSelected()) {
+                    if (typeOverrideMap.get(colPrec).isSelected()) {
                         column.setPrecision(((Integer) colPrec.getValue()).intValue());
                     } else {
                         column.getUserDefinedSQLType().setPrecision(
