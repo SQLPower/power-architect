@@ -19,13 +19,18 @@
 
 package ca.sqlpower.architect.swingui.critic;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.JPopupMenu;
+
 import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.architect.ddl.critic.QuickFix;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.AbstractSPListener;
@@ -172,8 +177,19 @@ public class CriticBadge extends PlayPenComponent {
                 evt.getButton() == MouseEvent.BUTTON1) {
             getPlayPen().getSession().getArchitectFrame().getCriticPanel().selectCriticisms(criticisms);
         }
-        // TODO left click should highlight criticisms in the panel in the play pen
-        // TODO right click should give a menu option to ignore a critic on the subject.
+        if (evt.isPopupTrigger()) {
+            JPopupMenu menu = new JPopupMenu();
+            for (Criticism criticism : criticisms) {
+                for (final QuickFix quickFix : criticism.getFixes()) {
+                    menu.add(new AbstractAction(quickFix.getDescription()) {
+                        public void actionPerformed(ActionEvent arg0) {
+                            quickFix.apply();
+                        }
+                    });
+                }
+            }
+            menu.show(getPlayPen(), evt.getX(), evt.getY());
+        }
     }
 
     /**
