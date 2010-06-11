@@ -29,10 +29,8 @@ import javax.swing.JScrollPane;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
-import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.table.FancyExportableJTable;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -43,16 +41,6 @@ import com.jgoodies.forms.builder.ButtonBarBuilder;
  */
 public class CriticPanel {
 
-    /**
-     * Error icon to go along with criticisms that are flagged to be errors.
-     */
-    private static final ImageIcon ERROR_ICON = SPSUtils.createIcon("error", "error badge");
-    
-    /**
-     * Warning icon to go along with criticisms that are flagged to be warnings.
-     */
-    private static final ImageIcon WARNING_ICON = SPSUtils.createIcon("warning", "warning badge");
-    
     /**
      * A cell renderer that can display badges with the criticisms.
      */
@@ -69,9 +57,9 @@ public class CriticPanel {
         
         private ImageIcon getIcon(Severity severity) {
             if (severity == Severity.ERROR) {
-                return ERROR_ICON;
+                return CriticSwingUtil.ERROR_ICON;
             } else if (severity == Severity.WARNING) {
-                return WARNING_ICON;
+                return CriticSwingUtil.WARNING_ICON;
             } else {
                 return null;
             }
@@ -83,20 +71,12 @@ public class CriticPanel {
      */
     private JPanel panel;
 
-    /**
-     * The {@link CriticismBucket} that stays around for the life of the panel.
-     * The criticisms in the panel can be updated in this bucket to be valid
-     * criticisms of the current project.
-     */
-    private final CriticismBucket criticismBucket;
-
     private final ArchitectSwingSession session;
 
     public CriticPanel(ArchitectSwingSession session) {
         this.session = session;
-        criticismBucket = new CriticismBucket();
         
-        CriticismTableModel tableModel = new CriticismTableModel(criticismBucket);
+        CriticismTableModel tableModel = new CriticismTableModel(session.getPlayPen().getCriticismBucket());
         FancyExportableJTable table = new FancyExportableJTable(tableModel);
         table.setDefaultRenderer(Severity.class, tableRenderer);
         panel = new JPanel(new BorderLayout());
@@ -112,10 +92,6 @@ public class CriticPanel {
     
     public JPanel getPanel() {
         return panel;
-    }
-    
-    public CriticismBucket getCriticismBucket() {
-        return criticismBucket;
     }
     
 }

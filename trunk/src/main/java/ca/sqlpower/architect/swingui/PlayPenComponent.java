@@ -34,12 +34,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -725,6 +727,34 @@ implements Selectable {
      */
     public void connect() {
         //by default do nothing.
+    }
+    
+    /**
+     * Collects a list of criticisms on the model object that this component is
+     * displaying.
+     */
+    public List<Criticism> findCriticisms() {
+        return getPlayPen().getCriticismBucket().getCriticismsByObject(getModel());
+    }
+
+    /**
+     * Returns a point on the UI object that is most reasonable to attach
+     * additional text or objects to for the given model object or a part of the
+     * model. If the component is made up of multiple parts the object passed in
+     * may change the desired location to put an icon near the part.
+     * <p>
+     * Default is the top left point of the component returned by getLocation().
+     * 
+     * @param modelObject
+     *            The model of this component or an object that is part of the
+     *            model, normally a descendant.
+     * @return A point that is the best location to place an icon or text at. If
+     *         the given modelObject does not belong to this component a
+     *         reasonable point for the component will still be returned.
+     */
+    @Transient @Accessor
+    public Point getPointForModelObject(@Nonnull Object modelObject) {
+        return getUI().getPointForModelObject(modelObject);
     }
 
 }

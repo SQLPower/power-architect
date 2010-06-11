@@ -27,11 +27,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.ddl.critic.CriticismEvent;
+import ca.sqlpower.architect.ddl.critic.CriticismListener;
 import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.swingui.critic.CriticBadge;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.AbstractSPObject;
@@ -44,8 +47,14 @@ import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
+import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 
 public class PlayPenContentPane extends AbstractSPObject {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
@@ -109,6 +118,59 @@ public class PlayPenContentPane extends AbstractSPObject {
         }
         
     };
+
+    /**
+     * Each badge in this list marks a UI object to have criticisms on the UI or
+     * model object that is the subject of the badge. These badges are transient
+     * and so stored here instead of in the content pane where they would then
+     * be persisted.
+     * <p>
+     * IMPORTANT NOTE! These badges are NOT part of the objects returned by
+     * getChildren. The badges are generated based on critics and neither the
+     * badges or the criticisms are to be persisted, instead they are generated.
+     * These badges may look like children but they are closer to being a kind
+     * of transient child.
+     */
+    private final Map<Object, CriticBadge> badges = new HashMap<Object, CriticBadge>();
+    
+    private final CriticismListener criticismListener = new CriticismListener() {
+    
+        public void criticismRemoved(CriticismEvent e) {
+            CriticBadge badge = badges.get(e.getCriticism().getSubject());
+            if (badge != null) {
+                badge.removeCriticism(e.getCriticism());
+                if (badge.getCriticisms().isEmpty()) {
+                    removeCriticBadge(badge);
+                }
+            }
+        }
+    
+        public void criticismAdded(CriticismEvent e) {
+            Object subject = e.getCriticism().getSubject();
+            CriticBadge badge = badges.get(subject);
+            if (badge != null) {
+                badge.addCriticism(e.getCriticism());
+            } else if (subject instanceof SQLTable || subject instanceof SQLRelationship
+                    || subject instanceof SQLIndex || subject instanceof SQLColumn ||
+                    subject instanceof SQLImportedKey) {
+                //XXX May want a more generic way to find targets that can be badged in the future.
+                Object UISubject;
+                if (subject instanceof SQLIndex || subject instanceof SQLColumn) {
+                    UISubject = ((SPObject) subject).getParent();
+                } else if (subject instanceof SQLImportedKey) {
+                    UISubject = ((SQLImportedKey) subject).getRelationship();
+                } else {
+                    UISubject = subject;
+                }
+                PlayPenComponent ppc = getPlayPen().findPPComponent(UISubject);
+                if (ppc != null) {
+                    badge = new CriticBadge(Collections.singletonList(e.getCriticism()), 
+                            subject, ppc);
+                    addCriticBadge(badge);
+                }
+            }
+        }
+    };
 	
 	@Constructor
 	public PlayPenContentPane(@ConstructorParameter(propertyName="modelContainer") SPObject modelContainer) {
@@ -158,6 +220,7 @@ public class PlayPenContentPane extends AbstractSPObject {
         this.playPen = owner;
         setPlayPenListeningToComponents();
         if (owner != null) {
+            owner.getCriticismBucket().addCriticismListener(criticismListener);
             owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
             firePropertyChange("playPen", null, owner);
         }
@@ -182,7 +245,8 @@ public class PlayPenContentPane extends AbstractSPObject {
 
     /**
      * Looks for tooltip text in the component under the pointer,
-     * respecting the current zoom level.
+     * respecting the current zoom level. Returns null if there is
+     * no object at the mouse event for the tool tip.
      */
     @Transient @Accessor
     public String getToolTipText(MouseEvent e) {
@@ -201,7 +265,7 @@ public class PlayPenContentPane extends AbstractSPObject {
      */
     @NonBound
     public PlayPenComponent getComponentAt(Point p) {
-        for (PlayPenComponent ppc : getChildren(PlayPenComponent.class)) {
+        for (PlayPenComponent ppc : getAllChildren()) {
             if (ppc.contains(p)) {
                 return ppc;
             }
@@ -307,14 +371,27 @@ public class PlayPenContentPane extends AbstractSPObject {
         return children;
     }
     
+    /**
+     * Returns all of the 'children' of this content pane including the
+     * transient {@link CriticBadge}s.
+     */
+    @NonProperty
+    public List<? extends PlayPenComponent> getAllChildren() {
+        List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
+        children.addAll(components);
+        children.addAll(badges.values());
+        children.addAll(dependentComponents);
+        return children;
+    }
+    
     @Accessor
-    public ArchitectProject getParent() {
-        return (ArchitectProject) super.getParent();
+    public ArchitectSwingProject getParent() {
+        return (ArchitectSwingProject) super.getParent();
     }
     
     @Mutator
     public void setParent(SPObject parent) {
-        if (parent instanceof ArchitectProject || parent == null) {
+        if (parent instanceof ArchitectSwingProject || parent == null) {
             super.setParent(parent);
         } else {
             throw new IllegalArgumentException("Parent of PlayPenContentPane must be " +
@@ -412,6 +489,26 @@ public class PlayPenContentPane extends AbstractSPObject {
             ppc.removeSelectionListener(getPlayPen());
             ppc.addSelectionListener(getPlayPen());
         }
+    }
+
+    /**
+     * Removes a critic badge from the content pane. The badges are a child type
+     * that is transient so this method does not fire child events that would
+     * cause persist calls.
+     */
+    public void removeCriticBadge(CriticBadge badge) {
+        badges.remove(badge.getSubject());
+        badge.cleanup();
+    }
+    
+    /**
+     * Adds a critic badge to the content pane. The badges are a child type
+     * that is transient so this method does not fire child events that would
+     * cause persist calls.
+     */
+    public void addCriticBadge(CriticBadge badge) {
+        badge.setParent(PlayPenContentPane.this);
+        badges.put(badge.getSubject(), badge);
     }
     
 }

@@ -1292,7 +1292,7 @@ public class ArchitectFrame extends JFrame {
      * Will also display the critic panel if it is not visible.
      */
     public void updateCriticPanel(List<Criticism> criticisms) {
-        criticPanel.getCriticismBucket().updateCriticismsToMatch(criticisms);
+        playpen.getCriticismBucket().updateCriticismsToMatch(criticisms);
         criticPanel.getPanel().setVisible(true);
         final double screenHeight = splitPane.getHeight();
         double viewHeight = Math.min(criticPanel.getPanel().getPreferredSize().getHeight(), 

@@ -22,6 +22,11 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 
+import javax.annotation.Nonnull;
+
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.Transient;
+
 /**
  * The PlayPenComponentUI is the superclass of all UI delegates for Play Pen components.
  * It provides a pluggable look-and-feel for PlayPenComponents exactly the same way the
@@ -38,4 +43,22 @@ public interface PlayPenComponentUI {
 
 	public void revalidate();
 	public Dimension getPreferredSize();
+	
+	/**
+     * Returns a point on the UI object that is most reasonable to attach
+     * additional text or objects to for the given model object or a part of the
+     * model. If the component is made up of multiple parts the object passed in
+     * may change the desired location to put an icon near the part.
+     * <p>
+     * Default is normally the top left point of the component returned by getLocation().
+     * 
+     * @param modelObject
+     *            The model of this component or an object that is part of the
+     *            model, normally a descendant.
+     * @return A point that is the best location to place an icon or text at. If
+     *         the given modelObject does not belong to this component a
+     *         reasonable point for the component will still be returned.
+     */
+    @Transient @Accessor
+    public Point getPointForModelObject(@Nonnull Object modelObject);
 }

@@ -1543,4 +1543,10 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
 	    }
 	    return x;
 	}
+	
+	public Point getPointForModelObject(Object modelObject) {
+	    Dimension preferredSize = getPreferredSize();
+	    return new Point(relationship.getLocation().x + (preferredSize.width / 2), 
+	            relationship.getLocation().y + (preferredSize.height / 2));
+	}
 }

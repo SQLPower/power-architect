@@ -654,4 +654,8 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         }
         
     }
+    
+    public Point getPointForModelObject(Object modelObject) {
+        return olapPane.getLocation();
+    }
 }
