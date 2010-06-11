@@ -38,11 +38,13 @@ import ca.sqlpower.object.CleanupExceptions;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Persistable;
 
 /**
  * A badge that appears in the play pen beside the object that is being
  * criticized.
  */
+@Persistable(isTransient=true)
 public class CriticBadge extends PlayPenComponent {
 
     /**
