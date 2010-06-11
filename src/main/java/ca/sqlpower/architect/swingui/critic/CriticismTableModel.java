@@ -21,11 +21,13 @@ package ca.sqlpower.architect.swingui.critic;
 
 import javax.swing.table.AbstractTableModel;
 
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.ddl.critic.CriticismEvent;
 import ca.sqlpower.architect.ddl.critic.CriticismListener;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 
 public class CriticismTableModel extends AbstractTableModel {
     
@@ -42,13 +44,16 @@ public class CriticismTableModel extends AbstractTableModel {
         }
     };
 
-    public CriticismTableModel(CriticismBucket criticizer) {
+    private final ArchitectSwingSession session;
+
+    public CriticismTableModel(ArchitectSwingSession session, CriticismBucket criticizer) {
+        this.session = session;
         this.criticizer = criticizer;
         criticizer.addCriticismListener(criticListener);
     }
     
     public int getColumnCount() {
-        return 3;
+        return 4;
     }
     
     @Override
@@ -56,6 +61,8 @@ public class CriticismTableModel extends AbstractTableModel {
         if (column == 1) {
             return "Object";
         } else if (column == 2) {
+            return "Critic Type";
+        } else if (column == 3) {    
             return "Description";
         } else {
             return null;
@@ -69,6 +76,8 @@ public class CriticismTableModel extends AbstractTableModel {
         } else if (columnIndex == 1) {
             return String.class;
         } else if (columnIndex == 2) {
+            return String.class;
+        } else if (columnIndex == 3) {
             return String.class;
         } else {
             return null;
@@ -86,6 +95,11 @@ public class CriticismTableModel extends AbstractTableModel {
         } else if (columnIndex == 1) {
             return rowVal.getSubject();
         } else if (columnIndex == 2) {
+            //All critics in Architect are currently CriticAndSettings objects
+            //In the future we may want to look up the settings in the critic
+            //manager but since we already have the object that would be overkill.
+            return ((CriticAndSettings) rowVal.getCritic()).getPlatformType();
+        } else if (columnIndex == 3) {
             return rowVal.getDescription();
         } else {
             throw new IllegalArgumentException(
