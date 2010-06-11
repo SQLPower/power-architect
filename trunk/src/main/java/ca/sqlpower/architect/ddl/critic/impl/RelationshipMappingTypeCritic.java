@@ -30,6 +30,7 @@ import ca.sqlpower.architect.ddl.critic.QuickFix;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 /**
  * Critic that checks for relationships that do not map any columns between
@@ -61,17 +62,25 @@ public class RelationshipMappingTypeCritic extends CriticAndSettings {
                         subject,
                         "Columns related by FK constraint have different types",
                         this,
-                        new QuickFix("Change type of " + childTable.getName() + "." + childColumn.getName() + " (child column) to parent's type") {
+                        new QuickFix("Change type of " + childTable.getName() + "." + childColumn.getName() + 
+                                " (child column) to " + parentColumn.getUserDefinedSQLType().getUpstreamType().getName()) {
                             @Override
                             public void apply() {
+                                UserDefinedSQLType typeToUpdate = childColumn.getUserDefinedSQLType();
+                                UserDefinedSQLType typeToMatch = parentColumn.getUserDefinedSQLType();
+                                typeToUpdate.setUpstreamType(typeToMatch.getUpstreamType());
                                 childColumn.setType(parentColumn.getType());
                                 childColumn.setPrecision(parentColumn.getPrecision());
                                 childColumn.setScale(parentColumn.getScale());
                             }
                         },
-                        new QuickFix("Change type of " + parentTable.getName() + "." + parentColumn.getName() + " (parent column) to child's type") {
+                        new QuickFix("Change type of " + parentTable.getName() + "." + parentColumn.getName() + 
+                                " (parent column) to " + childColumn.getUserDefinedSQLType().getUpstreamType().getName()) {
                             @Override
                             public void apply() {
+                                UserDefinedSQLType typeToUpdate = parentColumn.getUserDefinedSQLType();
+                                UserDefinedSQLType typeToMatch = childColumn.getUserDefinedSQLType();
+                                typeToUpdate.setUpstreamType(typeToMatch.getUpstreamType());
                                 parentColumn.setType(childColumn.getType());
                                 parentColumn.setPrecision(childColumn.getPrecision());
                                 parentColumn.setScale(childColumn.getScale());
