@@ -369,6 +369,10 @@ public class TestPlayPen extends TestCase {
 	        // The copy of the play pen is for things like print preview, so we don't want to
 	        // duplicate menus and other interactive features. (?)
 	        copyIgnoreProperties.add("popupFactory");
+
+	        //This property is specific to each play pen and it's settings will be re-calculated
+	        //regularly so it does not need to be copied.
+	        copyIgnoreProperties.add("criticismBucket");
 	        
 	        // First pass: set all settable properties, because testing the duplication of
 	        //             an object with all its properties at their defaults is not a
