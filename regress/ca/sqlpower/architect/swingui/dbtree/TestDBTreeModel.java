@@ -133,7 +133,7 @@ public class TestDBTreeModel extends TestCase {
         
         System.out.println(l);
         
-        assertEquals(2, l.getRemoveCount());
+        assertEquals(1, l.getRemoveCount());
         
         Object exportedKeyFolder = tm.getChild(t, 1);
         TreePath expectPkPath = new TreePath(new Object[] { treeRoot, db, t, exportedKeyFolder, r });
