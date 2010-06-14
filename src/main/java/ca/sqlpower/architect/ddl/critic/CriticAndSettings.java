@@ -33,7 +33,7 @@ import ca.sqlpower.object.annotation.Mutator;
  * The settings of a specific {@link Critic}. Includes if the critic is enabled
  * and any additional settings to decide how to criticize the object model.
  */
-public abstract class CriticAndSettings extends AbstractSPObject implements CriticSettings, Critic {
+public abstract class CriticAndSettings extends AbstractSPObject implements Critic {
     
     /**
      * Defines an absolute ordering of the child types of this class.
