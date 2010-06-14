@@ -27,6 +27,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
+import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericSequenceNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.EmptyRelationshipCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLCommentCritic;
 import ca.sqlpower.architect.ddl.critic.impl.OraclePhysicalNameCritic;
@@ -60,6 +61,7 @@ public class CriticManager extends AbstractSPObject {
                 new RelationshipMappingTypeCritic(),
                 new EmptyRelationshipCritic(),
                 new AlphaNumericNameCritic(),
+                new AlphaNumericSequenceNameCritic(),
                 new OraclePhysicalNameCritic(), 
                 new MySQLCommentCritic()
                 ));
