@@ -30,6 +30,13 @@ public abstract class QuickFix {
      */
     private final String description;
 
+    /**
+     * @param description
+     *            The description of the quick fix should describe how the
+     *            object will change. The data of the object to change can be
+     *            used to show the user exactly how the quick fix will make the
+     *            change.
+     */
     public QuickFix(String description) {
         this.description = description;
     }
