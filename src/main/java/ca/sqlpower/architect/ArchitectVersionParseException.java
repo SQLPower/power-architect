@@ -19,16 +19,14 @@
 
 package ca.sqlpower.architect;
 
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 
 /**
  * The ArchitectVersionParseException represents a problem due to an incorrectly
  * formatted version number string.
  *
  */
-public class ArchitectVersionParseException extends SQLObjectRuntimeException {
+public class ArchitectVersionParseException extends RuntimeException {
     public ArchitectVersionParseException(String version) {
-        super(new SQLObjectException("Invalid Architect Version: " + version));
+        super("Invalid Architect Version: " + version);
     }
 }
