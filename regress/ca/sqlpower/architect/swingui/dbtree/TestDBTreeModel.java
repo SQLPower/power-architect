@@ -147,10 +147,6 @@ public class TestDBTreeModel extends TestCase {
         assertTrue(actualPaths.contains(expectPkPath));
     }
     
-    public void testDBTreeRootParentNull() throws Exception {
-        assertNull(((SQLObject)tm.getRoot()).getParent());
-    }
-    
     public void testDBTreeRootMatchesSessionRoot() throws Exception {
         assertEquals(session.getRootObject(), tm.getRoot());
     }
