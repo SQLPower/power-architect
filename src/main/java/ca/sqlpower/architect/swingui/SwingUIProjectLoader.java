@@ -166,7 +166,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
     
     // ------------- READING THE PROJECT FILE ---------------
 
-    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, SQLObjectException {
+    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources) throws IOException, SQLObjectException {
         olapPaneLoadIdMap = new HashMap<String, OLAPPane<?, ?>>();
         
         UnclosableInputStream uin = new UnclosableInputStream(in);
@@ -868,9 +868,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.indent++;
         int dsNum = 0;
         SQLObject dbTreeRoot = (SQLObject) getSession().getSourceDatabases().getModel().getRoot();
-        Iterator it = dbTreeRoot.getChildren().iterator();
+        Iterator<? extends SQLObject> it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
-            SQLObject o = (SQLObject) it.next();
+            SQLObject o = it.next();
             SPDataSource ds = ((SQLDatabase) o).getDataSource();
             if (ds != null) {
                 String id = dbcsSaveIdMap.get(ds);
@@ -880,9 +880,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 }
                 ioo.println(out, "<data-source id=\""+SQLPowerUtils.escapeXML(id)+"\">"); //$NON-NLS-1$ //$NON-NLS-2$
                 ioo.indent++;
-                Iterator pit = ds.getPropertiesMap().entrySet().iterator();
+                Iterator<Map.Entry<String, String>> pit = ds.getPropertiesMap().entrySet().iterator();
                 while (pit.hasNext()) {
-                    Map.Entry ent = (Map.Entry) pit.next();
+                    Map.Entry<String, String> ent = pit.next();
                     if (ent.getValue() != null) {
                         ioo.println(out, "<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                     }
@@ -993,9 +993,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.println(out, "<source-databases>"); //$NON-NLS-1$
         ioo.indent++;
         SQLObject dbTreeRoot = (SQLObject) getSession().getSourceDatabases().getModel().getRoot();
-        Iterator it = dbTreeRoot.getChildren().iterator();
+        Iterator<? extends SQLObject> it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
-            SQLObject o = (SQLObject) it.next();
+            SQLObject o = it.next();
             if (o != getSession().getTargetDatabase()) {
                 saveSQLObject(out, o);
             }
@@ -1011,9 +1011,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
     private void saveRelationships(PrintWriter out, SQLDatabase db) throws SQLObjectException, IOException {
         ioo.println(out, "<relationships>"); //$NON-NLS-1$
         ioo.indent++;
-        Iterator it = db.getChildren().iterator();
+        Iterator<? extends SQLObject> it = db.getChildren().iterator();
         while (it.hasNext()) {
-            saveRelationshipsRecurse(out, (SQLObject) it.next());
+            saveRelationshipsRecurse(out, it.next());
         }
         ioo.indent--;
         ioo.println(out, "</relationships>"); //$NON-NLS-1$
@@ -1028,9 +1028,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
         } else if (o instanceof SQLRelationship) {
             saveSQLObject(out, o);
         } else if (o.allowsChildren()) {
-            Iterator it = o.getChildren().iterator();
+            Iterator<? extends SQLObject> it = o.getChildren().iterator();
             while (it.hasNext()) {
-                saveRelationshipsRecurse(out, (SQLObject) it.next());
+                saveRelationshipsRecurse(out, it.next());
             }
         }
     }
@@ -1041,9 +1041,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 quote(dbcsSaveIdMap.get(db.getDataSource()))+ ">"); //$NON-NLS-1$
         sqlObjectSaveIdMap.put(db, "ppdb"); //$NON-NLS-1$
         ioo.indent++;
-        Iterator it = db.getChildren().iterator();
+        Iterator<? extends SQLObject> it = db.getChildren().iterator();
         while (it.hasNext()) {
-            saveSQLObject(out, (SQLObject) it.next());
+            saveSQLObject(out, it.next());
         }
         saveRelationships(out, db);
         ioo.indent--;
@@ -1135,7 +1135,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 ioo.println(out, "<virtual-cube-pane id=" + quote(paneId) + " model-ref=" + quote(modelId) //$NON-NLS-1$ //$NON-NLS-2$
                         + " x=\"" + p.x + "\" y=\"" + p.y + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                 olapPaneSaveIdMap.put(vcp, paneId);
-            } else if (ppc instanceof ContainerPane) {
+            } else if (ppc instanceof ContainerPane<?, ?>) {
                 logger.warn("Skipping unhandled playpen component: " + ppc); //$NON-NLS-1$
             }
         }
@@ -1165,7 +1165,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 
                 ioo.println(out, "<usage-comp model-ref=" + quote(modelId) + //$NON-NLS-1$
                         " pane1-ref=" + quote(pane1Id) + " pane2-ref=" + quote(pane2Id) + "/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            } else if (ppc instanceof ContainerPane) {
+            } else if (ppc instanceof ContainerPane<?, ?>) {
                 // do nothing, already handled.
             } else {
                 logger.warn("Skipping unhandled playpen component: " + ppc); //$NON-NLS-1$
@@ -1262,7 +1262,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.indent--;
     }
 
-    private void printCommonItems(PrintWriter out, ProfileResult profileResult, String profiledObjectId) {
+    private void printCommonItems(PrintWriter out, ProfileResult<?> profileResult, String profiledObjectId) {
         ioo.print(out, "<profile-result ref-id=\"" + profiledObjectId + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " type=\"" + profileResult.getClass().getName() + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createStartTime=\""+profileResult.getCreateStartTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
@@ -1417,7 +1417,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             ioo.niprint(out, "populated=\"true\" "); //$NON-NLS-1$
         }
 
-        Iterator props = propNames.keySet().iterator();
+        Iterator<String> props = propNames.keySet().iterator();
         while (props.hasNext()) {
             Object key = props.next();
             Object value = propNames.get(key);
@@ -1427,7 +1427,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         }
         if (o.allowsChildren()) {
             ioo.niprintln(out, ">"); //$NON-NLS-1$
-            Iterator children;
+            Iterator<? extends SQLObject> children;
             if (getSession().isSavingEntireSource()) {
                 children = o.getChildren().iterator();
             } else {

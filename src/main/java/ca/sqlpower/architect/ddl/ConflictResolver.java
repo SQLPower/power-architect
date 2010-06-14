@@ -33,10 +33,10 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -67,7 +67,7 @@ public class ConflictResolver implements Monitorable {
         private String catalog;
         private String schema;
         private String name;
-        private List dependants;
+        private List<Conflict> dependants;
         private String sqlDropStatement;
 
         /**
@@ -82,7 +82,7 @@ public class ConflictResolver implements Monitorable {
             this.catalog = catalog;
             this.schema = schema;
             this.name = name;
-            this.dependants = new ArrayList();
+            this.dependants = new ArrayList<Conflict>();
         }
         
         public String getQualifiedName() {
@@ -133,10 +133,10 @@ public class ConflictResolver implements Monitorable {
         public String toString() {
             return getType()+" "+getQualifiedName();
         }
-        public void setDependants(List v) {
+        public void setDependants(List<Conflict> v) {
             this.dependants = v;
         }
-        public List getDependants() {
+        public List<Conflict> getDependants() {
             return dependants;
         }
         public String getName() {
@@ -187,8 +187,8 @@ public class ConflictResolver implements Monitorable {
     }
     
     private SQLDatabase targetDatabase;
-    private List ddlStatements;
-    private List conflicts;
+    private List<DDLStatement> ddlStatements;
+    private List<Conflict> conflicts;
     private String lastSQLStatement;
     private DDLGenerator ddlg;
     private int monitorableProgress;
@@ -202,7 +202,7 @@ public class ConflictResolver implements Monitorable {
      * Creates a new ConflictResolver.  You should call findConflicting() after you get
      * this new object.
      */
-    public ConflictResolver(SQLDatabase target, DDLGenerator ddlg, List ddlStatements) {
+    public ConflictResolver(SQLDatabase target, DDLGenerator ddlg, List<DDLStatement> ddlStatements) {
     	this.targetDatabase = target;
         this.ddlg = ddlg;
         this.ddlStatements = ddlStatements;
@@ -224,7 +224,7 @@ public class ConflictResolver implements Monitorable {
    		doingFindConflicting = true;
    		Connection con = null;
    		try {
-   			conflicts = new ArrayList();
+   			conflicts = new ArrayList<Conflict>();
    			monitorableProgress = 0;
    			
    			if (logger.isDebugEnabled()) {
@@ -234,13 +234,13 @@ public class ConflictResolver implements Monitorable {
    			con = targetDatabase.getConnection();
    			DatabaseMetaData dbmd = con.getMetaData();
    			
-   			Iterator it = ddlStatements.iterator();
+   			Iterator<DDLStatement> it = ddlStatements.iterator();
    			while (it.hasNext()) {
    			    DDLStatement ddlStmt = (DDLStatement) it.next();
    			    monitorableProgress += 1;
    			    if (ddlStmt.getType() != DDLStatement.StatementType.CREATE) continue;
    			    SQLObject so = ddlStmt.getObject();
-   			    Class clazz = so.getClass();
+   			    Class<? extends SQLObject> clazz = so.getClass();
    			    
    			    if (clazz.equals(SQLTable.class)) {
    			        SQLTable t = (SQLTable) so;
@@ -309,13 +309,13 @@ public class ConflictResolver implements Monitorable {
     		monitorableProgress = 0;
     		dropConflictingStarted = true;
     		doingDropConflicting = true;
-    		Iterator it = conflicts.iterator();
+    		Iterator<Conflict> it = conflicts.iterator();
     		Connection con = null;
     		Statement stmt = null;
     		try {
     			con = targetDatabase.getConnection();
     			stmt = con.createStatement();
-    			Set alreadyDropped = new HashSet();
+    			Set<Conflict> alreadyDropped = new HashSet<Conflict>();
     			while (it.hasNext()) {
     				Conflict c = (Conflict) it.next();
     				monitorableProgress++;
@@ -343,9 +343,9 @@ public class ConflictResolver implements Monitorable {
      * @param c
      * @param stmt
      */
-    private void dropConflict(Conflict c, Statement stmt, Set alreadyDropped) throws SQLException {
+    private void dropConflict(Conflict c, Statement stmt, Set<Conflict> alreadyDropped) throws SQLException {
         
-        Iterator it = c.getDependants().iterator();
+        Iterator<Conflict> it = c.getDependants().iterator();
         while (it.hasNext()) {
             Conflict c2 = (Conflict) it.next();
             dropConflict(c2, stmt, alreadyDropped);
@@ -377,7 +377,7 @@ public class ConflictResolver implements Monitorable {
      */
     public String toConflictTree() {
         StringBuffer tree = new StringBuffer();
-        Iterator it = conflicts.iterator();
+        Iterator<Conflict> it = conflicts.iterator();
         while (it.hasNext()) {
             Conflict c = (Conflict) it.next();
             appendToConflictTree(tree, 1, c);
@@ -398,7 +398,7 @@ public class ConflictResolver implements Monitorable {
         }
         tree.append(c.getType()).append(" ").append(c.getQualifiedName());
         tree.append("\n");
-        Iterator it = c.getDependants().iterator();
+        Iterator<Conflict> it = c.getDependants().iterator();
         while (it.hasNext()) {
             appendToConflictTree(tree, indent+1, (Conflict) it.next());
         }
