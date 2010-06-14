@@ -26,7 +26,6 @@ import java.util.List;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 
@@ -72,8 +71,7 @@ class Criticizer {
         List<Criticism> criticisms = new ArrayList<Criticism>();
         
         // skip types that don't warrant criticism
-        if ( (!(root instanceof SQLDatabase)) &&
-             (!(root instanceof SQLRelationship.ColumnMapping)) ) {
+        if ( (!(root instanceof SQLDatabase))) {
             for (Critic critic : critics) {
                 List<Criticism> newCriticisms = critic.criticize(root);
                 criticisms.addAll(newCriticisms);
