@@ -94,7 +94,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
         if (!getLegalNamePattern().matcher(physName).matches()) {
             criticisms.add(new Criticism(
                     so,
-                    "Physical name not legal for " + getPlatformName(),
+                    "Physical name not legal for " + so.getPhysicalName(),
                     this
                     // TODO: need replacement pattern to enable quickfix
                     ));
