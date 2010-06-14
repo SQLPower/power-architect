@@ -84,9 +84,14 @@ public class PlayPenContentPane extends AbstractSPObject {
 	 * They come after that list in terms of the overall children list.
 	 * Currently stores Relationships and UsageComponents
 	 */
-	private List<PlayPenComponent> dependentComponents = new ArrayList<PlayPenComponent>();  
-    
-    private SPObject modelContainer;
+	private List<PlayPenComponent> dependentComponents = new ArrayList<PlayPenComponent>();
+
+    /**
+     * The object this content pane is displaying information about. Must be one
+     * of either SQLDatabase or OLAPSession and it must have a valid parent to
+     * attach a listener to which watches for this model being removed.
+     */
+    private final SPObject modelContainer;
     
     /**
      * Maps component listeners by the listener that was passed in 
@@ -171,20 +176,25 @@ public class PlayPenContentPane extends AbstractSPObject {
             }
         }
     };
-	
+
+    /**
+     * @param modelContainer
+     *            Must be either a SQLDatabase or OLAPSession and must not be
+     *            null. If the model is an OLAPSession it must also have a valid
+     *            parent to listen to for removing the content pane correctly if
+     *            the model is removed.
+     */
 	@Constructor
 	public PlayPenContentPane(@ConstructorParameter(propertyName="modelContainer") SPObject modelContainer) {
-	    this("PlayPenContentPane");
-	    setModelContainer(modelContainer);
-	}
-	
-	public PlayPenContentPane() {
-	    this("PlayPenContentPane");
-	}
-	
-	public PlayPenContentPane(String name) {
 	    super();
-	    setName(name);
+	    setName("PlayPenContentPane");
+	    if (!(modelContainer instanceof SQLDatabase || modelContainer instanceof OLAPSession)) {
+	        throw new IllegalArgumentException("modelContainer must either be a SQLDatabase or OLAPSession");
+	    }
+	    this.modelContainer = modelContainer;
+	    if (modelContainer instanceof OLAPSession) {
+	        modelContainer.getParent().addSPListener(modelContainerListener);
+	    }
 	}
 	
 	@Accessor
@@ -192,18 +202,6 @@ public class PlayPenContentPane extends AbstractSPObject {
 	    return modelContainer;
 	}
 	
-	@Mutator
-	public void setModelContainer(SPObject modelContainer) {
-	    if (this.modelContainer != null) throw new IllegalStateException(
-	            "Cannot set the model container once it is already set!");
-	    if (!(modelContainer instanceof SQLDatabase || modelContainer instanceof OLAPSession)) {
-	        throw new IllegalArgumentException("modelContainer must either be a SQLDatabase or OLAPSession");
-	    }
-	    this.modelContainer = modelContainer;
-	    modelContainer.getParent().addSPListener(modelContainerListener);
-	    firePropertyChange("modelContainer", null, modelContainer);
-	}
-    
     /**
      * Returns the PlayPen that this content pane belongs to.
      */

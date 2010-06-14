@@ -47,6 +47,7 @@ import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.testutil.GenericNewValueMaker;
@@ -65,7 +66,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
         super(root, dsCollection);
         mondrianValueMaker = new MondrianNewValueMaker(root, dsCollection);
         valueMakerProject = (ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null);
-        valueMakerProject.setPlayPenContentPane(new PlayPenContentPane());
+        valueMakerProject.setPlayPenContentPane(new PlayPenContentPane(new SQLDatabase()));
     }    
     
     @Override
@@ -119,7 +120,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             valueMakerProject.setProfileManager(profileManager);            
             return profileManager;
         } else if (valueType == PlayPenContentPane.class) {
-            PlayPenContentPane pane = new PlayPenContentPane();
+            PlayPenContentPane pane = new PlayPenContentPane(new SQLDatabase());
             ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).setPlayPenContentPane(pane);            
             return pane;
         } else if (valueType == PlayPenComponent.class) {            
