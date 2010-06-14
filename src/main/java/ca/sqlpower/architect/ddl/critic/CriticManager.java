@@ -26,6 +26,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
+import ca.sqlpower.architect.ddl.critic.impl.EmptyRelationshipCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLCommentCritic;
 import ca.sqlpower.architect.ddl.critic.impl.OraclePhysicalNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.PrimaryKeyCritic;
@@ -54,10 +55,12 @@ public class CriticManager extends AbstractSPObject {
      */
     private static final List<CriticAndSettings> STARTING_CRITICS = 
         Collections.unmodifiableList(Arrays.asList(
-                new OraclePhysicalNameCritic(), 
-                new MySQLCommentCritic(),
                 new PrimaryKeyCritic(),
-                new RelationshipMappingTypeCritic()));
+                new RelationshipMappingTypeCritic(),
+                new EmptyRelationshipCritic(),
+                new OraclePhysicalNameCritic(), 
+                new MySQLCommentCritic()
+                ));
 
     /**
      * All of the critic groups known to this system.
