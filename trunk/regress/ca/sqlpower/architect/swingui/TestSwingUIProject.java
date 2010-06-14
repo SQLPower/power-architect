@@ -518,6 +518,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 		SQLCatalog target = new SQLCatalog(db, "my test catalog");
 		db.addChild(target);
+		target.setPopulated(true);
 		
 		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentDatabase");
@@ -550,6 +551,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		Map<String, Object> newDescription =
 			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
+		assertFalse(newDescription.isEmpty());
 		assertMapsEqual(oldDescription, newDescription);
 	}
 
