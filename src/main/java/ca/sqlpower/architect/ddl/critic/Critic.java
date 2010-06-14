@@ -51,8 +51,4 @@ public interface Critic {
      */
     public Severity getSeverity();
     
-    /**
-     * Returns the name of the critic.
-     */
-    public String getName();
 }
