@@ -25,6 +25,7 @@ import ca.sqlpower.object.PersistedSPObjectTest;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.testutil.NewValueMaker;
@@ -63,7 +64,7 @@ public class TestPlayPenContentPane extends PersistedSPObjectTest {
 		pp.addTablePane(tp2, new Point(-10,0));
 		SQLRelationship sqlrel = new SQLRelationship();
 		sqlrel.attachRelationship(t1, t2, false);
-		ppcp = new PlayPenContentPane();
+		ppcp = new PlayPenContentPane(new SQLDatabase());
 		ppcp.setPlayPen(pp);
 		rel1 = new Relationship(sqlrel,pp.getContentPane());
 		rel2 = new Relationship(sqlrel,pp.getContentPane());

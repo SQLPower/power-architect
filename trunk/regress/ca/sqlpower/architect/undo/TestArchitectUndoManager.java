@@ -190,7 +190,7 @@ public class TestArchitectUndoManager extends TestCase {
      * Tests PropertyChangeEdit functionalities
      */
     public void testPropertyChangeEdit() {
-        TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane());
+        TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane(new SQLDatabase()));
         PropertyChangeEvent e = new PropertyChangeEvent(comp, "bounds", null, null);
         PropertyChangeEdit edit = new PropertyChangeEdit(e);
         assertEquals("property change edit", edit.getPresentationName());
@@ -230,7 +230,7 @@ public class TestArchitectUndoManager extends TestCase {
         TestSQLObject testObject = new TestSQLObject();
         ArchitectUndoManager undoManager = new ArchitectUndoManager(testObject);
         final PropertyChangeListener l = undoManager.getEventAdapter();
-        TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane());
+        TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane(new SQLDatabase()));
         comp.addSPListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt)) {
@@ -260,7 +260,7 @@ public class TestArchitectUndoManager extends TestCase {
         TestSQLObject testObject = new TestSQLObject();
         ArchitectUndoManager undoManager = new ArchitectUndoManager(testObject);
         final PropertyChangeListener l = undoManager.getEventAdapter();
-        TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane());        
+        TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane(new SQLDatabase()));        
         comp.addSPListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
                 if (evt.getPropertyName().equals("connectionPoints")) {
