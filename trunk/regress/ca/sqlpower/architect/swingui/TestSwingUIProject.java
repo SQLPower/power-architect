@@ -671,6 +671,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("platform");
 		
 		propertiesToIgnore.add("childrenWithoutPopulating");
+		propertiesToIgnore.add("variableResolver");
 		
 		session.getUndoManager().setLoading(true);
 		Map<String,Object> oldDescription =
@@ -1209,8 +1210,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     private void recursiveCheckParenting(SQLObject o, String path) throws Exception {
         System.out.println("Checking children of " + path);
-        for (Iterator it = o.getChildren().iterator(); it.hasNext();) {
-            SQLObject child = (SQLObject) it.next();
+        for (Iterator<? extends SQLObject> it = o.getChildren().iterator(); it.hasNext();) {
+            SQLObject child = it.next();
             if (o instanceof SQLObjectRoot) {
                 // skip, because database parent pointers are null
             } else if (child instanceof SQLRelationship && ((SQLRelationship) child).getFkTable().equals(o)) {

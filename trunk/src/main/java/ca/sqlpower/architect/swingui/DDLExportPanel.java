@@ -123,10 +123,10 @@ public class DDLExportPanel implements DataEntryPanel {
 
         newTargetDB = new JButton(Messages.getString("DDLExportPanel.propertiesButton")); //$NON-NLS-1$
         newTargetDB.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
-                }
-            });
+            public void actionPerformed(ActionEvent e) {
+                ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
+            }
+        });
 
         panelProperties.add(new JLabel(Messages.getString("DDLExportPanel.generateDDLForDbType"))); //$NON-NLS-1$
         DDLGenerator ddlg = session.getDDLGenerator();
@@ -139,11 +139,11 @@ public class DDLExportPanel implements DataEntryPanel {
         }
         panelProperties.add(dbType = new JComboBox(ddlTypes));
         dbType.setRenderer(new DDLGeneratorListCellRenderer());
-		dbType.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-						setUpCatalogAndSchemaFields();
-				}
-			});
+        dbType.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                setUpCatalogAndSchemaFields();
+            }
+        });
 
         panelProperties.add(catalogLabel = new JLabel(Messages.getString("DDLExportPanel.targetCatalog"))); //$NON-NLS-1$
         panelProperties.add(catalogField = new JTextField(ddlg.getTargetCatalog()));

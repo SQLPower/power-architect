@@ -44,6 +44,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.ConflictResolver;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLWarning;
 import ca.sqlpower.architect.ddl.DDLWarningComponent;
 import ca.sqlpower.architect.ddl.ObjectPropertyModificationDDLComponent;
@@ -255,7 +256,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		JDialog parentDialog;
 		SQLDatabase target;
 		DDLGenerator ddlg;
-		List statements;
+		List<DDLStatement> statements;
 
 
 		/**
@@ -284,7 +285,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 * @throws SQLException If the conflict resolver chokes
 		 */
 		public ConflictFinderProcess(JDialog parentDialog, SQLDatabase target,
-				DDLGenerator ddlg, List statements, ArchitectSwingSession session)
+				DDLGenerator ddlg, List<DDLStatement> statements, ArchitectSwingSession session)
 			throws SQLObjectException {
 			super(session);
 			this.parentDialog = parentDialog;
