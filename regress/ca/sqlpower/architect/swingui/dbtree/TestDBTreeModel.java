@@ -135,15 +135,14 @@ public class TestDBTreeModel extends TestCase {
         
         assertEquals(2, l.getRemoveCount());
         
-        TreePath expectPkPath = new TreePath(new Object[] { treeRoot, db, t, t.getExportedKeysWithoutPopulating(), r });
-        TreePath expectFkPath = new TreePath(new Object[] { treeRoot, db, t, t.getImportedKeysWithoutPopulating(), r });
+        Object exportedKeyFolder = tm.getChild(t, 1);
+        TreePath expectPkPath = new TreePath(new Object[] { treeRoot, db, t, exportedKeyFolder, r });
         
         Set<TreePath> actualPaths = new HashSet<TreePath>();
         for (TreeModelEvent tme : l.getEventLog()) {
             actualPaths.add(tme.getTreePath());
         }
 
-        assertTrue(actualPaths.contains(expectFkPath));
         assertTrue(actualPaths.contains(expectPkPath));
     }
     
