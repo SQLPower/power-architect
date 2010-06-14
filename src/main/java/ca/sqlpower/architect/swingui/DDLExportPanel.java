@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,9 +30,9 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
@@ -44,8 +45,6 @@ import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
-import java.awt.BorderLayout;
-import javax.swing.SwingUtilities;
 
 
 public class DDLExportPanel implements DataEntryPanel {
@@ -271,18 +270,12 @@ public class DDLExportPanel implements DataEntryPanel {
 		session.setLiquibaseSettings(lbOptions.getLiquibaseSettings());
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {
 			ddlg.setAllowConnection(true);
-			JDBCDataSource dbcs = (JDBCDataSource)targetDB.getSelectedItem();
-			if (dbcs == null
-				|| dbcs.getDriverClass() == null
-				|| dbcs.getDriverClass().length() == 0) {
-
-				JOptionPane.showMessageDialog(panel,
-				        Messages.getString("DDLExportPanel.genericDdlGeneratorRequirements")); //$NON-NLS-1$
-
-				ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
-
-				return false;
-			}
+			// Allow the DDLGenerator to generate scripts even though
+			// there is no valid connection available. There may be situations
+			// where the user wants to generate, see, and save the script
+			// without needing to execute it. This removes the
+			// restriction of requiring the user to work online.
+			
 		} else {
 			ddlg.setAllowConnection(false);
 		}

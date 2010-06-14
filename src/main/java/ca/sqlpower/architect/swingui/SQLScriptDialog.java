@@ -245,8 +245,14 @@ public class SQLScriptDialog extends JDialog {
 		pb.setDefaultDialogBorder();
 		pb.add(new JLabel(header), cc.xy(2, 1));
 
-		if (targetDataSource != null) {
+		// Prevent the user from being able to execute the script if
+		// an invalid target database is selected.
+		if (targetDataSource != null && targetDataSource.get(JDBCDataSource.PL_UID) != null) {
 			pb.add(new JLabel(Messages.getString("SQLScriptDialog.yourTargetDbIs")+ targetDataSource.getName() ), cc.xy(2, 3)); //$NON-NLS-1$
+			executeButton.setEnabled(true);
+		} else {
+		    pb.add(new JLabel(Messages.getString("SQLScriptDialog.yourTargetDbIsNotConfigured")), cc.xy(2, 3));
+		    executeButton.setEnabled(false);
 		}
 		pb.add(sp, cc.xy(2, 5));
     		pb.add(barBuilder.getPanel(), cc.xy(2, 7, "c,c")); //$NON-NLS-1$

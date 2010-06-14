@@ -219,7 +219,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 		try {
 			if (allowConnection && tableList.size() > 0) {
                 SQLDatabase parentDb = SPObjectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
-				con = parentDb.getConnection();
+                if (parentDb.isPlayPenDatabase()) {
+                    con = null;
+                } else {
+                    con = parentDb.getConnection();
+                }
 			} else {
 				con = null;
 			}
