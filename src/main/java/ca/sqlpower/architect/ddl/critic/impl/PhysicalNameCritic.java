@@ -24,14 +24,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * Criticizes the physical name of all SQLObjects based on the parameters given
@@ -74,10 +75,22 @@ public class PhysicalNameCritic extends CriticAndSettings {
         
         final SQLObject so = (SQLObject) subject;
         String physName = so.getPhysicalName();
-        
-        if (physName == null) return Collections.emptyList();
-        
+
         List<Criticism> criticisms = new ArrayList<Criticism>();
+        
+        if (physName == null || physName.trim().length() == 0){
+            criticisms.add(new Criticism(
+                    so,
+                    "No physical name for " + so.getName(),
+                    this,
+                    new QuickFix("Copy logical name to physical name") {
+                        public void apply() {
+                            so.setPhysicalName(so.getName());
+                        }
+                    }));
+			return criticisms;
+		}
+
         if (physName.length() > getMaxNameLength()) {
             criticisms.add(new Criticism(
                     so,
@@ -91,6 +104,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
                         }
                     }));
         }
+		
         if (!getLegalNamePattern().matcher(physName).matches()) {
             criticisms.add(new Criticism(
                     so,
