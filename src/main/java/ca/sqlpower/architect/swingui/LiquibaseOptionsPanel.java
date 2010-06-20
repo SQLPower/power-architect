@@ -44,6 +44,7 @@ public class LiquibaseOptionsPanel
 	private JTextField authorField;
 	private JLabel authorLabel;
 	private JCheckBox generateId;
+	private JCheckBox useAddPKTagForSingleColumns;
 	private JSpinner startId;
 	private JLabel startValueLabel;
 
@@ -75,18 +76,21 @@ public class LiquibaseOptionsPanel
 	private void setup() {
 		panel = new JPanel(new MigLayout());
 		useChangeSets = new JCheckBox(Messages.getString("LiquibaseOptionsPanel.useChangeSet")); //$NON-NLS-1$
+		useAddPKTagForSingleColumns = new JCheckBox(Messages.getString("LiquibaseOptionsPanel.alwaysUseAddPK")); //$NON-NLS-1$
 		generateId = new JCheckBox(Messages.getString("LiquibaseOptionsPanel.generateID")); //$NON-NLS-1$
 		authorLabel = new JLabel(Messages.getString("LiquibaseOptionsPanel.authorName")); //$NON-NLS-1$
 		authorField = new JTextField(20);
 		startValueLabel = new JLabel(Messages.getString("LiquibaseOptionsPanel.idStart")); //$NON-NLS-1$
 		SpinnerNumberModel model = new SpinnerNumberModel(1,1,9999,1);
 		startId = new JSpinner(model);
+		panel.add(useAddPKTagForSingleColumns, "wrap");
 		panel.add(useChangeSets);
 		panel.add(authorLabel);
 		panel.add(authorField, "wrap");
 		panel.add(generateId);
 		panel.add(startValueLabel);
 		panel.add(startId);
+
 	}
 
 	public void restoreSettings(LiquibaseSettings settings) {
@@ -99,6 +103,7 @@ public class LiquibaseOptionsPanel
 		if (start > 0) {
 			startId.setValue(Integer.valueOf(start));
 		}
+		useAddPKTagForSingleColumns.setSelected(settings.getUseAddPKTagForSingleColumns());
 	}
 	
 	public LiquibaseSettings getLiquibaseSettings() {
@@ -107,6 +112,7 @@ public class LiquibaseOptionsPanel
 		settings.setGenerateId(getGenerateId());
 		settings.setUseSeparateChangeSets(getUseChangeSets());
 		settings.setIdStart(getIdStart());
+		settings.setUseAddPKTagForSingleColumns(useAddPKTagForSingleColumns.isSelected());
 		return settings;
 	}
 	
@@ -115,6 +121,7 @@ public class LiquibaseOptionsPanel
 		ddlGenerator.setAuthor(getAuthor());
 		ddlGenerator.setGenerateId(getGenerateId());
 		ddlGenerator.setIdStart(getIdStart());
+		ddlGenerator.setUseAddPKTagForSingleColumns(useAddPKTagForSingleColumns.isSelected());
 		return true;
 	}
 
