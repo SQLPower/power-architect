@@ -54,6 +54,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	private String author;
 	private boolean generateId;
 	private int currentId = 1;
+	private boolean useAddPKSingleColumn = false;
 
     public LiquibaseDDLGenerator() throws SQLException {
 		super(false);
@@ -79,7 +80,24 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		setAuthor(options.getAuthor());
 		setGenerateId(options.getGenerateId());
 		setIdStart(options.getIdStart());
+		setUseAddPKTagForSingleColumns(options.getUseAddPKTagForSingleColumns());
 	}
+
+	/**
+	 * Controls usage of the the &lt;addPrimaryKey&gt; tag for single column primary keys.
+	 * <br/>
+	 * If set to false, it will only be used for multi-column primary keys. For single column primary keys 
+	 * a nested &lt;constraint&gt; tag with a "primaryKey" attribute will be used instead.
+	 * <br/>
+	 * &lt;addPrimaryKey&gt; does not work when used with MySQL and autoincrement columns, so this feature
+	 * is essentially a workaround for a MySQL defiency
+	 *
+	 * @param flag if false, addPrimaryKey will only be used for multi-column primary keys
+	 */
+	public void setUseAddPKTagForSingleColumns(boolean flag) {
+		useAddPKSingleColumn = flag;
+	}
+	
 	/**
 	 * Control the usage of changeSets in the generated output.
 	 * <br/>
@@ -455,7 +473,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		print("<addColumn ");
 		print(getTableQualifier(c.getParent()));
 		println(">");
-		println(columnDefinition("  ", c));
+		println(columnDefinition("  ", c, false));
 		println("</addColumn>");
 		if (c.isAutoIncrementSequenceNameSet() && c.isAutoIncrement()) {
 			print("<createSequence sequenceName=\"");
@@ -509,7 +527,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		print("<modifyColumn ");
 		print(getTableQualifier(t));
 		println(">");
-		println(columnDefinition("  ", c));
+		println(columnDefinition("  ", c, false));
 		println("</modifyColumn>");
 		endOfStatement();
 		endStatement(DDLStatement.StatementType.XMLTAG, c);
@@ -544,7 +562,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	/**
 	 * Creates a <column> definition tag
 	 */
-	protected String columnDefinition(String indent, SQLColumn c) {
+	protected String columnDefinition(String indent, SQLColumn c, boolean tableHasSingleColumnPK) {
         StringBuilder def = new StringBuilder(50);
 
 		def.append(indent);
@@ -587,12 +605,30 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			def.append(" autoIncrement=\"true\"");
 		}
 
-		if (!c.isDefinitelyNullable()) {
+		boolean needsConstraint = !c.isDefinitelyNullable() || tableHasSingleColumnPK && c.isPrimaryKey() && !useAddPKSingleColumn;
+
+		if (needsConstraint) {
 			def.append(">");
 			def.append(EOL);
 			def.append(indent);
 			def.append(indent);
-			def.append("<constraints nullable=\"false\"/>");
+			def.append("<constraints");
+			if (tableHasSingleColumnPK && c.isPrimaryKey() && !useAddPKSingleColumn) {
+				def.append(" primaryKey=\"true\"");
+				SQLTable tbl = c.getParent();
+				try {
+					SQLIndex pk = tbl.getPrimaryKeyIndex();
+					def.append(" constraintName=\"");
+					def.append(getName(pk));
+					def.append("\"");
+				} catch (Exception e) {
+					logger.error("Could not obtain PK index", e);
+				}
+			}
+			if (!c.isDefinitelyNullable()) {
+				def.append(" nullable=\"false\"");
+			}
+			def.append("/>");
 			def.append(EOL);
 			def.append(indent);
 			def.append("</column>");
@@ -671,6 +707,10 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
 		Set<SQLColumn> sequenceColumns = new HashSet<SQLColumn>(t.getChildCount());
 		startOfStatement();
+		SQLIndex pk = t.getPrimaryKeyIndex();
+
+		boolean singleColumnPK = pk.getChildren(SQLIndex.Column.class).size() == 1;
+
 		print("<createTable ");
 		print( getTableQualifier(t) );
 		if (StringUtils.isNotBlank(t.getRemarks())) {
@@ -681,7 +721,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		Iterator<SQLColumn> it = t.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
-			println(columnDefinition("  ", c));
+			println(columnDefinition("  ", c, singleColumnPK));
 			if (c.isAutoIncrementSequenceNameSet() && c.isAutoIncrement()) {
 				sequenceColumns.add(c);
 			}
@@ -689,8 +729,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		println("</createTable>");
 		endOfStatement();
 
-		SQLIndex pk = t.getPrimaryKeyIndex();
-		if (pk.getChildCount() > 0) {
+		if (pk.getChildCount() > 0 && singleColumnPK && useAddPKSingleColumn) {
 		    writePKConstraintClause(pk);
 		}
 

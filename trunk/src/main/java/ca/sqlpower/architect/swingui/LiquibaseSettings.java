@@ -29,6 +29,7 @@ public class LiquibaseSettings {
 	private boolean generateID;
 	private String author;
 	private int idStart = 1;
+	private boolean useAddPKTagForSingleColumns = true;
 
 	public LiquibaseSettings() {
 	}
@@ -64,5 +65,15 @@ public class LiquibaseSettings {
 	public void setUseSeparateChangeSets(boolean separateChangesets) {
 		this.separateChangesets = separateChangesets;
 	}
+
+	public boolean getUseAddPKTagForSingleColumns() {
+		return useAddPKTagForSingleColumns;
+	}
+
+	public void setUseAddPKTagForSingleColumns(boolean flag) {
+		useAddPKTagForSingleColumns = flag;
+	}
+
+
 
 }
