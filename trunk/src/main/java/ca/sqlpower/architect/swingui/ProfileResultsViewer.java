@@ -53,6 +53,7 @@ import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;
+import ca.sqlpower.architect.swingui.table.MultiFreqValueCountTableModel;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -60,6 +61,7 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
+import ca.sqlpower.swingui.table.TableTextConverter;
 import ca.sqlpower.swingui.table.TableUtils;
 
 /**
@@ -239,6 +241,42 @@ public class ProfileResultsViewer {
         tableViewPane.add(searchPanel,BorderLayout.NORTH);
         tabPane.addTab(Messages.getString("ProfileResultsViewer.tableViewTab"), tableViewPane ); //$NON-NLS-1$
         
+        final MultiFreqValueCountTableModel columnTableModel = new MultiFreqValueCountTableModel(tm);
+        
+        //Setup a search and sort decorator on the table
+        TableModelSearchDecorator columnSearchDecorator =
+            new TableModelSearchDecorator(columnTableModel);
+        final TableModelSortDecorator columnTableModelSortDecorator =
+            new TableModelSortDecorator(columnSearchDecorator);
+        final JTable columnTable = new JTable(columnTableModelSortDecorator);
+        columnSearchDecorator.setTableTextConverter(new TableTextConverter() {
+            public int modelIndex(int viewIndex) {
+                return columnTableModelSortDecorator.modelIndex(viewIndex);
+            }
+              
+            public String getTextForCell(int row, int col) {
+                // note: this will only work because we know all the renderers are jlabels
+                JLabel renderer = (JLabel) columnTable.getCellRenderer(row, col).
+                getTableCellRendererComponent(columnTable, columnTable.getModel().getValueAt(row, 
+                        columnTable.getColumnModel().getColumn(col).getModelIndex()), 
+                        false, false, row, col);
+                return renderer.getText();
+            }
+        });
+        columnTableModelSortDecorator.setTableHeader(columnTable.getTableHeader());
+        
+        for (int i = 0; i < columnTableModel.getColumnCount(); i++) {
+            columnTable.getColumnModel().getColumn(i).setCellRenderer(columnTableModel.getCellRenderer(i));
+        }
+        JPanel columnViewerPanel = new JPanel(new BorderLayout());
+        columnViewerPanel.add(new JScrollPane(columnTable), BorderLayout.CENTER);
+        JPanel columnSearchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        columnSearchPanel.add(new JLabel(Messages.getString("ProfileResultsViewer.search"))); //$NON-NLS-1$
+        JTextField columnSearchField = new JTextField(columnSearchDecorator.getDoc(),"",25); //$NON-NLS-1$
+        columnSearchPanel.add(columnSearchField);
+        columnViewerPanel.add(columnSearchPanel, BorderLayout.NORTH);
+        tabPane.addTab(Messages.getString("ProfileResultsViewer.columnViewTab"), 
+                columnViewerPanel);
 
         profilePanelMouseListener.setProfilePanel(p);
 
