@@ -174,7 +174,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 if (upf != null) {
                     upf.createUserPrompter(
                             "You do not have sufficient privileges to perform that action. " +
-                            "Please hit the refresh button to synchonize with the server.", 
+                            "Please hit the refresh button to synchronize with the server.", 
                             UserPromptType.MESSAGE, 
                             UserPromptOptions.OK, 
                             UserPromptResponse.OK, 
@@ -935,7 +935,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             HttpUriRequest request = postRequest;
             return outboundHttpClient.execute(request, new JSONResponseHandler());
         } catch (AccessDeniedException ade) {
-            throw new AccessDeniedException("Access Denied");
+            throw ade;
         } catch (Exception ex) {
             throw new RuntimeException("Unable to post json to server: \n"+ ex.getMessage());
         }
