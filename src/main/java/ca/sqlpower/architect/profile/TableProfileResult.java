@@ -97,14 +97,28 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * This is a deep-copy copy constructor. (ie: all of the descendants will be
      * copied as well). However, the progress monitor will be shared between the
      * results.
+     * <p>
+     * The table given to this constructor will be the table that will be the
+     * profiled object. Since this is a deep copy of the table the column
+     * profiles created will be made to match those in the SQLTable given. The
+     * profile results will be matched by the UUID of the columns being profiled
+     * to the table columns. If there are column profile results that do not
+     * match the table's columns they will be removed. The existing column
+     * profile results may also be rearranged as they will match the order of
+     * the columns in the table.
      */
-    public TableProfileResult(TableProfileResult tprToCopy) {
-        super(tprToCopy);
+    public TableProfileResult(TableProfileResult tprToCopy, SQLTable table) throws SQLObjectException {
+        super(tprToCopy, table);
         setName("New Table Profile");
         this.rowCount = tprToCopy.rowCount;
         this.progressMonitor = tprToCopy.progressMonitor;
-        for (ColumnProfileResult cpr : tprToCopy.getColumnProfileResults()) {
-            addColumnProfileResult(new ColumnProfileResult(cpr));
+        for (SQLColumn col : table.getColumns()) {
+            for (ColumnProfileResult cpr : tprToCopy.getColumnProfileResults()) {
+                if (cpr.getProfiledObject().getUUID().equals(col.getUUID())) {
+                    addColumnProfileResult(new ColumnProfileResult(cpr, col));
+                    break;
+                }
+            }
         }
     }
 

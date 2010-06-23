@@ -21,15 +21,7 @@ package ca.sqlpower.architect.profile;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.enterprise.ArchitectPersisterSuperConverter;
-import ca.sqlpower.architect.enterprise.ArchitectSessionPersister;
-import ca.sqlpower.dao.SPPersisterListener;
-import ca.sqlpower.object.SPObject;
-import ca.sqlpower.sql.DataSourceCollection;
-import ca.sqlpower.sql.PlDotIni;
-import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.util.MonitorableImpl;
-import ca.sqlpower.util.SessionNotFoundException;
 
 /**
  * Provides a template method for doProfile which alleviates the
@@ -48,73 +40,35 @@ public abstract class AbstractTableProfileCreator implements TableProfileCreator
      * or without success) unless this profile population has been cancelled,
      * in which case it fires a profileCancelled event.
      */
-    public final boolean doProfile(final TableProfileResult actualTPR) {
-        final TableProfileResult tpr = new TableProfileResult(actualTPR);
-        
-        //Setting the profile result UUID to match which allows the
-        //persister to update the actual tpr at the end.
-        tpr.setUUID(actualTPR.getUUID());
-        //Need to do the same for the parent pointer but do not want
-        //to attach it to the actual profile manager.
-        ProfileManager backgroundPM = new ProfileManagerImpl();
-        backgroundPM.setUUID(actualTPR.getParent().getUUID());
-        tpr.setParent(backgroundPM);
+    public final boolean doProfile(final TableProfileResult tpr) {
         
         MonitorableImpl pm = (MonitorableImpl) tpr.getProgressMonitor();
+        tpr.begin("Profiling");
         try {
-            tpr.begin("Profiling");
-            try {
-                tpr.fireProfileStarted();
-                pm.setMessage(tpr.getProfiledObject().getName());
-                if (!pm.isCancelled()) {
-                    pm.setStarted(true);
-                    pm.setFinished(false);
-                    tpr.setCreateStartTime(System.currentTimeMillis());
-                    doProfileImpl(tpr);
-                }
-            } catch (Exception ex) {
-                tpr.setException(ex);
-                logger.error("Profile failed. Saving exception:", ex);
-            } finally {
-                tpr.setCreateEndTime(System.currentTimeMillis());
-                pm.setProgress(pm.getProgress() + 1);
-                pm.setFinished(true);
-                // this somehow fixes a progress bar visibility issue
-                pm.setStarted(false);
-                if (pm.isCancelled()) {
-                    tpr.fireProfileCancelled();
-                } else {
-                    tpr.fireProfileFinished();
-                }
+            tpr.fireProfileStarted();
+            pm.setMessage(tpr.getProfiledObject().getName());
+            if (!pm.isCancelled()) {
+                pm.setStarted(true);
+                pm.setFinished(false);
+                tpr.setCreateStartTime(System.currentTimeMillis());
+                doProfileImpl(tpr);
             }
-            tpr.commit();
+        } catch (Exception ex) {
+            tpr.setException(ex);
+            logger.error("Profile failed. Saving exception:", ex);
         } finally {
-            Runnable runner = new Runnable() {
-                public void run() {
-                    //None of the profiling creates or saves any data source information so an
-                    //empty data source is used for the converter. If the profiling stores
-                    //data source information in the future we may need the data source collection
-                    //in the project.
-                    DataSourceCollection<SPDataSource> dsCollection = new PlDotIni();
-                    
-                    SPObject root = actualTPR.getWorkspaceContainer().getWorkspace();
-                    ArchitectPersisterSuperConverter converter = 
-                        new ArchitectPersisterSuperConverter(dsCollection, root);
-                    ArchitectSessionPersister persister = 
-                        new ArchitectSessionPersister("Profiling persister", root, converter);
-                    persister.setWorkspaceContainer(actualTPR.getWorkspaceContainer());
-                    SPPersisterListener eventCreator = new SPPersisterListener(persister, converter);
-                    eventCreator.persistObject(tpr, 
-                            actualTPR.getParent().getChildren(TableProfileResult.class).indexOf(actualTPR),
-                            false);
-                }
-            };
-            try {
-                actualTPR.getRunnableDispatcher().runInForeground(runner);
-            } catch (SessionNotFoundException e) {
-                runner.run();
+            tpr.setCreateEndTime(System.currentTimeMillis());
+            pm.setProgress(pm.getProgress() + 1);
+            pm.setFinished(true);
+            // this somehow fixes a progress bar visibility issue
+            pm.setStarted(false);
+            if (pm.isCancelled()) {
+                tpr.fireProfileCancelled();
+            } else {
+                tpr.fireProfileFinished();
             }
         }
+        tpr.commit();
         return !pm.isCancelled();
     }
 

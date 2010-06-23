@@ -71,8 +71,8 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     /**
      * Deep-copy copy constructor.
      */
-    public ColumnProfileResult(ColumnProfileResult cprToCopy) {
-        super(cprToCopy);
+    public ColumnProfileResult(ColumnProfileResult cprToCopy, SQLColumn col) {
+        super(cprToCopy, col);
         setName("New Column Profile");
         this.avgLength = cprToCopy.avgLength;
         this.avgValue = cprToCopy.avgValue;
