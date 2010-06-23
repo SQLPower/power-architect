@@ -160,6 +160,7 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
                             && (getViewPrivilege().isSelected() == false)
                             && (getDeletePrivilege().isSelected() == false)
                             && (getGrantPrivilege().isSelected() == false)) {
+                        ((User) groupOrUser).removeGrant(grant);
                         doesNotRequireSave = true;
                     }
                 }
