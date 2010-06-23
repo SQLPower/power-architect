@@ -77,8 +77,12 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         this.profiledObject = profiledObject;
     }
     
-    public AbstractProfileResult(AbstractProfileResult<T> profileToCopy) {
-        this(profileToCopy.getProfiledObject());
+    /**
+     * Copies the properties from the profile to copy. The profiled object can be a different
+     * object than the one in the profile being copied if desired.
+     */
+    public AbstractProfileResult(AbstractProfileResult<T> profileToCopy, T profiledObject) {
+        this(profiledObject);
         this.createStartTime = profileToCopy.createStartTime;
         this.createEndTime = profileToCopy.createEndTime;
         this.ex = profileToCopy.ex;

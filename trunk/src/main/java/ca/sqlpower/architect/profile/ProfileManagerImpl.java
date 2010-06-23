@@ -32,8 +32,11 @@ import java.util.concurrent.Future;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.enterprise.ArchitectPersisterSuperConverter;
+import ca.sqlpower.architect.enterprise.ArchitectSessionPersister;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+import ca.sqlpower.dao.SPPersisterListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
@@ -42,12 +45,17 @@ import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.SessionNotFoundException;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
@@ -156,37 +164,112 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     private List<TableProfileCreator> profileCreators = Arrays.asList(
             (TableProfileCreator)new RemoteDatabaseProfileCreator(getDefaultProfileSettings()),
             new LocalReservoirProfileCreator(getDefaultProfileSettings()));
-    
+
     /**
-     * A Callable interface which populates a single profile result then returns it.
-     * Profile results don't throw the exceptions their populate() methods encounter,
-     * but this callable wrapper knows about that, and digs up and rethrows the
-     * exceptions encountered by populate().  This is more normal, and is also
-     * compatible with the ExecutorService implementation provided in the standard
-     * Java library (it handles exceptions and restarts the work queue properly).
+     * A Callable interface which populates a single profile result then returns
+     * it. Profile results don't throw the exceptions their populate() methods
+     * encounter, but this callable wrapper knows about that, and digs up and
+     * rethrows the exceptions encountered by populate(). This is more normal,
+     * and is also compatible with the ExecutorService implementation provided
+     * in the standard Java library (it handles exceptions and restarts the work
+     * queue properly).
+     * <p>
+     * To protect the profiling from threading problems all of the objects that
+     * exist in the {@link SPObject} tree are duplicated before being passed to
+     * the profiler. This way the profiler can do as it desires with the objects
+     * and these objects cannot be modified by outside classes. When the
+     * profiling is one the profiles themselves will be updated on the
+     * foreground thread so the object model stays single threaded.
      */
     private class ProfileResultCallable implements Callable<TableProfileResult> {
         
         /**
          * The table profile result this Callable populates.
          */
-        private TableProfileResult tpr;
+        private TableProfileResult actualTPR;
 
-        ProfileResultCallable(TableProfileResult tpr) {
-            if (tpr == null) throw new NullPointerException("Can't populate a null profile result!");
-            this.tpr = tpr;
+        /**
+         * The table profile that is a copy of the real one that will be
+         * populated on a background thread. This prevents any problems with
+         * threading as the real profile result will not be modified until we
+         * are back on the foreground thread.
+         */
+        private final TableProfileResult tpr;
+
+        ProfileResultCallable(TableProfileResult actualTPR) {
+            if (actualTPR == null) throw new NullPointerException("Can't populate a null profile result!");
+            this.actualTPR = actualTPR;
+            SQLTable table;
+            TableProfileResult tempTPR;
+            try {
+                SQLTable profileTable = actualTPR.getProfiledObject();
+                table = new SQLTable(profileTable.getParentDatabase(), true);
+                table.setUUID(profileTable.getUUID());
+                table.updateToMatch(profileTable);
+                for (SQLColumn col : profileTable.getColumns()) {
+                    SQLColumn newCol = new SQLColumn();
+                    newCol.updateToMatch(col);
+                    newCol.setUUID(col.getUUID());
+                    table.addColumn(newCol);
+                }
+                tempTPR = new TableProfileResult(actualTPR, table);
+                
+                //Setting the profile result UUID to match which allows the
+                //persister to update the actual tpr at the end.
+                tempTPR.setUUID(actualTPR.getUUID());
+                //Need to do the same for the parent pointer but do not want
+                //to attach it to the actual profile manager.
+                ProfileManager backgroundPM = new ProfileManagerImpl();
+                backgroundPM.setUUID(actualTPR.getParent().getUUID());
+                tempTPR.setParent(backgroundPM);
+            } catch (Exception e) {
+                //If an exception is thrown during setup define the profile to have an exception on
+                //it and handle appropriately when doing the profile.
+                tempTPR = null;
+                actualTPR.setException(e);
+            }
+            tpr = tempTPR;
         }
         
         /**
          * Populates the profile result, throwing any exceptions encountered.
          */
         public TableProfileResult call() throws Exception {
+            //Exception occurred during setup.
+            if (actualTPR.getException() != null) {
+                throw actualTPR.getException();
+            }
             creator.doProfile(tpr);
             // XXX the creator should stash a reference to the exception in tpr, then throw it anyway 
             if (tpr.getException() != null) {
                 throw tpr.getException();
             }
-            return tpr;
+            Runnable runner = new Runnable() {
+                public void run() {
+                    //None of the profiling creates or saves any data source information so an
+                    //empty data source is used for the converter. If the profiling stores
+                    //data source information in the future we may need the data source collection
+                    //in the project.
+                    DataSourceCollection<SPDataSource> dsCollection = new PlDotIni();
+                    
+                    SPObject root = actualTPR.getWorkspaceContainer().getWorkspace();
+                    ArchitectPersisterSuperConverter converter = 
+                        new ArchitectPersisterSuperConverter(dsCollection, root);
+                    ArchitectSessionPersister persister = 
+                        new ArchitectSessionPersister("Profiling persister", root, converter);
+                    persister.setWorkspaceContainer(actualTPR.getWorkspaceContainer());
+                    SPPersisterListener eventCreator = new SPPersisterListener(persister, converter);
+                    eventCreator.persistObject(tpr, 
+                            actualTPR.getParent().getChildren(TableProfileResult.class).indexOf(actualTPR),
+                            false);
+                }
+            };
+            try {
+                actualTPR.getRunnableDispatcher().runInForeground(runner);
+            } catch (SessionNotFoundException e) {
+                runner.run();
+            }
+            return actualTPR;
         }
     }
     
