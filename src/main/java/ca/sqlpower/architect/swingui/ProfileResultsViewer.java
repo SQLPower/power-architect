@@ -276,7 +276,12 @@ public class ProfileResultsViewer {
         final MultiFreqValueCountTableModel columnTableModel = new MultiFreqValueCountTableModel(tm);
 
         JTextField columnSearchField = new JTextField("",25); //$NON-NLS-1$
-        FancyExportableJTable columnTable = new FancyExportableJTable(columnTableModel, columnSearchField.getDocument());
+        final FancyExportableJTable columnTable = new FancyExportableJTable(columnTableModel, columnSearchField.getDocument());
+        columnTableModel.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                TableUtils.fitColumnWidths(columnTable, 15);
+            }
+        });
         
         for (int i = 0; i < columnTableModel.getColumnCount(); i++) {
             columnTable.getColumnModel().getColumn(i).setCellRenderer(columnTableModel.getCellRenderer(i));
