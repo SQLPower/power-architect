@@ -81,7 +81,24 @@ public class SaveProfileAction extends AbstractAction {
     }
     
     /** The set of valid file types for saving the report in */
-    private enum SaveableFileType { HTML, PDF, CSV }
+    public enum SaveableFileType { 
+        HTML(SPSUtils.HTML_FILE_FILTER), 
+        PDF(SPSUtils.PDF_FILE_FILTER), 
+        CSV(SPSUtils.CSV_FILE_FILTER);
+        
+        /**
+         * A file filter that matches the type in the enum.
+         */
+        private final FileFilter filter;
+
+        private SaveableFileType(FileFilter filter) {
+            this.filter = filter;
+        }
+
+        public FileFilter getFilter() {
+            return filter;
+        }
+    }
 
     /**
      * The component whose window ancestor will own dialogs created by this action.
@@ -91,6 +108,13 @@ public class SaveProfileAction extends AbstractAction {
     private ProfileJTable viewTable;
 
     /**
+     * These file types are the available types for exporting to for this
+     * action. The file types will be available to be selected in the file
+     * chooser dialog.
+     */
+    private final SaveableFileType[] fileTypes; 
+
+    /**
      * Creates a new action which will, when invoked, offer to save profile results
      * in one of several deluxe file formats.
      * 
@@ -98,10 +122,11 @@ public class SaveProfileAction extends AbstractAction {
      * @param viewTable The (eww) jtable which contains the profile results to be exported.
      * XXX this should be a collection of TableProfileResult objects, not a view component that houses them
      */
-    public SaveProfileAction(Component dialogOwner, ProfileJTable viewTable) {
-        super(Messages.getString("SaveProfileAction.name")); //$NON-NLS-1$
+    public SaveProfileAction(Component dialogOwner, String name, ProfileJTable viewTable, SaveableFileType ... fileTypes) {
+        super(name); //$NON-NLS-1$
         this.dialogOwner = dialogOwner;
         this.viewTable = viewTable;
+        this.fileTypes = fileTypes;
     }
 
 
@@ -167,10 +192,10 @@ public class SaveProfileAction extends AbstractAction {
 
         JFileChooser chooser = new JFileChooser();
 
-        chooser.addChoosableFileFilter(SPSUtils.HTML_FILE_FILTER);
-        chooser.addChoosableFileFilter(SPSUtils.PDF_FILE_FILTER);
-        chooser.addChoosableFileFilter(SPSUtils.CSV_FILE_FILTER);
         chooser.removeChoosableFileFilter(chooser.getAcceptAllFileFilter());
+        for (SaveableFileType type : fileTypes) {
+            chooser.addChoosableFileFilter(type.getFilter());
+        }
 
         File file = null;
         SaveableFileType type;

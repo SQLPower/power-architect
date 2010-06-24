@@ -22,7 +22,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -31,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -52,17 +53,20 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
+import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;
 import ca.sqlpower.architect.swingui.table.MultiFreqValueCountTableModel;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.table.FancyExportableJTable;
 import ca.sqlpower.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
-import ca.sqlpower.swingui.table.TableTextConverter;
 import ca.sqlpower.swingui.table.TableUtils;
+
+import com.jgoodies.forms.builder.ButtonBarBuilder;
 
 /**
  * A class that manages a viewer component for a set of Profile Results.
@@ -171,6 +175,15 @@ public class ProfileResultsViewer {
         }
     }
 
+    /**
+     * The standard close action for this viewer.
+     */
+    private final Action closeAction = new AbstractAction(
+            Messages.getString("ProfileResultsViewer.closeButton")) {
+        public void actionPerformed(ActionEvent e) {
+            frame.dispose();
+        }
+    };
 
     /**
      * Creates but does not show a new profile result viewer dialog.
@@ -222,11 +235,17 @@ public class ProfileResultsViewer {
         editorScrollPane.setPreferredSize(new Dimension(800, 600));
         editorScrollPane.setMinimumSize(new Dimension(10, 10));
 
+        JPanel profilePanel = new JPanel(new BorderLayout());
         ProfilePanel p = new ProfilePanel(tm);
         p.setViewTable(viewTable);
         p.setTabPane(tabPane);
         p.setTableModel(tm);
-        tabPane.addTab(Messages.getString("ProfileResultsViewer.graphViewTab"),p); //$NON-NLS-1$
+        profilePanel.add(p, BorderLayout.CENTER);
+        ButtonBarBuilder profileButtons = new ButtonBarBuilder();
+        profileButtons.addGlue();
+        profileButtons.addFixed(new JButton(closeAction));
+        profilePanel.add(profileButtons.getPanel(), BorderLayout.SOUTH);
+        tabPane.addTab(Messages.getString("ProfileResultsViewer.graphViewTab"), profilePanel); //$NON-NLS-1$
         
         JPanel tableViewPane = new JPanel(new BorderLayout());
 
@@ -239,42 +258,47 @@ public class ProfileResultsViewer {
         searchPanel.add(searchLabel);
         searchPanel.add(searchField);
         tableViewPane.add(searchPanel,BorderLayout.NORTH);
+        ButtonBarBuilder tableButtons = new ButtonBarBuilder();
+        tableButtons.addGlue();
+        tableButtons.addFixed(new JButton(new SaveProfileAction(frame, 
+                Messages.getString("ProfileResultsViewer.PDFExport"), viewTable, 
+                SaveProfileAction.SaveableFileType.PDF)));
+        tableButtons.addFixed(new JButton(new SaveProfileAction(frame, 
+                Messages.getString("ProfileResultsViewer.CSVExport"), viewTable, 
+                SaveProfileAction.SaveableFileType.CSV)));
+        tableButtons.addFixed(new JButton(new SaveProfileAction(frame, 
+                Messages.getString("ProfileResultsViewer.HTMLExport"), viewTable, 
+                SaveProfileAction.SaveableFileType.HTML)));
+        tableButtons.addFixed(new JButton(closeAction));
+        tableViewPane.add(tableButtons.getPanel(), BorderLayout.SOUTH);
         tabPane.addTab(Messages.getString("ProfileResultsViewer.tableViewTab"), tableViewPane ); //$NON-NLS-1$
         
         final MultiFreqValueCountTableModel columnTableModel = new MultiFreqValueCountTableModel(tm);
-        
-        //Setup a search and sort decorator on the table
-        TableModelSearchDecorator columnSearchDecorator =
-            new TableModelSearchDecorator(columnTableModel);
-        final TableModelSortDecorator columnTableModelSortDecorator =
-            new TableModelSortDecorator(columnSearchDecorator);
-        final JTable columnTable = new JTable(columnTableModelSortDecorator);
-        columnSearchDecorator.setTableTextConverter(new TableTextConverter() {
-            public int modelIndex(int viewIndex) {
-                return columnTableModelSortDecorator.modelIndex(viewIndex);
-            }
-              
-            public String getTextForCell(int row, int col) {
-                // note: this will only work because we know all the renderers are jlabels
-                JLabel renderer = (JLabel) columnTable.getCellRenderer(row, col).
-                getTableCellRendererComponent(columnTable, columnTable.getModel().getValueAt(row, 
-                        columnTable.getColumnModel().getColumn(col).getModelIndex()), 
-                        false, false, row, col);
-                return renderer.getText();
-            }
-        });
-        columnTableModelSortDecorator.setTableHeader(columnTable.getTableHeader());
+
+        JTextField columnSearchField = new JTextField("",25); //$NON-NLS-1$
+        FancyExportableJTable columnTable = new FancyExportableJTable(columnTableModel, columnSearchField.getDocument());
         
         for (int i = 0; i < columnTableModel.getColumnCount(); i++) {
             columnTable.getColumnModel().getColumn(i).setCellRenderer(columnTableModel.getCellRenderer(i));
         }
         JPanel columnViewerPanel = new JPanel(new BorderLayout());
         columnViewerPanel.add(new JScrollPane(columnTable), BorderLayout.CENTER);
+        
         JPanel columnSearchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         columnSearchPanel.add(new JLabel(Messages.getString("ProfileResultsViewer.search"))); //$NON-NLS-1$
-        JTextField columnSearchField = new JTextField(columnSearchDecorator.getDoc(),"",25); //$NON-NLS-1$
         columnSearchPanel.add(columnSearchField);
         columnViewerPanel.add(columnSearchPanel, BorderLayout.NORTH);
+        
+        ButtonBarBuilder columnButtonBar = new ButtonBarBuilder();
+        columnButtonBar.addGlue();
+        final JButton csvExportButton = new JButton(columnTable.getExportCSVAction());
+        csvExportButton.setText(Messages.getString("ProfileResultsViewer.CSVExport"));
+        columnButtonBar.addFixed(csvExportButton);
+        final JButton htmlExportButton = new JButton(columnTable.getExportHTMLAction());
+        htmlExportButton.setText(Messages.getString("ProfileResultsViewer.HTMLExport"));
+        columnButtonBar.addFixed(htmlExportButton);
+        columnButtonBar.addFixed(new JButton(closeAction));
+        columnViewerPanel.add(columnButtonBar.getPanel(), BorderLayout.SOUTH);
         tabPane.addTab(Messages.getString("ProfileResultsViewer.columnViewTab"), 
                 columnViewerPanel);
 
@@ -290,19 +314,7 @@ public class ProfileResultsViewer {
  
         frame.add(tabPane, BorderLayout.CENTER);
         
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton save = new JButton(
-                new SaveProfileAction(frame, viewTable));
-        bottomPanel.add(save);
-        JButton closeButton = new JButton(Messages.getString("ProfileResultsViewer.closeButton")); //$NON-NLS-1$
-        bottomPanel.add(closeButton);
-        frame.add(bottomPanel,BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        closeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                frame.dispose(); 
-            }
-        });
         frame.pack();
         frame.setLocationRelativeTo(null);
         SPSUtils.makeJDialogCancellable(frame, null);
