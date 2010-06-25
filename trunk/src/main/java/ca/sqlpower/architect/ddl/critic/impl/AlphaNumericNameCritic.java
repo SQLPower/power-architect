@@ -31,7 +31,7 @@ public class AlphaNumericNameCritic extends PhysicalNameCritic {
         super(StarterPlatformTypes.GENERIC.getName(), 
                 Pattern.compile("^[a-z_][a-z0-9_]*$", Pattern.CASE_INSENSITIVE), 
                 Integer.MAX_VALUE);
-        setName("Non-alpha-numeric physical names");
+        setName(Messages.getString("AlphaNumericNameCritic.name"));
     }
 
 }
