@@ -37,6 +37,7 @@ import ca.sqlpower.architect.ddl.critic.impl.PostgreSQLReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.PrimaryKeyCritic;
 import ca.sqlpower.architect.ddl.critic.impl.RelationshipMappingTypeCritic;
 import ca.sqlpower.architect.ddl.critic.impl.SQLServerReservedWordsCritic;
+import ca.sqlpower.architect.ddl.critic.impl.SetDefaultOnColumnWithNoDefaultCritic;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
@@ -71,7 +72,8 @@ public class CriticManager extends AbstractSPObject {
                 new OracleReservedWordsCritic(),
                 new MySQLCommentCritic(),
                 new MySQLReservedWordsCritic(),
-                new SQLServerReservedWordsCritic()
+                new SQLServerReservedWordsCritic(),
+                new SetDefaultOnColumnWithNoDefaultCritic()
                 ));
 
     /**
