@@ -37,7 +37,7 @@ public class AlphaNumericSequenceNameCritic extends CriticAndSettings {
     private final Pattern pattern = Pattern.compile("^[a-z_][a-z0-9_]*$", Pattern.CASE_INSENSITIVE); 
     
     public AlphaNumericSequenceNameCritic() {
-        super(StarterPlatformTypes.GENERIC.getName(), "Non-alpha-numeric sequence names");
+        super(StarterPlatformTypes.GENERIC.getName(), Messages.getString("AlphaNumericSequenceNameCritic.name"));
     }
 
     public List<Criticism> criticize(Object subject) {
@@ -52,7 +52,7 @@ public class AlphaNumericSequenceNameCritic extends CriticAndSettings {
         if (!pattern.matcher(physName).matches()) {
             criticisms.add(new Criticism(
                     so,
-                    "Sequence name not legal for column " + so.getName(),
+                    Messages.getString("AlphaNumericSequenceNameCritic.quickFixMessage", so.getName()),
                     this
                     ));
         }
