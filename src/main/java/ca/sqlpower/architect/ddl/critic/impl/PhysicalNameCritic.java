@@ -32,6 +32,8 @@ import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 
 /**
  * Criticizes the physical name of all SQLObjects based on the parameters given
@@ -71,6 +73,10 @@ public class PhysicalNameCritic extends CriticAndSettings {
     
     public List<Criticism> criticize(final Object subject) {
         if (!(subject instanceof SQLObject)) return Collections.emptyList();
+        
+        //Column mappings and the columns in SQLIndex do not get written in
+        //a DDL statement so we can ignore criticizing them.
+        if (subject instanceof ColumnMapping || subject instanceof Column) return Collections.emptyList();
         
         final SQLObject so = (SQLObject) subject;
         String physName = so.getPhysicalName();
