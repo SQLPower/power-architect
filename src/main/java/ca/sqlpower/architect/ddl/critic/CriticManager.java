@@ -30,9 +30,13 @@ import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericSequenceNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.EmptyRelationshipCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLCommentCritic;
+import ca.sqlpower.architect.ddl.critic.impl.MySQLReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.OraclePhysicalNameCritic;
+import ca.sqlpower.architect.ddl.critic.impl.OracleReservedWordsCritic;
+import ca.sqlpower.architect.ddl.critic.impl.PostgreSQLReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.PrimaryKeyCritic;
 import ca.sqlpower.architect.ddl.critic.impl.RelationshipMappingTypeCritic;
+import ca.sqlpower.architect.ddl.critic.impl.SQLServerReservedWordsCritic;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
@@ -62,8 +66,12 @@ public class CriticManager extends AbstractSPObject {
                 new EmptyRelationshipCritic(),
                 new AlphaNumericNameCritic(),
                 new AlphaNumericSequenceNameCritic(),
+                new PostgreSQLReservedWordsCritic(),
                 new OraclePhysicalNameCritic(), 
-                new MySQLCommentCritic()
+                new OracleReservedWordsCritic(),
+                new MySQLCommentCritic(),
+                new MySQLReservedWordsCritic(),
+                new SQLServerReservedWordsCritic()
                 ));
 
     /**

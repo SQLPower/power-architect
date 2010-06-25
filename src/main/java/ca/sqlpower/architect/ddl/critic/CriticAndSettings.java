@@ -53,7 +53,9 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
      */
     public enum StarterPlatformTypes {
         GENERIC("Generic"),
+        POSTGRESQL("PostgreSQL"),
         MY_SQL("MySQL"),
+        SQL_SERVER("SQL Server"),
         ORACLE("Oracle");
         
         private final String name;
