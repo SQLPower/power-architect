@@ -154,7 +154,7 @@ public class SecurityPanel {
                         securityWorkspace.begin("");
                         securityWorkspace.addChild(user, securityWorkspace.getChildren(User.class).size());
                         DomainCategory category = new DomainCategory(user.getName() + "'s Domains");
-                        user.addGrant(new Grant(category.getUUID(), null, true, true, true, true, true));
+                        user.addGrant(new Grant(category, true, true, true, true, true));
                         securityWorkspace.addChild(category, securityWorkspace.getChildren(DomainCategory.class).size());
                         securityWorkspace.commit();
                         

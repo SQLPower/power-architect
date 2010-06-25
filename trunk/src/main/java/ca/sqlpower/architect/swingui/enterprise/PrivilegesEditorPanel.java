@@ -167,7 +167,7 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
                 
                 if (!doesNotRequireSave) {
                     Grant newGrant = new Grant(
-                            subject, subject != null ? null : type,
+                            subject, type,
                             createPrivilege.isSelected(), 
                             modifyPrivilege.isSelected(),
                             deletePrivilege.isSelected(), 
