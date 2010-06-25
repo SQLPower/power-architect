@@ -388,10 +388,10 @@ public class ProjectSecurityPanel implements DataEntryPanel{
                         for (int i = 0; i < selectedIndices.length; i++) {
                             SPObject obj = (SPObject) model.get(selectedIndices[i]);
                             if (subject != null) {
-                                obj.addChild(new Grant(subject.getUUID(), null, false, false, false, false, false),
+                                obj.addChild(new Grant(subject, false, false, false, false, false),
                                         obj.getChildren(Grant.class).size());
                             } else {
-                                obj.addChild(new Grant(null, type.getName(), false, false, false, false, false),
+                                obj.addChild(new Grant(type.getName(), false, false, false, false, false),
                                         obj.getChildren(Grant.class).size());
                             }
                         }
