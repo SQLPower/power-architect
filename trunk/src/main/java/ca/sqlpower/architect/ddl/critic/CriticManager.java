@@ -28,6 +28,7 @@ import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericSequenceNameCritic;
+import ca.sqlpower.architect.ddl.critic.impl.DB2UnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.EmptyRelationshipCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLCommentCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLReservedWordsCritic;
@@ -38,6 +39,7 @@ import ca.sqlpower.architect.ddl.critic.impl.PostgreSQLReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.PrimaryKeyCritic;
 import ca.sqlpower.architect.ddl.critic.impl.RelationshipMappingTypeCritic;
 import ca.sqlpower.architect.ddl.critic.impl.SQLServerReservedWordsCritic;
+import ca.sqlpower.architect.ddl.critic.impl.SQLServerUnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.SetDefaultOnColumnWithNoDefaultCritic;
 import ca.sqlpower.architect.ddl.critic.impl.SetNullOnNonNullableColumnCritic;
 import ca.sqlpower.object.AbstractSPObject;
@@ -77,7 +79,9 @@ public class CriticManager extends AbstractSPObject {
                 new SQLServerReservedWordsCritic(),
                 new SetDefaultOnColumnWithNoDefaultCritic(),
                 new SetNullOnNonNullableColumnCritic(),
-                new MySQLUnsupportedFeaturesCritic()
+                new MySQLUnsupportedFeaturesCritic(),
+                new SQLServerUnsupportedFeaturesCritic(),
+                new DB2UnsupportedFeaturesCritic()
                 ));
 
     /**
