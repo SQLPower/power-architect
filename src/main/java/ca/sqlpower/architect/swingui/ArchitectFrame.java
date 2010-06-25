@@ -144,6 +144,7 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.action.OpenUrlAction;
 import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
+import ca.sqlpower.swingui.table.TableUtils;
 import ca.sqlpower.util.UserPrompterFactory;
 
 /**
@@ -1299,6 +1300,8 @@ public class ArchitectFrame extends JFrame {
                 screenHeight / 3);
         rightPanel.setDividerLocation((int) (screenHeight - viewHeight));
         criticPanelToggleButton.setSelected(true);
+        
+        TableUtils.fitColumnWidths(criticPanel.getTable(), 15);
     }
     
     public CriticPanel getCriticPanel() {

@@ -28,6 +28,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -98,7 +99,6 @@ public class CriticPanel {
         panel = new JPanel(new BorderLayout());
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
         table.getSelectionModel().addListSelectionListener(selectedObjectsChangedListener);
-        
     }        
     
     public void init() {
@@ -137,5 +137,14 @@ public class CriticPanel {
             int index = session.getPlayPen().getCriticismBucket().getCriticisms().indexOf(criticism);
             table.changeSelection(index, index, true, false);
         }
+    }
+
+    /**
+     * Returns the table that makes up the main part of this panel. This table
+     * will display all of the critics known to the system from the last time
+     * the critics were run.
+     */
+    public JTable getTable() {
+        return table;
     }
 }
