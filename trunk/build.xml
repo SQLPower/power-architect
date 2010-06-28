@@ -759,6 +759,7 @@
 	
 	<target name ="jar" depends="compile" description="Builds the embedable JAR">
 		<jar jarfile="dist/architect.jar" basedir="${build}"/>
+		<jar jarfile="dist/architect-tests.jar" basedir="${build.tests}"/>
 	</target>
 
     <target name="stage" depends="checkAntVersion,compile">
