@@ -214,8 +214,8 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
             createProfileFunctions(dsType);
             for (SQLColumn col : table.getColumns()) {
                 ColumnProfileResult columnResult = new ColumnProfileResult(col, tpr);
-                doColumnProfile(columnResult, pm);
                 tpr.addColumnProfileResult(columnResult);
+                doColumnProfile(columnResult, pm);
                 pm.setProgress(pm.getProgress() + 1);
             }
 
@@ -470,8 +470,14 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
                 lastSQL = sql.toString();
                 rs = stmt.executeQuery(lastSQL);
                 int topNCount = settings.getTopNCount();
+                int topNSum = 0;
                 for (int n = 0; rs.next() && n < topNCount; n++) {
                     cpr.addValueCount(rs.getObject("MYVALUE"), rs.getInt("COUNT1"));
+                    topNSum += rs.getInt("COUNT1");
+                }
+                int remainingCount = cpr.getParent().getRowCount() - topNSum;
+                if (remainingCount > 0) {
+                    cpr.addValueCount(ColumnValueCount.OTHER_VALUE_OBJECT, remainingCount);
                 }
                 rs.close();
                 rs = null;

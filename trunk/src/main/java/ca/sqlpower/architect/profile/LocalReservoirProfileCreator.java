@@ -196,10 +196,14 @@ public class LocalReservoirProfileCreator extends AbstractTableProfileCreator {
                 List<Map.Entry<Object, Integer>> topNList = new ArrayList<Entry<Object,Integer>>(valueCounts.entrySet());
                 Collections.sort(topNList, new TopNValuesComparator());
                 
+                int sumOfTopNCount = 0;
                 for (int i = 0; i < settings.getTopNCount() && i < topNList.size(); i++) {
                     Entry<Object, Integer> entry = topNList.get(i);
                     cpr.addValueCount(entry.getKey(), entry.getValue().intValue());
+                    sumOfTopNCount += entry.getValue().intValue();
                 }
+                
+                cpr.addValueCount(ColumnValueCount.OTHER_VALUE_OBJECT, sample.length - sumOfTopNCount);
                 
                 cpr.setCreateEndTime(System.currentTimeMillis());
     
