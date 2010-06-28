@@ -1252,7 +1252,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                                 "\" percent=\"" +  //$NON-NLS-1$
                                 count.getPercent() + 
                                 "\" otherValues=\"" + 
-                                Boolean.toString(count.isOtherValues()) + "/>" ); //$NON-NLS-1$
+                                Boolean.toString(count.isOtherValues()) + "\"/>" ); //$NON-NLS-1$
                     }
                 }
                 ioo.indent--;
