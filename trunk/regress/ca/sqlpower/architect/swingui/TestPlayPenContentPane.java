@@ -64,7 +64,9 @@ public class TestPlayPenContentPane extends PersistedSPObjectTest {
 		pp.addTablePane(tp2, new Point(-10,0));
 		SQLRelationship sqlrel = new SQLRelationship();
 		sqlrel.attachRelationship(t1, t2, false);
-		ppcp = new PlayPenContentPane(new SQLDatabase());
+		final SQLDatabase modelContainer = new SQLDatabase();
+		getRootObject().addChild(modelContainer, 0);
+        ppcp = new PlayPenContentPane(modelContainer);
 		ppcp.setPlayPen(pp);
 		rel1 = new Relationship(sqlrel,pp.getContentPane());
 		rel2 = new Relationship(sqlrel,pp.getContentPane());
