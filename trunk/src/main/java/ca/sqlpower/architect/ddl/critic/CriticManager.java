@@ -37,9 +37,12 @@ import ca.sqlpower.architect.ddl.critic.impl.MySQLReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLUnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.OraclePhysicalNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.OracleReservedWordsCritic;
+import ca.sqlpower.architect.ddl.critic.impl.OracleUnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.PostgreSQLReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.PrimaryKeyCritic;
 import ca.sqlpower.architect.ddl.critic.impl.RelationshipMappingTypeCritic;
+import ca.sqlpower.architect.ddl.critic.impl.SQLServer2000UnsupportedFeaturesCritic;
+import ca.sqlpower.architect.ddl.critic.impl.SQLServer2005UnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.SQLServerReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.SQLServerUnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.SetDefaultOnColumnWithNoDefaultCritic;
@@ -68,24 +71,37 @@ public class CriticManager extends AbstractSPObject {
      */
     private static final List<CriticAndSettings> STARTING_CRITICS = 
         Collections.unmodifiableList(Arrays.asList(
+                //generics
                 new PrimaryKeyCritic(),
                 new RelationshipMappingTypeCritic(),
                 new EmptyRelationshipCritic(),
                 new AlphaNumericNameCritic(),
                 new AlphaNumericSequenceNameCritic(),
-                new PostgreSQLReservedWordsCritic(),
-                new OraclePhysicalNameCritic(), 
-                new OracleReservedWordsCritic(),
-                new MySQLCommentCritic(),
-                new MySQLReservedWordsCritic(),
-                new SQLServerReservedWordsCritic(),
                 new SetDefaultOnColumnWithNoDefaultCritic(),
                 new SetNullOnNonNullableColumnCritic(),
-                new MySQLUnsupportedFeaturesCritic(),
-                new SQLServerUnsupportedFeaturesCritic(),
+                //DB2
                 new DB2UnsupportedFeaturesCritic(),
+                //H2
                 new H2UnsupportedFeaturesCritic(),
-                new HSQLDBUnsupportedFeaturesCritic()
+                //HSQLDB
+                new HSQLDBUnsupportedFeaturesCritic(),
+                //MySQL
+                new MySQLCommentCritic(),
+                new MySQLReservedWordsCritic(),
+                new MySQLUnsupportedFeaturesCritic(),
+                //Oracle
+                new OraclePhysicalNameCritic(), 
+                new OracleReservedWordsCritic(),
+                new OracleUnsupportedFeaturesCritic(),
+                //Postgres
+                new PostgreSQLReservedWordsCritic(),
+                //SQL Server
+                new SQLServerUnsupportedFeaturesCritic(),
+                new SQLServerReservedWordsCritic(),
+                //SQL Server 2000
+                new SQLServer2000UnsupportedFeaturesCritic(),
+                //SQL Server 2005
+                new SQLServer2005UnsupportedFeaturesCritic()
                 ));
 
     /**
