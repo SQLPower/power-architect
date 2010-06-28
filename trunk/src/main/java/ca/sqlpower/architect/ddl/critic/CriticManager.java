@@ -30,6 +30,8 @@ import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericSequenceNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.DB2UnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.EmptyRelationshipCritic;
+import ca.sqlpower.architect.ddl.critic.impl.H2UnsupportedFeaturesCritic;
+import ca.sqlpower.architect.ddl.critic.impl.HSQLDBUnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLCommentCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLReservedWordsCritic;
 import ca.sqlpower.architect.ddl.critic.impl.MySQLUnsupportedFeaturesCritic;
@@ -81,7 +83,9 @@ public class CriticManager extends AbstractSPObject {
                 new SetNullOnNonNullableColumnCritic(),
                 new MySQLUnsupportedFeaturesCritic(),
                 new SQLServerUnsupportedFeaturesCritic(),
-                new DB2UnsupportedFeaturesCritic()
+                new DB2UnsupportedFeaturesCritic(),
+                new H2UnsupportedFeaturesCritic(),
+                new HSQLDBUnsupportedFeaturesCritic()
                 ));
 
     /**

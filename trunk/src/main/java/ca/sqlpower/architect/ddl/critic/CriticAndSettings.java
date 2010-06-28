@@ -57,7 +57,9 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
         MY_SQL("MySQL"),
         SQL_SERVER("SQL Server"),
         ORACLE("Oracle"),
-        DB2("DB2");
+        DB2("DB2"),
+        H2("H2"),
+        HSQLDB("HSQLDB");
         
         private final String name;
 
