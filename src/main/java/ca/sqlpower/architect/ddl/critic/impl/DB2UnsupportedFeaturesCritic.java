@@ -32,7 +32,7 @@ import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 public class DB2UnsupportedFeaturesCritic extends CriticAndSettings {
 
     public DB2UnsupportedFeaturesCritic() {
-        super(StarterPlatformTypes.DB2.getName(), Messages.getString("DB2UnsupportedFeaturesCritic.name"));
+        super(StarterPlatformTypes.DB2.getName(), Messages.getString("UnsupportedFeaturesCritic.name", StarterPlatformTypes.DB2.getName()));
     }
 
     public List<Criticism> criticize(Object subject) {
@@ -42,16 +42,16 @@ public class DB2UnsupportedFeaturesCritic extends CriticAndSettings {
         List<Criticism> criticisms = new ArrayList<Criticism>();
         if (r.getDeleteRule() == UpdateDeleteRule.SET_DEFAULT) {
             criticisms.add(new Criticism(subject, 
-                    Messages.getString("DB2UnsupportedFeaturesCritic.deleteRuleNotSupported", r.getName()), this));
+                    Messages.getString("UnsupportedFeaturesCritic.deleteRuleNotSupported", getPlatformType(), r.getName()), this));
         }
         if (r.getUpdateRule() != UpdateDeleteRule.RESTRICT
                 && (r.getUpdateRule() != UpdateDeleteRule.NO_ACTION)) {
             criticisms.add(new Criticism(subject, 
-                    Messages.getString("DB2UnsupportedFeaturesCritic.updateRuleNotSupported", r.getName()), this));
+                    Messages.getString("UnsupportedFeaturesCritic.updateRuleNotSupported", getPlatformType(), r.getName()), this));
         }
         if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
             criticisms.add(new Criticism(subject, 
-                    Messages.getString("DB2UnsupportedFeaturesCritic.deferrabilityRuleNotSupported", r.getName()), this));
+                    Messages.getString("UnsupportedFeaturesCritic.deferrabilityRuleNotSupported", getPlatformType(), r.getName()), this));
         }
         return criticisms;
     }

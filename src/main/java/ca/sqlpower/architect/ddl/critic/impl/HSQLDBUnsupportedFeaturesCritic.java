@@ -27,26 +27,31 @@ import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
-public class SQLServerUnsupportedFeaturesCritic extends CriticAndSettings {
+public class HSQLDBUnsupportedFeaturesCritic extends CriticAndSettings {
 
-    public SQLServerUnsupportedFeaturesCritic() {
-        super(StarterPlatformTypes.SQL_SERVER.getName(), 
-                Messages.getString("UnsupportedFeaturesCritic.name", StarterPlatformTypes.SQL_SERVER.getName()));
+    public HSQLDBUnsupportedFeaturesCritic() {
+        super(StarterPlatformTypes.HSQLDB.getName(), Messages.getString("UnsupportedFeaturesCritic.name", StarterPlatformTypes.HSQLDB.getName()));
     }
 
     public List<Criticism> criticize(Object subject) {
         if (!(subject instanceof SQLRelationship)) return Collections.emptyList();
         
-        List<Criticism> criticisms = new ArrayList<Criticism>();
         SQLRelationship r = (SQLRelationship) subject;
-        
+        List<Criticism> criticisms = new ArrayList<Criticism>();
+        if (r.getDeleteRule() == UpdateDeleteRule.RESTRICT) {
+            criticisms.add(new Criticism(subject, 
+                    Messages.getString("UnsupportedFeaturesCritic.deleteRuleNotSupported", getPlatformType(), r.getName()), this));
+        }
+        if (r.getUpdateRule() == UpdateDeleteRule.RESTRICT) {
+            criticisms.add(new Criticism(subject, 
+                    Messages.getString("UnsupportedFeaturesCritic.updateRuleNotSupported", getPlatformType(), r.getName()), this));
+        }
         if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
             criticisms.add(new Criticism(subject, 
                     Messages.getString("UnsupportedFeaturesCritic.deferrabilityRuleNotSupported", getPlatformType(), r.getName()), this));
         }
-        
         return criticisms;
     }
-
 }

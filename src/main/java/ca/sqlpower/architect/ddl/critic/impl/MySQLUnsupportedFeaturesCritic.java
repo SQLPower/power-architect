@@ -37,7 +37,7 @@ public class MySQLUnsupportedFeaturesCritic extends CriticAndSettings {
     
     public MySQLUnsupportedFeaturesCritic() {
         super(StarterPlatformTypes.MY_SQL.getName(), 
-                Messages.getString("MySQLUnsupportedFeaturesCritic.name"));
+                Messages.getString("UnsupportedFeaturesCritic.name", StarterPlatformTypes.MY_SQL.getName()));
     }
 
     public List<Criticism> criticize(Object subject) {
@@ -48,15 +48,15 @@ public class MySQLUnsupportedFeaturesCritic extends CriticAndSettings {
         
         if (r.getDeleteRule() == UpdateDeleteRule.SET_DEFAULT) {
             criticisms.add(new Criticism(subject, 
-                    Messages.getString("MySQLUnsupportedFeaturesCritic.deleteNotSupported", r.getName()), this));
+                    Messages.getString("UnsupportedFeaturesCritic.deleteRuleNotSupported", getPlatformType(), r.getName()), this));
         }
         if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
             criticisms.add(new Criticism(subject, 
-                    Messages.getString("MySQLUnsupportedFeaturesCritic.deferrabilityNotSupported", r.getName()), this));
+                    Messages.getString("UnsupportedFeaturesCritic.deferrabilityRuleNotSupported", getPlatformType(), r.getName()), this));
         }
         if (r.getUpdateRule() == UpdateDeleteRule.SET_DEFAULT) {
             criticisms.add(new Criticism(subject, 
-                    Messages.getString("MySQLUnsupportedFeaturesCritic.updateNotSupported", r.getName()), this));
+                    Messages.getString("UnsupportedFeaturesCritic.updateRuleNotSupported", getPlatformType(), r.getName()), this));
         }
         
         return criticisms;
