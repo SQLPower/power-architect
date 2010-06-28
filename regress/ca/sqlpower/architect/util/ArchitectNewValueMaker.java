@@ -102,7 +102,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             cpr.setParent(tpr);
             return cpr;
         } else if (valueType == ColumnValueCount.class) {
-            ColumnValueCount cvc = new ColumnValueCount(Integer.MAX_VALUE, 2, 42);
+            ColumnValueCount cvc = new ColumnValueCount(Integer.MAX_VALUE, 2, 42, false);
             getRootObject().addChild(cvc, 0);
             return cvc;
         } else if (valueType == ArchitectSwingProject.class || valueType == ArchitectProject.class || 

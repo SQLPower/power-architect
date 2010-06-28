@@ -1250,7 +1250,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
                                 "\" value=\""+ //$NON-NLS-1$
                                 SQLPowerUtils.escapeXML(String.valueOf(count.getValue()))+
                                 "\" percent=\"" +  //$NON-NLS-1$
-                                count.getPercent() + "\"/>" ); //$NON-NLS-1$
+                                count.getPercent() + 
+                                "\" otherValues=\"" + 
+                                Boolean.toString(count.isOtherValues()) + "/>" ); //$NON-NLS-1$
                     }
                 }
                 ioo.indent--;

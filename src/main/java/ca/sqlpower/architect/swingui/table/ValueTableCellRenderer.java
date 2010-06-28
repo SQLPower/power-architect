@@ -50,12 +50,16 @@ public class ValueTableCellRenderer extends DefaultTableCellRenderer {
         } else if (value instanceof Number) {
             formattedValue = aldf.format(value);
         } else if ( value instanceof List ) {
-            if ( ((List) value).size() > 0 )
+            if ( ((List) value).size() > 0 ) {
+                final ColumnValueCount valueCount = (ColumnValueCount)((List) value).get(0);
                 formattedValue = String.valueOf(
-                        ((ColumnValueCount)((List) value).get(0)).getValue());
-            else
+                        valueCount.getValue());
+                if (valueCount.isOtherValues()) {
+                    formattedValue = "<html><i>" + formattedValue + "</i></html>";
+                }
+            } else {
                 formattedValue = "";
-
+            }
 
             StringBuffer toolTip = new StringBuffer();
             toolTip.append("<html><table>");
@@ -65,7 +69,11 @@ public class ValueTableCellRenderer extends DefaultTableCellRenderer {
                 if ( v.getValue() == null ) {
                     toolTip.append("null");
                 } else {
-                    toolTip.append(v.getValue().toString());
+                    if (v.isOtherValues()) {
+                        toolTip.append("<i>" + v.getValue().toString() + "</i>");
+                    } else {
+                        toolTip.append(v.getValue().toString());
+                    }
                 }
                 toolTip.append("</td>");
                 toolTip.append("<td>&nbsp;&nbsp;&nbsp;</td>");
@@ -77,7 +85,11 @@ public class ValueTableCellRenderer extends DefaultTableCellRenderer {
             toolTip.append("</table></html>");
             setToolTipText(toolTip.toString());
         } else {
-            formattedValue = value.toString();
+            if (value == ColumnValueCount.OTHER_VALUE_OBJECT) {
+                formattedValue = "<html><i>" + value.toString() + "</i></html>";
+            } else {
+                formattedValue = value.toString();
+            }
         }
          return super.getTableCellRendererComponent(table, formattedValue, isSelected, hasFocus, row, column);
     }

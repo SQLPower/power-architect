@@ -30,6 +30,7 @@ import javax.swing.table.TableCellRenderer;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.swingui.table.DateTableCellRenderer;
 import ca.sqlpower.swingui.table.PercentTableCellRenderer;
 
 /**
@@ -63,7 +64,7 @@ public class MultiFreqValueCountTableModel extends AbstractTableModel {
      * This is the list of currently selected table profile results to display
      * in this table model.
      */
-    private final List<TableProfileResult> tprList = new ArrayList<TableProfileResult>();
+    private final List<ColumnValueCount> cvcList = new ArrayList<ColumnValueCount>();
 
     /**
      * @param tm
@@ -77,23 +78,21 @@ public class MultiFreqValueCountTableModel extends AbstractTableModel {
     }
     
     public void refresh() {
-        tprList.clear();
-        tprList.addAll(tm.getTableResultsToScan());
+        cvcList.clear();
+        for (TableProfileResult tpr : tm.getTableResultsToScan()) {
+            for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
+                cvcList.addAll(cpr.getValueCount());
+            }
+        }
         fireTableDataChanged();
     }
 
     public int getColumnCount() {
-        return 5;
+        return 6;
     }
 
     public int getRowCount() {
-        int rowCount = 0;
-        for (TableProfileResult tpr : tprList) {
-            for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
-                rowCount += cpr.getValueCount().size();
-            }
-        }
-        return rowCount;
+        return cvcList.size();
     }
 
     @Override
@@ -109,36 +108,31 @@ public class MultiFreqValueCountTableModel extends AbstractTableModel {
                 return "Count";
             case 4:
                 return "%";
+            case 5:
+                return "Creation Time";
             default:
                 throw new IllegalArgumentException("Column " + column + " does not exist.");
         }
     }
     
     public Object getValueAt(int rowIndex, int columnIndex) {
-        int rowCount = 0;
-        for (TableProfileResult tpr : tprList) {
-            for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
-                if (rowCount + cpr.getValueCount().size() > rowIndex) {
-                    ColumnValueCount cvc = cpr.getValueCount().get(rowIndex - rowCount);
-                    switch (columnIndex) {
-                        case 0:
-                            return tpr.getProfiledObject();
-                        case 1:
-                            return cpr.getProfiledObject();
-                        case 2:
-                            return cvc.getValue();
-                        case 3:
-                            return cvc.getCount();
-                        case 4:
-                            return cvc.getPercent();
-                        default:
-                            throw new IllegalArgumentException("Column at index " + columnIndex + " does not exist.");
-                    }
-                }
-                rowCount += cpr.getValueCount().size();
-            }
+        ColumnValueCount cvc = cvcList.get(rowIndex);
+        switch (columnIndex) {
+        case 0:
+            return cvc.getParent().getParent().getProfiledObject();
+        case 1:
+            return cvc.getParent().getProfiledObject();
+        case 2:
+            return cvc.getValue();
+        case 3:
+            return cvc.getCount();
+        case 4:
+            return cvc.getPercent();
+        case 5:
+            return cvc.getParent().getParent().getCreateStartTime();
+        default:
+            throw new IllegalArgumentException("Column at index " + columnIndex + " does not exist.");
         }
-        throw new IllegalStateException("No value for row " + rowIndex);
     }
 
     /**
@@ -160,6 +154,8 @@ public class MultiFreqValueCountTableModel extends AbstractTableModel {
                 return new ValueTableCellRenderer();
             case 4:
                 return new PercentTableCellRenderer();
+            case 5:
+                return new DateTableCellRenderer();
             default:
                 throw new IllegalArgumentException("No cell renderer for column " + colIndex);
         }

@@ -211,8 +211,13 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
     public void addValueCount(Object value, int count) {
         double per =  count/(double)parentResult.getRowCount();
-
-        ColumnValueCount columnValueCount = new ColumnValueCount(value,count, per);
+        
+        ColumnValueCount columnValueCount;
+        if (value == ColumnValueCount.OTHER_VALUE_OBJECT) {
+            columnValueCount = new ColumnValueCount(value,count, per, true);
+        } else {
+            columnValueCount = new ColumnValueCount(value,count, per, false);
+        }
         if (!topTen.contains(columnValueCount)) {
             addValueCount(columnValueCount);
             logger.debug("Added Value Count: Value: " + value + " Count: " + count);
@@ -283,4 +288,19 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
         return children;
     }
     
+    @Override
+    @Accessor
+    public TableProfileResult getParent() {
+        return (TableProfileResult) super.getParent();
+    }
+    
+    @Override
+    @Mutator
+    public void setParent(SPObject parent) {
+        if (!(parent instanceof TableProfileResult)) {
+            throw new IllegalArgumentException("Parent of " + this + " must be of type " + 
+                    TableProfileResult.class);
+        }
+        super.setParent(parent);
+    }
 }

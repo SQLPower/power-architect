@@ -1010,17 +1010,23 @@ public class ProjectLoader {
             }
 
             String value = attributes.getValue("value");
+            
+            String otherValuesString = attributes.getValue("otherValues");
+            if (otherValuesString == null) {
+                otherValuesString = "false";
+            }
+            Boolean otherValues = Boolean.parseBoolean(otherValuesString);
 
             if (className == null || className.length() == 0 ) {
-                return new ColumnValueCount(null,count, percent);
+                return new ColumnValueCount(null,count, percent, otherValues);
             } else if (className.equals(BigDecimal.class.getName()) ) {
-                return new ColumnValueCount(new BigDecimal(value),count, percent);
+                return new ColumnValueCount(new BigDecimal(value),count, percent, otherValues);
             } else if (className.equals(Timestamp.class.getName()) ) {
-                return new ColumnValueCount(new Timestamp( Timestamp.valueOf(value).getTime() ),count, percent);
+                return new ColumnValueCount(new Timestamp( Timestamp.valueOf(value).getTime() ),count, percent, otherValues);
             } else if (className.equals(String.class.getName()) ) {
-                return new ColumnValueCount(new String(value),count, percent);
+                return new ColumnValueCount(new String(value),count, percent, otherValues);
             } else {
-                return new ColumnValueCount(new String(value),count, percent);
+                return new ColumnValueCount(new String(value),count, percent, otherValues);
             }
         }
     }
