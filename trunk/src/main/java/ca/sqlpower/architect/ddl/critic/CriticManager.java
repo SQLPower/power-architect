@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
@@ -49,7 +50,9 @@ import ca.sqlpower.architect.ddl.critic.impl.SetDefaultOnColumnWithNoDefaultCrit
 import ca.sqlpower.architect.ddl.critic.impl.SetNullOnNonNullableColumnCritic;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
+import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonProperty;
 
 /**
@@ -246,5 +249,21 @@ public class CriticManager extends AbstractSPObject {
             rollback(t.getMessage());
             throw new RuntimeException(t);
         }
+    }
+    
+    @Mutator
+    @Override
+    public void setParent(SPObject parent) {
+        if (!(parent instanceof ArchitectProject)) {
+            throw new IllegalArgumentException("The parent of a critic manager must be some " +
+            		"kind of architect project.");
+        }
+        super.setParent(parent);
+    }
+    
+    @Accessor
+    @Override
+    public ArchitectProject getParent() {
+        return (ArchitectProject) super.getParent();
     }
 }
