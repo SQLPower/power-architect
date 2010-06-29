@@ -681,11 +681,11 @@ public class SwingUIProjectLoader extends ProjectLoader {
         @Override
         public Object createObject(Attributes attr) throws Exception {
             Object topItem = getDigester().peek();
-            if (!(topItem instanceof ArchitectSwingSessionImpl)) {
-                logger.error("Expected parent ArchitectSwingSessionImpl object on top of stack but found: " + topItem); //$NON-NLS-1$
-                throw new IllegalStateException("Ancestor ArchitectSwingSessionImpl object not found!"); //$NON-NLS-1$
+            if (!(topItem instanceof ArchitectSwingSession)) {
+                logger.error("Expected parent ArchitectSwingSession object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Ancestor ArchitectSwingSession object not found!"); //$NON-NLS-1$
             }
-            ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl) topItem;
+            ArchitectSwingSession session = (ArchitectSwingSession) topItem;
             
             session.getWorkspace().getCriticManager().clear();
             return session.getWorkspace().getCriticManager();
