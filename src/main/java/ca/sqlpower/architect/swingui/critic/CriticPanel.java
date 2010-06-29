@@ -23,15 +23,12 @@ import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import ca.sqlpower.architect.ddl.critic.Criticism;
@@ -48,31 +45,11 @@ import com.jgoodies.forms.builder.ButtonBarBuilder;
  * of the currently known errors in the play pen based on enabled critics.
  */
 public class CriticPanel {
-
+    
     /**
      * A cell renderer that can display badges with the criticisms.
      */
-    private TableCellRenderer tableRenderer = new DefaultTableCellRenderer() {
-        
-        public java.awt.Component getTableCellRendererComponent(javax.swing.JTable table, 
-                Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            if (value instanceof Severity) {
-                return new JLabel(getIcon((Severity) value));
-            } else {
-                return this.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            }
-        }
-        
-        private ImageIcon getIcon(Severity severity) {
-            if (severity == Severity.ERROR) {
-                return CriticSwingUtil.ERROR_ICON;
-            } else if (severity == Severity.WARNING) {
-                return CriticSwingUtil.WARNING_ICON;
-            } else {
-                return null;
-            }
-        }
-    };
+    private TableCellRenderer tableRenderer = new SeverityTableCellRenderer();
     
     /**
      * The main panel of the critics window.

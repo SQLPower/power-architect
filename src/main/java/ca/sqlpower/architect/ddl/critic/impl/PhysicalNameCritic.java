@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
@@ -34,6 +35,10 @@ import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 /**
  * Criticizes the physical name of all SQLObjects based on the parameters given
@@ -79,7 +84,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
         if (subject instanceof ColumnMapping || subject instanceof Column) return Collections.emptyList();
         
         final SQLObject so = (SQLObject) subject;
-        String physName = so.getPhysicalName();
+        final String physName = so.getPhysicalName();
 
         List<Criticism> criticisms = new ArrayList<Criticism>();
         
@@ -114,8 +119,19 @@ public class PhysicalNameCritic extends CriticAndSettings {
             criticisms.add(new Criticism(
                     so,
                     "Physical name not legal for " + so.getPhysicalName(),
-                    this
-                    // TODO: need replacement pattern to enable quickfix
+                    this,
+                    new QuickFix("Enter a new physical name...") {
+                        @Override
+                        public void apply() {
+                            ArchitectProject project = getParent().getParent().getParent();
+                            UserPrompter prompter = project.getSession().createUserPrompter("Enter a legal physical name", 
+                                    UserPromptType.TEXT, UserPromptOptions.OK_CANCEL, UserPromptResponse.CANCEL, 
+                                    physName, "OK", "Cancel");
+                            if (UserPromptResponse.OK.equals(prompter.promptUser())) {
+                                so.setPhysicalName((String) prompter.getUserSelectedResponse());
+                            }
+                        }
+                    }
                     ));
         }
         
@@ -136,4 +152,5 @@ public class PhysicalNameCritic extends CriticAndSettings {
     public String getPlatformName() {
         return platformName;
     }
+    
 }

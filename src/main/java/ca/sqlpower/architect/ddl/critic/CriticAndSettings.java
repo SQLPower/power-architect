@@ -150,5 +150,18 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
         return platformType;
     }
     
+    @Accessor
+    @Override
+    public CriticGrouping getParent() {
+        return (CriticGrouping) super.getParent();
+    }
     
+    @Mutator
+    @Override
+    public void setParent(SPObject parent) {
+        if (!(parent instanceof CriticGrouping)) {
+            throw new IllegalArgumentException("The parent of a critic must be a CriticGrouping.");
+        }
+        super.setParent(parent);
+    }
 }
