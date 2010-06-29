@@ -92,6 +92,8 @@ public class ArchitectSessionPersister extends SPSessionPersister {
         architectProject.getCriticManager().setUUID(criticManagerUUID);
         criticManager.setLoaded(true);
         
+        architectProject.getCriticManager().clear();
+        
         List<PersistedSPObject> databases = new ArrayList<PersistedSPObject>();
         for (PersistedSPObject o : persistedObjects) {
             if (o.getParentUUID().equals(architectProject.getRootObject().getUUID()) &&

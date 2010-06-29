@@ -150,4 +150,17 @@ public class CriticGrouping extends AbstractSPObject {
     public List<CriticAndSettings> getSettings() {
         return Collections.unmodifiableList(settings);
     }
+    
+    @Override
+    public CriticManager getParent() {
+        return (CriticManager) super.getParent();
+    }
+    
+    @Override
+    public void setParent(SPObject parent) {
+        if (!(parent instanceof CriticManager)) {
+            throw new IllegalArgumentException("Critic groups must be a child of a critic manager.");
+        }
+        super.setParent(parent);
+    }
 }

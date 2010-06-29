@@ -41,6 +41,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -50,6 +51,10 @@ import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.UnclosableInputStream;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
+import ca.sqlpower.architect.ddl.critic.CriticGrouping;
+import ca.sqlpower.architect.ddl.critic.CriticManager;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.olap.MondrianXMLReader;
 import ca.sqlpower.architect.olap.MondrianXMLWriter;
 import ca.sqlpower.architect.olap.OLAPObject;
@@ -91,7 +96,6 @@ import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.xml.XMLHelper;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * The SwingUIProject class is responsible for saving and loading projects.
@@ -259,7 +263,18 @@ public class SwingUIProjectLoader extends ProjectLoader {
         CreateKettleJobSettingsFactory ckjsFactory = new CreateKettleJobSettingsFactory();
         d.addFactoryCreate("architect-project/create-kettle-job-settings", ckjsFactory); //$NON-NLS-1$
         d.addSetProperties("architect-project/create-kettle-job-settings"); //$NON-NLS-1$
-
+        
+        CriticManagerFactory criticManagerFactory = new CriticManagerFactory();
+        d.addFactoryCreate("architect-project/critic-manager", criticManagerFactory);
+        d.addSetProperties("architect-project/critic-manager");
+        
+        CriticGroupingFactory criticGroupingFactory = new CriticGroupingFactory();
+        d.addFactoryCreate("architect-project/critic-manager/critic-grouping", criticGroupingFactory);
+        d.addSetProperties("architect-project/critic-manager/critic-grouping");
+        
+        CriticSettingsFactory criticSettingsFactory = new CriticSettingsFactory();
+        d.addFactoryCreate("architect-project/critic-manager/critic-grouping/critic-settings", criticSettingsFactory);
+        
         // olap factories
         
         OLAPEditSessionFactory editSessionFactory = new OLAPEditSessionFactory();
@@ -643,6 +658,63 @@ public class SwingUIProjectLoader extends ProjectLoader {
         
     }
     
+    private class CriticGroupingFactory extends AbstractObjectCreationFactory {
+        @Override
+        public Object createObject(Attributes attr) throws Exception {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof CriticManager)) {
+                logger.error("Expected parent CriticManager object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Ancestor CriticManager object not found!"); //$NON-NLS-1$
+            }
+            CriticManager criticManager = (CriticManager) topItem;
+            String platformType = attr.getValue("platformType");
+            CriticGrouping group = new CriticGrouping(platformType);
+            
+            criticManager.addChild(group, criticManager.getChildren(CriticGrouping.class).size());
+            
+            return group;
+        }
+        
+    }
+    
+    private class CriticManagerFactory extends AbstractObjectCreationFactory {
+        @Override
+        public Object createObject(Attributes attr) throws Exception {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof ArchitectSwingSessionImpl)) {
+                logger.error("Expected parent ArchitectSwingSessionImpl object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Ancestor ArchitectSwingSessionImpl object not found!"); //$NON-NLS-1$
+            }
+            ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl) topItem;
+            
+            session.getWorkspace().getCriticManager().clear();
+            return session.getWorkspace().getCriticManager();
+        }
+    }
+    
+    private class CriticSettingsFactory extends AbstractObjectCreationFactory {
+        @Override
+        public Object createObject(Attributes attr) throws Exception {
+            Object topItem = getDigester().peek();
+            if (!(topItem instanceof CriticGrouping)) {
+                logger.error("Expected parent CriticGrouping object on top of stack but found: " + topItem); //$NON-NLS-1$
+                throw new IllegalStateException("Ancestor CriticGrouping object not found!"); //$NON-NLS-1$
+            }
+            CriticGrouping group = (CriticGrouping) topItem;
+            
+            String criticClassName = attr.getValue("class");
+            Class<?> criticClass = getClass().getClassLoader().loadClass(criticClassName);
+            CriticAndSettings criticSettings = (CriticAndSettings) criticClass.getConstructor().newInstance();
+            
+            String severity = attr.getValue("severity");
+            criticSettings.setSeverity(Severity.valueOf(severity));
+            
+            group.getParent().registerCritic(criticSettings);
+            return criticSettings;
+        }
+        
+    }
+    
     // ------------- WRITING THE PROJECT FILE ---------------
 
     /**
@@ -778,6 +850,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             saveCompareDMSettings(out);
             saveCreateKettleJobSettings(out);
             savePlayPen(out, getSession().getPlayPen(), true);
+            saveCriticSettings(out);
             saveProfiles(out);
             
             saveOLAP(out);
@@ -955,6 +1028,32 @@ public class SwingUIProjectLoader extends ProjectLoader {
 		saveLiquibaseSettings(out, getSession().getCompareDMSettings().getLiquibaseSettings());
         ioo.indent--;
         ioo.println(out, "</compare-dm-settings>"); //$NON-NLS-1$
+    }
+    
+    /**
+     * Writes the current critic settings for this project.
+     */
+    private void saveCriticSettings(PrintWriter out) throws IOException {
+        CriticManager criticManager = getSession().getWorkspace().getCriticManager();
+        ioo.println(out, "<critic-manager>");
+        ioo.indent++;
+        for (CriticGrouping group : criticManager.getCriticGroupings()) {
+            ioo.print(out, "<critic-grouping");
+            ioo.print(out, "platformType=\"" + group.getPlatformType() + "\"");
+            ioo.print(out, "enabled=\"" + Boolean.toString(group.isEnabled()) + "\"");
+            ioo.println(out, ">");
+            ioo.indent++;
+            for (CriticAndSettings settings : group.getSettings()) {
+                ioo.print(out, "<critic-settings");
+                ioo.print(out, "class=\"" + settings.getClass().getName() + "\"");
+                ioo.print(out, "severity=\"" + settings.getSeverity().name() + "\"");
+                ioo.println(out, "/>");
+            }
+            ioo.indent--;
+            ioo.println(out, "</critic-grouping>");
+        }
+        ioo.indent--;
+        ioo.println(out, "</critic-manager>");
     }
 
 	private void saveLiquibaseSettings(PrintWriter out, LiquibaseSettings settings) {

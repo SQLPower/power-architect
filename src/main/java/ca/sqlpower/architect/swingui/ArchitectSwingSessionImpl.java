@@ -235,9 +235,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws SQLObjectException {        
         this(context, new ArchitectSessionImpl(context, name, new ArchitectSwingProject()));
-        //XXX Unsure if this is the appropriate place for this method call. Likely to change
-        //before committing.
-        getWorkspace().getCriticManager().registerStartingCritics();
     }
 
     /**
@@ -362,7 +359,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 }
             }
         });
-        getWorkspace().getProjectSettings().addSPListener(settingsListener);            
+        getWorkspace().getProjectSettings().addSPListener(settingsListener);       
+        
+        getWorkspace().getCriticManager().registerStartingCritics();
     }
 
     public void initGUI() throws SQLObjectException {
