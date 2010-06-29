@@ -231,4 +231,20 @@ public class CriticManager extends AbstractSPObject {
     public List<CriticGrouping> getCriticGroupings() {
         return Collections.unmodifiableList(criticGroupings);
     }
+
+    /**
+     * Clears all registered critics and their groups from the manager.
+     */
+    public void clear() {
+        try {
+            begin("Clearing manager");
+            for (int i = criticGroupings.size() - 1; i >= 0; i--) {
+                removeChild(criticGroupings.get(i));
+            }
+            commit();
+        } catch (Throwable t) {
+            rollback(t.getMessage());
+            throw new RuntimeException(t);
+        }
+    }
 }
