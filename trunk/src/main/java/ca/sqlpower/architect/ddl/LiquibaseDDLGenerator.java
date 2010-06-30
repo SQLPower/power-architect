@@ -281,7 +281,6 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		firstColumn = true;
 
 		if (r.getChildren().isEmpty()) {
-		    warnings.add(new RelationshipMapsNoColumnsDDLWarning(r.getPkTable(), r.getFkTable()));
 		    errorMsg.append("Warning: Relationship has no columns to map:\n");
 		}
 
@@ -292,7 +291,6 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			// checks the fk column and pk column are the same type,
 			// generates DDLWarning if not the same.
 			if (ArchitectUtils.columnTypesDiffer(c.getType(), fkCol.getType())) {
-			    warnings.add(new RelationshipColumnsTypesMismatchDDLWarning(c, fkCol));
 			    typesMismatchMsg.append("        " + c + " -- " + fkCol + "\n");
 			}
 			// make sure this is unique

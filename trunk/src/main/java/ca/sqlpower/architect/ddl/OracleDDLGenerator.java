@@ -408,7 +408,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
                 print("\nCREATE SEQUENCE ");
-                print(createSeqPhysicalName(topLevelNames, seq, c));
+                print(seq.getName());
                 endStatement(StatementType.CREATE, seq);
             }
         }

@@ -87,6 +87,12 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
     private final String platformType;
 
     /**
+     * If true the critic has been started and is not allowed to be started
+     * again until it has been ended.
+     */
+    private boolean started;
+
+    /**
      * @param platformType
      *            A string that will group critics together. This is normally a
      *            platform type name and can come from one of the
@@ -102,6 +108,24 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
         this.platformType = platformType;
         severity = Severity.ERROR;
         setName(name);
+    }
+
+    /**
+     * Most critics need to do nothing in terms of state. Only select critics
+     * should ever need to override this method.
+     */
+    public void start() {
+        if (started) throw new IllegalStateException("The critic " + getName() + 
+                " has been started already.");
+        started = true;
+    }
+    
+    /**
+     * Most critics need to do nothing in terms of state. Only select critics
+     * should ever need to override this method.
+     */
+    public void end() {
+        started = false;
     }
     
     @Mutator
