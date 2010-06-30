@@ -19,6 +19,8 @@
 
 package ca.sqlpower.architect.swingui.critic;
 
+import java.util.List;
+
 import javax.swing.table.AbstractTableModel;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
@@ -53,7 +55,7 @@ public class CriticismTableModel extends AbstractTableModel {
     }
     
     public int getColumnCount() {
-        return 4;
+        return 5;
     }
     
     @Override
@@ -79,6 +81,8 @@ public class CriticismTableModel extends AbstractTableModel {
             return String.class;
         } else if (columnIndex == 3) {
             return String.class;
+        } else if (columnIndex == 4) {
+            return List.class;
         } else {
             return null;
         }
@@ -89,7 +93,7 @@ public class CriticismTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Criticism rowVal = criticizer.getCriticisms().get(rowIndex);
+        final Criticism rowVal = criticizer.getCriticisms().get(rowIndex);
         if (columnIndex == 0) {
             return rowVal.getCritic().getSeverity();
         } else if (columnIndex == 1) {
@@ -101,6 +105,8 @@ public class CriticismTableModel extends AbstractTableModel {
             return ((CriticAndSettings) rowVal.getCritic()).getPlatformType();
         } else if (columnIndex == 3) {
             return rowVal.getDescription();
+        } else if (columnIndex == 4) {
+            return rowVal.getFixes();
         } else {
             throw new IllegalArgumentException(
                     "This table has " + getColumnCount() + " columns, and I " +
