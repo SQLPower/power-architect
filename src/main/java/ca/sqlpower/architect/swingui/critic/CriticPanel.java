@@ -29,14 +29,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableCellRenderer;
 
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.swingui.table.FancyExportableJTable;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 
@@ -47,18 +44,13 @@ import com.jgoodies.forms.builder.ButtonBarBuilder;
 public class CriticPanel {
     
     /**
-     * A cell renderer that can display badges with the criticisms.
-     */
-    private TableCellRenderer tableRenderer = new SeverityTableCellRenderer();
-    
-    /**
      * The main panel of the critics window.
      */
     private JPanel panel;
 
     private final ArchitectSwingSession session;
 
-    private final FancyExportableJTable table;
+    private final JTable table;
     
     private final ListSelectionListener selectedObjectsChangedListener = new ListSelectionListener() {
     
@@ -70,9 +62,7 @@ public class CriticPanel {
     public CriticPanel(ArchitectSwingSession session) {
         this.session = session;
         
-        CriticismTableModel tableModel = new CriticismTableModel(session, session.getPlayPen().getCriticismBucket());
-        table = new FancyExportableJTable(tableModel);
-        table.setDefaultRenderer(Severity.class, tableRenderer);
+        table = CriticSwingUtil.createCriticTable(session, session.getPlayPen().getCriticismBucket());
         panel = new JPanel(new BorderLayout());
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
         table.getSelectionModel().addListSelectionListener(selectedObjectsChangedListener);

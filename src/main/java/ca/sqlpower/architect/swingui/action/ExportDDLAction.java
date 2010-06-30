@@ -18,26 +18,20 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -45,21 +39,22 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.ConflictResolver;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
-import ca.sqlpower.architect.ddl.DDLWarning;
-import ca.sqlpower.architect.ddl.DDLWarningComponent;
-import ca.sqlpower.architect.ddl.ObjectPropertyModificationDDLComponent;
+import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
+import ca.sqlpower.architect.swingui.critic.CriticSwingUtil;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSwingWorker;
+import ca.sqlpower.swingui.table.TableUtils;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.layout.FormLayout;
 
 public class ExportDDLAction extends AbstractArchitectAction {
 
@@ -80,150 +75,135 @@ public class ExportDDLAction extends AbstractArchitectAction {
         Callable<Boolean> okCall, cancelCall;
         okCall = new Callable<Boolean>() {
             public Boolean call() {
-                try {
-                    if (ddlPanel.applyChanges()) {
+                if (ddlPanel.applyChanges()) {
 
-                        DDLGenerator ddlg = ddlPanel.getGenerator();
-                        ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
-                        
-                        boolean done = false;
-                        while (!done) {
-                            // generate DDL in order to come up with a list of warnings
-                            ddlg.generateDDLScript(session.getTargetDatabase().getTables());
-                            final List<DDLWarning> warnings = ddlg.getWarnings();
-                            final JPanel outerPanel = new JPanel();
-                            if (warnings.size() == 0) {
-                                done = true;
-                            } else {
-                                final List<DDLWarningComponent> warningComponents = new ArrayList<DDLWarningComponent>();
-                                DataEntryPanel dialogPanel = new DataEntryPanel() {
-                                    
-                                    public boolean applyChanges() {
-                                        return false;
-                                    }
+                    DDLGenerator ddlg = ddlPanel.getGenerator();
+                    ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
 
-                                    public void discardChanges() {
-                                    }
+                    checkErrorsAndGenerateDDL(ddlg);
 
-                                    public JComponent getPanel() {
-                                        outerPanel.setLayout(new BorderLayout());
-                                        JTextArea explanation = new JTextArea(GENDDL_WARNINGS_EXPLANATION, 5, 60);
-                                        explanation.setLineWrap(true);
-                                        explanation.setWrapStyleWord(true);
-                                        explanation.setEditable(false);
-                                        explanation.setBackground(outerPanel.getBackground());
-                                        outerPanel.add(explanation, BorderLayout.NORTH);
-                                        JPanel listBoxPanel = new JPanel();
-                                        listBoxPanel.setLayout(new GridLayout(0, 1, 5, 5));
-                                       
-                                        for (Object o : warnings) {
-                                            DDLWarning ddlwarning = (DDLWarning) o;
-                                            DDLWarningComponent ddlWarningComponent = new ObjectPropertyModificationDDLComponent(ddlwarning);
-                                            listBoxPanel.add(ddlWarningComponent.getComponent());
-                                            warningComponents.add(ddlWarningComponent);
-                                        }
-                                        
-                                        JScrollPane sp = new JScrollPane(listBoxPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-                                        if (warnings.size() > 9) {
-                                            Dimension d = new Dimension(400,400);
-                                            sp.setPreferredSize(d);
-                                        }
-                                        outerPanel.add(sp, BorderLayout.CENTER);
-                                        return outerPanel;
-                                    }
+                }
+                return Boolean.TRUE;
+            }
 
-                                    public boolean hasUnsavedChanges() {
-                                        // TODO return whether this panel has been changed
-                                        return false;
-                                    }
-                                };
-                                String[] options = {
-                                        Messages.getString("ExportDDLAction.quickFixAllOption"), //$NON-NLS-1$
-                                        Messages.getString("ExportDDLAction.ignoreWarningsOption"), //$NON-NLS-1$
-                                        Messages.getString("ExportDDLAction.cancelOption"), //$NON-NLS-1$
-                                        Messages.getString("ExportDDLAction.recheckOption") //$NON-NLS-1$
-                                };
-
-                                // This used to be a JOptionPane, but a resize bug made me change
-                                // it to this. The whole thing is a disaster and will go away when
-                                // critics are ready.
-                                final JDialog warningDialog = new JDialog(frame, true);
-                                warningDialog.setTitle(Messages.getString("ExportDDLAction.errorsInDDLDialogTitle"));
-                                
-                                ButtonBarBuilder bbb = new ButtonBarBuilder();
-                                bbb.setDefaultButtonBarGapBorder();
-                                final AtomicInteger dialogChoice = new AtomicInteger(-1);
-                                for (int i = 0; i < options.length; i++) {
-                                    final int ii = i;
-                                    JButton button = new JButton(options[i]);
-                                    button.addActionListener(new ActionListener() {
-                                        public void actionPerformed(ActionEvent e) {
-                                            dialogChoice.set(ii);
-                                            warningDialog.dispose();
-                                        }
-                                    });
-                                    bbb.addGridded(button);
-                                }
-
-                                JPanel p = new JPanel(new BorderLayout());
-                                p.add(dialogPanel.getPanel(), BorderLayout.CENTER);
-                                p.add(bbb.getPanel(), BorderLayout.SOUTH);
-                                p.setBorder(Borders.DIALOG_BORDER);
-                                
-                                warningDialog.setContentPane(p);
-                                warningDialog.pack();
-                                warningDialog.setLocationRelativeTo(d);
-                                warningDialog.setVisible(true); // modal dialog blocks
-                                
-                                logger.debug(dialogChoice.get());
-                                switch (dialogChoice.get()) {
-                                case 0:
-                                    for (DDLWarning warning : warnings) {
-                                        if (warning.isQuickFixable()) {
-                                            warning.quickFix();
-                                        }
-                                    }
-                                    break;
-                                case 1:
-                                    done = true;
-                                    break;
-                                case 2:     // "Cancel"
-                                case -1:    // no button was pressed--kill dialog
-                                    return true;
-                                case 3: // apply all changes made
-                                    for (DDLWarningComponent warningComponent : warningComponents) {
-                                        warningComponent.applyChanges();
-                                    }
-                                    break;
-                                }
-                            } // end of main while loop
-                        }
-                        
-                        SQLDatabase ppdb = new SQLDatabase(ddlPanel.getTargetDB());
-                        SQLScriptDialog ssd =
-                            new SQLScriptDialog(d, Messages.getString("ExportDDLAction.previewSQLScriptDialogTitle"), "", false, //$NON-NLS-1$ //$NON-NLS-2$
-                                    ddlg,
-                                    ppdb.getDataSource(),
-                                    true,
-                                    session);
-                        SPSwingWorker scriptWorker = ssd.getExecuteTask();
-                        ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements(), session);
-                        ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp, session);
-                        cfp.setNextProcess(crp);
-                        crp.setNextProcess(scriptWorker);
-                        ssd.setExecuteTask(cfp);
-                        ssd.setVisible(true);
-                    }
-                } catch (SQLException ex) {
-                    ASUtils.showExceptionDialog
-                        (session, 
-                         Messages.getString("ExportDDLAction.errorGeneratingDDL"), ex); //$NON-NLS-1$
-                } catch (Exception ex) {
-                    ASUtils.showExceptionDialog
+            /**
+             * This method will run the known critics over the target database
+             * that we want to generate a DDL script for and display a dialog
+             * containing errors if any are found. The user will then have the
+             * choice to fix their data model or continue on ignoring the
+             * current set of errors.
+             * <p>
+             * This method will also generate the DDL script using the
+             * generateAndDisplayDDL method.
+             */
+            private void checkErrorsAndGenerateDDL(final DDLGenerator ddlg) {
+                List<Criticism> criticisms = session.getWorkspace().getCriticManager().criticize(session.getTargetDatabase());
+                if (criticisms.isEmpty()) {
+                    try {
+                        generateAndDisplayDDL(ddlPanel, ddlg);
+                    } catch (Exception ex) {
+                        ASUtils.showExceptionDialog
                         (session,
                          Messages.getString("ExportDDLAction.errorGeneratingDDLScript"), ex); //$NON-NLS-1$
+                    }
+                } else {
+                    //build warning dialog
+                    final JDialog warningDialog = new JDialog(frame);
+                    JPanel mainPanel = new JPanel();
+                    DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref"), mainPanel);
+                    builder.setDefaultDialogBorder();
+                    JTextArea explanation = new JTextArea(GENDDL_WARNINGS_EXPLANATION, 5, 60);
+                    explanation.setLineWrap(true);
+                    explanation.setWrapStyleWord(true);
+                    explanation.setEditable(false);
+                    explanation.setBackground(mainPanel.getBackground());
+                    builder.append(explanation);
+                    builder.nextLine();
+                    
+                    final CriticismBucket bucket = new CriticismBucket();
+                    bucket.updateCriticismsToMatch(criticisms);
+                    JTable errorTable = CriticSwingUtil.createCriticTable(session, bucket);
+                    builder.append(new JScrollPane(errorTable));
+                    builder.nextLine();
+                    
+                    JButton quickFixButton = new JButton(
+                            new AbstractAction(Messages.getString("ExportDDLAction.quickFixAllOption")) {  //$NON-NLS-1$
+                        public void actionPerformed(ActionEvent e) {
+                            warningDialog.dispose();
+                            for (Criticism criticism : bucket.getCriticisms()) {
+                                if (!criticism.getFixes().isEmpty()) {
+                                    //applying the first one each time as there is no 
+                                    //decision what to apply by the user for this case
+                                    criticism.getFixes().get(0).apply();
+                                }
+                            }
+                            checkErrorsAndGenerateDDL(ddlg);
+                        }
+                    });
+                    JButton ignoreButton = new JButton(new AbstractAction(
+                            Messages.getString("ExportDDLAction.ignoreWarningsOption")) { //$NON-NLS-1$
+                        public void actionPerformed(ActionEvent e) {
+                            warningDialog.dispose();
+                            try {
+                                generateAndDisplayDDL(ddlPanel, ddlg);
+                            } catch (Exception ex) {
+                                ASUtils.showExceptionDialog
+                                (session,
+                                 Messages.getString("ExportDDLAction.errorGeneratingDDLScript"), ex); //$NON-NLS-1$
+                            }                        }
+                    });
+                    JButton cancelButton = new JButton(new AbstractAction(
+                            Messages.getString("ExportDDLAction.cancelOption")) { //$NON-NLS-1$
+                        public void actionPerformed(ActionEvent e) {
+                            //just dispose of the dialog and end this.
+                            warningDialog.dispose();
+                        }
+                    });
+                    JButton recheckButton = new JButton(new AbstractAction(
+                            Messages.getString("ExportDDLAction.recheckOption")) { //$NON-NLS-1$
+                        public void actionPerformed(ActionEvent e) {
+                            warningDialog.dispose();
+                            checkErrorsAndGenerateDDL(ddlg);
+                        }
+                    });
+                    
+                    ButtonBarBuilder buttonBar = new ButtonBarBuilder();
+                    buttonBar.addGlue();
+                    buttonBar.addGriddedButtons(new JButton[] {quickFixButton, 
+                            ignoreButton, cancelButton, recheckButton});
+                    
+                    builder.append(buttonBar.getPanel());
+                    warningDialog.add(mainPanel);
+                    
+                    warningDialog.pack();
+                    TableUtils.fitColumnWidths(errorTable, 10);
+                    warningDialog.setLocationRelativeTo(frame);
+                    warningDialog.setVisible(true);
                 }
-                return Boolean.FALSE;
+            }
+
+            /**
+             * This method is used for generating and displaying the DDL script
+             * for the current target database using the given DDL generator.
+             */
+            private void generateAndDisplayDDL(final DDLExportPanel ddlPanel, DDLGenerator ddlg) throws SQLException,
+            SQLObjectException {
+                ddlg.generateDDLScript(session.getTargetDatabase().getTables());
+
+                SQLDatabase ppdb = new SQLDatabase(ddlPanel.getTargetDB());
+                SQLScriptDialog ssd =
+                    new SQLScriptDialog(d, Messages.getString("ExportDDLAction.previewSQLScriptDialogTitle"), "", false, //$NON-NLS-1$ //$NON-NLS-2$
+                            ddlg,
+                            ppdb.getDataSource(),
+                            true,
+                            session);
+                SPSwingWorker scriptWorker = ssd.getExecuteTask();
+                ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements(), session);
+                ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp, session);
+                cfp.setNextProcess(crp);
+                crp.setNextProcess(scriptWorker);
+                ssd.setExecuteTask(cfp);
+                ssd.setVisible(true);
             }
         };
 
