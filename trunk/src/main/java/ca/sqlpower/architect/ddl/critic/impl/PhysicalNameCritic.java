@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
@@ -35,17 +34,13 @@ import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
-import ca.sqlpower.util.UserPrompter;
-import ca.sqlpower.util.UserPrompter.UserPromptOptions;
-import ca.sqlpower.util.UserPrompter.UserPromptResponse;
-import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 /**
  * Criticizes the physical name of all SQLObjects based on the parameters given
  * to the constructor.
  */
-public class PhysicalNameCritic extends CriticAndSettings {
-
+public abstract class PhysicalNameCritic extends CriticAndSettings {
+    
     private final Pattern legalNamePattern;
     private final int maxNameLength;
     private final String platformName;
@@ -116,20 +111,15 @@ public class PhysicalNameCritic extends CriticAndSettings {
         }
 		
         if (!getLegalNamePattern().matcher(physName).matches()) {
+            final String newLogicalName = correctPhysicalName(physName);
             criticisms.add(new Criticism(
                     so,
                     "Physical name not legal for " + so.getPhysicalName(),
                     this,
-                    new QuickFix("Enter a new physical name...") {
+                    new QuickFix("Replace the physical name with " + newLogicalName) {
                         @Override
                         public void apply() {
-                            ArchitectProject project = getParent().getParent().getParent();
-                            UserPrompter prompter = project.getSession().createUserPrompter("Enter a legal physical name", 
-                                    UserPromptType.TEXT, UserPromptOptions.OK_CANCEL, UserPromptResponse.CANCEL, 
-                                    physName, "OK", "Cancel");
-                            if (UserPromptResponse.OK.equals(prompter.promptUser())) {
-                                so.setPhysicalName((String) prompter.getUserSelectedResponse());
-                            }
+                            so.setPhysicalName(newLogicalName);
                         }
                     }
                     ));
@@ -137,6 +127,14 @@ public class PhysicalNameCritic extends CriticAndSettings {
         
         return criticisms;
     }
+
+    /**
+     * This method will be given the existing physical name of an object being
+     * criticized that does not match the pattern for valid physical names and
+     * it will return a valid physical name for the object that passes the legal
+     * name pattern.
+     */
+    public abstract String correctPhysicalName(String existingName);
 
     @Accessor
     public Pattern getLegalNamePattern() {

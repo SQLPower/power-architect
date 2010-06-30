@@ -33,5 +33,18 @@ public class AlphaNumericNameCritic extends PhysicalNameCritic {
                 Integer.MAX_VALUE);
         setName(Messages.getString("AlphaNumericNameCritic.name"));
     }
+    
+    @Override
+    public String correctPhysicalName(String existingName) {
+        StringBuffer buffer = new StringBuffer(existingName.length());
+        for (int i = 0; i < existingName.length(); i++) {
+            if (existingName.charAt(i) == ' ') {
+                buffer.append('_');
+            } else if (getLegalNamePattern().matcher(Character.toString(existingName.charAt(i))).matches()) {
+                buffer.append(existingName.charAt(i));
+            }
+        }
+        return buffer.toString();
+    }
 
 }
