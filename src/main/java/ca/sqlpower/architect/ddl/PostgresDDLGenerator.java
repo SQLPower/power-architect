@@ -392,7 +392,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
                 print("\nCREATE SEQUENCE ");
-                print(toQualifiedName(createSeqPhysicalName(topLevelNames, seq, c)));
+                print(toQualifiedName(seq.getName()));
                 endStatement(StatementType.CREATE, seq);
             }
         }

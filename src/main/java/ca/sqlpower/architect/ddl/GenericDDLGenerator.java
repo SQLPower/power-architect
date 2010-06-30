@@ -43,7 +43,6 @@ import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
@@ -118,16 +117,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	protected Map<String, SQLObject> topLevelNames;
 
 	/**
-	 * This list contains 0 or more {@link NameChangeWarning} objects.  It is
-	 * populated as statements are added to the
-	 * <code>ddlStatements</code> list.  If non-empty, this list of
-	 * warnings should be presented to the user before the generated
-	 * DDL is saved or executed (to give them a chance to fix the
-	 * warnings and try again).
-	 */
-	protected List<DDLWarning> warnings;
-
-	/**
 	 * The name of the catalog in the target database that the
 	 * generated DDL statements should create the objects in.  Not all
 	 * databases have catalogs; subclasses of GenericDDLGenerator which
@@ -157,7 +146,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
         this.allowConnection = allowConnection;
-        warnings = new ArrayList<DDLWarning>();
         ddlStatements = new ArrayList<DDLStatement>();
         ddl = new StringBuffer(500);
         println("");
@@ -202,7 +190,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(Collection)
 	 */
 	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
-        warnings = new ArrayList<DDLWarning>();
 		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
         topLevelNames = new CaseInsensitiveHashMap();
@@ -360,7 +347,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		firstColumn = true;
 
 		if (r.getChildren().isEmpty()) {
-		    warnings.add(new RelationshipMapsNoColumnsDDLWarning(r.getPkTable(), r.getFkTable()));
 		    errorMsg.append("Warning: Relationship has no columns to map:\n");
 		}
 
@@ -371,7 +357,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 			// checks the fk column and pk column are the same type,
 			// generates DDLWarning if not the same.
 			if (ArchitectUtils.columnTypesDiffer(c.getType(), fkCol.getType())) {
-			    warnings.add(new RelationshipColumnsTypesMismatchDDLWarning(c, fkCol));
 			    typesMismatchMsg.append("        " + c + " -- " + fkCol + "\n");
 			}
 			// make sure this is unique
@@ -394,18 +379,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    errorMsg.append(typesMismatchMsg.toString());
 		}
 
-		// sanity check for SET NULL and SET DEFAULT delete rules, whether or not DB supports them
-        for (SQLRelationship.ColumnMapping cm : r.getChildren(ColumnMapping.class)) {
-            UpdateDeleteRule deleteRule = r.getDeleteRule();
-            SQLColumn fkcol = cm.getFkColumn();
-            if (deleteRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
-                warnings.add(new SetNullOnNonNullableColumnWarning(fkcol));
-            } else if (deleteRule == UpdateDeleteRule.SET_DEFAULT &&
-                       (fkcol.getDefaultValue() == null || fkcol.getDefaultValue().length() == 0)) {
-                warnings.add(new SetDefaultOnColumnWithNoDefaultWarning(fkcol));
-            }
-        }
-
 		if (supportsDeleteAction(r)) {
 		    String deleteActionClause = getDeleteActionClause(r);
 
@@ -414,23 +387,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 		        sql.append("\n").append(deleteActionClause);
 		    }
 		} else {
-		    warnings.add(new UnsupportedFeatureDDLWarning(
-		            getName() + " does not support " + r.getName() + "'s delete action", r));
 		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " +
 		            "delete action (" + r.getDeleteRule() + ").\n");
 		}
-
-		// sanity check for SET NULL and SET DEFAULT update rules, whether or not DB supports them
-        for (SQLRelationship.ColumnMapping cm : r.getChildren(SQLRelationship.ColumnMapping.class)) {
-            UpdateDeleteRule updateRule = r.getUpdateRule();
-            SQLColumn fkcol = cm.getFkColumn();
-            if (updateRule == UpdateDeleteRule.SET_NULL && !fkcol.isDefinitelyNullable()) {
-                warnings.add(new SetNullOnNonNullableColumnWarning(fkcol));
-            } else if (updateRule == UpdateDeleteRule.SET_DEFAULT &&
-                       (fkcol.getDefaultValue() == null || fkcol.getDefaultValue().length() == 0)) {
-                warnings.add(new SetDefaultOnColumnWithNoDefaultWarning(fkcol));
-            }
-        }
 
 		if (supportsUpdateAction(r)) {
             String updateActionClause = getUpdateActionClause(r);
@@ -440,8 +399,6 @@ public class GenericDDLGenerator implements DDLGenerator {
                 sql.append("\n").append(updateActionClause);
             }
 		} else {
-            warnings.add(new UnsupportedFeatureDDLWarning(
-                    getName() + " does not support " + r.getName() + "'s update action", r));
             errorMsg.append("Warning: " + getName() + " does not support this relationship's " +
                     "update action (" + r.getUpdateRule() + ").\n");
 		}
@@ -456,8 +413,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		        sql.append("\n").append(deferrabilityClause);
 		    }
 		} else {
-		    warnings.add(new UnsupportedFeatureDDLWarning(
-                    getName() + " does not support " + r.getName() + "'s deferrability policy", r));
 		    errorMsg.append("Warning: " + getName() + " does not support this relationship's " +
 		            "deferrability policy (" + r.getDeferrability() + ").\n");
 		}
@@ -817,33 +772,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    if (td == null) {
 		        throw new NullPointerException("Current type map does not have entry for default datatype!");
 		    }
-		    GenericTypeDescriptor oldType = new GenericTypeDescriptor
-		    (c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
-		            null, null, c.getNullable(), false, false);
-		    oldType.determineScaleAndPrecision();
-		    TypeMapDDLWarning o = new TypeMapDDLWarning(c, String.format(
-                    "Type '%s' of column '%s' in table '%s' is unknown in the target platform",
-                    SQLType.getTypeName(c.getType()),
-                    c.getPhysicalName(),
-                    c.getParent().getPhysicalName()), oldType, td);
-		   if (!contains(warnings, o)) {
-		       warnings.add(o);
-		   }
         }
         return td;
-    }
-
-    private boolean contains(List<DDLWarning> list, TypeMapDDLWarning o) {
-        Iterator<DDLWarning> iterator = list.iterator();
-        while (iterator.hasNext()) {
-            Object next = iterator.next();
-            if (next instanceof TypeMapDDLWarning) {
-                if (((TypeMapDDLWarning)next).getMessage().equals(o.getMessage())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
 	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
@@ -1113,13 +1043,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	/**
-	 * Returns {@link #warnings}.
-	 */
-	public List<DDLWarning> getWarnings() {
-		return warnings;
-	}
-
-	/**
 	 * See {@link #targetCatalog}.
 	 *
 	 * @return the value of targetCatalog
@@ -1183,157 +1106,14 @@ public class GenericDDLGenerator implements DDLGenerator {
                 (so.getPhysicalName() != null && !so.getPhysicalName().trim().equals(""))) {
 		    String physicalName = so.getPhysicalName();
 		    logger.debug("The physical name for this SQLObject is: " + physicalName);
-		    if (physicalName.lastIndexOf(' ') != -1) {
-		        String renameTo = (toIdentifier(physicalName));
-                warnings.add(new InvalidNameDDLWarning(
-		                String.format("Name %s has white spaces", physicalName),
-		                Arrays.asList(new SQLObject[] {so}),
-		                String.format("Rename %s to %s", physicalName, renameTo ),
-		                so, renameTo));
-		    }
 		} else {
 		    so.setPhysicalName(toIdentifier(so.getName()));
 		}
         String physicalName = so.getPhysicalName();
-        if(isReservedWord(physicalName)) {
-            String renameTo = physicalName   + "_1";
-            warnings.add(new InvalidNameDDLWarning(
-                    String.format("%s is a reserved word", physicalName),
-                    Arrays.asList(new SQLObject[] { so }),
-                    String.format("Rename %s to %s", physicalName, renameTo),
-                    so, renameTo));
-            return physicalName;
-        }
         logger.debug("The logical name field now is: " + so.getName());
-        logger.debug("The physical name field now is: " + physicalName);
-        int pointIndex = so.getPhysicalName().lastIndexOf('.');
-        if (!so.getPhysicalName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
-            String renameTo;
-            if (so instanceof SQLTable) {
-                renameTo = "Table_" + so.getPhysicalName();
-            } else if (so instanceof SQLColumn) {
-                renameTo = "Column_" + so.getPhysicalName();
-            } else if (so instanceof SQLIndex) {
-                renameTo = "Index_" + so.getPhysicalName();
-            } else {
-                renameTo = "X_" + so.getPhysicalName();
-            }
-            warnings.add(new InvalidNameDDLWarning(
-                    String.format("Name %s starts with a non-alpha character", physicalName),
-                    Arrays.asList(new SQLObject[] { so }),
-                    String.format("Rename %s to %s", physicalName, renameTo),
-                    so, renameTo));
-            return physicalName;
-        }
-
-        logger.debug("transform identifier result: " + so.getPhysicalName());
-        // XXX should change checkDupName(Map where, so.getPhysicalName(), so, "Duplicate Physical Name", so.getName());
-
-        String physicalName2 = so.getPhysicalName();
-        SQLObject object = dupCheck.get(physicalName2);
-        if (object == null) {
-			dupCheck.put(physicalName2, so);
-        } else {
-
-            int count = 1;
-            String renameTo2;
-            SQLObject object2;
-            do {
-                renameTo2 = physicalName2 + "_" + count;
-                object2 = dupCheck.get(renameTo2);
-                count++;
-            } while (object2 != null);
-
-            String message;
-            if (so instanceof SQLColumn) {
-                message = String.format("Column name %s in table %s already in use",
-                        so.getPhysicalName(),
-                        ((SQLColumn) so).getParent().getPhysicalName());
-            } else {
-                message = String.format("Global name %s already in use", physicalName2);
-            }
-            logger.debug("Rename to : " + renameTo2);
-
-            warnings.add(new InvalidNameDDLWarning(
-                    message,
-                    Arrays.asList(new SQLObject[] { so }),
-                    String.format("Rename %s to %s", physicalName2, renameTo2),
-                    so, renameTo2));
-
-            dupCheck.put(renameTo2, so);
-
-		}
 
 		return so.getPhysicalName();
 	}
-
-	/**
-     * Generate, set, and return a valid identifier for this SQLSequence.
-     * Has a side effect of changing the given SQLColumn's autoIncrementSequenceName.
-     * @throws SQLObjectException
-     *
-     * @param dupCheck  The Map to check for duplicate names
-     * @param seq       The SQLSequence to generate, set and return a valid identifier for.
-     * @param col       The SQLColumn to where the side effect should occur.
-     */
-    protected String createSeqPhysicalName(Map<String, SQLObject> dupCheck, SQLSequence seq, SQLColumn col) {
-        logger.debug("transform identifier source: " + seq.getPhysicalName());
-        seq.setPhysicalName(toIdentifier(seq.getName()));
-        String physicalName = seq.getPhysicalName();
-        if(isReservedWord(physicalName)) {
-            String renameTo = physicalName   + "_1";
-            warnings.add(new InvalidSeqNameDDLWarning(
-                    String.format("%s is a reserved word", physicalName),
-                    seq, col,
-                    String.format("Rename %s to %s", physicalName, renameTo),
-                    renameTo));
-            return physicalName;
-        }
-
-        int pointIndex = seq.getPhysicalName().lastIndexOf('.');
-        if (!seq.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
-            String renameTo = "Seq_" + seq.getName();
-            warnings.add(new InvalidSeqNameDDLWarning(
-                    String.format("Name %s starts with a non-alpha character", physicalName),
-                    seq, col,
-                    String.format("Rename %s to %s", physicalName, renameTo),
-                    renameTo));
-            return physicalName;
-        }
-
-        logger.debug("transform identifier result: " + seq.getPhysicalName());
-        // XXX should change checkDupName(Map where, so.getPhysicalName(), so, "Duplicate Physical Name", so.getName());
-
-        String physicalName2 = seq.getPhysicalName();
-        SQLObject object = dupCheck.get(physicalName2);
-        if (object == null) {
-            dupCheck.put(physicalName2, seq);
-        } else {
-
-            int count = 1;
-            String renameTo2;
-            SQLObject object2;
-            do {
-                renameTo2 = physicalName2 + "_" + count;
-                object2 = dupCheck.get(renameTo2);
-                count++;
-            } while (object2 != null);
-
-            String message = String.format("Global name %s already in use", physicalName);
-            logger.debug("Rename to : " + renameTo2);
-
-            warnings.add(new InvalidSeqNameDDLWarning(
-                    message,
-                    seq, col,
-                    String.format("Rename %s to %s", physicalName, renameTo2),
-                    renameTo2));
-
-            dupCheck.put(renameTo2, seq);
-
-        }
-
-        return seq.getPhysicalName();
-    }
 
     /**
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms.

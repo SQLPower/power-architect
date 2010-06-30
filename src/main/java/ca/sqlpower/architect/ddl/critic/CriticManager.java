@@ -30,6 +30,7 @@ import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericSequenceNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.DB2UnsupportedFeaturesCritic;
+import ca.sqlpower.architect.ddl.critic.impl.DuplicateNameCritic;
 import ca.sqlpower.architect.ddl.critic.impl.EmptyRelationshipCritic;
 import ca.sqlpower.architect.ddl.critic.impl.H2UnsupportedFeaturesCritic;
 import ca.sqlpower.architect.ddl.critic.impl.HSQLDBUnsupportedFeaturesCritic;
@@ -82,6 +83,7 @@ public class CriticManager extends AbstractSPObject {
                 new AlphaNumericSequenceNameCritic(),
                 new SetDefaultOnColumnWithNoDefaultCritic(),
                 new SetNullOnNonNullableColumnCritic(),
+                new DuplicateNameCritic(),
                 //DB2
                 new DB2UnsupportedFeaturesCritic(),
                 //H2

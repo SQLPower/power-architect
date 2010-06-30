@@ -31,7 +31,10 @@ import ca.sqlpower.architect.ddl.critic.QuickFix;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 
@@ -39,7 +42,7 @@ import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
  * Criticizes the physical name of all SQLObjects based on the parameters given
  * to the constructor.
  */
-public abstract class PhysicalNameCritic extends CriticAndSettings {
+public class PhysicalNameCritic extends CriticAndSettings {
     
     private final Pattern legalNamePattern;
     private final int maxNameLength;
@@ -111,7 +114,7 @@ public abstract class PhysicalNameCritic extends CriticAndSettings {
         }
 		
         if (!getLegalNamePattern().matcher(physName).matches()) {
-            final String newLogicalName = correctPhysicalName(physName);
+            final String newLogicalName = correctPhysicalName(so, physName);
             criticisms.add(new Criticism(
                     so,
                     "Physical name not legal for " + so.getPhysicalName(),
@@ -129,12 +132,32 @@ public abstract class PhysicalNameCritic extends CriticAndSettings {
     }
 
     /**
-     * This method will be given the existing physical name of an object being
-     * criticized that does not match the pattern for valid physical names and
-     * it will return a valid physical name for the object that passes the legal
+     * This method will be given the subject object being criticized and its
+     * physical name that does not match the pattern for valid physical names and it
+     * will return a valid physical name for the object that passes the legal
      * name pattern.
      */
-    public abstract String correctPhysicalName(String existingName);
+    public String correctPhysicalName(Object subject, String existingName) {
+        StringBuffer buffer = new StringBuffer(existingName.length());
+        for (int i = 0; i < existingName.length(); i++) {
+            if (existingName.charAt(i) == ' ') {
+                buffer.append('_');
+            } else if (getLegalNamePattern().matcher(Character.toString(existingName.charAt(i))).matches()) {
+                buffer.append(existingName.charAt(i));
+            } else if (i == 0) {
+                if (subject instanceof SQLTable) {
+                    buffer.append("Table_" + existingName.charAt(i));
+                } else if (subject instanceof SQLColumn) {
+                    buffer.append("Column_" + existingName.charAt(i));
+                } else if (subject instanceof SQLIndex) {
+                    buffer.append("Index_" + existingName.charAt(i));
+                } else {
+                    buffer.append("X_" + existingName.charAt(i));
+                }
+            }
+        }
+        return buffer.toString();
+    }
 
     @Accessor
     public Pattern getLegalNamePattern() {

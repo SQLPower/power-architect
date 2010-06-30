@@ -19,35 +19,16 @@
 
 package ca.sqlpower.architect.ddl;
 
-import ca.sqlpower.sqlobject.SQLColumn;
+import java.sql.Types;
+import java.util.List;
+
 import junit.framework.TestCase;
-import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 
-import java.sql.Types;
-import java.util.List;
-
 public class GenericDDLGeneratorTest extends TestCase {
-
-    /**
-     * Regression testing for bug 1354. If a relationship is forward engineered
-     * but has no columns then it should be skipped.
-     */
-    public void testSkipRelationWithNoColumns() throws Exception {
-        GenericDDLGenerator ddl = new GenericDDLGenerator();
-        SQLRelationship r = new SQLRelationship();
-        r.setName("Test Relation");
-        SQLTable pkTable = new SQLTable();
-        pkTable.initFolders(true);
-        SQLTable fkTable = new SQLTable();
-        fkTable.initFolders(true);
-        r.attachRelationship(pkTable, fkTable, true);
-        ddl.addRelationship(r);
-        
-        assertEquals(1, ddl.getWarnings().size());
-    }
 
 	public void testGenerateComment() throws Exception {
 		GenericDDLGenerator ddl = new GenericDDLGenerator();

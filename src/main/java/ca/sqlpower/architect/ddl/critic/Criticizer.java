@@ -52,7 +52,16 @@ class Criticizer {
      * descendants if it is an {@link SPObject}.
      */
     public List<Criticism> criticize(Object subject) {
-        return recursivelyCriticize(subject);
+        try {
+            for (Critic c : critics) {
+                c.start();
+            }
+            return recursivelyCriticize(subject);
+        } finally {
+            for (Critic c : critics) {
+                c.end();
+            }
+        }
     }
     
     /**

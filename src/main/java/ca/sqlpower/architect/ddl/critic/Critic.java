@@ -36,6 +36,15 @@ import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
  * Classes of this type must be immutable.
  */
 public interface Critic {
+
+    /**
+     * Start must be called once before calling criticize on this critic.
+     * Calling start on a critic allows the critic to initialize any state for
+     * the critic for the duration of this run. If the criticism of the state of
+     * the system is to be executed again end must be called before start is
+     * called again.
+     */
+    public void start();
     
     /**
      * Analyzes the subject and returns a set of criticisms if there are
@@ -43,6 +52,13 @@ public interface Critic {
      * including causing the subject to populate.
      */
     public List<Criticism> criticize(Object subject);
+
+    /**
+     * End must be called when criticizing the current set of objects is
+     * complete. Calling end allows the critic to clean up any state before it
+     * is executed again.
+     */
+    public void end();
 
     /**
      * The error level this critic was defined to be at when it was created.

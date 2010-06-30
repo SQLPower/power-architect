@@ -262,11 +262,6 @@ public interface DDLGenerator {
     public void setTypeMap(Map<Integer, GenericTypeDescriptor> argTypeMap);
 
     /**
-     * Returns {@link #warnings}.
-     */
-    public List<DDLWarning> getWarnings();
-
-    /**
      * See {@link #targetCatalog}.
      *
      * @return the value of targetCatalog
