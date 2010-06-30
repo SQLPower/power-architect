@@ -240,10 +240,6 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
                 throw actualTPR.getException();
             }
             creator.doProfile(tpr);
-            // XXX the creator should stash a reference to the exception in tpr, then throw it anyway 
-            if (tpr.getException() != null) {
-                throw tpr.getException();
-            }
             Runnable runner = new Runnable() {
                 public void run() {
                     //None of the profiling creates or saves any data source information so an
@@ -269,6 +265,11 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
             } catch (SessionNotFoundException e) {
                 runner.run();
             }
+            
+            if (tpr.getException() != null) {
+                throw tpr.getException();
+            }
+            
             return actualTPR;
         }
     }
