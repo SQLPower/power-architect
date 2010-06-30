@@ -22,6 +22,16 @@ package ca.sqlpower.architect.ddl.critic;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ddl.DB2DDLGenerator;
+import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.H2DDLGenerator;
+import ca.sqlpower.architect.ddl.HSQLDBDDLGenerator;
+import ca.sqlpower.architect.ddl.MySqlDDLGenerator;
+import ca.sqlpower.architect.ddl.OracleDDLGenerator;
+import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
+import ca.sqlpower.architect.ddl.SQLServer2000DDLGenerator;
+import ca.sqlpower.architect.ddl.SQLServer2005DDLGenerator;
+import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
@@ -52,25 +62,67 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
      * user-defined platform types to these types in the future.
      */
     public enum StarterPlatformTypes {
-        GENERIC("Generic"),
-        POSTGRESQL("PostgreSQL"),
-        MY_SQL("MySQL"),
-        SQL_SERVER("SQL Server"),
-        SQL_SERVER_2000("SQL Server 2000"),
-        SQL_SERVER_2005("SQL Server 2005"),
-        ORACLE("Oracle"),
-        DB2("DB2"),
-        H2("H2"),
-        HSQLDB("HSQLDB");
-        
+        GENERIC("Generic", DDLGenerator.class),
+        POSTGRESQL("PostgreSQL", PostgresDDLGenerator.class),
+        MY_SQL("MySQL", MySqlDDLGenerator.class),
+        SQL_SERVER("SQL Server", SQLServerDDLGenerator.class),
+        SQL_SERVER_2000("SQL Server 2000", SQLServer2000DDLGenerator.class),
+        SQL_SERVER_2005("SQL Server 2005", SQLServer2005DDLGenerator.class),
+        ORACLE("Oracle", OracleDDLGenerator.class),
+        DB2("DB2", DB2DDLGenerator.class),
+        H2("H2", H2DDLGenerator.class),
+        HSQLDB("HSQLDB", HSQLDBDDLGenerator.class);
+
+        /**
+         * Human readable group name of the platform type which the critics using will
+         * be grouped by.
+         */
         private final String name;
 
-        private StarterPlatformTypes(String name) {
+        /**
+         * DDLGenerators associated with the platform. Some critic groups may
+         * only be meant to be executed if you are looking at forward
+         * engineering to a specific platform. If the group is only meant for a
+         * specific set of DDL generators provide their classes or a super class
+         * of only those types. If you want all of the platforms to be
+         * associated with the set of critics use the interface.
+         */
+        private final Class<? extends DDLGenerator>[] associatedGenerators;
+
+        private StarterPlatformTypes(String name, Class<? extends DDLGenerator> ... associatedGenerators) {
             this.name = name;
+            this.associatedGenerators = associatedGenerators;
         }
         
         public String getName() {
             return name;
+        }
+
+        /**
+         * Finds the starter platform type by name. Not all critic group names
+         * have to be one of the starter types so this may be null.
+         */
+        public static StarterPlatformTypes getByGroupName(String name) {
+            for (StarterPlatformTypes type : values()) {
+                if (type.getName().equals(name)) {
+                    return type;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Returns true if this group is associated with the given generator
+         * class. (ie, if it is or extends a class that is connected to this
+         * group.)
+         */
+        public boolean isAssociated(Class<? extends DDLGenerator> associatedGenerator) {
+            for (Class<? extends DDLGenerator> generatorClass : associatedGenerators) {
+                if (generatorClass.isAssignableFrom(associatedGenerator)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
     

@@ -97,7 +97,8 @@ public class ExportDDLAction extends AbstractArchitectAction {
              * generateAndDisplayDDL method.
              */
             private void checkErrorsAndGenerateDDL(final DDLGenerator ddlg) {
-                List<Criticism> criticisms = session.getWorkspace().getCriticManager().criticize(session.getTargetDatabase());
+                List<Criticism> criticisms = session.getWorkspace().getCriticManager().
+                    criticize(ddlg.getClass(), session.getTargetDatabase());
                 if (criticisms.isEmpty()) {
                     try {
                         generateAndDisplayDDL(ddlPanel, ddlg);
