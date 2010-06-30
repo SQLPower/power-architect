@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
@@ -172,9 +173,27 @@ public class CriticManager extends AbstractSPObject {
      * are created.
      */
     public List<Criticism> criticize(Object root) {
+        return criticize(null, root);
+    }
+
+    /**
+     * Returns a list of criticisms calculated by critics in this manager based
+     * on the object passed to them. These criticisms are immutable after they
+     * are created.
+     * 
+     * @param generatorClass
+     *            The generator type we will be using to create DDL with. Will
+     *            limit some of the enabled critics to only use critics
+     *            associated with this DDL generators of this type. If null all
+     *            enabled critics will be used.
+     */
+    public List<Criticism> criticize(Class<? extends DDLGenerator> generatorClass, Object root) {
         List<Critic> critics = new ArrayList<Critic>();
         for (CriticGrouping grouping : criticGroupings) {
             if (!grouping.isEnabled()) continue;
+            final StarterPlatformTypes starterTypeByGroupName = StarterPlatformTypes.getByGroupName(grouping.getPlatformType());
+            if (generatorClass != null && starterTypeByGroupName != null && 
+                    !starterTypeByGroupName.isAssociated(generatorClass)) continue;
             for (CriticAndSettings singleSettings : grouping.getSettings()) {
                 if (Severity.IGNORE.equals(singleSettings.getSeverity())) continue;
                 critics.add(singleSettings);
@@ -182,6 +201,7 @@ public class CriticManager extends AbstractSPObject {
         }
         Criticizer criticizer = new Criticizer(critics);
         return Collections.unmodifiableList(criticizer.criticize(root));
+        
     }
     
     @Override
