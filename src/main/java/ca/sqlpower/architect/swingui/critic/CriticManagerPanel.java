@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import ca.sqlpower.architect.ddl.critic.CriticGrouping;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
@@ -53,7 +54,7 @@ public class CriticManagerPanel implements DataEntryPanel {
     public CriticManagerPanel(ArchitectSwingSession session) {
         
         mainPanel = new JPanel();
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref"), mainPanel);
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref"));
         
         CriticManager criticManager = session.getWorkspace().getCriticManager();
         for (CriticGrouping grouping : criticManager.getCriticGroupings()) {
@@ -62,7 +63,9 @@ public class CriticManagerPanel implements DataEntryPanel {
             builder.nextLine();
             groupingPanels.add(criticGroupingPanel);
         }
-        
+        DefaultFormBuilder outerBuilder = new DefaultFormBuilder(
+                new FormLayout("pref:grow", "min(pref;400dlu):grow"), mainPanel);
+        outerBuilder.append(new JScrollPane(builder.getPanel()));
     }
     
     public boolean applyChanges() {
