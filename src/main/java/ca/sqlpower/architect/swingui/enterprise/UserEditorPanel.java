@@ -198,7 +198,7 @@ public class UserEditorPanel implements DataEntryPanel{
         
         Grant globalGrant = null;
         for (Grant grant : user.getChildren(Grant.class)) {
-            if (grant.getType() != null && grant.getType().equals(ArchitectSwingProject.class.getName())) {
+            if (grant.isSystemLevel() && grant.getType().equals(ArchitectSwingProject.class.getName())) {
                 if (globalGrant != null) {
                     throw new IllegalStateException("Multiple grants for Architect Project found");
                 }
