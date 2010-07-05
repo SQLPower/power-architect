@@ -31,10 +31,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ddl.critic.CriticismEvent;
-import ca.sqlpower.architect.ddl.critic.CriticismListener;
 import ca.sqlpower.architect.olap.OLAPSession;
-import ca.sqlpower.architect.swingui.critic.CriticBadge;
+import ca.sqlpower.architect.swingui.critic.ModelBadge;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.AbstractSPObject;
@@ -49,42 +47,37 @@ import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
-import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLIndex;
-import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 
 public class PlayPenContentPane extends AbstractSPObject {
-	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
-	
-	@SuppressWarnings("unchecked")
-	public static final List<Class<? extends SPObject>> allowedChildTypes = 
-	    Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-	            Arrays.asList(PlayPenComponent.class)));  
-	
-	/**
-	 * A list of component types that are dependent on other components (see dependentComponents)
-	 */
-	private static final List<Class<? extends PlayPenComponent>> dependentComponentTypes = 
-	    Collections.unmodifiableList(new ArrayList<Class<? extends PlayPenComponent>>(
-	            Arrays.asList(Relationship.class, UsageComponent.class))); 
+    private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
+
+    @SuppressWarnings("unchecked")
+    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
+            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(PlayPenComponent.class)));
+
+    /**
+     * A list of component types that are dependent on other components (see
+     * dependentComponents)
+     */
+    private static final List<Class<? extends PlayPenComponent>> dependentComponentTypes = Collections
+            .unmodifiableList(new ArrayList<Class<? extends PlayPenComponent>>(Arrays.asList(Relationship.class,
+                    UsageComponent.class)));
 
     private PlayPen playPen;
-    
+
     /**
-     * The list of components not dependent on any other components.
-     * They are first in the children list.
+     * The list of components not dependent on any other components. They are
+     * first in the children list.
      */
-	private List<PlayPenComponent> components = new ArrayList<PlayPenComponent>();
-	
-	/**
-	 * These components are dependent on the first list of components.
-	 * They come after that list in terms of the overall children list.
-	 * Currently stores Relationships and UsageComponents
-	 */
-	private List<PlayPenComponent> dependentComponents = new ArrayList<PlayPenComponent>();
+    private List<PlayPenComponent> components = new ArrayList<PlayPenComponent>();
+
+    /**
+     * These components are dependent on the first list of components. They come
+     * after that list in terms of the overall children list. Currently stores
+     * Relationships and UsageComponents
+     */
+    private List<PlayPenComponent> dependentComponents = new ArrayList<PlayPenComponent>();
 
     /**
      * The object this content pane is displaying information about. Must be one
@@ -92,36 +85,36 @@ public class PlayPenContentPane extends AbstractSPObject {
      * attach a listener to which watches for this model being removed.
      */
     private final SPObject modelContainer;
-    
+
     /**
-     * Maps component listeners by the listener that was passed in 
-     * (and will be passed in again  on removeComponentPropertyListener calls) 
-     * to the filtered listener that is created in addComponentPropertyListener
+     * Maps component listeners by the listener that was passed in (and will be
+     * passed in again on removeComponentPropertyListener calls) to the filtered
+     * listener that is created in addComponentPropertyListener
      */
     private HashMap<SPListener, SPListener> componentListeners = new HashMap<SPListener, SPListener>();
-    
+
     private final SPListener modelContainerListener = new AbstractSPListener() {
         public void childRemoved(SPChildEvent e) {
             if (e.getChild() == modelContainer && e.getSource().isMagicEnabled()) {
                 try {
-                    getParent().removeChild(PlayPenContentPane.this);                    
+                    getParent().removeChild(PlayPenContentPane.this);
                 } catch (ObjectDependentException ex) {
                     throw new RuntimeException(ex);
                 }
                 e.getSource().removeSPListener(this);
-            }            
+            }
         }
     };
-    
+
     private final SPListener componentBoundChanges = new AbstractSPListener() {
-        
+
         @Override
         public void propertyChanged(PropertyChangeEvent evt) {
             if (evt.getPropertyName().equals("bounds") && playPen != null) {
                 playPen.revalidate();
             }
         }
-        
+
     };
 
     /**
@@ -135,47 +128,11 @@ public class PlayPenContentPane extends AbstractSPObject {
      * badges or the criticisms are to be persisted, instead they are generated.
      * These badges may look like children but they are closer to being a kind
      * of transient child.
+     * <p>
+     * At this point we only allow one badge per model object but we may want to
+     * change this in the future.
      */
-    private final Map<Object, CriticBadge> badges = new HashMap<Object, CriticBadge>();
-    
-    private final CriticismListener criticismListener = new CriticismListener() {
-    
-        public void criticismRemoved(CriticismEvent e) {
-            CriticBadge badge = badges.get(e.getCriticism().getSubject());
-            if (badge != null) {
-                badge.removeCriticism(e.getCriticism());
-                if (badge.getCriticisms().isEmpty()) {
-                    removeCriticBadge(badge);
-                }
-            }
-        }
-    
-        public void criticismAdded(CriticismEvent e) {
-            Object subject = e.getCriticism().getSubject();
-            CriticBadge badge = badges.get(subject);
-            if (badge != null) {
-                badge.addCriticism(e.getCriticism());
-            } else if (subject instanceof SQLTable || subject instanceof SQLRelationship
-                    || subject instanceof SQLIndex || subject instanceof SQLColumn ||
-                    subject instanceof SQLImportedKey) {
-                //XXX May want a more generic way to find targets that can be badged in the future.
-                Object UISubject;
-                if (subject instanceof SQLIndex || subject instanceof SQLColumn) {
-                    UISubject = ((SPObject) subject).getParent();
-                } else if (subject instanceof SQLImportedKey) {
-                    UISubject = ((SQLImportedKey) subject).getRelationship();
-                } else {
-                    UISubject = subject;
-                }
-                PlayPenComponent ppc = getPlayPen().findPPComponent(UISubject);
-                if (ppc != null) {
-                    badge = new CriticBadge(Collections.singletonList(e.getCriticism()), 
-                            subject, ppc);
-                    addCriticBadge(badge);
-                }
-            }
-        }
-    };
+    private final Map<Object, ModelBadge> badges = new HashMap<Object, ModelBadge>();
 
     /**
      * @param modelContainer
@@ -184,33 +141,35 @@ public class PlayPenContentPane extends AbstractSPObject {
      *            parent to listen to for removing the content pane correctly if
      *            the model is removed.
      */
-	@Constructor
-	public PlayPenContentPane(@ConstructorParameter(propertyName="modelContainer") SPObject modelContainer) {
-	    super();
-	    setName("PlayPenContentPane");
-	    if (!(modelContainer instanceof SQLDatabase || modelContainer instanceof OLAPSession)) {
-	        throw new IllegalArgumentException("modelContainer must either be a SQLDatabase or OLAPSession");
-	    }
-	    this.modelContainer = modelContainer;
-	    if (modelContainer instanceof OLAPSession) {
-	        modelContainer.getParent().addSPListener(modelContainerListener);
-	    }
-	}
-	
-	@Accessor
-	public SPObject getModelContainer() {
-	    return modelContainer;
-	}
-	
+    @Constructor
+    public PlayPenContentPane(@ConstructorParameter(propertyName = "modelContainer") SPObject modelContainer) {
+        super();
+        setName("PlayPenContentPane");
+        if (!(modelContainer instanceof SQLDatabase || modelContainer instanceof OLAPSession)) {
+            throw new IllegalArgumentException("modelContainer must either be a SQLDatabase or OLAPSession");
+        }
+        this.modelContainer = modelContainer;
+        if (modelContainer instanceof OLAPSession) {
+            modelContainer.getParent().addSPListener(modelContainerListener);
+        }
+    }
+
+    @Accessor
+    public SPObject getModelContainer() {
+        return modelContainer;
+    }
+
     /**
      * Returns the PlayPen that this content pane belongs to.
      */
-    @Transient @Accessor
+    @Transient
+    @Accessor
     public PlayPen getPlayPen() {
         return playPen;
     }
 
-    @Transient @Mutator
+    @Transient
+    @Mutator
     public void setPlayPen(PlayPen owner) {
         if (playPen != null) {
             throw new IllegalStateException("Cannot change PlayPen once it is already set!");
@@ -218,12 +177,11 @@ public class PlayPenContentPane extends AbstractSPObject {
         this.playPen = owner;
         setPlayPenListeningToComponents();
         if (owner != null) {
-            owner.getCriticismBucket().addCriticismListener(criticismListener);
             owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
             firePropertyChange("playPen", null, owner);
         }
     }
-    
+
     public boolean contains(Point p) {
         return contains(p.x, p.y);
     }
@@ -242,24 +200,26 @@ public class PlayPenContentPane extends AbstractSPObject {
     }
 
     /**
-     * Looks for tooltip text in the component under the pointer,
-     * respecting the current zoom level. Returns null if there is
-     * no object at the mouse event for the tool tip.
+     * Looks for tooltip text in the component under the pointer, respecting the
+     * current zoom level. Returns null if there is no object at the mouse event
+     * for the tool tip.
      */
-    @Transient @Accessor
+    @Transient
+    @Accessor
     public String getToolTipText(MouseEvent e) {
         String text = null;
         PlayPenComponent c = getComponentAt(e.getPoint());
         if (c != null) {
             text = c.getToolTipText();
         }
-        logger.debug("Checking for tooltip component at "+e.getPoint()+" is "+c+". tooltipText is "+text); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        logger.debug("Checking for tooltip component at " + e.getPoint() + " is " + c + ". tooltipText is " + text); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         return text;
     }
 
     /**
-     *  Allows you to return the component that is at point p.  Since relations are always last 
-     *  If a non-relationship is at the same point it gets picked first. 
+     * Allows you to return the component that is at point p. Since relations
+     * are always last If a non-relationship is at the same point it gets picked
+     * first.
      */
     @NonBound
     public PlayPenComponent getComponentAt(Point p) {
@@ -270,31 +230,34 @@ public class PlayPenContentPane extends AbstractSPObject {
         }
         return null;
     }
-    
+
     @NonBound
     public int getFirstDependentComponentIndex() {
         return components.size();
     }
-    
+
     @NonBound
     public static boolean isDependentComponentType(Class<? extends PlayPenComponent> componentType) {
         for (Class<? extends PlayPenComponent> dependentType : dependentComponentTypes) {
-            if (dependentType.isAssignableFrom(componentType)) return true;
+            if (dependentType.isAssignableFrom(componentType))
+                return true;
         }
         return false;
     }
 
     /**
-     * Fixes table pane sizes after the play pen's zoom changes (because
-     * fonts render at different sizes in different zoom levels).
+     * Fixes table pane sizes after the play pen's zoom changes (because fonts
+     * render at different sizes in different zoom levels).
      */
     private class ZoomFixer implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent evt) {
             try {
                 begin("Revalidating all UI components.");
                 for (PlayPenComponent ppc : getChildren()) {
-                    // only table panes will need validation because they have text             
-                    if (!(ppc instanceof Relationship)) ppc.revalidate();
+                    // only table panes will need validation because they have
+                    // text
+                    if (!(ppc instanceof Relationship))
+                        ppc.revalidate();
                 }
                 commit();
             } catch (Throwable t) {
@@ -303,10 +266,10 @@ public class PlayPenContentPane extends AbstractSPObject {
             }
         }
     }
-    
+
     protected void addChildImpl(SPObject child, int pos) {
         PlayPenComponent ppc = (PlayPenComponent) child;
-        if (dependentComponentTypes.contains(ppc.getClass())) {        
+        if (dependentComponentTypes.contains(ppc.getClass())) {
             dependentComponents.add(pos - components.size(), ppc);
         } else {
             components.add(pos, ppc);
@@ -332,8 +295,9 @@ public class PlayPenContentPane extends AbstractSPObject {
             removed = dependentComponents.remove(child);
         } else {
             removed = components.remove(child);
-        }        
-        if (!removed) return false;
+        }
+        if (!removed)
+            return false;
         fireChildRemoved(child.getClass(), child, index);
         child.setParent(null);
         if (getPlayPen() != null) {
@@ -361,17 +325,17 @@ public class PlayPenContentPane extends AbstractSPObject {
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
-    
+
     public List<? extends PlayPenComponent> getChildren() {
         List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
         children.addAll(components);
         children.addAll(dependentComponents);
         return children;
     }
-    
+
     /**
      * Returns all of the 'children' of this content pane including the
-     * transient {@link CriticBadge}s.
+     * transient {@link ModelBadge}s.
      */
     @NonProperty
     public List<? extends PlayPenComponent> getAllChildren() {
@@ -381,22 +345,22 @@ public class PlayPenContentPane extends AbstractSPObject {
         children.addAll(dependentComponents);
         return children;
     }
-    
+
     @Accessor
     public ArchitectSwingProject getParent() {
         return (ArchitectSwingProject) super.getParent();
     }
-    
+
     @Mutator
     public void setParent(SPObject parent) {
         if (parent instanceof ArchitectSwingProject || parent == null) {
             super.setParent(parent);
         } else {
-            throw new IllegalArgumentException("Parent of PlayPenContentPane must be " +
-            		"ArchitectProject, not " + parent.getClass().getSimpleName());
+            throw new IllegalArgumentException("Parent of PlayPenContentPane must be " + "ArchitectProject, not " +
+                    parent.getClass().getSimpleName());
         }
     }
-    
+
     public boolean allowsChildren() {
         return true;
     }
@@ -411,71 +375,76 @@ public class PlayPenContentPane extends AbstractSPObject {
     }
 
     /**
-     * Adds a listener to this content pane that will forward
-     * a specific property's events received from its children components.
-     * @param propertyName The property of the components the listener is interested in.
-     * If null or an empty array, it will listen for all properties.
-     * @param listener The listener that the component events will be forwarded to.
+     * Adds a listener to this content pane that will forward a specific
+     * property's events received from its children components.
+     * 
+     * @param propertyName
+     *            The property of the components the listener is interested in.
+     *            If null or an empty array, it will listen for all properties.
+     * @param listener
+     *            The listener that the component events will be forwarded to.
      */
     public void addComponentPropertyListener(String[] propertyNames, final SPListener listener) {
-        
+
         final List<String> filter;
         if (propertyNames == null) {
             filter = Collections.emptyList();
         } else {
             filter = Arrays.asList(propertyNames);
         }
-        
+
         final SPListener filteredListener = new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
                 if (filter.size() == 0 || filter.contains(evt.getPropertyName())) {
                     listener.propertyChanged(evt);
                 }
             }
-        };  
-        
+        };
+
         // Map the created listener by the listener passed in.
         componentListeners.put(listener, filteredListener);
-        
+
         // Add listeners to all components that already existed.
         for (PlayPenComponent child : getChildren()) {
             child.addSPListener(filteredListener);
         }
-        
+
         // Add a listener to add the created listener to future components,
         // and remove it from components when they are removed.
         addSPListener(new AbstractSPListener() {
             public void childAdded(SPChildEvent e) {
                 e.getChild().addSPListener(filteredListener);
             }
+
             public void childRemoved(SPChildEvent e) {
                 e.getChild().removeSPListener(filteredListener);
             }
         });
-        
+
     }
-        
+
     public void addComponentPropertyListener(String propertyName, final SPListener listener) {
-        addComponentPropertyListener(new String[] {propertyName}, listener);
+        addComponentPropertyListener(new String[] { propertyName }, listener);
     }
-    
+
     /**
      * Adds a component property listener that listens to any/all properties.
+     * 
      * @param listener
      */
     public void addComponentPropertyListener(SPListener listener) {
         addComponentPropertyListener(new String[] {}, listener);
     }
-    
+
     public void removeComponentPropertyListener(SPListener listener) {
         componentListeners.remove(listener);
     }
-    
+
     @NonBound
     public HashMap<SPListener, SPListener> getComponentListeners() {
         return componentListeners;
     }
-    
+
     @NonBound
     public void setComponentListeners(HashMap<SPListener, SPListener> componentListeners) {
         this.componentListeners = componentListeners;
@@ -490,23 +459,30 @@ public class PlayPenContentPane extends AbstractSPObject {
     }
 
     /**
-     * Removes a critic badge from the content pane. The badges are a child type
+     * Removes a badge from the content pane. The badges are a child type
      * that is transient so this method does not fire child events that would
      * cause persist calls.
      */
-    public void removeCriticBadge(CriticBadge badge) {
+    public void removeModelBadge(ModelBadge badge) {
         badges.remove(badge.getSubject());
         badge.cleanup();
     }
-    
+
     /**
-     * Adds a critic badge to the content pane. The badges are a child type
-     * that is transient so this method does not fire child events that would
-     * cause persist calls.
+     * Adds a badge to the content pane. The badges are a child type that
+     * is transient so this method does not fire child events that would cause
+     * persist calls.
      */
-    public void addCriticBadge(CriticBadge badge) {
+    public void addModelBadge(ModelBadge badge) {
         badge.setParent(PlayPenContentPane.this);
         badges.put(badge.getSubject(), badge);
     }
-    
+
+    /**
+     * Returns the badge on the subject in the UI. This may return null if there
+     * is no badge on the subject we are looking for.
+     */
+    public ModelBadge getBadge(Object subject) {
+        return badges.get(subject);
+    }
 }
