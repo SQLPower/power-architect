@@ -28,7 +28,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
-import javax.swing.JTable;
+import javax.swing.text.Document;
 
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
@@ -65,9 +65,29 @@ public class CriticSwingUtil {
      *            The bucket that stores the critics in the system. As this
      *            bucket is updated the table model will update with it.
      */
-    public static JTable createCriticTable(ArchitectSwingSession session, CriticismBucket bucket) {
+    public static FancyExportableJTable createCriticTable(ArchitectSwingSession session, CriticismBucket bucket) {
+        return createCriticTable(session, bucket, null);
+    }
+
+    /**
+     * Returns a table that displays all of the critics in the system including
+     * letting users be able to apply quick fixes to criticisms.
+     * 
+     * @param session
+     *            The session that contains the critic manager and its settings.
+     * @param bucket
+     *            The bucket that stores the critics in the system. As this
+     *            bucket is updated the table model will update with it.
+     * @param searchDoc
+     *            A document that is used to retrieve text from to limit the
+     *            number of rows displayed by the table to only the rows that
+     *            contain this text somewhere in it. If this is null no search
+     *            document will be used and the table will always display all of
+     *            the results.
+     */
+    public static FancyExportableJTable createCriticTable(ArchitectSwingSession session, CriticismBucket bucket, Document searchDoc) {
         final CriticismTableModel tableModel = new CriticismTableModel(session, bucket);
-        final FancyExportableJTable errorTable = new FancyExportableJTable(tableModel);
+        final FancyExportableJTable errorTable = new FancyExportableJTable(tableModel, searchDoc);
         errorTable.setDefaultRenderer(Severity.class, new SeverityTableCellRenderer());
         final QuickFixListCellRenderer renderer = new QuickFixListCellRenderer();
         errorTable.setDefaultRenderer(List.class, renderer);
