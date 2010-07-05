@@ -20,9 +20,14 @@
 package ca.sqlpower.architect.util;
 
 import ca.sqlpower.architect.ArchitectProject;
+import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ProjectSettings;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
+import ca.sqlpower.architect.ddl.critic.CriticGrouping;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
+import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPRootObject;
@@ -48,7 +53,6 @@ import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.testutil.GenericNewValueMaker;
 
@@ -111,7 +115,8 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             ArchitectSwingProject project;
             try {
                 project = new ArchitectSwingProject();
-            } catch (SQLObjectException e) {
+                project.setSession(new ArchitectSessionContextImpl(false).createSession());
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
             getRootObject().addChild(project, 0);
@@ -157,6 +162,22 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             return ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).getOlapRootObject();
         } else if (OLAPObject.class.isAssignableFrom(valueType)) {
             return mondrianValueMaker.makeNewValue(valueType, oldVal, propName);
+        } else if (valueType == CriticGrouping.class) {
+            CriticGrouping group = new CriticGrouping(CriticAndSettings.StarterPlatformTypes.GENERIC.getName());
+            CriticManager manager = (CriticManager) makeNewValue(CriticManager.class, null, "parent of group");
+            manager.addChild(group, 0);
+            return group;
+        } else if (CriticAndSettings.class.isAssignableFrom(valueType)) {
+            CriticAndSettings critic = new AlphaNumericNameCritic();
+            CriticGrouping group = (CriticGrouping) makeNewValue(CriticGrouping.class, null, "group for critic");
+            group.addChild(critic, 0);
+            return critic;
+        } else if (valueType == Severity.class) {
+            if (Severity.ERROR.equals(oldVal)) {
+                return Severity.WARNING;
+            } else {
+                return Severity.ERROR;
+            }
         } else {
             return super.makeNewValue(valueType, oldVal, propName);
         }

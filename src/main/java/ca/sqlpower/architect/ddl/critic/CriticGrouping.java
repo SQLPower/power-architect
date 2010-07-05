@@ -29,7 +29,9 @@ import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 
 /**
  * Critics can be grouped and enabled or disabled as a group. This gives the
@@ -111,14 +113,17 @@ public class CriticGrouping extends AbstractSPObject {
         return 0;
     }
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
 
+    @NonProperty
     public List<? extends SPObject> getChildren() {
         return Collections.unmodifiableList(settings);
     }
 
+    @NonBound
     public List<? extends SPObject> getDependencies() {
         return Collections.emptyList();
     }
@@ -152,11 +157,13 @@ public class CriticGrouping extends AbstractSPObject {
     }
     
     @Override
+    @Accessor
     public CriticManager getParent() {
         return (CriticManager) super.getParent();
     }
     
     @Override
+    @Mutator
     public void setParent(SPObject parent) {
         if (!(parent instanceof CriticManager)) {
             throw new IllegalArgumentException("Critic groups must be a child of a critic manager.");
