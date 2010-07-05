@@ -1109,7 +1109,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		} else {
 		    so.setPhysicalName(toIdentifier(so.getName()));
 		}
-        String physicalName = so.getPhysicalName();
         logger.debug("The logical name field now is: " + so.getName());
 
 		return so.getPhysicalName();
