@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui.critic;
 
 import java.awt.Component;
 
-import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -36,7 +35,7 @@ public class CriticismObjectRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
             int row, int column) {
-        return new JLabel(getVisibleText(value));
+        return super.getTableCellRendererComponent(table, getVisibleText(value), isSelected, hasFocus, row, column);
     }
 
     /**
