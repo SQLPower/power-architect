@@ -41,7 +41,6 @@ import javax.swing.JPopupMenu;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -729,14 +728,6 @@ implements Selectable {
         //by default do nothing.
     }
     
-    /**
-     * Collects a list of criticisms on the model object that this component is
-     * displaying.
-     */
-    public List<Criticism> findCriticisms() {
-        return getPlayPen().getCriticismBucket().getCriticismsByObject(getModel());
-    }
-
     /**
      * Returns a point on the UI object that is most reasonable to attach
      * additional text or objects to for the given model object or a part of the
