@@ -92,7 +92,6 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
@@ -605,13 +604,6 @@ public class PlayPen extends JPanel
 	 */
 	private boolean ignoreTreeSelection = false;
 	
-    /**
-     * The {@link CriticismBucket} that stays around for the life of the panel.
-     * The criticisms in the panel can be updated in this bucket to be valid
-     * criticisms of the current project.
-     */
-    private final CriticismBucket criticismBucket = new CriticismBucket();
-    
 	public PlayPen(ArchitectSwingSession session) {
 	    this(session, session.getTargetDatabase());
 	}
@@ -3447,8 +3439,4 @@ public class PlayPen extends JPanel
         }
     }
     
-    public CriticismBucket getCriticismBucket() {
-        return criticismBucket;
-    }
-
 }

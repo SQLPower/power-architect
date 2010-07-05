@@ -49,7 +49,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
-import ca.sqlpower.architect.swingui.critic.CriticizeAction;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -119,8 +118,6 @@ public class RelationalPlayPenFactory {
             mi.setAction(layoutAction);
             menu.add(mi);
 
-            menu.add(new CriticizeAction(session));
-            
             if (pp.isDebugEnabled()) {
                 menu.addSeparator();
                 mi = new JMenuItem("Show Relationships"); //$NON-NLS-1$

@@ -55,7 +55,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -70,7 +69,6 @@ import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
-import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.layout.ArchitectLayout;
@@ -124,8 +122,6 @@ import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.architect.swingui.critic.CriticManagerPanel;
-import ca.sqlpower.architect.swingui.critic.CriticPanel;
-import ca.sqlpower.architect.swingui.critic.CriticizeAction;
 import ca.sqlpower.architect.swingui.enterprise.ProjectSecurityPanel;
 import ca.sqlpower.architect.swingui.enterprise.RevisionListPanel;
 import ca.sqlpower.architect.swingui.enterprise.SecurityPanel;
@@ -144,7 +140,6 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.action.OpenUrlAction;
 import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
-import ca.sqlpower.swingui.table.TableUtils;
 import ca.sqlpower.util.UserPrompterFactory;
 
 /**
@@ -413,27 +408,6 @@ public class ArchitectFrame extends JFrame {
     };
 
     /**
-     * The panel to display criticisms about the play pen on.
-     */
-    private final CriticPanel criticPanel;
-    
-    /**
-     * This button allows users to toggle the critic panel's visibility.
-     */
-    private final JToggleButton criticPanelToggleButton = new JToggleButton(
-            new AbstractAction("", CriticizeAction.CRITIC_ICON) {
-    
-        public void actionPerformed(ActionEvent e) {
-            if (criticPanelToggleButton.isSelected()) {
-                new CriticizeAction(session).criticize();
-                criticPanel.getPanel().setVisible(true);
-            } else {
-                criticPanel.getPanel().setVisible(false);
-            }
-        }
-    });
-    
-    /**
      * This constructor is used by the session implementation. To obtain an
      * Architect Frame, you have to create an
      * {@link ArchitectSwingSessionContext} and then call its createSession()
@@ -464,14 +438,8 @@ public class ArchitectFrame extends JFrame {
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(new JScrollPane(SPSUtils.getBrandedTreePanel(dbTree)));
         playpenScrollPane = new JScrollPane(playpen);
-        rightPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        rightPanel.setTopComponent(playpenScrollPane);
-        criticPanel = new CriticPanel(session);
-        rightPanel.setBottomComponent(criticPanel.getPanel());
-        criticPanel.getPanel().setVisible(false);
-        criticPanelToggleButton.setSelected(false);
+        splitPane.setRightComponent(playpenScrollPane);
         
-        splitPane.setRightComponent(rightPanel);
         playpen.setInitialViewPosition();
 
         final Preferences prefs = context.getPrefs();
@@ -694,7 +662,6 @@ public class ArchitectFrame extends JFrame {
         projectBar.addSeparator();
         projectBar.add(autoLayoutAction);
         projectBar.add(profileAction);
-        projectBar.add(criticPanelToggleButton);
         projectBar.setToolTipText(Messages.getString("ArchitectFrame.projectToolbarToolTip")); //$NON-NLS-1$
         projectBar.setName(Messages.getString("ArchitectFrame.projectToolbarName")); //$NON-NLS-1$
         
@@ -745,8 +712,6 @@ public class ArchitectFrame extends JFrame {
 
         cp.add(splitPane, BorderLayout.CENTER);
         logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
-        
-        criticPanel.init();
     }
     
     public JMenuBar createNewMenuBar() { 
@@ -971,11 +936,6 @@ public class ArchitectFrame extends JFrame {
    
     private JMenu enterpriseMenu;
 
-    /**
-     * The split pane that is the right side of the main ArchitectFrame.
-     */
-    private JSplitPane rightPanel;
-    
     public JMenu getEnterpriseMenu() {
         return enterpriseMenu;
     }
@@ -1289,23 +1249,18 @@ public class ArchitectFrame extends JFrame {
     }
 
     /**
-     * Updates the critic panel to use the criticisms.
-     * Will also display the critic panel if it is not visible.
+     * Returns the main split pane in the frame. The left panel will be the tree
+     * and the right panel will be the current model editor.
      */
-    public void updateCriticPanel(List<Criticism> criticisms) {
-        playpen.getCriticismBucket().updateCriticismsToMatch(criticisms);
-        criticPanel.getPanel().setVisible(true);
-        final double screenHeight = splitPane.getHeight();
-        double viewHeight = Math.min(criticPanel.getPanel().getPreferredSize().getHeight(), 
-                screenHeight / 3);
-        rightPanel.setDividerLocation((int) (screenHeight - viewHeight));
-        criticPanelToggleButton.setSelected(true);
-        
-        TableUtils.fitColumnWidths(criticPanel.getTable(), 15);
+    public JSplitPane getSplitPane() {
+        return splitPane;
     }
     
-    public CriticPanel getCriticPanel() {
-        return criticPanel;
+    /**
+     * Returns the top tool bar in the frame.
+     */
+    public JToolBar getProjectBar() {
+        return projectBar;
     }
 
 }
