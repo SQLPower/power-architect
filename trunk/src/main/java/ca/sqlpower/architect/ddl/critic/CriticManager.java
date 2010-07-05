@@ -55,7 +55,9 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 
 /**
  * A collection of settings that defines what critics are enabled in the system
@@ -124,6 +126,7 @@ public class CriticManager extends AbstractSPObject {
      * Returns the list of starting critics. This list is final and will always
      * return the critics in the same order.
      */
+    @Transient @Accessor
     public List<CriticAndSettings> getStartingCritics() {
         return STARTING_CRITICS;
     }
@@ -234,14 +237,17 @@ public class CriticManager extends AbstractSPObject {
         return 0;
     }
 
+    @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
 
+    @NonProperty
     public List<? extends SPObject> getChildren() {
         return Collections.unmodifiableList(criticGroupings);
     }
 
+    @NonBound
     public List<? extends SPObject> getDependencies() {
         return Collections.emptyList();
     }
