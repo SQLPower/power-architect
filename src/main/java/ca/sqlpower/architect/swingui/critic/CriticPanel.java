@@ -23,10 +23,13 @@ import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -34,14 +37,24 @@ import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.table.FancyExportableJTable;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.layout.FormLayout;
 
 /**
  * This panel can be placed somewhere on the main Architect frame to display all
  * of the currently known errors in the play pen based on enabled critics.
  */
 public class CriticPanel {
+
+    /**
+     * Icon that sits beside the search field so users know what the field is
+     * meant for.
+     */
+    public static final ImageIcon SEARCH_ICON = SPSUtils.createIcon("magnifier", "search icon");
     
     /**
      * The main panel of the critics window.
@@ -50,7 +63,13 @@ public class CriticPanel {
 
     private final ArchitectSwingSession session;
 
-    private final JTable table;
+    private final FancyExportableJTable table;
+
+    /**
+     * A field that users can enter some kind of text to limit the displayed
+     * criticisms.
+     */
+    private final JTextField searchField;
     
     private final ListSelectionListener selectedObjectsChangedListener = new ListSelectionListener() {
     
@@ -62,7 +81,9 @@ public class CriticPanel {
     public CriticPanel(ArchitectSwingSession session) {
         this.session = session;
         
-        table = CriticSwingUtil.createCriticTable(session, session.getPlayPen().getCriticismBucket());
+        searchField = new JTextField();
+        table = CriticSwingUtil.createCriticTable(session, session.getPlayPen().getCriticismBucket(), 
+                searchField.getDocument());
         panel = new JPanel(new BorderLayout());
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
         table.getSelectionModel().addListSelectionListener(selectedObjectsChangedListener);
@@ -72,7 +93,13 @@ public class CriticPanel {
         ButtonBarBuilder buttonBar = new ButtonBarBuilder();
         buttonBar.addGridded(new JButton(new CriticizeAction(session)));
         
-        panel.add(buttonBar.getPanel(), BorderLayout.NORTH);
+        DefaultFormBuilder northBuilder = new DefaultFormBuilder(
+                new FormLayout("pref:grow, 5dlu, pref, 2dlu, pref:grow"));
+        northBuilder.append(buttonBar.getPanel());
+        northBuilder.append(new JLabel(SEARCH_ICON));
+        northBuilder.append(searchField);
+        
+        panel.add(northBuilder.getPanel(), BorderLayout.NORTH);
     }
     
     public JPanel getPanel() {
