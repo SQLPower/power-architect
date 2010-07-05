@@ -31,6 +31,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 
 /**
  * Critic that checks for relationships that do not map any columns between
@@ -51,24 +52,43 @@ public class RelationshipMappingTypeCritic extends CriticAndSettings {
             final SQLTable parentTable = parentColumn.getParent();
             final SQLColumn childColumn = cm.getFkColumn();
             final SQLTable childTable = childColumn.getParent();
+            
+            //The text of the quick fix to update the child to have the same type, precision, and scale as the parent.
+            final UserDefinedSQLType parentSQLType = parentColumn.getUserDefinedSQLType();
+            String updateToParentQuickFix = "Change type of " + childTable.getName() + "." + 
+                childColumn.getName() + " (child column) to " + parentSQLType.getUpstreamType().getName() + 
+                (parentSQLType.getPrecisionType(UserDefinedSQLType.GENERIC_PLATFORM).equals(PropertyType.NOT_APPLICABLE)? "" :"(" + 
+                        parentSQLType.getPrecision(UserDefinedSQLType.GENERIC_PLATFORM) + 
+                            (parentSQLType.getScaleType(UserDefinedSQLType.GENERIC_PLATFORM).equals(PropertyType.NOT_APPLICABLE)? "" : ", " + 
+                                    parentSQLType.getScale(UserDefinedSQLType.GENERIC_PLATFORM)) + ")");
+            
+          //The text of the quick fix to update the parent to have the same type, precision, and scale as the child.
+            final UserDefinedSQLType childSQLType = childColumn.getUserDefinedSQLType();
+            String updateToChildQuickFix = "Change type of " + parentTable.getName() + "." + 
+                parentColumn.getName() + " (parent column) to " + childSQLType.getUpstreamType().getName() + 
+                (childSQLType.getPrecisionType(UserDefinedSQLType.GENERIC_PLATFORM).equals(PropertyType.NOT_APPLICABLE)? "" :"(" + 
+                        childSQLType.getPrecision(UserDefinedSQLType.GENERIC_PLATFORM) + 
+                            (childSQLType.getScaleType(UserDefinedSQLType.GENERIC_PLATFORM).equals(PropertyType.NOT_APPLICABLE)? "" : ", " + 
+                                    childSQLType.getScale(UserDefinedSQLType.GENERIC_PLATFORM)) + ")");
+            
             criticisms.add(new Criticism(
                     cm.getParent(),
-                    "Columns related by FK constraint have different types",
+                    "Columns " + cm.getPkColumn().getShortDisplayName() + " and " + 
+                        cm.getFkColumn().getShortDisplayName() + " related by FK constraint " +
+                    		"have different types, scale, or precision",
                     this,
-                    new QuickFix("Change type of " + childTable.getName() + "." + childColumn.getName() + 
-                            " (child column) to " + parentColumn.getUserDefinedSQLType().getUpstreamType().getName()) {
+                    new QuickFix(updateToParentQuickFix) {
                         @Override
                         public void apply() {
                             UserDefinedSQLType typeToUpdate = childColumn.getUserDefinedSQLType();
-                            UserDefinedSQLType typeToMatch = parentColumn.getUserDefinedSQLType();
+                            UserDefinedSQLType typeToMatch = parentSQLType;
                             typeToUpdate.setUpstreamType(typeToMatch.getUpstreamType());
                             childColumn.setType(parentColumn.getType());
                             childColumn.setPrecision(parentColumn.getPrecision());
                             childColumn.setScale(parentColumn.getScale());
                         }
                     },
-                    new QuickFix("Change type of " + parentTable.getName() + "." + parentColumn.getName() + 
-                            " (parent column) to " + childColumn.getUserDefinedSQLType().getUpstreamType().getName()) {
+                    new QuickFix(updateToChildQuickFix) {
                         @Override
                         public void apply() {
                             UserDefinedSQLType typeToUpdate = parentColumn.getUserDefinedSQLType();
