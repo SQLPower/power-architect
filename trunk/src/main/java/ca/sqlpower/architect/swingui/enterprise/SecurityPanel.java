@@ -55,7 +55,6 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
-import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
@@ -154,7 +153,6 @@ public class SecurityPanel {
                         securityWorkspace.begin("");
                         securityWorkspace.addChild(user, securityWorkspace.getChildren(User.class).size());
                         DomainCategory category = new DomainCategory(user.getName() + "'s Domains");
-                        user.addGrant(new Grant(category, true, true, true, true, true));
                         securityWorkspace.addChild(category, securityWorkspace.getChildren(DomainCategory.class).size());
                         securityWorkspace.commit();
                         
