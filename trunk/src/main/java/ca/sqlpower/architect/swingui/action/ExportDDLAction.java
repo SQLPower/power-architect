@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -111,14 +112,17 @@ public class ExportDDLAction extends AbstractArchitectAction {
                     //build warning dialog
                     final JDialog warningDialog = new JDialog(frame);
                     JPanel mainPanel = new JPanel();
-                    DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref"), mainPanel);
+                    DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow"), mainPanel);
                     builder.setDefaultDialogBorder();
                     JTextArea explanation = new JTextArea(GENDDL_WARNINGS_EXPLANATION, 5, 60);
                     explanation.setLineWrap(true);
                     explanation.setWrapStyleWord(true);
                     explanation.setEditable(false);
                     explanation.setBackground(mainPanel.getBackground());
+                    explanation.setPreferredSize(new Dimension(0, 0));
                     builder.append(explanation);
+                    
+                    builder.appendRow("fill:pref:grow");
                     builder.nextLine();
                     
                     final CriticismBucket bucket = new CriticismBucket();
