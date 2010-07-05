@@ -33,8 +33,11 @@ import javax.swing.JTable;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
+import ca.sqlpower.architect.diff.SQLObjectComparator;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.table.FancyExportableJTable;
 
 public class CriticSwingUtil {
     
@@ -64,10 +67,16 @@ public class CriticSwingUtil {
      */
     public static JTable createCriticTable(ArchitectSwingSession session, CriticismBucket bucket) {
         final CriticismTableModel tableModel = new CriticismTableModel(session, bucket);
-        final JTable errorTable = new JTable(tableModel);
+        final FancyExportableJTable errorTable = new FancyExportableJTable(tableModel);
         errorTable.setDefaultRenderer(Severity.class, new SeverityTableCellRenderer());
         final QuickFixListCellRenderer renderer = new QuickFixListCellRenderer();
         errorTable.setDefaultRenderer(List.class, renderer);
+        errorTable.setDefaultRenderer(Object.class, new CriticismObjectRenderer());
+        
+        //Sorts the objects by their name. This can be more fancy if we desire in 
+        //the future but works as a decent default for now.
+        errorTable.getTableModelSortDecorator().setColumnComparator(SPObject.class, 
+                new SQLObjectComparator());
         errorTable.addMouseListener(new MouseListener() {
             
             public void mouseReleased(MouseEvent e) {
