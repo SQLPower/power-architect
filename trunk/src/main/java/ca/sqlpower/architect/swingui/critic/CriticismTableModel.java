@@ -76,7 +76,7 @@ public class CriticismTableModel extends AbstractTableModel {
         if (columnIndex == 0) {
             return Severity.class;
         } else if (columnIndex == 1) {
-            return String.class;
+            return Object.class;
         } else if (columnIndex == 2) {
             return String.class;
         } else if (columnIndex == 3) {
