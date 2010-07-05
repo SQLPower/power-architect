@@ -482,6 +482,7 @@ public class PlayPenContentPane extends AbstractSPObject {
      * Returns the badge on the subject in the UI. This may return null if there
      * is no badge on the subject we are looking for.
      */
+    @Transient @Accessor
     public ModelBadge getBadge(Object subject) {
         return badges.get(subject);
     }
