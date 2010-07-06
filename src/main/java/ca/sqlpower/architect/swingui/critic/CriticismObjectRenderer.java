@@ -43,7 +43,9 @@ public class CriticismObjectRenderer extends DefaultTableCellRenderer {
      * object.
      */
     public static String getVisibleText(Object value) {
-        if (value instanceof SQLObject) {
+        if (value == null) {
+            return "";
+        } else if (value instanceof SQLObject) {
             String name = ((SQLObject) value).getShortDisplayName();
             if (name == null || name.trim().length() == 0) {
                 ((SQLObject) value).getName();
