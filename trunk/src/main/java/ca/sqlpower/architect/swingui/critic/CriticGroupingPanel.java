@@ -1,7 +1,10 @@
 package ca.sqlpower.architect.swingui.critic;
 
 import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.event.CellEditorListener;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -21,8 +25,10 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import ca.sqlpower.architect.ddl.critic.CriticGrouping;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
+import ca.sqlpower.architect.ddl.critic.CriticGrouping;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
 
@@ -120,12 +126,33 @@ public class CriticGroupingPanel implements DataEntryPanel {
      * {@link CriticGrouping}.
      * TODO Pull a generic tree model off of this tree model for later use.
      */
-    private final TreeModel treeModel = new TreeModel() {
-
+    private final TreeModel treeModel;
+    
+    private static class CriticSettingsTreeModel implements TreeModel {
+        
         /**
          * Tree listeners.
          */
         private final List<TreeModelListener> treeListeners = new ArrayList<TreeModelListener>();
+        
+        private final PropertyChangeListener criticSettingsListener = new PropertyChangeListener() {
+            
+            public void propertyChange(PropertyChangeEvent evt) {
+                final CriticSettingsPanel source = (CriticSettingsPanel) evt.getSource();
+                for (int i = treeListeners.size() - 1; i >= 0; i--) {
+                    treeListeners.get(i).treeNodesChanged(new TreeModelEvent(evt.getSource(), new TreePath(new Object[]{grouping, source.getSettings()})));
+                }
+            }
+        };
+
+        private final CriticGrouping grouping;        
+        
+        public CriticSettingsTreeModel(CriticGrouping grouping, Collection<CriticSettingsPanel> panels) {
+            this.grouping = grouping;
+            for (CriticSettingsPanel childPanel : panels) {
+                childPanel.addPropertyChangeListener(criticSettingsListener);
+            }
+        }
     
         public void valueForPathChanged(TreePath path, Object newValue) {
             throw new UnsupportedOperationException("This should not be allowed at this point. " +
@@ -160,7 +187,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
         public void addTreeModelListener(TreeModelListener l) {
             treeListeners.add(l);
         }
-    };
+    }
 
     /**
      * Displays the settings editor panels in a tree for easier navigation.
@@ -183,9 +210,21 @@ public class CriticGroupingPanel implements DataEntryPanel {
      * Each of the settings grouped by this class's grouping will have a data entry panel
      * associated with it.
      */
-    private final Map<CriticAndSettings, DataEntryPanel> settingsPanels = 
-        new HashMap<CriticAndSettings, DataEntryPanel>();
-
+    private final Map<CriticAndSettings, CriticSettingsPanel> settingsPanels = 
+        new HashMap<CriticAndSettings, CriticSettingsPanel>();
+    
+    /**
+     * Added to the group this panel displays to update the checkbox of the group.
+     */
+    private final SPListener groupListener = new AbstractSPListener() {
+        
+        public void propertyChanged(PropertyChangeEvent evt) {
+            if (evt.getPropertyName().equals("enabled")) {
+                enabledCheckbox.setSelected((Boolean) evt.getNewValue());
+            }
+        }
+    };
+    
     public CriticGroupingPanel(CriticGrouping grouping) {
         this.grouping = grouping;
 
@@ -197,9 +236,13 @@ public class CriticGroupingPanel implements DataEntryPanel {
             settingsPanels.put(settings, settingsPanel);
         }
         
+        treeModel = new CriticSettingsTreeModel(grouping, settingsPanels.values());
+        
         enabledCheckbox = new JCheckBox();
         enabledCheckbox.setSelected(grouping.isEnabled());
         builder.append(enabledCheckbox);
+        
+        grouping.addSPListener(groupListener);
         
         JTree settingsTree = new JTree(treeModel);
         settingsTree.setCellRenderer(treeCellRenderer);
@@ -243,6 +286,16 @@ public class CriticGroupingPanel implements DataEntryPanel {
             if (panel.hasUnsavedChanges()) return true;
         }
         return false;
+    }
+    
+    /**
+     * Call when disposing of this panel.
+     */
+    public void cleanup() {
+        grouping.removeSPListener(groupListener);
+        for (CriticSettingsPanel panel : settingsPanels.values()) {
+            panel.cleanup();
+        }
     }
     
 }

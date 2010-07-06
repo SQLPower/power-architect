@@ -19,12 +19,19 @@
 
 package ca.sqlpower.architect.swingui.critic;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -51,6 +58,29 @@ public class CriticSettingsPanel implements DataEntryPanel {
      */
     private final JComboBox severityCombo;
 
+    /**
+     * The listeners in this list will be notified when there is a change to the
+     * model that causes the UI to update. Components that may need to repaint
+     * on these changes can listen and be notified here.
+     */
+    private final List<PropertyChangeListener> listeners = new ArrayList<PropertyChangeListener>();
+    
+    /**
+     * Updates the severity combo box due to changes to the model.
+     */
+    private final SPListener severitySettingListener = new AbstractSPListener() {
+        public void propertyChanged(java.beans.PropertyChangeEvent evt) {
+            if (evt.getPropertyName().equals("severity")) {
+                Object oldSeverity = severityCombo.getSelectedItem();
+                severityCombo.setSelectedItem(evt.getNewValue());
+                for (PropertyChangeListener l : listeners) {
+                    l.propertyChange(new PropertyChangeEvent(CriticSettingsPanel.this, 
+                            "severity", oldSeverity, evt.getNewValue()));
+                }
+            }
+        }
+    };
+
     public CriticSettingsPanel(CriticAndSettings settings) {
         this.settings = settings;
         
@@ -62,6 +92,8 @@ public class CriticSettingsPanel implements DataEntryPanel {
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("225dlu, 5dlu, pref"), panel);
         builder.append(settings.getName());
         builder.append(severityCombo);
+        
+        settings.addSPListener(severitySettingListener);
     }
 
     public boolean applyChanges() {
@@ -82,4 +114,19 @@ public class CriticSettingsPanel implements DataEntryPanel {
         return false;
     }
 
+    public void cleanup() {
+        settings.removeSPListener(severitySettingListener);
+    }
+    
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        listeners.add(l);
+    }
+    
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        listeners.remove(l);
+    }
+    
+    public CriticAndSettings getSettings() {
+        return settings;
+    }
 }

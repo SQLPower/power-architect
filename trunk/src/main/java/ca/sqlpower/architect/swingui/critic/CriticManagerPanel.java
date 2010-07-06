@@ -19,9 +19,12 @@
 
 package ca.sqlpower.architect.swingui.critic;
 
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
 
+import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -31,6 +34,7 @@ import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.swingui.DataEntryPanel;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder2;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -50,13 +54,13 @@ public class CriticManagerPanel implements DataEntryPanel {
      * of critic settings.
      */
     private final List<CriticGroupingPanel> groupingPanels = new ArrayList<CriticGroupingPanel>();
-    
+
     public CriticManagerPanel(ArchitectSwingSession session) {
         
         mainPanel = new JPanel();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref"));
         
-        CriticManager criticManager = session.getWorkspace().getCriticManager();
+        final CriticManager criticManager = session.getWorkspace().getCriticManager();
         for (CriticGrouping grouping : criticManager.getCriticGroupings()) {
             CriticGroupingPanel criticGroupingPanel = new CriticGroupingPanel(grouping);
             builder.append(criticGroupingPanel.getPanel());
@@ -66,9 +70,39 @@ public class CriticManagerPanel implements DataEntryPanel {
         DefaultFormBuilder outerBuilder = new DefaultFormBuilder(
                 new FormLayout("pref:grow", "min(pref;400dlu):grow"), mainPanel);
         outerBuilder.append(new JScrollPane(builder.getPanel()));
+        outerBuilder.nextLine();
+        ButtonBarBuilder2 buttonBar = new ButtonBarBuilder2();
+        buttonBar.addButton(new AbstractAction("Restore Defaults") {
+            public void actionPerformed(ActionEvent e) {
+                if (doApplyChanges()) {
+                    criticManager.loadDefaults();
+                }
+            }
+        });
+        buttonBar.addButton(new AbstractAction("Set As Defaults") {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (doApplyChanges()) {
+                        criticManager.saveAsDefaults();
+                    }
+                } catch (BackingStoreException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+        buttonBar.addGlue();
+        outerBuilder.append(buttonBar.getPanel());
     }
     
     public boolean applyChanges() {
+        boolean changesApplied = doApplyChanges();
+        if (changesApplied) {
+            cleanup();
+        }
+        return changesApplied;
+    }
+
+    private boolean doApplyChanges() {
         for (CriticGroupingPanel panel : groupingPanels) {
             if (!panel.applyChanges()) {
                 return false;
@@ -81,6 +115,7 @@ public class CriticManagerPanel implements DataEntryPanel {
         for (CriticGroupingPanel panel : groupingPanels) {
             panel.discardChanges();
         }
+        cleanup();
     }
 
     public JComponent getPanel() {
@@ -94,5 +129,9 @@ public class CriticManagerPanel implements DataEntryPanel {
         return false;
     }
 
-    
+    private void cleanup() {
+        for (CriticGroupingPanel panel : groupingPanels) {
+            panel.cleanup();
+        }
+    }
 }

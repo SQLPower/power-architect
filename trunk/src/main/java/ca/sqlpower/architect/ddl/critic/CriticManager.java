@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -76,7 +78,7 @@ public class CriticManager extends AbstractSPObject {
      * These are the critics that the critic manager will start with when it is
      * first created.
      */
-    private static final List<CriticAndSettings> STARTING_CRITICS = 
+    private final List<CriticAndSettings> STARTING_CRITICS = 
         Collections.unmodifiableList(Arrays.asList(
                 //generics
                 new PrimaryKeyCritic(),
@@ -139,6 +141,7 @@ public class CriticManager extends AbstractSPObject {
         for (CriticAndSettings criticType : STARTING_CRITICS) {
             registerCritic(criticType);
         }
+        loadDefaults();
     }
 
     /**
@@ -293,5 +296,46 @@ public class CriticManager extends AbstractSPObject {
     @Override
     public ArchitectProject getParent() {
         return (ArchitectProject) super.getParent();
+    }
+
+    /**
+     * Call this method to save the current settings of this manager to be the
+     * default setup of the critic manager on new projects.
+     * <p>
+     * Changes to this method must match {@link #loadDefaults()}.
+     * 
+     * @throws BackingStoreException
+     *             If there is an exception with Java Prefs.
+     */
+    public void saveAsDefaults() throws BackingStoreException {
+        Preferences prefs = Preferences.userNodeForPackage(CriticManager.class);
+        prefs.clear();
+        for (CriticGrouping group : getCriticGroupings()) {
+            prefs.putBoolean(CriticGrouping.class.getSimpleName() + "." + group.getPlatformType() + ".enabled", group.isEnabled());
+            //Currently only one instance of each critic type exists. This may change
+            //in the future in which case we will need a different identifier other than
+            //its class or name.
+            for (CriticAndSettings settings : group.getSettings()) {
+                prefs.put(settings.getClass().getSimpleName() + ".severity", settings.getSeverity().name());
+            }
+        }
+        prefs.flush();
+    }
+    
+    /**
+     * Call this method to load the current settings stored in prefs to be the
+     * default settings of this critic manager.
+     * <p>
+     * Changes to this method must match {@link #saveAsDefaults()}.
+     */
+    public void loadDefaults() {
+        Preferences prefs = Preferences.userNodeForPackage(CriticManager.class);
+        for (CriticGrouping group : getCriticGroupings()) {
+            group.setEnabled(prefs.getBoolean(CriticGrouping.class.getSimpleName() + "." + group.getPlatformType() + ".enabled", false));
+            for (CriticAndSettings settings : group.getSettings()) {
+                String severity = prefs.get(settings.getClass().getSimpleName() + ".severity", Severity.IGNORE.name());
+                settings.setSeverity(Severity.valueOf(severity));
+            }
+        }
     }
 }
