@@ -89,7 +89,7 @@ public class CriticSettingsPanel implements DataEntryPanel {
         severityCombo.setSelectedItem(settings.getSeverity());
         //It would be nice if the layout used a pref:grow style for the first
         //column but it makes it difficult to set the preferred size correctly.
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("225dlu, 5dlu, pref"), panel);
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("fill:pref:grow, 5dlu, pref"), panel);
         builder.append(settings.getName());
         builder.append(severityCombo);
         
