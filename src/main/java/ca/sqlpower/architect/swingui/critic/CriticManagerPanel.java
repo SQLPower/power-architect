@@ -60,6 +60,12 @@ public class CriticManagerPanel implements DataEntryPanel {
      */
     private CriticManager criticManager;
 
+    /**
+     * The preferred size of the critic settings panels. This lets the columns
+     * in the critic settings panel to line up.
+     */
+    private int preferredCriticPanelSize = 0;
+
     public CriticManagerPanel(ArchitectSwingSession session) {
         
         mainPanel = new JPanel();
@@ -67,7 +73,7 @@ public class CriticManagerPanel implements DataEntryPanel {
         
         criticManager = session.getWorkspace().getCriticManager();
         for (CriticGrouping grouping : criticManager.getCriticGroupings()) {
-            CriticGroupingPanel criticGroupingPanel = new CriticGroupingPanel(grouping);
+            CriticGroupingPanel criticGroupingPanel = new CriticGroupingPanel(grouping, this);
             builder.append(criticGroupingPanel.getPanel());
             builder.nextLine();
             groupingPanels.add(criticGroupingPanel);
@@ -147,4 +153,19 @@ public class CriticManagerPanel implements DataEntryPanel {
             panel.cleanup();
         }
     }
+
+    public void setPreferredCriticPanelSize(int preferredCriticPanelSize) {
+        int oldSize = this.preferredCriticPanelSize;
+        this.preferredCriticPanelSize = preferredCriticPanelSize;
+        if (oldSize != preferredCriticPanelSize) {
+            for (CriticGroupingPanel groupPanel : groupingPanels) {
+                groupPanel.revalidateTree();
+            }
+        }
+    }
+
+    public int getPreferredCriticPanelSize() {
+        return preferredCriticPanelSize;
+    }
+
 }

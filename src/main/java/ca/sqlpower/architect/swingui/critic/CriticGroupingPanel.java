@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui.critic;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -124,11 +125,10 @@ public class CriticGroupingPanel implements DataEntryPanel {
      * Tree model to be used with a {@link CriticGrouping}. Can be used with a
      * renderer to display all of the settings editors of a single
      * {@link CriticGrouping}.
-     * TODO Pull a generic tree model off of this tree model for later use.
      */
-    private final TreeModel treeModel;
+    private final CriticSettingsTreeModel treeModel;
     
-    private static class CriticSettingsTreeModel implements TreeModel {
+    private class CriticSettingsTreeModel implements TreeModel {
         
         /**
          * Tree listeners.
@@ -187,19 +187,37 @@ public class CriticGroupingPanel implements DataEntryPanel {
         public void addTreeModelListener(TreeModelListener l) {
             treeListeners.add(l);
         }
+        
+        public void repaintTreeNodes() {
+            for (CriticSettingsPanel settingsPanel : settingsPanels.values()) {
+                for (int i = treeListeners.size() - 1; i >= 0; i--) {
+                    treeListeners.get(i).treeNodesChanged(new TreeModelEvent(
+                            CriticGroupingPanel.this, new Object[]{grouping, settingsPanel.getSettings()}));
+                }
+            }
+        }
     }
 
+    
     /**
      * Displays the settings editor panels in a tree for easier navigation.
      */
     private final TreeCellRenderer treeCellRenderer = new TreeCellRenderer() {
+        
         
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded,
                 boolean leaf, int row, boolean hasFocus) {
             if (value instanceof CriticGrouping) {
                 return new JLabel(((CriticGrouping) value).getPlatformType());
             } else if (value instanceof CriticAndSettings) {
+                int preferredCriticPanelSize = 0;
+                for (CriticSettingsPanel panel : settingsPanels.values()) {
+                    preferredCriticPanelSize = Math.max(preferredCriticPanelSize, panel.getPanel().getPreferredSize().width);
+                }
+                preferredCriticPanelSize = Math.max(parentPanel.getPreferredCriticPanelSize(), preferredCriticPanelSize);
+                parentPanel.setPreferredCriticPanelSize(preferredCriticPanelSize);
                 JComponent thisSettingsPanel = settingsPanels.get((CriticAndSettings) value).getPanel();
+                thisSettingsPanel.setPreferredSize(new Dimension(preferredCriticPanelSize, thisSettingsPanel.getPreferredSize().height));
                 return thisSettingsPanel;
             }
             return null;
@@ -224,9 +242,17 @@ public class CriticGroupingPanel implements DataEntryPanel {
             }
         }
     };
-    
-    public CriticGroupingPanel(CriticGrouping grouping) {
+
+    /**
+     * The parent panel to this grouping panel. One special need for this panel
+     * is the critic settings panels need to line up with the panels in other
+     * grouping panels.
+     */
+    private final CriticManagerPanel parentPanel;
+
+    public CriticGroupingPanel(CriticGrouping grouping, CriticManagerPanel parentPanel) {
         this.grouping = grouping;
+        this.parentPanel = parentPanel;
 
         panel = new JPanel();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
@@ -298,4 +324,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
         }
     }
     
+    public void revalidateTree() {
+        treeModel.repaintTreeNodes();
+    }
 }
