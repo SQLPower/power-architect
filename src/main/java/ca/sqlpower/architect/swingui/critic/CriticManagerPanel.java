@@ -55,12 +55,17 @@ public class CriticManagerPanel implements DataEntryPanel {
      */
     private final List<CriticGroupingPanel> groupingPanels = new ArrayList<CriticGroupingPanel>();
 
+    /**
+     * The critic manager being updated by this panel.
+     */
+    private CriticManager criticManager;
+
     public CriticManagerPanel(ArchitectSwingSession session) {
         
         mainPanel = new JPanel();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref"));
         
-        final CriticManager criticManager = session.getWorkspace().getCriticManager();
+        criticManager = session.getWorkspace().getCriticManager();
         for (CriticGrouping grouping : criticManager.getCriticGroupings()) {
             CriticGroupingPanel criticGroupingPanel = new CriticGroupingPanel(grouping);
             builder.append(criticGroupingPanel.getPanel());
@@ -103,10 +108,18 @@ public class CriticManagerPanel implements DataEntryPanel {
     }
 
     private boolean doApplyChanges() {
-        for (CriticGroupingPanel panel : groupingPanels) {
-            if (!panel.applyChanges()) {
-                return false;
+        try {
+            criticManager.begin("Updating manager by user");
+            for (CriticGroupingPanel panel : groupingPanels) {
+                if (!panel.applyChanges()) {
+                    criticManager.rollback("Could not apply changes.");
+                    return false;
+                }
             }
+            criticManager.commit();
+        } catch (Throwable t) {
+            criticManager.rollback(t.getMessage());
+            throw new RuntimeException(t);
         }
         return true;
     }
