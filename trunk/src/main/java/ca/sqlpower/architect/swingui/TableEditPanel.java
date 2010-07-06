@@ -158,8 +158,8 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
                     table.getPrimaryKeyIndex().setName(pkName.getText());
                 }
                 
-                table.setName(logicalName.getText());
                 table.setPhysicalName(physicalName.getText());
+                table.setName(logicalName.getText());
                 table.setRemarks(remarks.getText());   
                 
                 if (tp != null) {

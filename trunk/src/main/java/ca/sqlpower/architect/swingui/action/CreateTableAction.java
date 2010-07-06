@@ -63,7 +63,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 		SQLTable t = null; 
 		t = new SQLTable();
 		t.initFolders(true);
-		//t.setName("New_Table"); //$NON-NLS-1$
+		t.setName(NEW_TABLE_NAME); //$NON-NLS-1$
 		
 		TablePane tp = new TablePane(t, playpen.getContentPane());
 		TablePlacer tablePlacer = new TablePlacer(playpen, tp);
