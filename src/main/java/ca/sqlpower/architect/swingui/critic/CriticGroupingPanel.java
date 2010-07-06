@@ -19,8 +19,6 @@ import javax.swing.JTree;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
@@ -49,17 +47,6 @@ public class CriticGroupingPanel implements DataEntryPanel {
         
         private final List<CellEditorListener> editorListeners = new ArrayList<CellEditorListener>();
 
-        private SPObject lastSelectedPath;
-
-        public GroupingTreeCellEditor(final JTree tree) {
-            tree.addTreeSelectionListener(new TreeSelectionListener() {
-            
-                public void valueChanged(TreeSelectionEvent e) {
-                    lastSelectedPath = (SPObject) e.getNewLeadSelectionPath().getLastPathComponent();
-                }
-            });
-        }
-        
         public boolean stopCellEditing() {
             return true;
         }
@@ -73,9 +60,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
         }
     
         public boolean isCellEditable(EventObject e) {
-            if (lastSelectedPath != null && 
-                    lastSelectedPath instanceof CriticAndSettings) return true;
-            return false;
+            return true;
         }
     
         public Object getCellEditorValue() {
@@ -96,12 +81,10 @@ public class CriticGroupingPanel implements DataEntryPanel {
             if (value instanceof CriticAndSettings) {
                 return settingsPanels.get((CriticAndSettings) value).getPanel();
             }
-            return null;
+            return tree.getCellRenderer().getTreeCellRendererComponent(tree, value, 
+                    isSelected, expanded, leaf, row, false);
         }
         
-        public void setLastSelectedPath(SPObject lastSelectedPath) {
-            this.lastSelectedPath = lastSelectedPath;
-        }
     }
 
     /**
@@ -274,14 +257,10 @@ public class CriticGroupingPanel implements DataEntryPanel {
         settingsTree.setCellRenderer(treeCellRenderer);
         settingsTree.setRowHeight(0);
         settingsTree.setShowsRootHandles(true);
-        GroupingTreeCellEditor treeCellEditor = new GroupingTreeCellEditor(settingsTree);
+        GroupingTreeCellEditor treeCellEditor = new GroupingTreeCellEditor();
         settingsTree.setCellEditor(treeCellEditor);
         settingsTree.setEditable(true);
         
-        //Makes the first element in the tree editable so the user doesn't
-        //have to click the first time to start editing and then a second time to
-        //make changes.
-        treeCellEditor.setLastSelectedPath(settingsPanels.keySet().iterator().next());
         treeCellEditor.isCellEditable(new EventObject(settingsTree));
         
         settingsTree.setBackground(panel.getBackground());
