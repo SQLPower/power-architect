@@ -524,7 +524,9 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
     
     public Point getPointForModelObject(Object modelObject) {
         Point location = tablePane.getLocation();
-        if (!tablePane.getItems().contains(modelObject) || tablePane.getFont() == null) {
+        if (!tablePane.getItems().contains(modelObject) ||
+                tablePane.getPlayPen() == null || 
+                tablePane.getFont() == null) {
             return location;
         }
         
