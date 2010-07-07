@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui;
 
+import javax.annotation.Nonnull;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
@@ -26,6 +27,8 @@ import javax.swing.table.TableModel;
 
 import ca.sqlpower.sqlobject.SQLCheckConstraint;
 import ca.sqlpower.sqlobject.SQLCheckConstraintContainer;
+import ca.sqlpower.sqlobject.SQLTypePhysicalProperties;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 /**
  * This {@link TableModelListener} listens to changes in a
@@ -43,6 +46,12 @@ public class CheckConstraintTableModelListener implements TableModelListener {
     private final SQLCheckConstraintContainer container;
 
     /**
+     * The {@link UserDefinedSQLType} that has {@link SQLTypePhysicalProperties}
+     * that contain {@link SQLCheckConstraint}s.
+     */
+    private final UserDefinedSQLType udt;
+
+    /**
      * The database platform name that the {@link CheckConstraintTable} uses for
      * its {@link TableModel}.
      */
@@ -56,24 +65,16 @@ public class CheckConstraintTableModelListener implements TableModelListener {
      *            The {@link SQLCheckConstraintContainer} that is modelled by
      *            the listened to {@link CheckConstraintTable}.
      */
-    public CheckConstraintTableModelListener(SQLCheckConstraintContainer container) {
-        this(container, null);
-    }
-
-    /**
-     * Creates a new {@link CheckConstraintTableModelListener}.
-     * 
-     * @param container
-     *            The {@link SQLCheckConstraintContainer} that is modelled by
-     *            the listened to {@link CheckConstraintTable}.
-     * @param platform
-     *            The database platform name.
-     */
-    public CheckConstraintTableModelListener(
-            SQLCheckConstraintContainer container,
-            String platform) {
+    public CheckConstraintTableModelListener(@Nonnull SQLCheckConstraintContainer container) {
         this.container = container;
+        udt = null;
+        platform = null;
+    }
+    
+    public CheckConstraintTableModelListener(@Nonnull UserDefinedSQLType udt, @Nonnull String platform) {
+        this.udt = udt;
         this.platform = platform;
+        container = null;
     }
 
     public void tableChanged(TableModelEvent e) {
@@ -86,19 +87,19 @@ public class CheckConstraintTableModelListener implements TableModelListener {
             constraint = new SQLCheckConstraint(
                     (String) model.getValueAt(row, 0), 
                     (String) model.getValueAt(row, 1));
-            if (platform == null) {
+            if (udt == null) {
                 container.addCheckConstraint(constraint, row);
             } else {
-                container.addCheckConstraint(platform, constraint, row);
+                udt.addCheckConstraint(platform, constraint, row);
             }
             break;
         case TableModelEvent.DELETE:
-            if (platform == null) {
+            if (udt == null) {
                 constraint = container.getCheckConstraints().get(row);
                 container.removeCheckConstraint(constraint);
             } else {
-                constraint = container.getCheckConstraints(platform).get(row);
-                container.removeCheckConstraint(platform, constraint);
+                constraint = udt.getCheckConstraints(platform).get(row);
+                udt.removeCheckConstraint(platform, constraint);
             }
             break;
         case TableModelEvent.UPDATE:
@@ -107,10 +108,10 @@ public class CheckConstraintTableModelListener implements TableModelListener {
             final String newConstraint = (String) model.getValueAt(row, 1);
             final int rowCount = model.getRowCount();
             
-            if (platform == null) {
+            if (udt == null) {
                 constraint = container.getCheckConstraints().get(row);
             } else {
-                constraint = container.getCheckConstraints(platform).get(row);
+                constraint = udt.getCheckConstraints(platform).get(row);
             }
 
             if (column != 1) {
