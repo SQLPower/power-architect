@@ -319,7 +319,7 @@ public interface DDLGenerator {
     public boolean isReservedWord(String word);
 
     /**
-     * get the datatype with scale and percision of the column, example: "decimal(10,5)"
+     * get the datatype with scale and precision of the column, example: "decimal(10,5)"
      * @param col
      * @return
      */
@@ -330,4 +330,19 @@ public interface DDLGenerator {
      * return the database to some previous state.
      */
     public boolean supportsRollback();
+
+    /**
+     * Returns true if this {@link DDLGenerator} supports having check
+     * constraints on columns to restrict the value to satisfy specified
+     * expression.
+     */
+    public boolean supportsCheckConstraint();
+
+    /**
+     * Returns true if this {@link DDLGenerator} supports having enumeration on
+     * columns to restrict the value to satisfy one of the specified list of
+     * enum values.
+     */
+    public boolean supportsEnumeration();
+    
 }

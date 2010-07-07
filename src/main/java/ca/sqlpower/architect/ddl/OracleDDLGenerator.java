@@ -327,7 +327,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		print(toQualifiedName(t.getPhysicalName()));
 		print(" MODIFY ");
 		print(columnDefinition(c,colNameMap));
-		endStatement(DDLStatement.StatementType.MODIFY, c);
+		endStatement(StatementType.MODIFY, c);
 	}
 
     protected String columnNullability(SQLColumn c) {
@@ -354,7 +354,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         print(toQualifiedName(c.getParent()));
         print(" ADD ");
         print(columnDefinition(c,colNameMap));
-        endStatement(DDLStatement.StatementType.CREATE, c);
+        endStatement(StatementType.CREATE, c);
     }
     
     /**
@@ -393,7 +393,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         if(index.getType() != null && index.getType().equals("CTXCAT")) {            
             print("\n INDEXTYPE IS "+index.getType());
         }
-        endStatement(DDLStatement.StatementType.CREATE, index);
+        endStatement(StatementType.CREATE, index);
     }
     
     /**

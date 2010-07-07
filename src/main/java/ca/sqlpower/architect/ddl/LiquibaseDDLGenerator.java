@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -206,9 +207,9 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	public List<DDLStatement> getDdlStatements() {
 		List<DDLStatement> result = super.getDdlStatements();
 		if (!separateChangeSets) {
-			DDLStatement startTag = new DDLStatement((SQLObject)null, DDLStatement.StatementType.XMLTAG, getChangeSetStartTag() + EOL, "", null, null);
+			DDLStatement startTag = new DDLStatement((SQLObject)null, StatementType.XMLTAG, getChangeSetStartTag() + EOL, "", null, null);
 			result.add(0, startTag);
-			DDLStatement endTag = new DDLStatement((SQLObject)null, DDLStatement.StatementType.XMLTAG, "</changeSet>", "", null, null);
+			DDLStatement endTag = new DDLStatement((SQLObject)null, StatementType.XMLTAG, "</changeSet>", "", null, null);
 			result.add(endTag);
 		}
 		return result;
@@ -222,7 +223,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		print(getName(r));
 		println("\"/>");
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, r);
+		endStatement(StatementType.XMLTAG, r);
 	}
 
 	private String getName(SQLObject o) {
@@ -338,7 +339,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		startOfStatement();
         println(sql.toString());
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, r);
+		endStatement(StatementType.XMLTAG, r);
 	}
 
     /**
@@ -452,7 +453,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		println("/>");
 		println("</modifyColumn>");
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, c);
+		endStatement(StatementType.XMLTAG, c);
 	}
 
 	public void addComment(SQLTable t, boolean includeColumns) {
@@ -479,7 +480,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			println("\"/>");
 		}
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, c);
+		endStatement(StatementType.XMLTAG, c);
 	}
 
     public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
@@ -492,7 +493,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
         print(getName(newCol));
         println("\"/>");
 		endOfStatement();
-        endStatement(DDLStatement.StatementType.XMLTAG, newCol);
+        endStatement(StatementType.XMLTAG, newCol);
     }
 
 
@@ -513,7 +514,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			println("\"/>");
 		}
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, c);
+		endStatement(StatementType.XMLTAG, c);
 	}
 
 	/**
@@ -528,7 +529,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		println(columnDefinition("  ", c, false));
 		println("</modifyColumn>");
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, c);
+		endStatement(StatementType.XMLTAG, c);
 	}
 
 	/**
@@ -554,7 +555,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		} catch (Exception e) {
 			logger.error("Error when creating dropSequence", e);
 		}
-        endStatement(DDLStatement.StatementType.XMLTAG, t);
+        endStatement(StatementType.XMLTAG, t);
     }
 
 	/**
@@ -698,7 +699,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
         print(newTable.getPhysicalName());
         println("\"/>");
 		endOfStatement();
-        endStatement(DDLStatement.StatementType.XMLTAG, newTable);
+        endStatement(StatementType.XMLTAG, newTable);
     }
 
 
@@ -739,7 +740,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 			endOfStatement();
 		}
 
-		endStatement(DDLStatement.StatementType.XMLTAG, t);
+		endStatement(StatementType.XMLTAG, t);
 	}
 
     /**
@@ -780,7 +781,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	protected void writePrimaryKey(SQLTable t) throws SQLObjectException {
 	    writePKConstraintClause(t.getPrimaryKeyIndex());
-	    endStatement(DDLStatement.StatementType.XMLTAG, t);
+	    endStatement(StatementType.XMLTAG, t);
 	}
 
 	/**
@@ -831,7 +832,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	    println("<dropPrimaryKey " + getTableQualifier(t)
 		  + " constraintName=\"" + getName(pk) + "\"/>");
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, t);
+		endStatement(StatementType.XMLTAG, t);
 	}
 
 	public void addPrimaryKey(SQLTable t) throws SQLObjectException {
@@ -855,7 +856,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		startOfStatement();
 		println(sql.toString());
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG,t);
+		endStatement(StatementType.XMLTAG,t);
 	}
 
 	@Override
@@ -873,7 +874,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 		print(getName(index.getParent()));
 		println("\"/>");
 		endOfStatement();
-		endStatement(DDLStatement.StatementType.XMLTAG, index);
+		endStatement(StatementType.XMLTAG, index);
 	}
 
     /**
@@ -901,7 +902,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
         }
         println("</createIndex>");
 		endOfStatement();
-        endStatement(DDLStatement.StatementType.XMLTAG, index);
+        endStatement(StatementType.XMLTAG, index);
     }
 
     private String getTableQualifier(SQLObject o) {
@@ -931,5 +932,10 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
             result.append("\"");
         }
         return result.toString();
+    }
+    
+    @Override
+    public boolean supportsCheckConstraint() {
+        return false;
     }
 }

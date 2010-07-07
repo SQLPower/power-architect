@@ -296,7 +296,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print(c.isDefinitelyNullable() ? "DROP" : "SET");
         print(" NOT NULL");
 
-        endStatement(DDLStatement.StatementType.MODIFY, c);
+        endStatement(StatementType.MODIFY, c);
 
     }
 
@@ -369,7 +369,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         }
 
         print(" )");
-        endStatement(DDLStatement.StatementType.CREATE, index);
+        endStatement(StatementType.CREATE, index);
         if(index.isClustered()) {
             addCluster(index, toIdentifier(index.getName()), index.getParent().getName());
         }
@@ -381,7 +381,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     private void addCluster(SQLIndex index, String indexName, String table) {
         println("");
         print("CLUSTER " + indexName + " ON " + table);
-        endStatement(DDLStatement.StatementType.CREATE, index);
+        endStatement(StatementType.CREATE, index);
     }
 
     @Override
@@ -437,7 +437,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		print(toQualifiedName(oldIndex));
 		print(" RENAME TO ");
 		println(toQualifiedName(newIndex.getName()));
-		endStatement(DDLStatement.StatementType.ALTER, oldIndex);
+		endStatement(StatementType.ALTER, oldIndex);
 	}
 
 	/**
@@ -452,6 +452,23 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		print("DROP INDEX ");
 		print(toQualifiedName(index));
 		println(" CASCADE");
-		endStatement(DDLStatement.StatementType.DROP, index);
+		endStatement(StatementType.DROP, index);
+	}
+
+    /**
+     * XXX Although PostgreSQL supports enumeration, a separate type must be
+     * declared to define this enumeration before using it in a column. Also, if
+     * we used PostgreSQL's enumeration feature, we would need to ensure the
+     * type it is defined under has a unique name, and that it is deleted once
+     * the column is dropped.
+     * 
+     * Instead, we will allow the {@link DDLGenerator} to define the enumeration
+     * as a check constraint instead, which is perfectly fine, and simpler to
+     * implement. There is no need to worry about this check constraint being
+     * unique or any cleanup after the column is dropped.
+     */
+	@Override
+	public boolean supportsEnumeration() {
+	    return false;
 	}
 }

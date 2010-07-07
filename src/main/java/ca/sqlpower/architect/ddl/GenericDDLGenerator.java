@@ -35,23 +35,32 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 import ca.sqlpower.object.SPObjectUtils;
+import ca.sqlpower.object.SPResolverRegistry;
+import ca.sqlpower.object.SPVariableHelper;
+import ca.sqlpower.object.SPVariableResolver;
+import ca.sqlpower.sqlobject.SQLCheckConstraint;
+import ca.sqlpower.sqlobject.SQLCheckConstraintVariableResolver;
+import ca.sqlpower.sqlobject.SQLCheckConstraintVariableResolver.SQLCheckConstraintVariable;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.sqlobject.SQLEnumeration;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLType;
-import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
-import ca.sqlpower.sqlobject.UserDefinedSQLType;
-import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLType;
+import ca.sqlpower.sqlobject.SQLTypePhysicalProperties.SQLTypeConstraint;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 public class GenericDDLGenerator implements DDLGenerator {
 
@@ -248,7 +257,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @param type the type of statement
 	 * @param sqlObject the object to which the statement pertains
 	 */
-	public final void endStatement(DDLStatement.StatementType type, SQLObject sqlObject) {
+	public final void endStatement(StatementType type, SQLObject sqlObject) {
 		if (logger.isInfoEnabled()) {
 			logger.info("endStatement: " + ddl.toString());
 		}
@@ -302,7 +311,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print( toQualifiedName(r.getFkTable()) );
 		print(" DROP CONSTRAINT ");
 		print(createPhysicalName(topLevelNames, r));
-		endStatement(DDLStatement.StatementType.DROP, r);
+		endStatement(StatementType.DROP, r);
 	}
 
     /**
@@ -430,7 +439,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
         print(sql.toString());
 
-		endStatement(DDLStatement.StatementType.CREATE, r);
+		endStatement(StatementType.CREATE, r);
 
 	}
 
@@ -554,7 +563,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 */
     public void renameTable(SQLTable oldTable, SQLTable newTable) {
         println("ALTER TABLE " + oldTable.getPhysicalName() + " RENAME TO " + newTable.getPhysicalName());
-        endStatement(DDLStatement.StatementType.ALTER, newTable);
+        endStatement(StatementType.ALTER, newTable);
     }
 
     public void addComment(SQLObject o) {
@@ -579,7 +588,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         print(" IS '");
         print(c.getRemarks().replaceAll("'", "''"));
         print("'");
-        endStatement(DDLStatement.StatementType.COMMENT, c);
+        endStatement(StatementType.COMMENT, c);
     }
 
     /**
@@ -601,7 +610,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print(" IS '");
 			print(t.getRemarks().replaceAll("'", "''"));
 			print("'");
-			endStatement(DDLStatement.StatementType.COMMENT, t);
+			endStatement(StatementType.COMMENT, t);
 		}
 
 		if (includeColumns) {
@@ -635,7 +644,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(createPhysicalName(colNameMap, oldCol));
         print(" TO ");
 		print(createPhysicalName(colNameMap, newCol));
-		endStatement(DDLStatement.StatementType.ALTER, oldCol);
+		endStatement(StatementType.ALTER, oldCol);
     }
 
 	public void addColumn(SQLColumn c) {
@@ -644,7 +653,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(toQualifiedName(c.getParent()));
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
-		endStatement(DDLStatement.StatementType.CREATE, c);
+		endStatement(StatementType.CREATE, c);
 
 	}
 
@@ -654,7 +663,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(toQualifiedName(c.getParent()));
 		print(" DROP COLUMN ");
 		print(createPhysicalName(colNameMap,c));
-		endStatement(DDLStatement.StatementType.DROP, c);
+		endStatement(StatementType.DROP, c);
 
 	}
 
@@ -665,13 +674,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(toQualifiedName(t));
 		print(" ALTER COLUMN ");
 		print(columnDefinition(c,colNameMap));
-		endStatement(DDLStatement.StatementType.MODIFY, c);
+		endStatement(StatementType.MODIFY, c);
         addComment(c);
 	}
-
+	
 	public void dropTable(SQLTable t) {
         print(makeDropTableSQL(t.getName()));
-        endStatement(DDLStatement.StatementType.DROP, t);
+        endStatement(StatementType.DROP, t);
     }
 
 	/**
@@ -697,7 +706,8 @@ public class GenericDDLGenerator implements DDLGenerator {
         def.append(" ");
         def.append(columnType(c));
 
-        String defaultValue = c.getUserDefinedSQLType().getDefaultValue(getPlatformName());
+        UserDefinedSQLType type = c.getUserDefinedSQLType();
+        String defaultValue = type.getDefaultValue(getPlatformName());
         if ( defaultValue != null && !defaultValue.equals("")) {
             def.append(" ");
             def.append("DEFAULT ");
@@ -705,6 +715,33 @@ public class GenericDDLGenerator implements DDLGenerator {
         }
 
         def.append(columnNullability(c));
+        
+        List<SQLCheckConstraint> checkConstraints;
+        List<SQLEnumeration> enumerations;
+        SQLTypeConstraint constraintType = type.getConstraintType(getPlatformName());
+        if (constraintType == null) {
+            constraintType = type.getDefaultPhysicalProperties().getConstraintType();
+            checkConstraints = type.getDefaultPhysicalProperties().getChildrenWithoutPopulating(SQLCheckConstraint.class);
+            enumerations = type.getDefaultPhysicalProperties().getChildrenWithoutPopulating(SQLEnumeration.class);
+        } else {
+            checkConstraints = type.getCheckConstraints(getPlatformName());
+            enumerations = type.getEnumerations(getPlatformName());
+        }
+        
+        // Add check constraint.
+        if (constraintType == SQLTypeConstraint.CHECK) {
+            String columnCheckConstraint = columnCheckConstraint(c, checkConstraints);
+            if (columnCheckConstraint != null && columnCheckConstraint.length() > 0) {
+                def.append(" " + columnCheckConstraint);
+            }
+            
+        // Add enumeration.
+        } else if (constraintType == SQLTypeConstraint.ENUM) {
+            String columnEnumeration = columnEnumeration(c, enumerations);
+            if (columnEnumeration != null && columnEnumeration.length() > 0) {
+                def.append(" " + columnEnumeration);
+            }
+        }
 
         logger.debug("column definition "+ def.toString());
         return def.toString();
@@ -723,11 +760,108 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
     }
 
+    /**
+     * Creates a SQL DDL snippet for defining column check constraint. This
+     * method follows the SQL-92 standard for check constraints. However, some
+     * platforms may use check constraints differently. Thus, extending classes
+     * should override this method if it does not follow the SQL-92 check
+     * constraint standard.
+     * 
+     * @param c
+     *            The {@link SQLColumn} the check constraint applies to.
+     * @param checkConstraint
+     *            The {@link String} of check constraints that may use variables
+     *            defined by the {@link SQLCheckConstraintVariable} enum and can be
+     *            resolved by the {@link SQLCheckConstraintVariableResolver}.
+     * @return The generated SQL DDL snippet for defining column check
+     *         constraints.
+     */
+    protected String columnCheckConstraint(SQLColumn c, List<SQLCheckConstraint> checkConstraints) {
+        if (!supportsCheckConstraint() || 
+                c == null || 
+                checkConstraints == null || 
+                checkConstraints.isEmpty()) {
+            return "";
+        }
+        
+        SPVariableResolver resolver = c.getVariableResolver();
+        SPVariableHelper helper = new SPVariableHelper(c);
+        SPResolverRegistry.register(c, resolver);
+        
+        StringBuilder sb = new StringBuilder();
+        for (SQLCheckConstraint constraint : checkConstraints) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(String.format("CONSTRAINT %s CHECK (%s)", 
+                    constraint.getName(),
+                    helper.substitute(constraint.getConstraint())));
+        }
+        
+        SPResolverRegistry.deregister(c, resolver);
+        
+        return sb.toString();
+    }
+
+    /**
+     * Creates a SQL DDL snippet for defining column enumerations. SQL-92 does
+     * not define enumerations. Since this is mostly platform specifically, all
+     * extending {@link DDLGenerator}s that do support enumerations should
+     * override this method. Some platforms do not support enumerations, so they
+     * must be implemented using check constraints instead.
+     * 
+     * @param c
+     *            The {@link SQLColumn} the enumeration applies to.
+     * @param enumeration
+     *            The {@link List} of enumerated values.
+     * @return The generated SQL DDL snippet for defining column enumerations.
+     */
+    protected String columnEnumeration(SQLColumn c, List<SQLEnumeration> enumeration) {
+        if (supportsCheckConstraint()) {
+            return columnEnumToCheckConstraint(c, enumeration);
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * Creates a SQL DDL snippet for defining column enumerations on a platform
+     * that does not support enumerations, by defining them as check constraints
+     * instead. Platforms that do not support this syntax style: CHECK (COLUMN =
+     * 'ENUM1' OR COLUMN = 'ENUM2') should have their respective
+     * {@link DDLGenerator} override this method. If this method is overridden,
+     * the {@link #columnCheckConstraint(SQLColumn, String)} method likely needs
+     * to be overridden as well.
+     * 
+     * @param c
+     *            The {@link SQLColumn} the enumeration applies to.
+     * @param enumeration
+     *            The {@link String} array of enumerated types
+     * @return The generated SQL DDL snippet for using check constraints to
+     *         define column enumerations.
+     */
+    protected String columnEnumToCheckConstraint(SQLColumn c, List<SQLEnumeration> enumeration) {
+        if (c == null || enumeration == null || enumeration.isEmpty()) {
+            return "";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (SQLEnumeration e : enumeration) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append("'" + e.getName() + "'");
+        }
+        
+        return "CHECK (" + c.getPhysicalName() + " IN (" + 
+                sb.toString() + "))";
+    }
+
     protected String getPlatformName() {
         return SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM;
     }
     
-	/** Columnn type */
+	/** Column type */
     public String columnType(SQLColumn c) {
         StringBuffer def = new StringBuffer();
         UserDefinedSQLType columnType = c.getUserDefinedSQLType();
@@ -736,17 +870,26 @@ public class GenericDDLGenerator implements DDLGenerator {
         } else {
             def.append(columnType.getPhysicalName(getPlatformName()));
         }
-		if (columnType.getPrecisionType(getPlatformName()) != PropertyType.NOT_APPLICABLE) {
+        
+        int precision = columnType.getPrecision(getPlatformName());
+        int scale = columnType.getScale(getPlatformName());
+        PropertyType precisionType = columnType.getPrecisionType(getPlatformName());
+        PropertyType scaleType = columnType.getScaleType(getPlatformName());
+        
+		if (precisionType != PropertyType.NOT_APPLICABLE && 
+		        scaleType != PropertyType.NOT_APPLICABLE && 
+		        precision > 0 && scale > 0) {
 			def.append("("+columnType.getPrecision(getPlatformName()));
-			if (columnType.getScaleType(getPlatformName()) != PropertyType.NOT_APPLICABLE) {
-				def.append(","+columnType.getScale(getPlatformName()));
-			}
-			def.append(")");
+			def.append(","+columnType.getScale(getPlatformName())+")");
+		} else if (precisionType != PropertyType.NOT_APPLICABLE && precision > 0) {
+		    def.append("("+columnType.getPrecision(getPlatformName())+")");
+		} else if (scaleType != PropertyType.NOT_APPLICABLE && scale > 0) {
+		    def.append("("+columnType.getScale(getPlatformName())+")");
 		}
         return def.toString();
     }
 
-    /** Columnn type */
+    /** Column type */
     public String getColumnDataTypeName(SQLColumn c) {
         StringBuffer def = new StringBuffer();
         GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
@@ -804,7 +947,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 
 		print("\n)");
-		endStatement(DDLStatement.StatementType.CREATE, t);
+		endStatement(StatementType.CREATE, t);
         addComment(t, true);
 	}
 
@@ -860,7 +1003,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	    writePKConstraintClause(t.getPrimaryKeyIndex());
 
-	    endStatement(DDLStatement.StatementType.ADD_PK, t);
+	    endStatement(StatementType.ADD_PK, t);
 	}
 
     /**
@@ -1140,7 +1283,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    SQLIndex pk = t.getPrimaryKeyIndex();
 	    print("\nALTER TABLE " + toQualifiedName(t.getName())
 	            + " DROP CONSTRAINT " + pk.getPhysicalName());
-		endStatement(DDLStatement.StatementType.DROP, t);
+		endStatement(StatementType.DROP, t);
 	}
 
 	public void addPrimaryKey(SQLTable t) throws SQLObjectException {
@@ -1164,7 +1307,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		if (!first)
 		{
 			print(sqlStatement.toString());
-			endStatement(DDLStatement.StatementType.CREATE,t);
+			endStatement(StatementType.CREATE,t);
 		}
 	}
 
@@ -1179,7 +1322,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void dropIndex(SQLIndex index) throws SQLObjectException {
 		print("DROP INDEX ");
 		println(toQualifiedName(index));
-		endStatement(DDLStatement.StatementType.DROP, index);
+		endStatement(StatementType.DROP, index);
 	}
 
 	/**
@@ -1194,7 +1337,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(toQualifiedName(oldIndex));
 		print(" RENAME TO ");
 		println(toQualifiedName(newIndex.getName()));
-		endStatement(DDLStatement.StatementType.ALTER, oldIndex);
+		endStatement(StatementType.ALTER, oldIndex);
 	}
 
     /**
@@ -1234,7 +1377,7 @@ public class GenericDDLGenerator implements DDLGenerator {
             first = false;
         }
         print(" )");
-        endStatement(DDLStatement.StatementType.CREATE, index);
+        endStatement(StatementType.CREATE, index);
     }
 
     /**
@@ -1244,6 +1387,29 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     public boolean supportsRollback() {
         return true;
+    }
+
+    /**
+     * The generic DDL generator supports check constraint on columns. Specific
+     * platforms that do not support it should override this method.
+     * 
+     * @return true if this {@link DDLGenerator} supports column check
+     *         constraints.
+     */
+    public boolean supportsCheckConstraint() {
+        return true;
+    }
+
+    /**
+     * The generic DDL generator does not support enumeration on columns.
+     * Specific platforms that do support it should override this method.
+     * Platforms that do not support enumerations but support check constraints
+     * can simply emulate them with its check constraint equivalent instead.
+     * 
+     * @return true if this {@link DDLGenerator} supports column enumeration.
+     */
+    public boolean supportsEnumeration() {
+        return false;
     }
 
 }

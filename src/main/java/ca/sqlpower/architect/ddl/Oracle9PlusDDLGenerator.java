@@ -49,7 +49,7 @@ public class Oracle9PlusDDLGenerator extends OracleDDLGenerator {
     
     @Override
     protected void createTypeMap() throws SQLException {
-        typeMap = new HashMap();
+        typeMap = new HashMap<Integer, GenericTypeDescriptor>();
 
         typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("NUMBER", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
         typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("RAW", Types.BINARY, 2000, null, null, DatabaseMetaData.columnNullable, true, false));
