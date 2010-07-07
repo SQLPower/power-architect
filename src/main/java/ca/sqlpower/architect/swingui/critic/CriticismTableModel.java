@@ -93,6 +93,9 @@ public class CriticismTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
+        if (columnIndex == -1 || rowIndex == -1) {
+            return null;
+        } 
         final Criticism rowVal = criticizer.getCriticisms().get(rowIndex);
         if (columnIndex == 0) {
             return rowVal.getCritic().getSeverity();
