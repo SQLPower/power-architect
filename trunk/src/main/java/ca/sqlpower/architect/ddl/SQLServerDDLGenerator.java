@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -398,7 +399,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
 			print("\n-- Comment for table [" + t.getPhysicalName() + "]: ");
 			print(t.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
-			endStatement(DDLStatement.StatementType.COMMENT, t);
+			endStatement(StatementType.COMMENT, t);
 
 			if (includeColumns) {
 				addColumnComments(t);
@@ -414,7 +415,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         print(c.getName());
         print("]: ");
         print(c.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
-        endStatement(DDLStatement.StatementType.COMMENT, c);
+        endStatement(StatementType.COMMENT, c);
     }
 
     @Override
@@ -440,7 +441,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         print(toQualifiedName(c.getParent()));
         print(" ADD ");
         print(columnDefinition(c,new HashMap<String, SQLObject>()));
-        endStatement(DDLStatement.StatementType.CREATE, c);
+        endStatement(StatementType.CREATE, c);
     }
 
     @Override
@@ -485,7 +486,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
             first = false;
         }
         print(" )\n");
-        endStatement(DDLStatement.StatementType.CREATE, index);
+        endStatement(StatementType.CREATE, index);
     }
 
     @Override
@@ -516,7 +517,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
             SQLIndex pk = t.getPrimaryKeyIndex();
             print("\nALTER TABLE " + toQualifiedName(t.getName())
                     + " DROP " + pk.getPhysicalName());
-            endStatement(DDLStatement.StatementType.DROP, t);
+            endStatement(StatementType.DROP, t);
         } catch (SQLObjectException e) {
             throw new SQLObjectRuntimeException(e);
         }
@@ -540,7 +541,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		print("', @newname='");
 		print(createPhysicalName(empty, newCol));
 		print("', @objtype='COLUMN'");
-		endStatement(DDLStatement.StatementType.ALTER, newCol);
+		endStatement(StatementType.ALTER, newCol);
 	}
 
 	@Override
@@ -550,7 +551,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		print("', @newname='");
 		print(toQualifiedName(newIndex));
 		print("', @objtype='INDEX'");
-		endStatement(DDLStatement.StatementType.ALTER, newIndex);
+		endStatement(StatementType.ALTER, newIndex);
 	}
 
 	@Override
@@ -561,7 +562,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		print("', @newname='");
 		print(createPhysicalName(empty, newFK));
 		println("', @objtype='OBJECT'");
-		endStatement(DDLStatement.StatementType.ALTER, newFK);
+		endStatement(StatementType.ALTER, newFK);
 	}
 
 	@Override
@@ -572,7 +573,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		print("', @newname='");
 		print(createPhysicalName(empty, newTable));
 		println("'");
-		endStatement(DDLStatement.StatementType.ALTER, newTable);
+		endStatement(StatementType.ALTER, newTable);
 	}
 
 

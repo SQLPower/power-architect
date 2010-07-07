@@ -24,20 +24,24 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLEnumeration;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTypePhysicalProperties.SQLTypeConstraint;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -374,7 +378,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 				+ createPhysicalName(colNameMap, oldTable)
 				+ " TO "
 				+ createPhysicalName(colNameMap, newTable));
-        endStatement(DDLStatement.StatementType.ALTER, newTable);
+        endStatement(StatementType.ALTER, newTable);
     }
 
 	@Override
@@ -395,7 +399,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 		print(createPhysicalName(cols, newCol));
 		print(" ");
 		print(columnDefinition(newCol, cols));
-		endStatement(DDLStatement.StatementType.ALTER, newCol);
+		endStatement(StatementType.ALTER, newCol);
 	}
 
 	@Override
@@ -437,7 +441,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     @Override
     public void dropPrimaryKey(SQLTable t) {
         print("\nALTER TABLE " + toQualifiedName(t.getName()) + " DROP PRIMARY KEY");
-        endStatement(DDLStatement.StatementType.DROP, t);
+        endStatement(StatementType.DROP, t);
     }
     
     public void dropRelationship(SQLRelationship r) {
@@ -447,19 +451,53 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print(toQualifiedName(r.getFkTable()));
         print(" DROP FOREIGN KEY ");
         print(r.getName());
-        endStatement(DDLStatement.StatementType.DROP, r);
+        endStatement(StatementType.DROP, r);
     }
 
     /**
      * Adds support for the MySQL auto_increment feature.
+     * Enumerations are considered as a type itself.
      */
     @Override
     public String columnType(SQLColumn c) {
-        String type = super.columnType(c);
+        String type;
+        if (c.getConstraintType() == SQLTypeConstraint.ENUM) {
+            type = columnEnumeration(c, c.getEnumerations());
+        } else {
+            type = super.columnType(c);
+        }
+        
         if (c.isAutoIncrement()) {
             type += " AUTO_INCREMENT";
         }
         return type;
+    }
+    
+    @Override
+    protected String columnEnumeration(SQLColumn c, List<SQLEnumeration> enumeration) {
+        if (enumeration == null || enumeration.isEmpty()) {
+            return "";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (SQLEnumeration e : enumeration) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(e.getName());
+        }
+        
+        return "ENUM(" + sb.toString() + ")";
+    }
+    
+    @Override
+    public boolean supportsCheckConstraint() {
+        return false;
+    }
+    
+    @Override
+    public boolean supportsEnumeration() {
+        return true;
     }
 
     @Override
@@ -500,7 +538,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             first = false;
         }
         print(" )");
-        endStatement(DDLStatement.StatementType.CREATE, index);
+        endStatement(StatementType.CREATE, index);
     }
 
     @Override
@@ -558,7 +596,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         	print(" COMMENT '");     		
         	print(t.getRemarks().replaceAll("'", "''"));
         	print("'");
-        	endStatement(DDLStatement.StatementType.ALTER, t);
+        	endStatement(StatementType.ALTER, t);
 	    }
         if (includeColumns) {
             addColumnComments(t);
@@ -577,7 +615,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 	        print(" COMMENT '");
             print(c.getRemarks().replaceAll("'", "''"));
             print("'");
-            endStatement(DDLStatement.StatementType.ALTER, c);
+            endStatement(StatementType.ALTER, c);
 	    }
 	}
 
@@ -608,7 +646,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             throw new SQLObjectRuntimeException(ex);
         }
         
-        endStatement(DDLStatement.StatementType.CREATE, c);
+        endStatement(StatementType.CREATE, c);
     }
     
     @Override
@@ -619,7 +657,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print(toQualifiedName(t));
         print(" MODIFY COLUMN ");
         print(columnDefinition(c, colNameMap));
-        endStatement(DDLStatement.StatementType.MODIFY, c);
+        endStatement(StatementType.MODIFY, c);
     }
     
     @Override

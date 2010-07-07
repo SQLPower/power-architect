@@ -24,14 +24,15 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
-import java.util.Map;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -176,7 +177,7 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
             print("\n-- Comment for table [" + t.getPhysicalName() + "]: ");
             print(t.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
-            endStatement(DDLStatement.StatementType.COMMENT, t);
+            endStatement(StatementType.COMMENT, t);
 
             if (includeColumns) {
                 addColumnComments(t);
@@ -200,7 +201,7 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         print(c.getName());
         print("]: ");
         print(c.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
-        endStatement(DDLStatement.StatementType.COMMENT, c);
+        endStatement(StatementType.COMMENT, c);
     }
 
 	/**
@@ -218,7 +219,7 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
 		print(createPhysicalName(colNameMap, oldCol));
         print(" RENAME TO ");
 		print(createPhysicalName(colNameMap, newCol));
-		endStatement(DDLStatement.StatementType.ALTER, newCol);
+		endStatement(StatementType.ALTER, newCol);
     }
 
 }

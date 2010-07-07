@@ -24,14 +24,15 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
-import ca.sqlpower.sqlobject.SQLType;
-import java.util.Map;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -41,8 +42,6 @@ public class H2DDLGenerator extends GenericDDLGenerator {
     
     public static final String GENERATOR_VERSION = "$Revision: 2933 $";
     
-    private final String REGEX_CRLF = "(\r\n|\n\r|\r|\n)";
-
     public H2DDLGenerator() throws SQLException {
         super();
     }
@@ -173,7 +172,7 @@ public class H2DDLGenerator extends GenericDDLGenerator {
 		print(createPhysicalName(colNameMap, oldCol));
         print(" RENAME TO ");
 		print(createPhysicalName(colNameMap, newCol));
-		endStatement(DDLStatement.StatementType.ALTER, newCol);
+		endStatement(StatementType.ALTER, newCol);
     }
 
 

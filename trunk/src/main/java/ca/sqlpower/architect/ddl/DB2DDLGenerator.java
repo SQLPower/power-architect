@@ -18,20 +18,21 @@
  */
 package ca.sqlpower.architect.ddl;
 
-import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLIndex;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.Map;
 
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
-import ca.sqlpower.sqlobject.SQLTable;
-import java.util.Map;
 
 // TODO: override to_identifier routine to ensure identifier names are legal
 // and unique for DB2.  See the Oracle, SQL Server, and Postgres DDL generators
@@ -138,7 +139,7 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 		print(createPhysicalName(colNameMap, oldCol));
         print(" TO ");
 		print(createPhysicalName(colNameMap, oldCol));
-		endStatement(DDLStatement.StatementType.ALTER, oldCol);
+		endStatement(StatementType.ALTER, oldCol);
     }
 
 	@Override
@@ -146,7 +147,7 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>(0);
         println("RENAME TABLE " + createPhysicalName(colNameMap, oldTable)
 		  + " TO " + createPhysicalName(colNameMap, newTable));
-        endStatement(DDLStatement.StatementType.ALTER, newTable);
+        endStatement(StatementType.ALTER, newTable);
     }
 
 	@Override
@@ -155,11 +156,25 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 		print(toQualifiedName(oldIndex));
 		print(" TO ");
 		println(toQualifiedName(newIndex.getName()));
-		endStatement(DDLStatement.StatementType.ALTER, oldIndex);
+		endStatement(StatementType.ALTER, oldIndex);
 	}
 
 	@Override
 	protected String getPlatformName() {
 	    return "DB2";
+	}
+	
+	@Override
+	public boolean supportsCheckConstraint() {
+	    // XXX DB2 has not been tested with check constraints yet.
+	    // Turning feature off for now.
+	    return false;
+	}
+	
+	@Override
+	public boolean supportsEnumeration() {
+	    // XXX DB2 has not been tested with enumerations yet.
+	    // Turning feature off for now.
+	    return false;
 	}
 }
