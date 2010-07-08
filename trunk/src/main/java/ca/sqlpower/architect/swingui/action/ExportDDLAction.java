@@ -182,6 +182,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                     
                     warningDialog.pack();
                     TableUtils.fitColumnWidths(errorTable, 10);
+                    errorTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
                     warningDialog.setLocationRelativeTo(frame);
                     warningDialog.setVisible(true);
                 }
