@@ -101,6 +101,7 @@ public class CriticGrouping extends AbstractSPObject {
         boolean removed = settings.remove(child);
         if (removed) {
             fireChildRemoved(CriticAndSettings.class, child, index);
+            child.setParent(null);
         }
         return removed;
     }
