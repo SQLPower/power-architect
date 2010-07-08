@@ -28,6 +28,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 import ca.sqlpower.architect.ddl.critic.CriticGrouping;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
@@ -80,7 +81,9 @@ public class CriticManagerPanel implements DataEntryPanel {
         }
         DefaultFormBuilder outerBuilder = new DefaultFormBuilder(
                 new FormLayout("pref:grow", "min(pref;400dlu):grow"), mainPanel);
-        outerBuilder.append(new JScrollPane(builder.getPanel()));
+        JScrollPane criticsPane = new JScrollPane(builder.getPanel());
+        criticsPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        outerBuilder.append(criticsPane);
         outerBuilder.nextLine();
         ButtonBarBuilder2 buttonBar = new ButtonBarBuilder2();
         buttonBar.addButton(new AbstractAction("Restore Defaults") {
