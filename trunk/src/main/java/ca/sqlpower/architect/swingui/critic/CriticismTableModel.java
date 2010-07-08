@@ -30,8 +30,34 @@ import ca.sqlpower.architect.ddl.critic.CriticismEvent;
 import ca.sqlpower.architect.ddl.critic.CriticismListener;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 
+/**
+ * This table model displays all of the critics in the bucket passed to its
+ * constructor.
+ */
 public class CriticismTableModel extends AbstractTableModel {
+    
+    /**
+     * A simple method that converts classes to a nicer human-readable
+     * name. This could be refactored to a utility class in the future.
+     */
+    private static String convertClassToString(Class<?> c) {
+        if (SQLTable.class.equals(c)) {
+            return "Table";
+        } else if (SQLColumn.class.equals(c)) {
+            return "Column";
+        } else if (SQLRelationship.class.equals(c)) {
+            return "Relationship";
+        } else if (SQLIndex.class.equals(c)) {
+            return "Index";
+        } else {
+            return c.getSimpleName();
+        }
+    }
     
     private final CriticismBucket criticizer;
     
@@ -46,16 +72,14 @@ public class CriticismTableModel extends AbstractTableModel {
         }
     };
 
-    private final ArchitectSwingSession session;
 
     public CriticismTableModel(ArchitectSwingSession session, CriticismBucket criticizer) {
-        this.session = session;
         this.criticizer = criticizer;
         criticizer.addCriticismListener(criticListener);
     }
     
     public int getColumnCount() {
-        return 5;
+        return 6;
     }
     
     @Override
@@ -63,8 +87,10 @@ public class CriticismTableModel extends AbstractTableModel {
         if (column == 1) {
             return "Object";
         } else if (column == 2) {
+            return "Object Type";
+        } else if (column == 3) {
             return "Critic Type";
-        } else if (column == 3) {    
+        } else if (column == 4) {    
             return "Description";
         } else {
             return null;
@@ -82,6 +108,8 @@ public class CriticismTableModel extends AbstractTableModel {
         } else if (columnIndex == 3) {
             return String.class;
         } else if (columnIndex == 4) {
+            return String.class;
+        } else if (columnIndex == 5) {
             return List.class;
         } else {
             return null;
@@ -102,13 +130,15 @@ public class CriticismTableModel extends AbstractTableModel {
         } else if (columnIndex == 1) {
             return rowVal.getSubject();
         } else if (columnIndex == 2) {
+            return convertClassToString(rowVal.getSubject().getClass());
+        } else if (columnIndex == 3) {
             //All critics in Architect are currently CriticAndSettings objects
             //In the future we may want to look up the settings in the critic
             //manager but since we already have the object that would be overkill.
             return ((CriticAndSettings) rowVal.getCritic()).getPlatformType();
-        } else if (columnIndex == 3) {
-            return rowVal.getDescription();
         } else if (columnIndex == 4) {
+            return rowVal.getDescription();
+        } else if (columnIndex == 5) {
             return rowVal.getFixes();
         } else {
             throw new IllegalArgumentException(
