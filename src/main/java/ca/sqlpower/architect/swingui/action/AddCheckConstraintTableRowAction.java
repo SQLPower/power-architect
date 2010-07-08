@@ -32,9 +32,8 @@ import ca.sqlpower.sqlobject.SQLCheckConstraint;
 /**
  * This {@link Action} adds a new row to a {@link CheckConstraintTable} after
  * prompting the user to enter in a {@link SQLCheckConstraint} name and
- * constraint condition, and selects the row in the table. If either the name or
- * constraint condition exists, no rows are added and the row with the duplicate
- * entry is selected.
+ * constraint condition, and selects the row in the table. If name already
+ * exists, no rows are added and the duplicate row is selected.
  */
 public class AddCheckConstraintTableRowAction extends AbstractAction {
 
