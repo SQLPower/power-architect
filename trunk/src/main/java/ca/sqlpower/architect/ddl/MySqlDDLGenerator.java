@@ -42,6 +42,7 @@ import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLTypePhysicalProperties.SQLTypeConstraint;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -453,6 +454,28 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         print(r.getName());
         endStatement(StatementType.DROP, r);
     }
+    
+    @Override
+    protected String columnDefinition(SQLColumn c, Map<String, SQLObject> colNameMap) {
+        StringBuffer def = new StringBuffer();
+
+        // Column name
+        def.append(createPhysicalName(colNameMap, c));
+
+        def.append(" ");
+        def.append(columnType(c));
+
+        UserDefinedSQLType type = c.getUserDefinedSQLType();
+        String defaultValue = type.getDefaultValue(getPlatformName());
+        if ( defaultValue != null && !defaultValue.equals("")) {
+            def.append(" ");
+            def.append("DEFAULT ");
+            def.append(defaultValue);
+        }
+
+        def.append(columnNullability(c));
+        return def.toString();
+    }
 
     /**
      * Adds support for the MySQL auto_increment feature.
@@ -461,8 +484,9 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     @Override
     public String columnType(SQLColumn c) {
         String type;
-        if (c.getConstraintType() == SQLTypeConstraint.ENUM) {
-            type = columnEnumeration(c, c.getEnumerations());
+        UserDefinedSQLType udt = c.getUserDefinedSQLType();
+        if (udt.getConstraintType(getPlatformName()) == SQLTypeConstraint.ENUM) {
+            type = columnEnumeration(c, udt.getEnumerations(getPlatformName()));
         } else {
             type = super.columnType(c);
         }
@@ -474,17 +498,17 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    protected String columnEnumeration(SQLColumn c, List<SQLEnumeration> enumeration) {
-        if (enumeration == null || enumeration.isEmpty()) {
+    protected String columnEnumeration(SQLColumn c, List<SQLEnumeration> enumerations) {
+        if (enumerations == null || enumerations.isEmpty()) {
             return "";
         }
         
         StringBuilder sb = new StringBuilder();
-        for (SQLEnumeration e : enumeration) {
+        for (SQLEnumeration enumeration : enumerations) {
             if (sb.length() > 0) {
-                sb.append(", ");
+                sb.append(",");
             }
-            sb.append(e.getName());
+            sb.append("'" + enumeration.getName() + "'");
         }
         
         return "ENUM(" + sb.toString() + ")";

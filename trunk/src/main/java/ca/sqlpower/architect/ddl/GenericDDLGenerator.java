@@ -812,13 +812,13 @@ public class GenericDDLGenerator implements DDLGenerator {
      * 
      * @param c
      *            The {@link SQLColumn} the enumeration applies to.
-     * @param enumeration
+     * @param enumerations
      *            The {@link List} of enumerated values.
      * @return The generated SQL DDL snippet for defining column enumerations.
      */
-    protected String columnEnumeration(SQLColumn c, List<SQLEnumeration> enumeration) {
+    protected String columnEnumeration(SQLColumn c, List<SQLEnumeration> enumerations) {
         if (supportsCheckConstraint()) {
-            return columnEnumToCheckConstraint(c, enumeration);
+            return columnEnumToCheckConstraint(c, enumerations);
         } else {
             return "";
         }
@@ -835,22 +835,22 @@ public class GenericDDLGenerator implements DDLGenerator {
      * 
      * @param c
      *            The {@link SQLColumn} the enumeration applies to.
-     * @param enumeration
+     * @param enumerations
      *            The {@link String} array of enumerated types
      * @return The generated SQL DDL snippet for using check constraints to
      *         define column enumerations.
      */
-    protected String columnEnumToCheckConstraint(SQLColumn c, List<SQLEnumeration> enumeration) {
-        if (c == null || enumeration == null || enumeration.isEmpty()) {
+    protected String columnEnumToCheckConstraint(SQLColumn c, List<SQLEnumeration> enumerations) {
+        if (c == null || enumerations == null || enumerations.isEmpty()) {
             return "";
         }
         
         StringBuilder sb = new StringBuilder();
-        for (SQLEnumeration e : enumeration) {
+        for (SQLEnumeration enumeration : enumerations) {
             if (sb.length() > 0) {
                 sb.append(", ");
             }
-            sb.append("'" + e.getName() + "'");
+            sb.append("'" + enumeration.getName() + "'");
         }
         
         return "CHECK (" + c.getPhysicalName() + " IN (" + 
