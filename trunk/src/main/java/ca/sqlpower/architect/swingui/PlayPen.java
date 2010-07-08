@@ -1616,7 +1616,13 @@ public class PlayPen extends JPanel
 						setMessage(ArchitectUtils.truncateString(((SQLTable)someData).getName()));
                         preferredLocation.x += tp.getPreferredSize().width + 5;
                         
-                        String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
+                        SQLDatabase dbAncestor = SPObjectUtils.getAncestor(someData, SQLDatabase.class);
+                        String platform;
+                        if (dbAncestor == null) {
+                            platform = null;
+                        } else {
+                            platform = dbAncestor.getDataSource().getParentType().getName();
+                        }
                         addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
                         
                         increaseProgress();
