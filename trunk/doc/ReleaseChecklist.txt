@@ -1,9 +1,9 @@
-                     Power*Architect release checklist
+                     SQL Power Architect release checklist
 
 $Id$
 
 This file is intended as a guide for the person who is packaging, posting,
-and announcing a new release of the Power*Architect.  This list is probably
+and announcing a new release of the SQL Power Architect.  This list is probably
 not complete.  If you find yourself performing a step that is not mentioned
 here, please add it!
 
@@ -61,13 +61,13 @@ Making the new release available
 *Upload source code snapshot to Google Code
 *Deprecate all Google Code files related to the previous release
 *Upload the dist directory to the SQL Power web server (/tomcat/virtualhosts/download/x.y.z/)
-*Add/update the architect.version.properties file on an update website domain. The Power*Architect
+*Add/update the architect.version.properties file on an update website domain. The SQL Power Architect
 will use this to check the latest version number.
 *Check that all links point to where they are supposed to be pointing to, including all download links, documentation links, and continuous integration build links
 
 Announcing the New Release
 *Post to architect-developers mailing list, and the SQL Power allstaff mailing list
-*Update Power*Architect information page on the website
+*Update SQL Power Architect information page on the website
 *Front page of Google Code project
 *SQL Power website news item
 *Freshmeat.net
