@@ -828,7 +828,14 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 ArrayListMultimap<String, SQLColumn> droppedColumns = ArrayListMultimap.create();
                 for (SQLObject o : droppedItems) {
                     if (o instanceof SQLColumn) {
-                        droppedColumns.put(((SQLColumn) o).getParent().getParentDatabase().getDataSource().getParentType().getName(), (SQLColumn) o);
+                        String fromDataSource;
+                        SQLTable parent = ((SQLColumn) o).getParent();
+                        if (parent != null) {
+                            fromDataSource = parent.getParentDatabase().getDataSource().getParentType().getName();
+                        } else {
+                            fromDataSource = null;
+                        }
+                        droppedColumns.put(fromDataSource, (SQLColumn) o);
                     } else if (o instanceof SQLTable) {
                         droppedColumns.putAll(((SQLTable) o).getParentDatabase().getDataSource().getParentType().getName(), ((SQLTable) o).getChildren(SQLColumn.class));
                     }
