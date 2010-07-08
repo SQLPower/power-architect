@@ -824,6 +824,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             compoundEditRoot.begin(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             
             for (SQLColumn column : columns) {
+                if (componentEnabledMap.get(colPhysicalName).isSelected()) {
+                    column.setPhysicalName(colPhysicalName.getText());
+                }                
                 if (componentEnabledMap.get(colLogicalName).isSelected()) {
                     if (colLogicalName.getText().trim().length() == 0) {
                         errors.add(Messages.getString("ColumnEditPanel.columnNameRequired")); //$NON-NLS-1$
@@ -831,9 +834,6 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                         column.setName(colLogicalName.getText());
                     }
                 }
-                if (componentEnabledMap.get(colPhysicalName).isSelected()) {
-                    column.setPhysicalName(colPhysicalName.getText());
-                }                
                 if (componentEnabledMap.get(colType).isSelected()) {
                     // Set upstream type on column
                     UserDefinedSQLType upstreamType = (UserDefinedSQLType) colType.getLastSelectedPathComponent();
