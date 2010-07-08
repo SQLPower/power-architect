@@ -59,33 +59,25 @@ public class AddCheckConstraintTableRowAction extends AbstractAction {
             (DefaultTableModel) table.getModel();
         
         String name = JOptionPane.showInputDialog("Define a new check constraint name.");
-        int index;
-        for (index = 0; index < model.getRowCount(); index++) {
-            if (model.getValueAt(index, 0).equals(name)) {
-                table.setRowSelectionInterval(index, index);
-                break;
-            }
+        if (name == null || name.trim().equals("")) {
+            return;
         }
         
-        if (index == model.getRowCount() && name != null && !name.equals("")) {
-            String constraint = JOptionPane.showInputDialog("Define the check constraint condition.");
-            for (index = 0; index < model.getRowCount(); index++) {
-                if (model.getValueAt(index, 1).equals(constraint)) {
-                    table.setRowSelectionInterval(index, index);
-                    break;
-                }
-            }
-            
-            if (constraint != null && !constraint.equals("")) {
-                if (index == model.getRowCount()) {
-                    String[] row = {name, constraint};
-                    model.addRow(row);
-                }
-                
-                table.setRowSelectionInterval(index, index);
-                
-            }
+        int index = CheckConstraintTable.findFirstRow(model, name);
+        if (index != -1) {
+            table.setRowSelectionInterval(index, index);
+            return;
         }
+        
+        String constraint = JOptionPane.showInputDialog("Define the check constraint condition.");
+        if (constraint == null || constraint.trim().equals("")) {
+            return;
+        }
+        
+        String[] row = {name, constraint};
+        model.addRow(row);
+        table.setRowSelectionInterval(model.getRowCount() - 1, model.getRowCount() - 1);
+
     }
 
 }

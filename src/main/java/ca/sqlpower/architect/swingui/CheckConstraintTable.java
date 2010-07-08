@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import ca.sqlpower.sqlobject.SQLCheckConstraint;
 import ca.sqlpower.sqlobject.SQLCheckConstraintContainer;
@@ -33,10 +34,51 @@ public class CheckConstraintTable extends JTable {
     
     public CheckConstraintTable() {
         super(new DefaultTableModel());
+        setCellSelectionEnabled(true);
         getTableHeader().setReorderingAllowed(false);
         DefaultTableModel tableModel = (DefaultTableModel) getModel();
         tableModel.addColumn("Name");
         tableModel.addColumn("Check Constraint");
+    }
+
+    /**
+     * Finds the first row of a {@link TableModel} that contains a specific
+     * {@link SQLCheckConstraint} name.
+     * 
+     * @param model
+     *            The {@link TableModel} to search through.
+     * @param name
+     *            The name of the {@link SQLCheckConstraint}.
+     * @return The index of the matched row or -1 if not found.
+     */
+    public static int findFirstRow(TableModel model, String name) {
+        String trimmedName = name.trim();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            if (((String) model.getValueAt(i, 0)).trim().equals(trimmedName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Finds the last row of a {@link TableModel} that contains a specific
+     * {@link SQLCheckConstraint} name.
+     * 
+     * @param model
+     *            The {@link TableModel} to search through.
+     * @param name
+     *            The name of the {@link SQLCheckConstraint}.
+     * @return The index of the matched row or -1 if not found.
+     */
+    public static int findLastRow(TableModel model, String name) {
+        String trimmedName = name.trim();
+        for (int i = model.getRowCount()-1; i >= 0; i--) {
+            if (((String) model.getValueAt(i, 0)).trim().equals(trimmedName)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }

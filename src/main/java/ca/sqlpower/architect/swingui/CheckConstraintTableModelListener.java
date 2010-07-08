@@ -58,6 +58,12 @@ public class CheckConstraintTableModelListener implements TableModelListener {
     private final String platform;
 
     /**
+     * A boolean value to determine if a table row removal event was caused
+     * after an insert with a blank name or constraint condition.
+     */
+    private boolean removalAfterInsert = false;
+
+    /**
      * Creates a new {@link CheckConstraintTableModelListener} that does not
      * specify a platform.
      * 
@@ -80,70 +86,72 @@ public class CheckConstraintTableModelListener implements TableModelListener {
     public void tableChanged(TableModelEvent e) {
         DefaultTableModel model = (DefaultTableModel) e.getSource();
         int row = e.getFirstRow();
-        SQLCheckConstraint constraint;
+        SQLCheckConstraint checkConstraint;
+        int firstIndex;
+        int lastIndex;
 
         switch (e.getType()) {
         case TableModelEvent.INSERT:
-            constraint = new SQLCheckConstraint(
-                    (String) model.getValueAt(row, 0), 
-                    (String) model.getValueAt(row, 1));
-            if (udt == null) {
-                container.addCheckConstraint(constraint, row);
+            
+            String name = (String) model.getValueAt(row, 0);
+            String constraint = (String) model.getValueAt(row, 1);
+            firstIndex = CheckConstraintTable.findFirstRow(model, name);
+            lastIndex = CheckConstraintTable.findLastRow(model, name);
+            
+            if (name.trim().equals("") || constraint.trim().equals("") || 
+                    (firstIndex != -1 && firstIndex != lastIndex)) {
+                removalAfterInsert = true;
+                model.removeRow(row);
+                removalAfterInsert = false;
             } else {
-                udt.addCheckConstraint(platform, constraint, row);
+                checkConstraint = new SQLCheckConstraint(name, constraint);
+                if (udt == null) {
+                    container.addCheckConstraint(checkConstraint, row);
+                } else {
+                    udt.addCheckConstraint(platform, checkConstraint, row);
+                }
             }
             break;
         case TableModelEvent.DELETE:
-            if (udt == null) {
-                constraint = container.getCheckConstraints().get(row);
-                container.removeCheckConstraint(constraint);
-            } else {
-                constraint = udt.getCheckConstraints(platform).get(row);
-                udt.removeCheckConstraint(platform, constraint);
+            if (!removalAfterInsert) {
+                if (udt == null) {
+                    checkConstraint = container.getCheckConstraints().get(row);
+                    container.removeCheckConstraint(checkConstraint);
+                } else {
+                    checkConstraint = udt.getCheckConstraints(platform).get(row);
+                    udt.removeCheckConstraint(platform, checkConstraint);
+                }
             }
             break;
         case TableModelEvent.UPDATE:
             final int column = e.getColumn();
             final String newName = (String) model.getValueAt(row, 0);
             final String newConstraint = (String) model.getValueAt(row, 1);
-            final int rowCount = model.getRowCount();
             
             if (udt == null) {
-                constraint = container.getCheckConstraints().get(row);
+                checkConstraint = container.getCheckConstraints().get(row);
             } else {
-                constraint = udt.getCheckConstraints(platform).get(row);
+                checkConstraint = udt.getCheckConstraints(platform).get(row);
             }
 
             if (column != 1) {
-                if (newName.equals("")) {
-                    model.setValueAt(constraint.getName(), row, 0);
+                if (newName.trim().equals("")) {
+                    model.setValueAt(checkConstraint.getName(), row, 0);
                 } else {
-                    int i;
-                    for (i = 0; i < rowCount; i++) {
-                        if (i != row && model.getValueAt(i, 0).equals(newName)) {
-                            model.setValueAt(constraint.getName(), row, 0);
-                            break;
-                        }
-                    }
-                    if (i == rowCount) {
-                        constraint.setName((String) newName);
+                    firstIndex = CheckConstraintTable.findFirstRow(model, newName);
+                    lastIndex = CheckConstraintTable.findLastRow(model, newName);
+                    if (firstIndex == lastIndex) {
+                        checkConstraint.setName(newName);
+                    } else {
+                        model.setValueAt(checkConstraint.getName(), row, 0);
                     }
                 }
             }
             if (column != 0) {
-                if (newConstraint.equals("")) {
-                    model.setValueAt(constraint.getConstraint(), row, 1);
+                if (newConstraint.trim().equals("")) {
+                    model.setValueAt(checkConstraint.getConstraint(), row, 1);
                 } else {
-                    int i;
-                    for (i = 0; i < rowCount; i++) {
-                        if (i != row && model.getValueAt(i, 1).equals(newConstraint)) {
-                            model.setValueAt(constraint.getConstraint(), row, 1);
-                            break;
-                        }
-                    }
-                    if (i == rowCount) {
-                        constraint.setConstraint((String) newConstraint);
-                    }
+                    checkConstraint.setConstraint(newConstraint);
                 }
             }
 
