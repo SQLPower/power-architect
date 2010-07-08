@@ -131,6 +131,12 @@ public class DBTree extends JTree implements DragSourceListener {
 	 * The model behind this DB tree.
 	 */
 	private final DBTreeModel treeModel;
+
+    /**
+     * The tree cell renderer that can have other icon filters added to it to
+     * give the tree a unique look.
+     */
+    private final DBTreeCellRenderer treeCellRenderer;
 	
 	// ----------- CONSTRUCTORS ------------
 
@@ -153,9 +159,9 @@ public class DBTree extends JTree implements DragSourceListener {
 		collapseAllAction = new JTreeCollapseAllAction(this, Messages.getString("DBTree.collapseAllActionName"));
 		expandAllAction = new JTreeExpandAllAction(this, Messages.getString("DBTree.expandAllActionName"));
 		addMouseListener(new PopupListener());
-        DBTreeCellRenderer tcr = new DBTreeCellRenderer();
-        tcr.addIconFilter(new ProfiledTableIconFilter());
-        setCellRenderer(tcr);
+        treeCellRenderer = new DBTreeCellRenderer();
+        getTreeCellRenderer().addIconFilter(new ProfiledTableIconFilter());
+        setCellRenderer(getTreeCellRenderer());
         selectAllChildTablesAction = new SelectAllChildTablesAction();
         addMouseListener(new MouseListener() {
             public void mouseReleased(MouseEvent e) {
@@ -1095,8 +1101,10 @@ public class DBTree extends JTree implements DragSourceListener {
         return popupMenuEnabled;
     }
 
-
-
+    public DBTreeCellRenderer getTreeCellRenderer() {
+        return treeCellRenderer;
+    }
+    
     protected class ShowInPlayPenAction extends AbstractAction {
         public ShowInPlayPenAction() {
             super(Messages.getString("DBTree.showInPlaypenAction")); //$NON-NLS-1$
@@ -1134,5 +1142,5 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         }
     }
-    
+
 }
