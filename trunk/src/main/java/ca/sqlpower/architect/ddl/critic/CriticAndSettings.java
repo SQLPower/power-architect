@@ -235,7 +235,7 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
     @Mutator
     @Override
     public void setParent(SPObject parent) {
-        if (!(parent instanceof CriticGrouping)) {
+        if (parent != null && !(parent instanceof CriticGrouping)) {
             throw new IllegalArgumentException("The parent of a critic must be a CriticGrouping.");
         }
         super.setParent(parent);
