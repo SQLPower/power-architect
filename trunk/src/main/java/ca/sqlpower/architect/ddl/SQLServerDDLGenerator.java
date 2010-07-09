@@ -24,20 +24,28 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.object.SPResolverRegistry;
+import ca.sqlpower.object.SPVariableHelper;
+import ca.sqlpower.object.SPVariableResolver;
+import ca.sqlpower.sqlobject.SQLCheckConstraint;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLEnumeration;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
-import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLTypePhysicalProperties.SQLTypeConstraint;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 /**
  * The base class for version-specific SQL Server DDL generators. This class is
@@ -576,5 +584,153 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		endStatement(StatementType.ALTER, newTable);
 	}
 
+    /**
+     * SQL Server does not allow multiple named check constraints on the column
+     * level. Only one named or unnamed check constraint is allowed. Instead, we
+     * must add them on the table level.
+     * 
+     * @see #addTable(SQLTable)
+     */
+	@Override
+	protected String columnDefinition(SQLColumn c, Map<String, SQLObject> colNameMap) {
+        StringBuffer def = new StringBuffer();
+
+        // Column name
+        def.append(createPhysicalName(colNameMap, c));
+
+        def.append(" ");
+        def.append(columnType(c));
+
+        UserDefinedSQLType type = c.getUserDefinedSQLType();
+        String defaultValue = type.getDefaultValue(getPlatformName());
+        if ( defaultValue != null && !defaultValue.equals("")) {
+            def.append(" ");
+            def.append("DEFAULT ");
+            def.append(defaultValue);
+        }
+
+        def.append(columnNullability(c));
+        
+        List<SQLEnumeration> enumerations;
+        SQLTypeConstraint constraintType = type.getConstraintType(getPlatformName());
+        if (constraintType == null) {
+            constraintType = type.getDefaultPhysicalProperties().getConstraintType();
+            enumerations = type.getDefaultPhysicalProperties().getChildrenWithoutPopulating(SQLEnumeration.class);
+        } else {
+            enumerations = type.getEnumerations(getPlatformName());
+        }
+        
+        // Add enumeration.
+        if (constraintType == SQLTypeConstraint.ENUM) {
+            String columnEnumeration = columnEnumeration(c, enumerations);
+            if (columnEnumeration != null && columnEnumeration.length() > 0) {
+                def.append(" " + columnEnumeration);
+            }
+        }
+
+        logger.debug("column definition "+ def.toString());
+        return def.toString();
+	}
+
+    /**
+     * Overridden to generate add table statement to have domain/type level
+     * check constraints be added on the table level. The reason why it is being
+     * generated on the table level is because SQL Server does not allow
+     * multiple named check constraints on a single column. Only one named or
+     * unnamed check constraint per column is allowed.
+     * 
+     * Since check constraints from multiple objects are being combined into the
+     * table level, we must ensure that there are no name conflicts by
+     * prepending tags to identify which SQLObject type and physical name the
+     * check constraint is actually supposed to be applied on. e.g.
+     * col_<column-name>_<constraint-name> or table_<table-name>_<constraint-name>.
+     * This is especially important since actual table level check constraints
+     * will be added in the future.
+     */
+	@Override
+	public void addTable(SQLTable t) throws SQLException, SQLObjectException {
+	       Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();  // for detecting duplicate column names
+	        // generate a new physical name if necessary
+	        createPhysicalName(topLevelNames,t); // also adds generated physical name to the map
+	        print("\nCREATE TABLE ");
+	        print( toQualifiedName(t) );
+	        println(" (");
+	        boolean firstCol = true;
+	        
+	        List<SQLColumn> columns = t.getColumns();
+	        
+	        for (SQLColumn c : columns) {
+	            if (!firstCol) println(",");
+	            print("                ");
+
+	            print(columnDefinition(c,colNameMap));
+
+	            firstCol = false;
+	        }
+
+	        SQLIndex pk = t.getPrimaryKeyIndex();
+	        if (pk.getChildCount() > 0) {
+	            print(",\n");
+	            print("                ");
+	            writePKConstraintClause(pk);
+	        }
+	        
+	        for (SQLColumn c : columns) {
+	            UserDefinedSQLType type = c.getUserDefinedSQLType();
+	            List<SQLCheckConstraint> checkConstraints;
+	            SQLTypeConstraint constraintType = type.getConstraintType(getPlatformName());
+	            if (constraintType == null) {
+	                constraintType = type.getDefaultPhysicalProperties().getConstraintType();
+	                checkConstraints = type.getDefaultPhysicalProperties().getCheckConstraints();
+	            } else {
+	                checkConstraints = type.getCheckConstraints(getPlatformName());
+	            }
+	            
+	            if (constraintType == SQLTypeConstraint.CHECK) {
+	                print(",\n");
+	                print(columnCheckConstraint(c, checkConstraints));
+	            }
+	        }
+
+	        print("\n)");
+	        endStatement(StatementType.CREATE, t);
+	        addComment(t, true);
+	}
+
+    /**
+     * Overridden because check constraints can only be added to the table
+     * level. Each constraint clause is delimited by a comma. Each constraint
+     * name is also prepended by the column name the check constraint is
+     * actually being applied to. e.g. col_<column-name>_<constraint-name>.
+     */
+	@Override
+    protected String columnCheckConstraint(SQLColumn c, List<SQLCheckConstraint> checkConstraints) {
+        if (!supportsCheckConstraint() || 
+                c == null || 
+                checkConstraints == null || 
+                checkConstraints.isEmpty()) {
+            return "";
+        }
+        
+        SPVariableResolver resolver = c.getVariableResolver();
+        SPVariableHelper helper = new SPVariableHelper(c);
+        SPResolverRegistry.register(c, resolver);
+        
+        StringBuilder sb = new StringBuilder();
+        for (SQLCheckConstraint constraint : checkConstraints) {
+            if (sb.length() > 0) {
+                sb.append(",\n");
+            }
+            sb.append("                ");
+            sb.append(String.format("CONSTRAINT col_%s_%s CHECK (%s)", 
+                    c.getPhysicalName(),
+                    constraint.getName(),
+                    helper.substitute(constraint.getConstraint())));
+        }
+        
+        SPResolverRegistry.deregister(c, resolver);
+        
+        return sb.toString();
+    }
 
 }
