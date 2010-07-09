@@ -84,7 +84,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                     checkErrorsAndGenerateDDL(ddlg);
 
                 }
-                return Boolean.TRUE;
+                return Boolean.FALSE;
             }
 
             /**
