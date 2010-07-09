@@ -25,6 +25,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLObject;
 
 /**
@@ -53,6 +54,8 @@ public class CriticismObjectRenderer extends DefaultTableCellRenderer {
             return name;
         } else if (value instanceof SPObject) {
             return ((SPObject) value).getName();
+        } else if (value instanceof JDBCDataSourceType) {
+            return ((JDBCDataSourceType) value).getName();
         } else {
             return value.toString();
         }

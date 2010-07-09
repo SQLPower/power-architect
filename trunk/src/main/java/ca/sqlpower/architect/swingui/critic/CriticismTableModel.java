@@ -30,6 +30,7 @@ import ca.sqlpower.architect.ddl.critic.CriticismEvent;
 import ca.sqlpower.architect.ddl.critic.CriticismListener;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLRelationship;
@@ -54,6 +55,8 @@ public class CriticismTableModel extends AbstractTableModel {
             return "Relationship";
         } else if (SQLIndex.class.equals(c)) {
             return "Index";
+        } else if (JDBCDataSourceType.class.equals(c)) {
+            return "Data Source Type";
         } else {
             return c.getSimpleName();
         }
