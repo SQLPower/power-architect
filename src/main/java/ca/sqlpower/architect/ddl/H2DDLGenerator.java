@@ -253,9 +253,7 @@ public class H2DDLGenerator extends GenericDDLGenerator {
 	
     /**
      * Overridden because check constraints can only be added to the table
-     * level. Each constraint clause is delimited by a comma. Each constraint
-     * name is also prepended by the column name the check constraint is
-     * actually being applied to. e.g. col_<column-name>_<constraint-name>.
+     * level. Each constraint clause is delimited by a comma.
      */
     @Override
     protected String columnCheckConstraint(SQLColumn c, List<SQLCheckConstraint> checkConstraints) {
@@ -276,8 +274,7 @@ public class H2DDLGenerator extends GenericDDLGenerator {
                 sb.append(",\n");
             }
             sb.append("                ");
-            sb.append(String.format("CONSTRAINT col_%s_%s CHECK (%s)", 
-                    c.getPhysicalName(),
+            sb.append(String.format("CONSTRAINT %s CHECK (%s)",
                     constraint.getName(),
                     helper.substitute(constraint.getConstraint())));
         }

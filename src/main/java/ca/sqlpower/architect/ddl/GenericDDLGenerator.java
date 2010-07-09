@@ -767,12 +767,16 @@ public class GenericDDLGenerator implements DDLGenerator {
      * should override this method if it does not follow the SQL-92 check
      * constraint standard.
      * 
+     * XXX Note that many platforms require unique check constraint names not
+     * only across all columns, but also all tables. It would be desirable to
+     * not allow the user to enter duplicate check constraint names in the UI.
+     * 
      * @param c
      *            The {@link SQLColumn} the check constraint applies to.
      * @param checkConstraint
      *            The {@link String} of check constraints that may use variables
-     *            defined by the {@link SQLCheckConstraintVariable} enum and can be
-     *            resolved by the {@link SQLCheckConstraintVariableResolver}.
+     *            defined by the {@link SQLCheckConstraintVariable} enum and can
+     *            be resolved by the {@link SQLCheckConstraintVariableResolver}.
      * @return The generated SQL DDL snippet for defining column check
      *         constraints.
      */

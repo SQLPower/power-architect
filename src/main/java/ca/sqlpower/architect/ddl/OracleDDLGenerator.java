@@ -30,13 +30,13 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.sqlobject.SQLSequence;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
-import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
 /**
  * The base class for version-specific Oracle DDL generators. This class exists
@@ -470,4 +470,5 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     public boolean supportsRollback() {
         return false;
     }
+    
 }
