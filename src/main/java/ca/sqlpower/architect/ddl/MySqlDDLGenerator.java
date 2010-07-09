@@ -34,6 +34,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLEnumeration;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLCheckConstraint;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
@@ -474,6 +475,8 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
 
         def.append(columnNullability(c));
+        
+        logger.debug("column definition "+ def.toString());
         return def.toString();
     }
 
@@ -497,6 +500,26 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         return type;
     }
     
+    /**
+     * MySQL does not support check constraints.
+     * 
+     * @see #supportsCheckConstraint()
+     */
+    @Override
+    protected String columnCheckConstraint(SQLColumn c, List<SQLCheckConstraint> checkConstraints) {
+        return "";
+    }
+    
+    /**
+     * MySQL does not support check constraints.
+     * 
+     * @see #supportsCheckConstraint()
+     */
+    @Override
+    protected String columnEnumToCheckConstraint(SQLColumn c, List<SQLEnumeration> enumerations) {
+        return "";
+    }
+    
     @Override
     protected String columnEnumeration(SQLColumn c, List<SQLEnumeration> enumerations) {
         if (enumerations == null || enumerations.isEmpty()) {
@@ -513,7 +536,13 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         
         return "ENUM(" + sb.toString() + ")";
     }
-    
+
+    /**
+     * MySQL accepts a <code>CHECK (expr)</code> clause in the CREATE TABLE
+     * syntax. However, it is ignored by all storage engines. Thus, it would be
+     * meaningless to implement it here until MySQL adds supports for check
+     * constraints.
+     */
     @Override
     public boolean supportsCheckConstraint() {
         return false;
