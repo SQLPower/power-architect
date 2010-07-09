@@ -60,6 +60,7 @@ import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.sql.JDBCDataSourceType;
 
 /**
  * A collection of settings that defines what critics are enabled in the system
@@ -172,14 +173,34 @@ public class CriticManager extends AbstractSPObject {
         addChild(newGrouping, criticGroupings.size());
         newGrouping.addChild(critic, 0);
     }
+    
+    /**
+     * Do a full critique of all objects the critic manager currently knows
+     * are important to validate. These criticisms are immutable after they
+     * are created.
+     */
+    public List<Criticism> criticize() {
+        return criticize(null);
+    }
 
     /**
      * Returns a list of criticisms calculated by critics in this manager based
-     * on the object passed to them. These criticisms are immutable after they
-     * are created.
+     * on the objects the manager knows to criticize. These criticisms are
+     * immutable after they are created.
+     * 
+     * @param generatorClass
+     *            The generator type we will be using to create DDL with. Will
+     *            limit some of the enabled critics to only use critics
+     *            associated with this DDL generators of this type. If null all
+     *            enabled critics will be used.
      */
-    public List<Criticism> criticize(Object root) {
-        return criticize(null, root);
+    public List<Criticism> criticize(Class<? extends DDLGenerator> generatorClass) {
+        List<Criticism> criticisms = new ArrayList<Criticism>();
+        criticisms.addAll(criticize(generatorClass, getParent().getTargetDatabase()));
+        for (JDBCDataSourceType dsType : getParent().getSession().getDataSources().getDataSourceTypes()) {
+            criticisms.addAll(criticize(generatorClass, dsType));
+        }
+        return criticisms;
     }
 
     /**
@@ -193,7 +214,7 @@ public class CriticManager extends AbstractSPObject {
      *            associated with this DDL generators of this type. If null all
      *            enabled critics will be used.
      */
-    public List<Criticism> criticize(Class<? extends DDLGenerator> generatorClass, Object root) {
+    private List<Criticism> criticize(Class<? extends DDLGenerator> generatorClass, Object root) {
         List<Critic> critics = new ArrayList<Critic>();
         for (CriticGrouping grouping : criticGroupings) {
             if (!grouping.isEnabled()) continue;
