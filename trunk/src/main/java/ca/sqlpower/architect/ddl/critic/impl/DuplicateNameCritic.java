@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.QuickFix;
@@ -99,7 +100,7 @@ public class DuplicateNameCritic extends CriticAndSettings {
                 final String newPhysicalName = col.getPhysicalName() + "_" + count;
                 criticisms.add(new Criticism(subject, 
                         "Duplicate physical name \"" + col.getPhysicalName() + "\"", this, 
-                        new QuickFix("Replace physical name with " + newPhysicalName) {
+                        new QuickFix("Replace physical name " + col.getPhysicalName() + " with " + newPhysicalName) {
                             @Override
                             public void apply() {
                                 col.setPhysicalName(newPhysicalName);
@@ -115,11 +116,15 @@ public class DuplicateNameCritic extends CriticAndSettings {
             if (obj instanceof SQLColumn) {
                 physicalName = ((SQLColumn) obj).getAutoIncrementSequenceName();
             }
-            Collection<SQLObject> sameNameObjects = topLevelPhysicalNameMap.get(physicalName);
+            final Collection<SQLObject> sameNameObjects = topLevelPhysicalNameMap.get(physicalName);
             if (!sameNameObjects.isEmpty()) {
                 final String newPhysicalName = physicalName + "_" + sameNameObjects.size();
-                criticisms.add(new Criticism(subject, "Duplicate physical name \"" + physicalName + "\"", this, 
-                        new QuickFix("Replace physical name with " + newPhysicalName) {
+                SQLObject duplicate = sameNameObjects.iterator().next();
+                criticisms.add(new Criticism(subject, 
+                        "Duplicate physical name \"" + physicalName + 
+                            "\". There is a " + ArchitectUtils.convertClassToString(duplicate.getClass())+ " in " + 
+                            duplicate.getParent().getName() + " with this name already.", this, 
+                        new QuickFix("Replace physical name " + obj.getPhysicalName() + " with " + newPhysicalName) {
                             @Override
                             public void apply() {
                                 if (obj instanceof SQLColumn) {
