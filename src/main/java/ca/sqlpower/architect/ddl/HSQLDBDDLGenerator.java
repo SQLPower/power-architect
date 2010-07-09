@@ -24,9 +24,14 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.object.SPResolverRegistry;
+import ca.sqlpower.object.SPVariableHelper;
+import ca.sqlpower.object.SPVariableResolver;
+import ca.sqlpower.sqlobject.SQLCheckConstraint;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
@@ -220,6 +225,41 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         print(" RENAME TO ");
 		print(createPhysicalName(colNameMap, newCol));
 		endStatement(StatementType.ALTER, newCol);
+    }
+
+    /**
+     * Overridden because check constraints must have unique names regardless of
+     * which level it is applied on. Each constraint name is prepended by the
+     * column name the check constraint is actually being applied to. e.g.
+     * col_<column-name>_<constraint-name>.
+     */
+    @Override
+    protected String columnCheckConstraint(SQLColumn c, List<SQLCheckConstraint> checkConstraints) {
+        if (!supportsCheckConstraint() || 
+                c == null || 
+                checkConstraints == null || 
+                checkConstraints.isEmpty()) {
+            return "";
+        }
+        
+        SPVariableResolver resolver = c.getVariableResolver();
+        SPVariableHelper helper = new SPVariableHelper(c);
+        SPResolverRegistry.register(c, resolver);
+        
+        StringBuilder sb = new StringBuilder();
+        for (SQLCheckConstraint constraint : checkConstraints) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(String.format("CONSTRAINT col_%s_%s CHECK (%s)", 
+                    c.getPhysicalName(),
+                    constraint.getName(),
+                    helper.substitute(constraint.getConstraint())));
+        }
+        
+        SPResolverRegistry.deregister(c, resolver);
+        
+        return sb.toString();
     }
 
 }
