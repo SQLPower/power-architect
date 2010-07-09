@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 import au.com.bytecode.opencsv.CSVWriter;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -52,6 +53,8 @@ public class ProfileCSVFormat implements ProfileFormat {
         }
         CSVWriter csvWriter = new CSVWriter(out);
         csvWriter.writeNext(columnNames);
+        
+        GenericDDLGenerator gddl = new GenericDDLGenerator();
         
         Format dateFormat = new DateTableCellRenderer().getFormat();
         Format decFormat =  new DecimalTableCellRenderer().getFormat();
@@ -92,7 +95,7 @@ public class ProfileCSVFormat implements ProfileFormat {
                     commonData.add(Integer.toString(tpr.getRowCount()));
                     break;
                 case DATA_TYPE:
-                    commonData.add(Integer.toString(c.getType()));
+                    commonData.add(gddl.columnType(c));
                     break;
                 case NULL_COUNT:
                     commonData.add(Integer.toString(((ColumnProfileResult) result).getNullCount()));
