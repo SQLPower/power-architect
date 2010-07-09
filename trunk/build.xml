@@ -1394,7 +1394,7 @@
 	<target name="jdbc_dist" depends="windows_jdbc_exe_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_exe_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="compile-examples,pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties,downloadpage"
+	<target name="dist" depends="compile-examples,pmd,pmd-cpd,findbugs,javadoc,jdbc_dist,source_only_tgz, architect.version.properties"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>
@@ -1410,19 +1410,6 @@
 		</copy>
 		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
 	</target>
-
-	<!-- ================================= 
-          target: downloadpage              
-         ================================= -->
-    <target name="downloadpage" depends="init">
-	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
-		<replace file="${dist.dir}/index.html">
-			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/page/&quot;&gt;"/>
-			<replacefilter token="@@app_version" value="${app.version}"/>
-			<replacefilter token="@@downloadLinkBase" value="${downloadLinkBase}"/>
-			<replacefilter token="@@docLinkBase" value="${docLinkBase}"/>
-		</replace>
-    </target>
 
 	<!-- Some of the Ant targets in this build.xml require Ant 1.7. 
 		 To upgrade if using Eclipse 3.x,
