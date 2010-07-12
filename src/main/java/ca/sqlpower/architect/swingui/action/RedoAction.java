@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 
@@ -43,7 +44,7 @@ public class RedoAction extends AbstractArchitectAction {
 		}
 	}
 
-	private final NotifyingUndoManager manager;
+	private NotifyingUndoManager manager;
 	private ChangeListener managerListener = new ManagerListener();
 
 	public RedoAction(ArchitectSwingSession session, NotifyingUndoManager manager) {
@@ -54,6 +55,15 @@ public class RedoAction extends AbstractArchitectAction {
         this.manager.addChangeListener(managerListener);
 		updateSettingsFromManager();
 	}
+	
+	public RedoAction(ArchitectSwingSession session, ArchitectFrame frame, NotifyingUndoManager manager) {
+        super(session, frame, Messages.getString("RedoAction.name"), Messages.getString("RedoAction.description"), "redo_arrow"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        putValue(AbstractAction.ACCELERATOR_KEY,
+                KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        this.manager = manager;
+        this.manager.addChangeListener(managerListener);
+        updateSettingsFromManager();
+    }
 	
 	public void actionPerformed(ActionEvent evt ) {
         if (logger.isDebugEnabled()) {
@@ -74,4 +84,11 @@ public class RedoAction extends AbstractArchitectAction {
 		putValue(SHORT_DESCRIPTION, manager.getRedoPresentationName());
 		setEnabled(manager.canRedo());
 	}
+    
+    public void setUndoManager(NotifyingUndoManager manager) {
+        this.manager.removeChangeListener(managerListener);
+        this.manager = manager;
+        manager.addChangeListener(managerListener);
+        updateSettingsFromManager();
+    }
 }

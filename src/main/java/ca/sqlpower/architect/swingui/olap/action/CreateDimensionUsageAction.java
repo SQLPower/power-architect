@@ -63,17 +63,17 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
         final Dimension dimension = dp.getModel();
         final Cube cube = cp.getModel();
         if (OLAPUtil.isNameUnique(cp.getModel(), DimensionUsage.class, dimension.getName())) {
-            session.getWorkspace().begin("Create dimension usage"); 
+            getSession().getWorkspace().begin("Create dimension usage"); 
             final DimensionUsage du = new DimensionUsage();
             try {
                 du.setName(dimension.getName());
                 du.setSource(dimension.getName());
                 cube.addChild(du);
-                UsageComponent uc = new UsageComponent(playpen.getContentPane(), du, dp, cp);
-                playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
-                session.getWorkspace().commit();
+                UsageComponent uc = new UsageComponent(getPlaypen().getContentPane(), du, dp, cp);
+                getPlaypen().getContentPane().addChild(uc, getPlaypen().getContentPane().getChildren().size());
+                getSession().getWorkspace().commit();
             } catch (Throwable e) {
-                session.getWorkspace().rollback("Error occurred: " + e.toString());
+                getSession().getWorkspace().rollback("Error occurred: " + e.toString());
                 throw new RuntimeException(e);
             }
             
@@ -92,12 +92,12 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
                 };
                 JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                         mep,
-                        SwingUtilities.getWindowAncestor(playpen),
+                        SwingUtilities.getWindowAncestor(getPlaypen()),
                         "Dimension Usage Properties",
                         "OK",
                         okCall,
                         cancelCall);
-                d.setLocationRelativeTo(playpen);
+                d.setLocationRelativeTo(getPlaypen());
                 d.setVisible(true);
             } catch (SQLObjectException e) {
                 throw new SQLObjectRuntimeException(e);
@@ -105,7 +105,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
         } else {
             String errorMsg = "Cube Dimension \"" + dimension.getName() + "\" already exists in \"" +
                     cp.getModel().getName() + "\".\nDimension Usage was not created.";
-            JOptionPane.showMessageDialog(playpen, errorMsg, "Duplicate Cube Dimension", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(getPlaypen(), errorMsg, "Duplicate Cube Dimension", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }

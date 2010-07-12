@@ -417,7 +417,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
     public void testSelectionAfterColumnDeletedWithSynchronizer() throws Exception {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         TestingArchitectSwingSession session = (TestingArchitectSwingSession) context.createSession();
-        PlayPen pp = RelationalPlayPenFactory.createPlayPen(session, session.getSourceDatabases());
+        PlayPen pp = RelationalPlayPenFactory.createPlayPen(session, session.getDBTree());
         
         TablePane tp = new TablePane(t, pp.getContentPane());
         pp.addTablePane(tp, new Point(2,2));

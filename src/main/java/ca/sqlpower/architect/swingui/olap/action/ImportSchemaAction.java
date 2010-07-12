@@ -44,6 +44,7 @@ import ca.sqlpower.architect.olap.MondrianModel.DimensionUsage;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
@@ -54,7 +55,6 @@ import ca.sqlpower.architect.swingui.olap.SchemaEditPanel;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
-import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class ImportSchemaAction extends AbstractArchitectAction {
@@ -77,15 +77,16 @@ public class ImportSchemaAction extends AbstractArchitectAction {
      */
     private static final Point INITIAL_POINT = new Point(50, 50);
     
-    private RecentMenu recent;
-    
     public ImportSchemaAction(ArchitectSwingSession session) {
         super(session, "Import Schema...", "Imports an OLAP schema"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        this.recent = session.getRecentMenu();
+    }
+    
+    public ImportSchemaAction(ArchitectFrame frame) {
+        super(frame, "Import Schema...", "Imports an OLAP schema");
     }
 
     public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser(recent.getMostRecentFile());
+        JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -100,23 +101,23 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                     throw new IllegalStateException("File parse failed to return a schema object!");
                 }
                 
-                session.getWorkspace().begin("Importing OLAP schema");
+                getSession().getWorkspace().begin("Importing OLAP schema");
                 try {
                                             
                     final OLAPSession osession = new OLAPSession(loadedSchema);
-                    osession.setDatabase(session.getTargetDatabase());
-                    session.getOLAPRootObject().addChild(osession);
-                    OLAPEditSession editSession = session.getOLAPEditSession(osession);
+                    osession.setDatabase(getSession().getTargetDatabase());
+                    getSession().getOLAPRootObject().addChild(osession);
+                    OLAPEditSession editSession = getSession().getOLAPEditSession(osession);
 
                     addGUIComponents(editSession);
 
                     final JFrame frame = editSession.getFrame();
-                    frame.setLocationRelativeTo(session.getArchitectFrame());
+                    frame.setLocationRelativeTo(getSession().getArchitectFrame());
                     frame.setVisible(true);
                     
-                    session.getWorkspace().commit();
+                    getSession().getWorkspace().commit();
                 
-                    final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(session, loadedSchema);
+                    final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(getSession(), loadedSchema);
 
                     Callable<Boolean> okCall = new Callable<Boolean>() {
                         public Boolean call() throws Exception {
@@ -127,7 +128,7 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                     Callable<Boolean> cancelCall = new Callable<Boolean>() {
                         public Boolean call() throws Exception {
                             frame.dispose();
-                            session.getOLAPRootObject().removeOLAPSession(osession);
+                            getSession().getOLAPRootObject().removeOLAPSession(osession);
                             return true;
                         }
                     };
@@ -143,21 +144,21 @@ public class ImportSchemaAction extends AbstractArchitectAction {
                     schemaEditDialog.setVisible(true);                                        
                     
                 } catch (Exception ex) {
-                    session.getWorkspace().rollback("Failed to get a list of databases: " + ex.toString());
+                    getSession().getWorkspace().rollback("Failed to get a list of databases: " + ex.toString());
                     ASUtils.showExceptionDialogNoReport(
-                            session.getArchitectFrame(),
+                            getSession().getArchitectFrame(),
                             "Failed to get list of databases.",
                             ex);
                 } catch (Throwable ex) {
-                    session.getWorkspace().rollback("Failed to import schema: " + ex.toString());
+                    getSession().getWorkspace().rollback("Failed to import schema: " + ex.toString());
                     throw new RuntimeException(ex);
                 }
                 
             } catch (Exception ex) {
                 logger.error("Failed to parse " + f.getName() + ".");
-                ASUtils.showExceptionDialog(session, "Could not read xml schema file.", ex);
+                ASUtils.showExceptionDialog(getSession(), "Could not read xml schema file.", ex);
             } finally {
-                recent.putRecentFileName(f.getAbsolutePath());
+                getSession().getRecentMenu().putRecentFileName(f.getAbsolutePath());
             }
             
         }

@@ -77,12 +77,12 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
                 return;
             }
         } else if (itemsToDelete.size() < 1) {
-            JOptionPane.showMessageDialog(playpen, "No items to delete!");
+            JOptionPane.showMessageDialog(getPlaypen(), "No items to delete!");
             return;
         }
-        playpen.getContentPane().begin("Deleting selected OLAP objects");
+        getPlaypen().getContentPane().begin("Deleting selected OLAP objects");
         try {
-            playpen.startCompoundEdit("OLAP Delete");
+            getPlaypen().startCompoundEdit("OLAP Delete");
             for (OLAPObject oo : itemsToDelete) {
                 if (!parentWasDeleted(oo)) {
                     try {
@@ -92,12 +92,12 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
                     }
                 }
             }
-            playpen.getContentPane().commit();
+            getPlaypen().getContentPane().commit();
         } catch (Throwable e) {
-            playpen.getContentPane().rollback("Error: " + e.toString());
+            getPlaypen().getContentPane().rollback("Error: " + e.toString());
             throw new RuntimeException(e);
         } finally {
-            playpen.endCompoundEdit("OLAP Delete End");
+            getPlaypen().endCompoundEdit("OLAP Delete End");
         }
         
     }
@@ -151,7 +151,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
             } else if (item instanceof DimensionUsage) {
                 // parent of dimensionUsage is the cube. Therefore we do not wish to remove the cube
                 // Since its been selected as well.
-               for(PlayPenComponent comp : playpen.getSelectedItems()){
+               for(PlayPenComponent comp : getPlaypen().getSelectedItems()){
                    if(comp instanceof UsageComponent){
                        //Do not put cube in objectsWithSelectedItemsList cause it needs to be removed
                        usageLineSelected = true;
@@ -168,7 +168,7 @@ public class OLAPDeleteSelectedAction extends AbstractArchitectAction {
                 
                 // Parent of CubeUsage is CubeUsages.  Parent of CubeUsages is
                 // VirtualCube and we do not want to delete the VirtualCube
-                for(PlayPenComponent comp : playpen.getSelectedItems()){
+                for(PlayPenComponent comp : getPlaypen().getSelectedItems()){
                     if(comp instanceof UsageComponent){
                         //Do not put v cube in objectsWithSelectedItemsList cause it needs to be removed
                         usageLineSelected = true;

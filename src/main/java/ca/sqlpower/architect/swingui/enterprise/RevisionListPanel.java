@@ -199,7 +199,7 @@ public class RevisionListPanel {
             ProjectLocation location = session.getProjectLocation();
             ArchitectSwingSession revisionSession = null;            
             try {            
-                revisionSession = swingSession.getContext().createSession(false);
+                revisionSession = swingSession.getContext().createSession();
                 revisionSession.getUndoManager().setLoading(true);
                 revisionSession.setName(location.getName() + " - Revision " + revisionNo);                
 
@@ -214,7 +214,7 @@ public class RevisionListPanel {
 
                 session.persistRevisionFromServer(revisionNo, decoder);
                 revisionSession.getUndoManager().setLoading(false);
-                revisionSession.initGUI(swingSession);
+                swingSession.getArchitectFrame().addSession(revisionSession);
             } catch (Exception ex) {
                 if (revisionSession != null) {
                     revisionSession.close();

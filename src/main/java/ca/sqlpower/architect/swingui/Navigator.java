@@ -32,9 +32,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.RepaintManager;
 
 import ca.sqlpower.object.SPChildEvent;
@@ -50,14 +52,14 @@ import ca.sqlpower.util.TransactionEvent;
  * @author kaiyi
  * 
  */
-public class Navigator extends JDialog implements SPListener, AdjustmentListener {
+public class Navigator extends JDialog implements SPListener, PropertyChangeListener, AdjustmentListener {
 
     private static final int SCALED_IMAGE_WIDTH = 200;
 
     private static final int SCALED_IMAGE_HEIGHT = 125;
-
-    private PlayPen pp;
     
+    private final ArchitectFrame frame;
+
     private JPanel navigationPanel;
 
     /**
@@ -71,44 +73,50 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
      * @param session Session of the architect frame creating this dialog.
      * @param location Top right corner where this dialog should be placed.
      */
-    public Navigator(ArchitectSwingSession session, Point location) {
-        super(session.getArchitectFrame(), Messages.getString("Navigator.name")); //$NON-NLS-1$
-        this.pp = session.getPlayPen();
+    public Navigator(final ArchitectFrame frame, Point location) {
+        super(frame, Messages.getString("Navigator.name")); //$NON-NLS-1$
+        this.frame = frame;
         
-        SQLPowerUtils.listenToHierarchy(pp.getSession().getTargetDatabase(), this);
+        frame.addPropertyChangeListener(this);
+        
+        SQLPowerUtils.listenToHierarchy(frame.getCurrentSession().getTargetDatabase(), this);
 
-        pp.getContentPane().addComponentPropertyListener(this);
+        getPlayPen().getContentPane().addComponentPropertyListener(this);
+        
+        JScrollPane playpenScrollPane = frame.getCurrentSession().getPlayPenScrollPane();
+        playpenScrollPane.getVerticalScrollBar().addAdjustmentListener(this);
+        playpenScrollPane.getHorizontalScrollBar().addAdjustmentListener(this);
         
         navigationPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 
-                double width = Math.max(pp.getUsedArea().getWidth(), 
-                        pp.getViewportSize().getWidth());
-                double height = Math.max(pp.getUsedArea().getHeight(), 
-                        pp.getViewportSize().getHeight());
+                double width = Math.max(getPlayPen().getUsedArea().getWidth(), 
+                        getPlayPen().getViewportSize().getWidth());
+                double height = Math.max(getPlayPen().getUsedArea().getHeight(), 
+                        getPlayPen().getViewportSize().getHeight());
 
                 scaleFactor = Math.min(SCALED_IMAGE_WIDTH / width, SCALED_IMAGE_HEIGHT / height);
                 ((Graphics2D) g).scale(scaleFactor, scaleFactor);
                 RepaintManager currentManager = RepaintManager.currentManager(this);
                 try {
                     currentManager.setDoubleBufferingEnabled(false);
-                    if (pp.isRenderingAntialiased() == true) {
+                    if (getPlayPen().isRenderingAntialiased() == true) {
                         try {
-                            pp.setRenderingAntialiased(false);
-                            pp.paintComponent(g);
+                            getPlayPen().setRenderingAntialiased(false);
+                            getPlayPen().paintComponent(g);
                         } finally {
-                            pp.setRenderingAntialiased(true);
+                            getPlayPen().setRenderingAntialiased(true);
                         }
                     } else {
-                        pp.paintComponent(g);
+                        getPlayPen().paintComponent(g);
                     }
                 } finally {
                     currentManager.setDoubleBufferingEnabled(true);
                 }
 
-                Rectangle view = pp.getVisibleRect();
+                Rectangle view = getPlayPen().getVisibleRect();
                 g.setColor(Color.GREEN);
                 ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
                 g.drawRect(view.x, view.y, view.width, view.height-5);
@@ -158,8 +166,8 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
      */
     private void adjustViewPort(Point pointOnNavigator) {
         Point pointOnPlaypen = getPointOnPlaypen(pointOnNavigator);
-        Dimension viewSize = pp.getViewportSize();
-        Dimension usedArea = pp.getUsedArea();
+        Dimension viewSize = getPlayPen().getViewportSize();
+        Dimension usedArea = getPlayPen().getUsedArea();
 
         // makes the given point the center of the resulting viewport
         pointOnPlaypen.translate(-viewSize.width / 2, -viewSize.height / 2);
@@ -182,9 +190,13 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
             y = yBoundary;
         }
         
-        pp.setViewPosition(new Point(x, y));
+        getPlayPen().setViewPosition(new Point(x, y));
         
         navigationPanel.repaint();
+    }
+    
+    private PlayPen getPlayPen() {
+        return frame.getCurrentSession().getPlayPen();
     }
 
     /**
@@ -231,7 +243,31 @@ public class Navigator extends JDialog implements SPListener, AdjustmentListener
      * Removes this listener from connected objects.
      */
     public void cleanup() {
-        SQLPowerUtils.unlistenToHierarchy(pp.getSession().getTargetDatabase(), this);
-        pp.getContentPane().removeComponentPropertyListener(this);
+        SQLPowerUtils.unlistenToHierarchy(getPlayPen().getSession().getTargetDatabase(), this);
+        getPlayPen().getContentPane().removeComponentPropertyListener(this);
+        frame.removePropertyChangeListener(this);
+        JScrollPane playpenScrollPane = frame.getCurrentSession().getPlayPenScrollPane();
+        playpenScrollPane.getVerticalScrollBar().removeAdjustmentListener(this);
+        playpenScrollPane.getHorizontalScrollBar().removeAdjustmentListener(this);
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        if ("currentSession".equals(evt.getPropertyName())) {
+            ArchitectSwingSession oldSession = (ArchitectSwingSession) evt.getOldValue();
+            
+            SQLPowerUtils.unlistenToHierarchy(oldSession.getTargetDatabase(), this);
+            oldSession.getPlayPen().getContentPane().removeComponentPropertyListener(this);
+            JScrollPane oldScrollPane = oldSession.getPlayPenScrollPane();
+            oldScrollPane.getVerticalScrollBar().removeAdjustmentListener(this);
+            oldScrollPane.getHorizontalScrollBar().removeAdjustmentListener(this);
+            
+            SQLPowerUtils.listenToHierarchy(frame.getCurrentSession().getTargetDatabase(), this);
+            frame.getCurrentSession().getPlayPen().getContentPane().addComponentPropertyListener(this);
+            JScrollPane newScrollPane = frame.getCurrentSession().getPlayPenScrollPane();
+            newScrollPane.getVerticalScrollBar().addAdjustmentListener(this);
+            newScrollPane.getHorizontalScrollBar().addAdjustmentListener(this);
+            
+            navigationPanel.repaint();
+        }
     }
 }

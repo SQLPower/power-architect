@@ -26,7 +26,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 /**
  * Closes the session when invoked.
@@ -36,8 +36,8 @@ public class CloseProjectAction extends AbstractArchitectAction {
     /**
      * Creates a new close action for the given session.
      */
-    public CloseProjectAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("CloseProjectAction.name"), Messages.getString("CloseProjectAction.description"), (Icon) null); //$NON-NLS-1$ //$NON-NLS-2$
+    public CloseProjectAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("CloseProjectAction.name"), Messages.getString("CloseProjectAction.description"), (Icon) null); //$NON-NLS-1$ //$NON-NLS-2$
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_W,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -47,6 +47,6 @@ public class CloseProjectAction extends AbstractArchitectAction {
      * Closes the session associated with this action.
      */
     public void actionPerformed(ActionEvent e) {
-        session.close();
+        getSession().close();
     }
 }

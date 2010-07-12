@@ -24,27 +24,23 @@ import javax.swing.AbstractAction;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 public class SelectAllAction extends AbstractAction {
 
 	private static final Logger logger = Logger.getLogger(PrintAction.class);
 
-	/**
-	 * The PlayPen instance that this Action operates on.
-	 */
-	private final PlayPen pp;
-
-	public SelectAllAction(ArchitectSwingSession session) {
+	private final ArchitectFrame frame;
+	
+	public SelectAllAction(ArchitectFrame frame) {
 		super(Messages.getString("SelectAllAction.name")); //$NON-NLS-1$
 		putValue(SHORT_DESCRIPTION, Messages.getString("SelectAllAction.description")); //$NON-NLS-1$
-        pp = session.getPlayPen();
+		this.frame = frame;
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		logger.debug(getValue(SHORT_DESCRIPTION) + ": started"); //$NON-NLS-1$
-		pp.selectAll();
+		frame.getCurrentSession().getPlayPen().selectAll();
 	}
 	
 }

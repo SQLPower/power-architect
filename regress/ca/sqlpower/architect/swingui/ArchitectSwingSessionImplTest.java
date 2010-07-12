@@ -145,7 +145,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         }
 
         @Override
-        public ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException {
+        public ArchitectSwingSession createSession() throws SQLObjectException {
             return new ArchitectSwingSessionImpl(this, "testing");
         }
     }
@@ -156,7 +156,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
      */
     public void testCloseSessionWithoutGUI() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
-        ArchitectSwingSession session = context.createSession(false);
+        ArchitectSwingSession session = context.createSession();
         session.close();
     }
     
@@ -166,7 +166,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
      */
     public void testIsNewFalseAfterProjectLoad() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
-        ArchitectSwingSession session = context.createSession(false);
+        ArchitectSwingSession session = context.createSession();
         assertTrue(session.isNew());
         ((ArchitectSwingSessionImpl) session).setUserPrompterFactory(new DefaultUserPrompterFactory());
         
@@ -181,7 +181,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
      */
     public void testIsNewFalseAfterPropertyChangeEvent() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
-        ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl)context.createSession(false);
+        ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl)context.createSession();
         assertTrue(session.isNew());
         
         PropertyChangeEvent e = new PropertyChangeEvent(new SQLDatabase(), "property", "old", "new");
@@ -191,7 +191,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     
     public void testRelationshipLinePrefUpdatesRelationships() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
-        ArchitectSwingSession session = (ArchitectSwingSession)context.createSession(false);
+        ArchitectSwingSession session = (ArchitectSwingSession)context.createSession();
         
         SQLDatabase db = new SQLDatabase();
         SQLTable t1 = new SQLTable(db, true);
@@ -216,7 +216,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     
     public void testSaveAndLoadRelationshipLineType() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
-        ArchitectSwingSession session = context.createSession(false);
+        ArchitectSwingSession session = context.createSession();
         ((ArchitectSwingSessionImpl) session).setUserPrompterFactory(new DefaultUserPrompterFactory());
         session.getProjectLoader().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni());
         
@@ -226,7 +226,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         session.getProjectLoader().save(out, "utf-8");
         
-        ArchitectSwingSession loadedSession = context.createSession(false);
+        ArchitectSwingSession loadedSession = context.createSession();
         ((ArchitectSwingSessionImpl) loadedSession).setUserPrompterFactory(new DefaultUserPrompterFactory());
         loadedSession.getProjectLoader().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
         assertEquals(newValueForStraightLines, loadedSession.getRelationshipLinesDirect());
@@ -238,9 +238,9 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     
     public void testDBTreeChangeUpdatesIsNew() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
-        ArchitectSwingSession session = context.createSession(false);
-        session.getSourceDatabases().addSourceConnection(new JDBCDataSource(context.getPlDotIni()));
-        assertEquals(2, session.getSourceDatabases().getDatabaseList().size());
+        ArchitectSwingSession session = context.createSession();
+        session.getDBTree().addSourceConnection(new JDBCDataSource(context.getPlDotIni()));
+        assertEquals(2, session.getDBTree().getDatabaseList().size());
         assertFalse(session.isNew());
     }
     
@@ -251,14 +251,14 @@ public class ArchitectSwingSessionImplTest extends TestCase {
      */
     public void testDnDAcrossSessionsRemovesSource() throws Exception {
         TestingArchitectSwingSessionContext sourceContext = new TestingArchitectSwingSessionContext();
-        final ArchitectSwingSession sourceSession = sourceContext.createSession(false);
+        final ArchitectSwingSession sourceSession = sourceContext.createSession();
         
         final SQLTable sourceTable = new SQLTable(sourceSession.getTargetDatabase(), true);
         SQLColumn sourceColumn = new SQLColumn(sourceTable, "Source column", Types.VARCHAR, 10, 0);
         sourceTable.addColumn(sourceColumn);
         
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        final ArchitectSwingSession session = context.createSession(false);
+        final ArchitectSwingSession session = context.createSession();
 
         SQLTable table = new SQLTable(session.getTargetDatabase(), true);
         SQLColumn column = sourceColumn.createInheritingInstance(table);
@@ -272,7 +272,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
      */
     public void testDnDWithinSessionKeepsSource() throws Exception {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        final ArchitectSwingSession session = context.createSession(false);
+        final ArchitectSwingSession session = context.createSession();
         SQLDatabase db = new SQLDatabase();
         session.setSourceDatabaseList(Collections.singletonList(db));
         assertEquals(session.getRootObject(), session.getTargetDatabase().getParent());

@@ -50,7 +50,7 @@ import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.util.SQLPowerUtils;
 
 public class TestPlayPen extends TestCase {
-	ArchitectFrame af;
+	ArchitectSwingSession session;
 	private PlayPen pp;
 	private SQLDatabase ppdb;
 	
@@ -60,8 +60,7 @@ public class TestPlayPen extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        ArchitectSwingSession session = context.createSession(false);
-		af = session.getArchitectFrame();
+        session = context.createSession();
 		pp = session.getPlayPen();
 		ppdb = session.getTargetDatabase();
 
@@ -81,7 +80,7 @@ public class TestPlayPen extends TestCase {
 		assertNotNull(pp.findTablePane(t));
 
 		//Undo the add child and the move table pane
-		af.getUndoManager().undo();
+		session.getUndoManager().undo();
 
 		assertNull(pp.findTablePane(t));
 	}
@@ -104,13 +103,13 @@ public class TestPlayPen extends TestCase {
 		assertNotNull(ppdb.getTableByName("test_me"));
 		assertNotNull(pp.findTablePane(t));
 		//undo the add child and the move table pane
-		System.out.println("Undo action is "+af.getUndoManager().getUndoPresentationName());
-		af.getUndoManager().undo();
-		System.out.println("After undo, undo action is "+af.getUndoManager().getUndoPresentationName());
+		System.out.println("Undo action is "+session.getUndoManager().getUndoPresentationName());
+		session.getUndoManager().undo();
+		System.out.println("After undo, undo action is "+session.getUndoManager().getUndoPresentationName());
 		assertNull(ppdb.getTableByName("test_me"));
 		assertNull(pp.findTablePane(t));
 		// redo the add table and the move
-		af.getUndoManager().redo();
+		session.getUndoManager().redo();
 		tp = pp.findTablePane(t);
 		assertNotNull("Table pane didn't come back!", tp);
 		assertEquals("Table came back, but in wrong location",

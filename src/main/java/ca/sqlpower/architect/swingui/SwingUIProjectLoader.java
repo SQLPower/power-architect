@@ -147,7 +147,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
      * loading into and saving out from.
      * @throws NullPointerException if the given session is null
      */
-    public SwingUIProjectLoader(ArchitectSwingSession session) throws SQLObjectException {
+    public SwingUIProjectLoader(ArchitectSwingSession session) {
         super(session);
         
         if (session == null) {
@@ -778,9 +778,9 @@ public class SwingUIProjectLoader extends ProjectLoader {
             int pmMax = 0;
             pm.setMinimum(0);
             if (getSession().isSavingEntireSource()) {
-                pmMax = SQLObjectUtils.countTablesSnapshot((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
+                pmMax = SQLObjectUtils.countTablesSnapshot((SQLObject) getSession().getDBTree().getModel().getRoot());
             } else {
-                pmMax = SQLObjectUtils.countTables((SQLObject) getSession().getSourceDatabases().getModel().getRoot());
+                pmMax = SQLObjectUtils.countTables((SQLObject) getSession().getDBTree().getModel().getRoot());
             }
             logger.debug("Setting progress monitor maximum to "+pmMax); //$NON-NLS-1$
             pm.setMaximum(pmMax);
@@ -940,7 +940,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.println(out, "<project-data-sources>"); //$NON-NLS-1$
         ioo.indent++;
         int dsNum = 0;
-        SQLObject dbTreeRoot = (SQLObject) getSession().getSourceDatabases().getModel().getRoot();
+        SQLObject dbTreeRoot = (SQLObject) getSession().getDBTree().getModel().getRoot();
         Iterator<? extends SQLObject> it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
             SQLObject o = it.next();
@@ -1091,7 +1091,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
     private void saveSourceDatabases(PrintWriter out) throws IOException, SQLObjectException {
         ioo.println(out, "<source-databases>"); //$NON-NLS-1$
         ioo.indent++;
-        SQLObject dbTreeRoot = (SQLObject) getSession().getSourceDatabases().getModel().getRoot();
+        SQLObject dbTreeRoot = (SQLObject) getSession().getDBTree().getModel().getRoot();
         Iterator<? extends SQLObject> it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
             SQLObject o = it.next();

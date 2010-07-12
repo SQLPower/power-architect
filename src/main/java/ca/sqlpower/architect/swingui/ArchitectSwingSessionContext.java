@@ -60,56 +60,28 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
     public static final String COMMUNITY_FORUM_URL = "http://www.sqlpower.ca/page/enter_forum";
 
     /**
-     * Creates a new session within this parent context.  This will cause an
-     * Architect Frame to appear on the user's desktop with a new empty project
-     * in it.
-     * <p>
-     * Important note: This method must be called on the Swing Event Dispatch
-     * Thread.  See SwingUtilities.invokeLater() for a way of ensuring this method
-     * is called on the proper thread.
-     * @throws SQLObjectException 
+     * Creates a new session within this parent context. It will not display a
+     * GUI unless added to an {@link ArchitectFrame}.
+     * 
+     * @throws SQLObjectException
+     * @return The newly created Session.
      */
     public abstract ArchitectSwingSession createSession() throws SQLObjectException;
-    
-    /**
-     * Creates a new session within this parent context.  This will cause an
-     * Architect Frame to appear on the user's desktop with a new empty project
-     * in it.
-     * <p>
-     * <b>Important note:</b> If showGUI is true, this method must be called on
-     * the Swing Event Dispatch Thread.  See SwingUtilities.invokeLater() for a
-     * way of ensuring this method is called on the proper thread.
-     * 
-     * @param showGUI True if you want this session to have its own (visible)\
-     * ArchitectFrame instance; false for an invisible session.
-     * @return The new session
-     */
-    public abstract ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException;
-    
-    /**
-     * Creates a new session by loading the Architect XML project description
-     * from the given input stream.
-     * 
-     * @param in The input stream to read the XML data from
-     * @param showGUI True if you want this session to have its own (visible)\
-     * ArchitectFrame instance; false for an invisible session.
-     * @return The new session
-     */
-    public abstract ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws SQLObjectException, IOException;
 
     /**
-     * Creates a new session that will have its GUI components positioned relative to the GUI components
-     * of the given ArchitectSwingSession. Typically, the given ArchitectSwingSession is the session from
-     * where the call to create a new session was made. (ex. the given session's 'Open Project' button was
-     * pressed). If the given session is null, then it will default to using the most recently saved GUI
-     * component positions in the user preferences in {@link ArchitectSwingUserSettings}. 
+     * Creates a new session by loading the Architect XML project description
+     * from the given input stream. It will not display a GUI unless added to an
+     * {@link ArchitectFrame}.
      * 
-     * @param openingSession
-     * @return
-     * @throws SQLObjectException
+     * @param in
+     *            The input stream to read the XML data from
+     * @param showGUI
+     *            True if you want this session to have its own (visible)\
+     *            ArchitectFrame instance; false for an invisible session.
+     * @return The newly created Session.
      */
-    public abstract ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException;
-    
+    public abstract ArchitectSwingSession createSession(InputStream in) throws SQLObjectException, IOException;
+
     /**
      * Returns true iff this context is running on a Mac OS X machine.  Some
      * UI features are different under that platform to increase the illusion
@@ -159,4 +131,12 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * system's clipboard depending on the information contained by each.
      */
     public void setClipboardContents(Transferable t);
+
+    /**
+     * Registers this frame with the context, and allows enterprise features to
+     * modify it.
+     * 
+     * @param frame
+     */
+    void registerFrame(ArchitectFrame frame);
 }

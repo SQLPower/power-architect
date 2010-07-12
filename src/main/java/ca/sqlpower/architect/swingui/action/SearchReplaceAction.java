@@ -22,26 +22,19 @@ import java.awt.event.ActionEvent;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.SearchReplace;
 
 public class SearchReplaceAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(SearchReplaceAction.class);
     
-    /**
-     * The DBTree instance that is associated with this Action.
-     */
-    protected final DBTree dbt;
-    
-    public SearchReplaceAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("SearchReplaceAction.name"), Messages.getString("SearchReplaceAction.description"), "search_replace"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        dbt = frame.getDbTree();
+    public SearchReplaceAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("SearchReplaceAction.name"), Messages.getString("SearchReplaceAction.description"), "search_replace"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
     
     public void actionPerformed(ActionEvent evt) {
     	logger.debug(getValue(SHORT_DESCRIPTION) + ": started"); //$NON-NLS-1$
         SearchReplace sr = new SearchReplace();
-        sr.showSearchDialog(playpen);
+        sr.showSearchDialog(getPlaypen());
     }
 }

@@ -50,7 +50,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        PlayPenContentPane pane = playpen.getContentPane();
+        PlayPenContentPane pane = getPlaypen().getContentPane();
         pane.begin("Creating VirtualCube and VirtualCubePane");
         try {
             VirtualCube vCube = new VirtualCube();
@@ -61,7 +61,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
             }
             vCube.setName("New Virtual Cube " + count);
 
-            VirtualCubePane cp = new VirtualCubePane(vCube, playpen.getContentPane());
+            VirtualCubePane cp = new VirtualCubePane(vCube, getPlaypen().getContentPane());
             VirtualCubePlacer cubePlacer = new VirtualCubePlacer(cp);
             cubePlacer.dirtyup();
             pane.commit();
@@ -76,7 +76,7 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
         private final VirtualCubePane vcp;
 
         VirtualCubePlacer(VirtualCubePane vcp) {
-            super(CreateVirtualCubeAction.this.playpen);
+            super(CreateVirtualCubeAction.this.getPlaypen());
             this.vcp = vcp;
         }
         
@@ -89,14 +89,14 @@ public class CreateVirtualCubeAction extends AbstractArchitectAction {
         public DataEntryPanel place(Point p) throws SQLObjectException {
             
             try {
-                session.getWorkspace().begin("Create a virtual cube");
+                getSession().getWorkspace().begin("Create a virtual cube");
                 schema.addVirtualCube(vcp.getModel());            
                 playpen.selectNone();
                 playpen.addPlayPenComponent(vcp, p);
                 vcp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                session.getWorkspace().commit();
+                getSession().getWorkspace().commit();
             } catch (Throwable e) {
-                session.getWorkspace().rollback("Error occurred: " + e.toString());
+                getSession().getWorkspace().rollback("Error occurred: " + e.toString());
                 throw new RuntimeException(e);
             }
 

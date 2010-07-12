@@ -25,12 +25,11 @@ import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.etl.ExportCSV;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 
@@ -38,38 +37,25 @@ public class ExportCSVAction extends AbstractAction {
 
     private static final Logger logger = Logger.getLogger(ExportCSVAction.class);
     
-    /**
-     * The session that this action operates on.
-     */
-    private final ArchitectSession session;
+    private final ArchitectFrame frame;
     
-    /**
-     * The frame that will own the dialog(s) created by this action.
-     * Neither argument is allowed to be null.
-     */
-    private final JFrame parentFrame;
-    
-    public ExportCSVAction(JFrame parentFrame, ArchitectSession session) {
+    public ExportCSVAction(ArchitectFrame frame) {
         super(Messages.getString("ExportCSVAction.name")); //$NON-NLS-1$
-        
-        if (session == null) throw new NullPointerException("Null session"); //$NON-NLS-1$
-        this.session = session;
-
-        if (parentFrame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
-        this.parentFrame = parentFrame;
+        this.frame = frame;
     }
     
     public void actionPerformed(ActionEvent e) {
         FileWriter output = null;
         try {
-            ExportCSV export = new ExportCSV(session.getTargetDatabase().getTables());
+            if (frame.getCurrentSession() == null) return;
+            ExportCSV export = new ExportCSV(frame.getCurrentSession().getTargetDatabase().getTables());
 
             File file = null;
 
             JFileChooser fileDialog = new JFileChooser();
             fileDialog.setSelectedFile(new File("map.csv")); //$NON-NLS-1$
 
-            if (fileDialog.showSaveDialog(parentFrame) == JFileChooser.APPROVE_OPTION){
+            if (fileDialog.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION){
                 file = fileDialog.getSelectedFile();
             } else {
                 return;

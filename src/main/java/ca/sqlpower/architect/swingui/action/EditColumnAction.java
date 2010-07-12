@@ -29,12 +29,15 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
+import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -43,20 +46,30 @@ import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
-public class EditColumnAction extends AbstractArchitectAction implements SelectionListener {
+public class EditColumnAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditColumnAction.class);
 
+	private SelectionHandler selectionHandler = new SelectionHandler();
+	
 	public EditColumnAction(ArchitectSwingSession session) {
         super(session, Messages.getString("EditColumnAction.name"), Messages.getString("EditColumnAction.description"), "edit_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        setEnabled(false);
+        
+        session.getPlayPen().addSelectionListener(selectionHandler);
+        setupAction(getPlaypen().getSelectedItems());
+    }
+	
+	public EditColumnAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("EditColumnAction.name"), Messages.getString("EditColumnAction.description"), "edit_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		setEnabled(false);
         
-        playpen.addSelectionListener(this);
-        setupAction(playpen.getSelectedItems());
+        frame.addSelectionListener(selectionHandler);
+        setupAction(getPlaypen().getSelectedItems());
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 	    List<SQLColumn> selectedCols = new ArrayList<SQLColumn>();
-	    for (PlayPenComponent ppc : playpen.getSelectedItems()) {
+	    for (PlayPenComponent ppc : getPlaypen().getSelectedItems()) {
 	        if (ppc instanceof TablePane) {
 	            TablePane tp = (TablePane) ppc;
 	            selectedCols.addAll(tp.getSelectedItems());
@@ -64,12 +77,12 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	    }
 	        
 	    if (selectedCols.isEmpty()) {
-	        JOptionPane.showMessageDialog(playpen, Messages.getString("EditColumnAction.noColumnSelected")); //$NON-NLS-1$
+	        JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditColumnAction.noColumnSelected")); //$NON-NLS-1$
 	        return;
 	    }
 	    
 	    try {
-	        ColumnEditPanel cep = new ColumnEditPanel(selectedCols, session);
+	        ColumnEditPanel cep = new ColumnEditPanel(selectedCols, getSession());
 	        String dialogTitle;
 	        if (selectedCols.size() == 1) {
 	            SQLColumn column = selectedCols.get(0);
@@ -84,7 +97,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	        d.setVisible(true);
 	        
         } catch (SQLObjectException ex) {
-            ASUtils.showExceptionDialog(session, "Failed to create column property editor", ex);
+            ASUtils.showExceptionDialog(getSession(), "Failed to create column property editor", ex);
         }
 
 	}
@@ -109,20 +122,20 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			if (!addToTable) {
                 column = st.getColumn(colIdx);
 			} else {
-			    if (session.getSQLTypes().size() > 0) {
+			    if (getSession().getSQLTypes().size() > 0) {
 			        
 			        // Iterate through the list of SQL Types, 
 			        // uses the default one (if defined) from the 
 			        // user preferences to create the SQLColumn.
 			        UserDefinedSQLType defaultType = null;
-			        for (UserDefinedSQLType type : session.getSQLTypes()) {
+			        for (UserDefinedSQLType type : getSession().getSQLTypes()) {
 			            if (type.getType() == SQLColumn.getDefaultType()) {
 			                defaultType = type;
 			                break;
 			            }
 			        }
 			        if (defaultType == null) {
-			            defaultType = session.getSQLTypes().get(0);
+			            defaultType = getSession().getSQLTypes().get(0);
 			        }
 			        column = new SQLColumn(defaultType);
 			    } else {
@@ -138,7 +151,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
                 }
 			}
 			
-			final ColumnEditPanel columnEditPanel = new ColumnEditPanel(column, session);
+			final ColumnEditPanel columnEditPanel = new ColumnEditPanel(column, getSession());
 			
 			JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					columnEditPanel,
@@ -154,7 +167,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							        tp.selectNone();
 							        tp.selectItem(colIdx); // select new column
 							    } catch (SQLObjectException e) {
-							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e); //$NON-NLS-1$
+							        ASUtils.showExceptionDialog(getSession(), "Error Could not add column to table", e); //$NON-NLS-1$
 							    }
 							}
 	                        Boolean ret = Boolean.valueOf(columnEditPanel.applyChanges());
@@ -208,14 +221,29 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			putValue(SHORT_DESCRIPTION, Messages.getString("EditColumnAction.specificColumnShortDescription", name)); //$NON-NLS-1$
 		}
 	}
-		
-	public void itemSelected(SelectionEvent e) {
-		setupAction(playpen.getSelectedItems());
-		
-	}
+	
+	@SuppressWarnings("unchecked")
+    private class SelectionHandler implements SelectionListener, ItemSelectionListener {
 
-	public void itemDeselected(SelectionEvent e) {
-		setupAction(playpen.getSelectedItems());
+	    public void itemSelected(SelectionEvent e) {
+            setupAction(getPlaypen().getSelectedItems());
+            if (e.getSource() instanceof ContainerPane) {
+                ((ContainerPane) e.getSource()).addItemSelectionListener(this);
+            }
+        }
+        public void itemDeselected(SelectionEvent e) {
+            setupAction(getPlaypen().getSelectedItems());
+            if (e.getSource() instanceof ContainerPane) {
+                ((ContainerPane) e.getSource()).removeItemSelectionListener(this);
+            }
+        }
+        public void itemsDeselected(ItemSelectionEvent e) {
+            setupAction(getPlaypen().getSelectedItems());
+        }
+        public void itemsSelected(ItemSelectionEvent e) {
+            setupAction(getPlaypen().getSelectedItems());
+        }
+	    
 	}
 
 }

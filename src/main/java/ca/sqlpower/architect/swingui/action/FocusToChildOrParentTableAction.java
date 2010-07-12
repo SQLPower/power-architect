@@ -24,7 +24,7 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -33,13 +33,13 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction{
     
     private boolean isToFocusParentTable;
 
-    public FocusToChildOrParentTableAction(ArchitectSwingSession session, String actionName, String actionDescription, boolean isToFocusParentTable) {
-        super(session, actionName, actionDescription);
+    public FocusToChildOrParentTableAction(ArchitectFrame frame, String actionName, String actionDescription, boolean isToFocusParentTable) {
+        super(frame, actionName, actionDescription);
         this.isToFocusParentTable = isToFocusParentTable;
     }
 
     public void actionPerformed(ActionEvent e) {
-        List<Relationship> selection = playpen.getSelectedRelationShips();
+        List<Relationship> selection = getPlaypen().getSelectedRelationShips();
         if (selection.size() == 1) {
             TablePane focusingTable;
             if(isToFocusParentTable) {
@@ -47,11 +47,11 @@ public class FocusToChildOrParentTableAction extends AbstractArchitectAction{
             } else {
                 focusingTable = selection.get(0).getFkTable();
             }
-            playpen.selectNone();
+            getPlaypen().selectNone();
             focusingTable.setSelected(true, SelectionEvent.SINGLE_SELECT);
-            playpen.showSelected();
+            getPlaypen().showSelected();
         } else {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("FocusToChildOrParentTableAction.selectExactlyOneRelationship")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("FocusToChildOrParentTableAction.selectExactlyOneRelationship")); //$NON-NLS-1$
         }
     }
 }

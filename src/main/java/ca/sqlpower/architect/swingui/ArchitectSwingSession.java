@@ -21,8 +21,10 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Window;
 import java.util.List;
 
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
+import javax.swing.JScrollPane;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
@@ -71,18 +73,27 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public ArchitectFrame getArchitectFrame();
     
     /**
-     * Gets the value of sourceDatabases
-     *
-     * @return the value of sourceDatabases
-     */
-    public DBTree getSourceDatabases();
-    
-    /**
      * Gets the value of playPen
      *
      * @return the value of playPen
      */
     public PlayPen getPlayPen();
+    
+    /**
+     * Gets the panel that contains the playpen.
+     */
+    public JComponent getProjectPanel();
+
+    /**
+     * Sets the component that will be displayed on the right half of the screen
+     * when this session is active.
+     */
+    public void setProjectPanel(JComponent panel);
+    
+    /**
+     * Returns the DBTree associated with this session.
+     */
+    public DBTree getDBTree();
     
     /**
      * Gets the UndoManager keeping track of changes in this session
@@ -140,29 +151,13 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Initializes the GUI components for this session. Call this only if you need a GUI.
      * This method must be called on the Swing Event Dispatch Thread.
      * 
+     * @param parentFrame The ArchitectFrame that will contain this session
      * @throws SQLObjectException
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    public void initGUI() throws SQLObjectException;
+    public void initGUI(ArchitectFrame parentFrame);
 
-    /**
-     * Like initGUI(), this method initializes the GUI components for this
-     * session, with the exception that the GUI components will get positioned
-     * relative to the GUI component of the given ArchitectSwingSession. As with
-     * initGUI(), call this only if you need a GUI. This method must be called
-     * on the Swing Event Dispatch Thread.
-     * 
-     * @param openingSession
-     *            The ArchitectSwingSession to which this session's GUI
-     *            components will be positioned relative to
-     * @throws SQLObjectException
-     * @throws IllegalStateException
-     *             if showGUI==true and this method was not called on the Event
-     *             Dispatch Thread.
-     */
-    public void initGUI(ArchitectSwingSession openingSession) throws SQLObjectException;
-    
     /**
      * Returns true if the session contains a completely new and unmodified project.
      * Otherwise, it returns false.
@@ -174,7 +169,7 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * since the project was last loaded.  
      */
     public boolean isNew();
-
+    
     /**
      * Relationship line style: True means direct lines; false means only horizontal
      * and vertical lines.
@@ -342,4 +337,8 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public void runInBackground(Runnable runner, String threadName);
     
     public ProjectSettings getProjectSettings();
+
+    public JScrollPane getPlayPenScrollPane();
+
+    void setPlayPenScrollPane(JScrollPane ppScrollPane);
 }

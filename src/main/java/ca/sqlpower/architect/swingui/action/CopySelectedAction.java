@@ -29,23 +29,23 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBTree;
 
 public class CopySelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(CopySelectedAction.class);
     
-    public CopySelectedAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("CopySelectedAction.name"), Messages.getString("CopySelectedAction.description"));
+    public CopySelectedAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("CopySelectedAction.name"), Messages.getString("CopySelectedAction.description"));
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     }
 
     public void actionPerformed(ActionEvent e) {
-        final DBTree dbTree = session.getSourceDatabases();
-        final Component focusOwner = session.getArchitectFrame().getFocusOwner();
+        final DBTree dbTree = getSession().getDBTree();
+        final Component focusOwner = getSession().getArchitectFrame().getFocusOwner();
         logger.debug("Copy action invoked. Focus owner is " + focusOwner);
-        if (session.getArchitectFrame().isAncestorOf(focusOwner)) {
+        if (getSession().getArchitectFrame().isAncestorOf(focusOwner)) {
             dbTree.copySelection();
         }
     }

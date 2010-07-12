@@ -98,7 +98,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
                 } else {
                     remarks.append("[playpen was null]");
                 }
-                DBTree dbt = session.getSourceDatabases();
+                DBTree dbt = session.getDBTree();
                 if (dbt != null) {
                     TreeModel dbtm = dbt.getModel();
                     if (dbtm != null) {

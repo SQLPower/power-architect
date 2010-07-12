@@ -20,34 +20,40 @@
 package ca.sqlpower.architect.swingui.action.enterprise;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 
 public class RefreshProjectAction extends AbstractAction {
 
     private static final ImageIcon REFRESH_ICON = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow_refresh16.png"));
     
-    final ArchitectSession session;
+    private final ArchitectFrame frame;
 
-    public RefreshProjectAction(ArchitectSession session) {
+    public RefreshProjectAction(final ArchitectFrame frame) {
         super("Refresh", REFRESH_ICON);
+        this.frame = frame;
         putValue(Action.SHORT_DESCRIPTION, "Refresh");
         
-        if (session.isEnterpriseSession()) {
-            setEnabled(true);
-        } else {
-            setEnabled(false);
-        }
+        setEnabled(frame.getCurrentSession().isEnterpriseSession());
+        
+        frame.addPropertyChangeListener(new PropertyChangeListener() {
+           public void propertyChange(PropertyChangeEvent e) {
+               if ("currentSession".equals(e.getPropertyName())) {
+                   setEnabled(frame.getCurrentSession().isEnterpriseSession());
+               }
+           }
+        });
 
-        this.session = session;
     }
     
     public void actionPerformed(ActionEvent e) {
-        ((ArchitectSwingSessionImpl) session).refresh();
+        ((ArchitectSwingSessionImpl) frame.getCurrentSession()).refresh();
     }
 }

@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -78,6 +79,17 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     public ExportPlaypenToPDFAction(ArchitectSwingSession session, PlayPen playPen) {
         super(session, playPen, Messages.getString("ExportPlaypenToPDFAction.name"), Messages.getString("ExportPlaypenToPDFAction.description"), null); //$NON-NLS-1$ //$NON-NLS-2$
     }
+    
+    /**
+     * Creates an action that exports the frame's current session's relational playpen to a PDF
+     * file.
+     * 
+     * @param frame
+     *            The ArchitectFrame that owns the action
+     */
+    public ExportPlaypenToPDFAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("ExportPlaypenToPDFAction.name"), Messages.getString("ExportPlaypenToPDFAction.description"), null); //$NON-NLS-1$ //$NON-NLS-2$
+    }
 
     /**
      *  When an action is performed on this it pops up the save dialog
@@ -86,13 +98,13 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
      */
     public boolean setup(MonitorableImpl monitor, Map<String,Object> properties) {
         monitor.setStarted(true);
-        JFileChooser chooser = new JFileChooser(session.getRecentMenu().getMostRecentFile());
+        JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.PDF_FILE_FILTER);
-        monitor.setJobSize(playpen.getContentPane().getChildren().size());
+        monitor.setJobSize(getPlaypen().getContentPane().getChildren().size());
         
         File file = null;
         while (true) {
-            int response = chooser.showSaveDialog(playpen);
+            int response = chooser.showSaveDialog(getPlaypen());
 
             if (response != JFileChooser.APPROVE_OPTION) {
                 return false;
@@ -121,7 +133,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     
         properties.put(FILE_KEY,file);
         
-        playPen = new PlayPen(session, playpen);
+        playPen = new PlayPen(getSession(), getPlaypen());
         
         // don't need this playpen to be interactive or respond to SQLObject changes
         playPen.destroy();
@@ -136,7 +148,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
 
     @Override
     public void doStuff(MonitorableImpl monitor, Map<String, Object> properties) {
-        logger.debug("Creating PDF of playpen: " + playpen);
+        logger.debug("Creating PDF of playpen: " + getPlaypen());
         
         //This is the current play pen snapshot at the time of starting the worker
         //thread. This way the play pen doesn't change while it is printing.
@@ -183,7 +195,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             pp.paintComponent(g);
             g.dispose();
         } catch (Exception ex) {
-            ASUtils.showExceptionDialog(session, 
+            ASUtils.showExceptionDialog(getSession(), 
                     Messages.getString("ExportPlaypenToPDFAction.couldNotExportPlaypen"),  //$NON-NLS-1$
                     ex);
         } finally {
@@ -191,7 +203,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 try {
                     d.close();
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialog(session,
+                    ASUtils.showExceptionDialog(getSession(),
                             Messages.getString("ExportPlaypenToPDFAction.couldNotCloseDocument"),  //$NON-NLS-1$
                             ex);
                 }
@@ -201,7 +213,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                     out.flush();
                     out.close();
                 } catch (IOException ex) {
-                    ASUtils.showExceptionDialog(session,
+                    ASUtils.showExceptionDialog(getSession(),
                         Messages.getString("ExportPlaypenToPDFAction.couldNotClosePdfFile"),  //$NON-NLS-1$
                         ex);
                 }

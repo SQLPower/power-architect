@@ -33,7 +33,6 @@ import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -42,11 +41,12 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.enterprise.ProjectLocation;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 import ca.sqlpower.enterprise.client.SPServerInfo;
@@ -62,7 +62,7 @@ public class ServerProjectsManagerPanel {
 
     private final Component dialogOwner;
     private final ArchitectSessionContext context;
-    private final ArchitectSession session;
+    private final ArchitectSwingSession session;
     
     private final JPanel panel;
     private final Action closeAction;
@@ -114,8 +114,10 @@ public class ServerProjectsManagerPanel {
                             ProjectLocation location = (ProjectLocation) obj;
                             try {
                                 
-                                ArchitectSession newSession = ((ArchitectSwingSessionContextImpl) context).createServerSession(location, true, false);
-                                JFrame frame = ((ArchitectSwingSessionImpl) newSession).getArchitectFrame();
+                                ArchitectSwingSession newSession = ((ArchitectSwingSessionContextImpl) context).createServerSession(location, false);
+                                ArchitectFrame frame = session.getArchitectFrame();
+                                frame.addSession(newSession);
+                                frame.setCurrentSession(newSession);
                                 
                                 JLabel messageLabel = new JLabel("Opening");
                                 JProgressBar progressBar = new JProgressBar();
@@ -218,7 +220,7 @@ public class ServerProjectsManagerPanel {
 
     public ServerProjectsManagerPanel(
             SPServerInfo serverInfo,
-            ArchitectSession session,
+            ArchitectSwingSession session,
             ArchitectSessionContext context, 
             Component dialogOwner, 
             Action closeAction) 
@@ -269,7 +271,7 @@ public class ServerProjectsManagerPanel {
     }
     
     public ServerProjectsManagerPanel(
-            ArchitectSession session,
+            ArchitectSwingSession session,
             ArchitectSessionContext context, 
             Component dialogOwner, 
             Action closeAction) 
@@ -384,7 +386,7 @@ public class ServerProjectsManagerPanel {
                 ((ArchitectSwingSessionContextImpl) session.getContext()).createSecuritySession(serviceInfo);
                 
                 // Sorts the project locations alphabetically
-                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo, session);
+                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo);
                 Collections.sort(projects, new Comparator<ProjectLocation>() {
                     public int compare(ProjectLocation proj1, ProjectLocation proj2) {
                         return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());

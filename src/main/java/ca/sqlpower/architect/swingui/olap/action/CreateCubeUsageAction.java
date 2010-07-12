@@ -51,21 +51,21 @@ public class CreateCubeUsageAction extends CreateUsageAction<CubePane, VirtualCu
     protected void createUsage(CubePane cp, VirtualCubePane vcp) {
         if (OLAPUtil.isNameUnique(vcp.getModel(), CubeUsage.class, cp.getModel().getName())) {            
             try {
-                session.getWorkspace().begin("Creating cube usage");
+                getSession().getWorkspace().begin("Creating cube usage");
                 CubeUsage cu = new CubeUsage();
                 cu.setCubeName(cp.getModel().getName());
                 vcp.getModel().getCubeUsage().addCubeUsage(cu);
-                UsageComponent uc = new UsageComponent(playpen.getContentPane(), cu, cp, vcp);
-                playpen.getContentPane().addChild(uc, playpen.getContentPane().getChildren().size());
-                session.getWorkspace().commit();
+                UsageComponent uc = new UsageComponent(getPlaypen().getContentPane(), cu, cp, vcp);
+                getPlaypen().getContentPane().addChild(uc, getPlaypen().getContentPane().getChildren().size());
+                getSession().getWorkspace().commit();
             } catch (Throwable e) {
-                session.getWorkspace().rollback("Error occurred: " + e.toString());
+                getSession().getWorkspace().rollback("Error occurred: " + e.toString());
                 throw new RuntimeException(e);
             }
         } else {
             String errorMsg = "Cube Usage \"" + cp.getModel().getName() + "\" alreadys exists in \"" +
                     vcp.getModel().getName() + "\"\nCube Usage was not created.";
-            JOptionPane.showMessageDialog(playpen, errorMsg, "Duplicate Cube Usage", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(getPlaypen(), errorMsg, "Duplicate Cube Usage", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 

@@ -26,8 +26,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
@@ -36,27 +35,21 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 
 public class EditSelectedAction extends AbstractArchitectAction implements SelectionListener {
-    private ArchitectSwingSession session;
-    private PlayPen playpen;
     private static final Logger logger = Logger.getLogger(EditSelectedAction.class);
     
-    public EditSelectedAction(ArchitectSwingSession session) throws SQLObjectException {
-        super(session, Messages.getString("EditSelectedAction.name"), Messages.getString("EditSelectedAction.description"), "edit_selected"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    public EditSelectedAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("EditSelectedAction.name"), Messages.getString("EditSelectedAction.description"), "edit_selected"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         
-        this.session = session;
-        playpen = session.getPlayPen();
-        
-        playpen.addSelectionListener(this);
-        setupAction(playpen.getSelectedItems());
+        frame.addSelectionListener(this);
+        setupAction(getPlaypen().getSelectedItems());
     }
 
     public void actionPerformed(ActionEvent e) {
         
         // Find all selected tables and relationships
-        List<PlayPenComponent> selection = playpen.getSelectedItems();
+        List<PlayPenComponent> selection = getPlaypen().getSelectedItems();
         
         boolean tablesSelected = false;
         boolean relationshipsSelected = false;
@@ -78,32 +71,24 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
         if (columnsSelected && !relationshipsSelected) {
             // note: we expect tables to be selected too in this case, but we ignore that
             // and let the column selections take precedence
-            session.getArchitectFrame().getEditColumnAction().actionPerformed(e);
+            frame.getEditColumnAction().actionPerformed(e);
         } else if (tablesSelected && !relationshipsSelected) {
-            session.getArchitectFrame().getEditTableAction().actionPerformed(e);
+            frame.getEditTableAction().actionPerformed(e);
         } else if (relationshipsSelected && !tablesSelected) {
-            session.getArchitectFrame().getEditRelationshipAction().actionPerformed(e);
+            frame.getEditRelationshipAction().actionPerformed(e);
         } else if (selection.size() > 0) {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(frame, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
         } else {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("EditSelectedAction.noItemsSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(frame, Messages.getString("EditSelectedAction.noItemsSelected")); //$NON-NLS-1$
         }
     }
 
     public void itemSelected(SelectionEvent e) {
-        try {
-            setupAction(playpen.getSelectedItems());
-        } catch (SQLObjectException e1) {
-            throw new SQLObjectRuntimeException(e1);
-        }
+        setupAction(getPlaypen().getSelectedItems());
     }
 
     public void itemDeselected(SelectionEvent e) {
-        try {
-            setupAction(playpen.getSelectedItems());
-        } catch (SQLObjectException e1) {
-            throw new SQLObjectRuntimeException(e1);
-        }
+        setupAction(getPlaypen().getSelectedItems());
     }
 
 
@@ -113,7 +98,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
      * selected item, tries to put its name in the tooltip too!
      * @throws SQLObjectException
      */
-    private void setupAction(List selectedItems) throws SQLObjectException {
+    private void setupAction(List<PlayPenComponent> selectedItems) {
         String description;
         if (selectedItems.size() == 0) {
             setEnabled(false);

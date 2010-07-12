@@ -29,10 +29,8 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -46,26 +44,19 @@ import ca.sqlpower.sqlobject.SQLTable;
 public class ProfileAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(ProfileAction.class);
 
-    private final DBTree dbTree;
-    private final ProfileManager profileManager;
 
-    public ProfileAction(ArchitectSwingSession session, ProfileManager profileManager) {
-        super(session, Messages.getString("ProfileAction.name"), Messages.getString("ProfileAction.desctiption"), "Table_profiled"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        dbTree = frame.getDbTree();
-        if (dbTree == null) {
-            throw new NullPointerException(Messages.getString("ProfileAction.databaseTreeNull")); //$NON-NLS-1$
-        }
-        this.profileManager = profileManager; 
+    public ProfileAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("ProfileAction.name"), Messages.getString("ProfileAction.desctiption"), "Table_profiled"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     private void profileItemsFromDBTree() {
-        TreePath targetDBPath = dbTree.getPathForRow(0);
+        TreePath targetDBPath = getSession().getDBTree().getPathForRow(0);
         
-        if (dbTree.getSelectionPaths() != null) {
-            for (TreePath path: dbTree.getSelectionPaths()){
+        if (getSession().getDBTree().getSelectionPaths() != null) {
+            for (TreePath path: getSession().getDBTree().getSelectionPaths()){
                 if (targetDBPath.isDescendant(path)) {
     
-                    int answer = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
+                    int answer = JOptionPane.showConfirmDialog(getSession().getArchitectFrame(),
                             Messages.getString("ProfileAction.cannotProfileProjectDb"), //$NON-NLS-1$
                             Messages.getString("ProfileAction.continueProfilingOption"),JOptionPane.OK_CANCEL_OPTION); //$NON-NLS-1$
                     if (answer == JOptionPane.CANCEL_OPTION){
@@ -80,13 +71,13 @@ public class ProfileAction extends AbstractArchitectAction {
             //this is a very rare case where you load a project then immediately push 
             //profile, it should not tell you to select a table. All other cases will
             //have something selected
-            dbTree.setSelectionPath(targetDBPath);
+            getSession().getDBTree().setSelectionPath(targetDBPath);
         }
 
-        //logger.debug("dbTree.getSelectionPaths() # = " + dbTree.getSelectionPaths().length);
+        //logger.debug("getSession().getDBTree().getSelectionPaths() # = " + getSession().getDBTree().getSelectionPaths().length);
         try {
             Set<SQLObject> sqlObject = new HashSet<SQLObject>();
-            for ( TreePath tp : dbTree.getSelectionPaths() ) {
+            for ( TreePath tp : getSession().getDBTree().getSelectionPaths() ) {
                 logger.debug("Top of first loop, treepath=" + tp); //$NON-NLS-1$
                 // skip the target db
                 if (targetDBPath.isDescendant(tp)) continue;
@@ -148,19 +139,15 @@ public class ProfileAction extends AbstractArchitectAction {
             }
 
             logger.debug("Calling profileManager.asynchCreateProfiles(tables)"); //$NON-NLS-1$
-            profileManager.asynchCreateProfiles(tables);
-            JDialog profileDialog = session.getProfileDialog();
+            getSession().getProfileManager().asynchCreateProfiles(tables);
+            JDialog profileDialog = getSession().getProfileDialog();
             profileDialog.pack();
             profileDialog.setVisible(true);
 
         } catch (Exception ex) {
             logger.error("Error in Profile Action ", ex); //$NON-NLS-1$
-            ASUtils.showExceptionDialog(session, Messages.getString("ProfileAction.profileError"), ex); //$NON-NLS-1$
+            ASUtils.showExceptionDialog(getSession(), Messages.getString("ProfileAction.profileError"), ex); //$NON-NLS-1$
         }
-    }
-
-    public ProfileManager getProfileManager() {
-        return profileManager;
     }
 
     public void actionPerformed(ActionEvent e) {

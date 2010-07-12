@@ -56,7 +56,7 @@ public class EditMeasureAction extends AbstractArchitectAction{
         try {
             DataEntryPanel panel = new MeasureEditPanel(measure);
             JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Measure Properties", "OK");
-            dialog.setLocationRelativeTo(session.getArchitectFrame());
+            dialog.setLocationRelativeTo(getSession().getArchitectFrame());
             dialog.setVisible(true);
         } catch (SQLObjectException ex) {
             throw new SQLObjectRuntimeException(ex);

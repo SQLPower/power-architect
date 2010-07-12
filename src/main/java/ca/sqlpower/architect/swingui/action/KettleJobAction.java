@@ -41,7 +41,6 @@ import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.KettleJobPanel;
 import ca.sqlpower.architect.swingui.UserRepositoryDirectoryChooser;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -58,11 +57,8 @@ public class KettleJobAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(KettleJobAction.class);
     
-    private ArchitectFrame architectFrame;
-    
-    public KettleJobAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("KettleJobAction.name"), Messages.getString("KettleJobAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
-        architectFrame = session.getArchitectFrame();
+    public KettleJobAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("KettleJobAction.name"), Messages.getString("KettleJobAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
         putValue(SHORT_DESCRIPTION, Messages.getString("KettleJobAction.shortDescription")); //$NON-NLS-1$
     }
     
@@ -72,7 +68,7 @@ public class KettleJobAction extends AbstractArchitectAction {
         JDialog d;
         final JPanel cp = new JPanel(new BorderLayout(12,12));
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        final KettleJobPanel kettleETLPanel = new KettleJobPanel(session);
+        final KettleJobPanel kettleETLPanel = new KettleJobPanel(getSession());
 
         Callable<Boolean> okCall, cancelCall;
         okCall = new Callable<Boolean>() {
@@ -81,11 +77,11 @@ public class KettleJobAction extends AbstractArchitectAction {
                 if (!kettleETLPanel.applyChanges()) {
                     return Boolean.FALSE;
                 }
-                KettleRepositoryDirectoryChooser chooser = new UserRepositoryDirectoryChooser(architectFrame);
-                final KettleJob kettleJob = session.getKettleJob();
+                KettleRepositoryDirectoryChooser chooser = new UserRepositoryDirectoryChooser(frame);
+                final KettleJob kettleJob = getSession().getKettleJob();
                 kettleJob.setRepositoryDirectoryChooser(chooser);
                 
-                final JDialog createKettleJobMonitor = new JDialog(architectFrame);
+                final JDialog createKettleJobMonitor = new JDialog(frame);
                 createKettleJobMonitor.setTitle(Messages.getString("KettleJobAction.progressDialogTitle")); //$NON-NLS-1$
                 FormLayout layout = new FormLayout("pref", ""); //$NON-NLS-1$ //$NON-NLS-2$
                 DefaultFormBuilder builder = new DefaultFormBuilder(layout);
@@ -104,15 +100,15 @@ public class KettleJobAction extends AbstractArchitectAction {
                 builder.append(cancel);
                 createKettleJobMonitor.add(builder.getPanel());
                 
-                SPSwingWorker compareWorker = new SPSwingWorker(session) {
+                SPSwingWorker compareWorker = new SPSwingWorker(getSession()) {
 
                     @Override
                     public void doStuff() throws Exception {
                         createKettleJobMonitor.pack();
-                        createKettleJobMonitor.setLocationRelativeTo(architectFrame);
+                        createKettleJobMonitor.setLocationRelativeTo(frame);
                         createKettleJobMonitor.setVisible(true);
-                        List<SQLTable> tableList = session.getPlayPen().getTables();
-                        kettleJob.doExport(tableList, session.getTargetDatabase());
+                        List<SQLTable> tableList = getSession().getPlayPen().getTables();
+                        kettleJob.doExport(tableList, getSession().getTargetDatabase());
                     }
 
                     @Override
@@ -121,23 +117,23 @@ public class KettleJobAction extends AbstractArchitectAction {
                         if (getDoStuffException() != null) {
                             Throwable ex = getDoStuffException();
                             if (ex instanceof SQLObjectException) {
-                                ASUtils.showExceptionDialog(session, Messages.getString("KettleJobAction.errorReadingTables"), ex); //$NON-NLS-1$
+                                ASUtils.showExceptionDialog(getSession(), Messages.getString("KettleJobAction.errorReadingTables"), ex); //$NON-NLS-1$
                             } else if (ex instanceof RuntimeException || ex instanceof IOException || ex instanceof SQLException) {
                                 StringBuffer buffer = new StringBuffer();
                                 buffer.append(Messages.getString("KettleJobAction.runtimeError")).append("\n"); //$NON-NLS-1$ //$NON-NLS-2$
                                 for(String task: kettleJob.getTasksToDo()) {
                                     buffer.append(task).append("\n"); //$NON-NLS-1$
                                 }
-                                ASUtils.showExceptionDialog(session, buffer.toString(), ex);
+                                ASUtils.showExceptionDialog(getSession(), buffer.toString(), ex);
                             } else if (ex instanceof KettleException) {
-                                ASUtils.showExceptionDialog(session, Messages.getString("KettleJobAction.kettleExceptionDuringExport") + //$NON-NLS-1$
+                                ASUtils.showExceptionDialog(getSession(), Messages.getString("KettleJobAction.kettleExceptionDuringExport") + //$NON-NLS-1$
                                         "\n" + ex.getMessage().trim(), ex); //$NON-NLS-1$
                             } else {
-                                ASUtils.showExceptionDialog(session, Messages.getString("KettleJobAction.unexpectedExceptionDuringExport"), ex); //$NON-NLS-1$
+                                ASUtils.showExceptionDialog(getSession(), Messages.getString("KettleJobAction.unexpectedExceptionDuringExport"), ex); //$NON-NLS-1$
                             }
                             return;
                         }
-                        final JDialog toDoListDialog = new JDialog(architectFrame);
+                        final JDialog toDoListDialog = new JDialog(frame);
                         toDoListDialog.setTitle(Messages.getString("KettleJobAction.kettleTasksDialogTitle")); //$NON-NLS-1$
                         FormLayout layout = new FormLayout("10dlu, 2dlu, fill:pref:grow, 12dlu", "pref, fill:pref:grow, pref"); //$NON-NLS-1$ //$NON-NLS-2$
                         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
@@ -168,7 +164,7 @@ public class KettleJobAction extends AbstractArchitectAction {
                         builder.append(buttonBarBuilder.getPanel());
                         toDoListDialog.add(builder.getPanel());
                         toDoListDialog.pack();
-                        toDoListDialog.setLocationRelativeTo(architectFrame);
+                        toDoListDialog.setLocationRelativeTo(frame);
                         toDoListDialog.setVisible(true);
                     }
                 };
@@ -188,11 +184,11 @@ public class KettleJobAction extends AbstractArchitectAction {
         
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 kettleETLPanel,
-                session.getArchitectFrame(),
+                getSession().getArchitectFrame(),
                 Messages.getString("KettleJobAction.dialogTitle"), Messages.getString("KettleJobAction.okOption"), //$NON-NLS-1$ //$NON-NLS-2$
                 okCall, cancelCall);
         d.pack();
-        d.setLocationRelativeTo(session.getArchitectFrame());
+        d.setLocationRelativeTo(getSession().getArchitectFrame());
         d.setVisible(true);
     }
 }

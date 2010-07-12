@@ -29,6 +29,7 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -42,14 +43,26 @@ public class ZoomToFitAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(ZoomToFitAction.class);
     
     /**
-     * Creates a new zoom action tied to the gicen session's play pen.
+     * Creates a new zoom action tied to the given session's play pen.
      * By default, this action gives itself the accelerator key "z" with
      * no modifiers.
-     * @param pp 
      */
-    public ZoomToFitAction(ArchitectSwingSession session, PlayPen pp) {
-        super(session, 
-                pp, 
+    public ZoomToFitAction(ArchitectSwingSession session, PlayPen playpen) {
+        super(session,
+                playpen,
+                Messages.getString("ZoomToFitAction.name"), //$NON-NLS-1$ 
+                Messages.getString("ZoomToFitAction.description"), //$NON-NLS-1$ 
+                "zoom_fit"); //$NON-NLS-1$
+        putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
+    }
+    
+    /**
+     * Creates a new zoom action tied to the active session's play pen.
+     * By default, this action gives itself the accelerator key "z" with
+     * no modifiers. 
+     */
+    public ZoomToFitAction(ArchitectFrame frame) {
+        super(frame, 
                 Messages.getString("ZoomToFitAction.name"), //$NON-NLS-1$ 
                 Messages.getString("ZoomToFitAction.description"), //$NON-NLS-1$ 
                 "zoom_fit"); //$NON-NLS-1$
@@ -72,14 +85,14 @@ public class ZoomToFitAction extends AbstractArchitectAction {
     private static final double MIN_ZOOM = 1.0;
     
     public void actionPerformed(ActionEvent e) {
-        if (playpen == null) {
+        if (getPlaypen() == null) {
             // It would be best to throw the NPE here, but the old implementation just
             // silently returned with no side effects when the playpen was missing.
             logger.error("No playpen for this action!? Doing nothing..."); //$NON-NLS-1$
             return;
         }
         
-        zoomToFitSelected(playpen);
+        zoomToFitSelected(getPlaypen());
     }
 
     /**

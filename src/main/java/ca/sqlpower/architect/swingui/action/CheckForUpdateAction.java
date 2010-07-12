@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.util.BrowserUtil;
 
@@ -53,10 +54,9 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
     private HttpURLConnection urlc;
     private InputStream propertyInputStream;
 
-    public CheckForUpdateAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
+    public CheckForUpdateAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
                 Messages.getString("CheckForUpdateAction.description")); //$NON-NLS-1$
-        this.session = session;
     }
 
     /**

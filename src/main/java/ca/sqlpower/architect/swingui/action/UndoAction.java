@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 
@@ -43,7 +44,7 @@ public class UndoAction extends AbstractArchitectAction {
 		}
 	}
 
-	private final NotifyingUndoManager manager;
+	private NotifyingUndoManager manager;
 	private ChangeListener managerListener = new ManagerListener();
 	
 	public UndoAction(ArchitectSwingSession session, NotifyingUndoManager manager) {
@@ -53,6 +54,15 @@ public class UndoAction extends AbstractArchitectAction {
         this.manager = manager;
         this.manager.addChangeListener(managerListener);
 		updateSettingsFromManager();
+	}
+	
+	public UndoAction(ArchitectSwingSession session, ArchitectFrame frame, NotifyingUndoManager manager) {
+	    super(session, frame, Messages.getString("UndoAction.name"), Messages.getString("UndoAction.description"), "undo_arrow"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	    putValue(AbstractAction.ACCELERATOR_KEY,
+                KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+	    this.manager = manager;
+	    this.manager.addChangeListener(managerListener);
+	    updateSettingsFromManager();
 	}
 	
 	public void actionPerformed(ActionEvent evt ) {
@@ -73,5 +83,12 @@ public class UndoAction extends AbstractArchitectAction {
 	public void updateSettingsFromManager() {
 		putValue(SHORT_DESCRIPTION, manager.getUndoPresentationName());
 		setEnabled(manager.canUndo());
+	}
+	
+	public void setUndoManager(NotifyingUndoManager manager) {
+	    this.manager.removeChangeListener(managerListener);
+	    this.manager = manager;
+	    manager.addChangeListener(managerListener);
+	    updateSettingsFromManager();
 	}
 }

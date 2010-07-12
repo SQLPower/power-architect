@@ -30,7 +30,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 
 import ca.sqlpower.architect.ArchitectVersion;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.swingui.AboutPanel;
 import ca.sqlpower.swingui.CommonCloseAction;
 import ca.sqlpower.swingui.JDefaultButton;
@@ -38,8 +38,8 @@ import ca.sqlpower.swingui.SPSUtils;
 
 public class AboutAction extends AbstractArchitectAction {
 
-    public AboutAction(ArchitectSwingSession session) {
-		super(session, Messages.getString("AboutAction.name"), Messages.getString("AboutAction.description"), "Architect"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    public AboutAction(ArchitectFrame frame) {
+		super(frame, Messages.getString("AboutAction.name"), Messages.getString("AboutAction.description"), "Architect"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	public void actionPerformed(ActionEvent evt) {

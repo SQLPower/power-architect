@@ -41,7 +41,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.MappingReport;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -58,42 +58,30 @@ import com.jgoodies.forms.builder.ButtonBarBuilder;
 public class VisualMappingReportAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(VisualMappingReportAction.class);
+    private final ArchitectFrame frame;
     
-    /**
-     * The play pen that this action operates on.
-     */
-    private final ArchitectSwingSession session;
-    
-    /**
-     * The frame that will own the dialog(s) created by this action.
-     * Neither argument is allowed to be null.
-     */
-    private final JFrame parentFrame;
-    
-    public VisualMappingReportAction(JFrame parentFrame, ArchitectSwingSession session) {
-        super(session, Messages.getString("VisualMappingReportAction.name"), Messages.getString("VisualMappingReportAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
-        this.session = session;
-
-        if (parentFrame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
-        this.parentFrame = parentFrame;
+    public VisualMappingReportAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("VisualMappingReportAction.name"), Messages.getString("VisualMappingReportAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
+        this.frame = frame;
     }
 
     // TODO convert this to an architect pane
     public void actionPerformed(ActionEvent e) {
         try {
+            if (getSession() == null) return;
             final MappingReport mr ;
             final List<SQLTable> selectedTables;
             final List<TablePane> selectedTablePanes = new ArrayList<TablePane>();
-            for (ContainerPane<?, ?> cp : session.getPlayPen().getSelectedContainers()) {
+            for (ContainerPane<?, ?> cp : getPlaypen().getSelectedContainers()) {
                 if (cp instanceof TablePane) {
                     selectedTablePanes.add((TablePane) cp);
                 }
             }
             if (selectedTablePanes.size() == 0) {
-                selectedTables = new ArrayList<SQLTable>(playpen.getTables());
+                selectedTables = new ArrayList<SQLTable>(getPlaypen().getTables());
             } else {
                 if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                        parentFrame,
+                        frame,
                         Messages.getString("VisualMappingReportAction.viewOnlySelectedTables", String.valueOf(selectedTablePanes.size())), //$NON-NLS-1$
                         Messages.getString("VisualMappingReportAction.viewOnlySelectedTablesDialogTitle"), //$NON-NLS-1$
                         JOptionPane.YES_NO_OPTION)) {
@@ -102,10 +90,10 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                         selectedTables.add(tp.getModel());
                     }
                 } else {
-                    selectedTables = new ArrayList<SQLTable>(playpen.getTables());
+                    selectedTables = new ArrayList<SQLTable>(getPlaypen().getTables());
                 }
             }
-            mr = new MappingReport(session, selectedTables);
+            mr = new MappingReport(getSession(), selectedTables);
 
             final JFrame f = new JFrame(Messages.getString("VisualMappingReportAction.mappingReportDialogTitle")); //$NON-NLS-1$
             f.setIconImage(ASUtils.getFrameIconImage());
@@ -139,7 +127,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
 
                         File file = null;
 
-                        JFileChooser fileDialog = new JFileChooser(session.getRecentMenu().getMostRecentFile());
+                        JFileChooser fileDialog = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
                         fileDialog.setSelectedFile(new File("map.csv")); //$NON-NLS-1$
 
                         if (fileDialog.showSaveDialog(f) == JFileChooser.APPROVE_OPTION){
@@ -184,7 +172,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
             basePane.add(buttonBar.getPanel(),BorderLayout.SOUTH);
             f.setContentPane(basePane);
             f.pack();
-            f.setLocationRelativeTo(parentFrame);
+            f.setLocationRelativeTo(frame);
             f.setVisible(true);
         } catch (SQLObjectException e1) {
             throw new SQLObjectRuntimeException(e1);

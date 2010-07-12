@@ -24,15 +24,14 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.CompareDMDialog;
 
 public class CompareDMAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(CompareDMAction.class);
-	private JDialog d = null;
 	
-	public CompareDMAction(ArchitectSwingSession session, JDialog d) {		
-		super(session, Messages.getString("CompareDMAction.name"),Messages.getString("CompareDMAction.description"), "compare_DM"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		this.d = d;
+	public CompareDMAction(ArchitectFrame frame) {		
+		super(frame, Messages.getString("CompareDMAction.name"),Messages.getString("CompareDMAction.description"), "compare_DM"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -40,6 +39,7 @@ public class CompareDMAction extends AbstractArchitectAction {
 		logger.debug("Compare Action started"); //$NON-NLS-1$
 				
 		// shows the dialog
+		final JDialog d = new CompareDMDialog(getSession());
 		d.setVisible(true);
 	}
 

@@ -58,11 +58,11 @@ public class CreateDimensionAction extends AbstractArchitectAction {
         }
         dim.setName("New Dimension " + count);
         
-        if (playpen.getSelectedContainers().size() >= 1) {
+        if (getPlaypen().getSelectedContainers().size() >= 1) {
             // TODO add a DimensionUsage to the selected cube(s)
         }
         DimensionPlacer dp = new DimensionPlacer(
-                new DimensionPane(dim, playpen.getContentPane()));
+                new DimensionPane(dim, getPlaypen().getContentPane()));
         dp.dirtyup();
     }
 
@@ -71,7 +71,7 @@ public class CreateDimensionAction extends AbstractArchitectAction {
         private final DimensionPane dp;
 
         DimensionPlacer(DimensionPane cp) {
-            super(CreateDimensionAction.this.playpen);
+            super(CreateDimensionAction.this.getPlaypen());
             this.dp = cp;
         }
         
@@ -87,15 +87,15 @@ public class CreateDimensionAction extends AbstractArchitectAction {
                 public boolean applyChanges() {
                     if (super.applyChanges()) {
                         try {
-                            session.getWorkspace().begin("Create a dimension");
+                            getSession().getWorkspace().begin("Create a dimension");
                             schema.addDimension(dp.getModel());
                             playpen.selectNone();
                             playpen.addPlayPenComponent(dp, p);
                             dp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                            session.getWorkspace().commit();
+                            getSession().getWorkspace().commit();
                             return true;
                         } catch (Throwable e) {
-                            session.getWorkspace().rollback("Error occurred: " + e.toString());
+                            getSession().getWorkspace().rollback("Error occurred: " + e.toString());
                             throw new RuntimeException(e);
                         }
                     } else {

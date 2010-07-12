@@ -46,7 +46,7 @@ public class ShowTableContentsAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         String sql = "SELECT * FROM " + table.toQualifiedName();
-        JFrame sqlQueryDialog = new QueryFrame(session, Messages.getString("SQLQueryAction.dialogTitle"), table.getParentDatabase(), sql);
+        JFrame sqlQueryDialog = new QueryFrame(getSession(), Messages.getString("SQLQueryAction.dialogTitle"), table.getParentDatabase(), sql);
         sqlQueryDialog.setVisible(true);
     }
 

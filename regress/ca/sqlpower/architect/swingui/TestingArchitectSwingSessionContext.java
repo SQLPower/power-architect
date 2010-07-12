@@ -83,15 +83,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         return session;
     }
 
-    public ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException {
-        return this.createSession();
-    }
-    
-    public ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException {
-        return this.createSession();
-    }
-    
-    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException {
+    public ArchitectSwingSession createSession(InputStream in) throws SQLObjectException, IOException {
         return this.createSession();
     }
     
@@ -205,5 +197,10 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     public SPServerInfoManager getServerManager() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public void registerFrame(ArchitectFrame frame) {
+        // TODO Auto-generated method stub
+        
     }
 }

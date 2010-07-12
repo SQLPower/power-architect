@@ -121,7 +121,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	 */
 	public void setUp() throws Exception {
         context = new TestingArchitectSwingSessionContext();
-        session = context.createSession(false);
+        session = context.createSession();
         project = session.getProjectLoader();
         plIni = new PlDotIni();
         // TODO add some database types and a test that loading the project finds them
@@ -253,7 +253,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		        "Project starts out with undo history",
 		        session.getUndoManager().canUndoOrRedo());
 
-		DBTree tree = session.getSourceDatabases();
+		DBTree tree = session.getDBTree();
 		assertNotNull(tree);
 		assertEquals(1, tree.getComponentCount());
 		
@@ -322,7 +322,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         // load it back and check
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
@@ -342,7 +342,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(mockProgressMonitor);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
 		SwingUIProjectLoader p2 = new SwingUIProjectLoader(session2);
 		p2.load(new BufferedInputStream(new FileInputStream(file)), plIni);
 		File tmp2 = File.createTempFile("test2", ".architect");
@@ -368,7 +368,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		System.out.println(byteArrayOutputStream.toString());
 
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader p2 = new SwingUIProjectLoader(session2);
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
@@ -389,7 +389,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader p2 = new SwingUIProjectLoader(session2);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
@@ -435,7 +435,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 	public void testSaveCoversAllDatabaseProperties() throws Exception {
 		testLoad();
-		DBTree dbTree = session.getSourceDatabases();
+		DBTree dbTree = session.getDBTree();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
@@ -476,12 +476,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
 		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getDBTree().getDatabaseList().get(1);
 		
 		System.out.println("DB has child exception " + db.getChildrenInaccessibleReasons());
 		
@@ -507,7 +507,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTreeModel dbTreeModel = null;
 		
 		testLoad();
-		dbTree = session.getSourceDatabases();
+		dbTree = session.getDBTree();
 		dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		SQLDatabase db = new SQLDatabase();
@@ -539,12 +539,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
 		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getDBTree().getDatabaseList().get(1);
 		
 		target = (SQLCatalog) db.getChild(0);
 		
@@ -557,7 +557,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
 	public void testSaveCoversAllSchemaProperties() throws Exception {
 		testLoad();
-		DBTree dbTree = session.getSourceDatabases();
+		DBTree dbTree = session.getDBTree();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
@@ -586,12 +586,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
 		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getDBTree().getDatabaseList().get(1);
 		
 		target = (SQLSchema) db.getChild(0);
 		
@@ -603,7 +603,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
 	public void testSaveCoversAllTableProperties() throws Exception {
 		testLoad();
-		DBTree dbTree = session.getSourceDatabases();
+		DBTree dbTree = session.getDBTree();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
@@ -633,12 +633,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
 		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getDBTree().getDatabaseList().get(1);
 		
 		target = (SQLTable) db.getChild(0);
 		
@@ -681,7 +681,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		// need to set sourceColumn manually because it has to exist in the database.
 		{
 			// different variable scope
-			DBTree dbTree = session.getSourceDatabases();
+			DBTree dbTree = session.getDBTree();
 			DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 			
 			JDBCDataSource fakeDataSource = new JDBCDataSource(new PlDotIni());
@@ -711,7 +711,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
 		SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
@@ -771,7 +771,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
@@ -818,7 +818,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         System.out.println(byteArrayOutputStream.toString());
         
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
@@ -876,7 +876,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
@@ -923,7 +923,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(out,ENCODING);
         
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader project2 = new SwingUIProjectLoader(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
@@ -969,7 +969,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(out, ENCODING);
         
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession(false);
+        ArchitectSwingSession session2 = context.createSession();
         SwingUIProjectLoader p = new SwingUIProjectLoader(session2);
         p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getPlDotIni());
         
@@ -1090,7 +1090,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testSaveDoesntCausePopulateCatalogSchema() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
+        SQLObject dbtreeRoot = (SQLObject) session.getDBTree().getModel().getRoot();
 
         JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setDisplayName("test_database");
@@ -1116,7 +1116,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testSaveDoesntCausePopulateSchema() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
+        SQLObject dbtreeRoot = (SQLObject) session.getDBTree().getModel().getRoot();
 
         JDBCDataSource ds = new JDBCDataSource(new PlDotIni());
         ds.setDisplayName("test_database");
@@ -1145,7 +1145,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
     public void testSaveThrowsExceptionForUnknownSQLObjectSubclass() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
+        SQLObject dbtreeRoot = (SQLObject) session.getDBTree().getModel().getRoot();
 
         SQLDatabase db = new TestSQLDatabase();
         dbtreeRoot.addChild(db);
@@ -1276,7 +1276,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     
     public void testSaveStoresExceptionInOutput() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
+        SQLObject dbtreeRoot = (SQLObject) session.getDBTree().getModel().getRoot();
 
         SQLDatabase db = new TestSQLDatabase();
         dbtreeRoot.addChild(db);

@@ -24,21 +24,21 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ProjectSettingsPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class ProjectSettingsAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
 
-	public ProjectSettingsAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("ProjectSettingsAction.name"), Messages.getString("ProjectSettingsAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
+	public ProjectSettingsAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("ProjectSettingsAction.name"), Messages.getString("ProjectSettingsAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		logger.debug(getValue(SHORT_DESCRIPTION) + " invoked"); //$NON-NLS-1$
 		
-		final ProjectSettingsPanel settingsPanel = new ProjectSettingsPanel(session);
+		final ProjectSettingsPanel settingsPanel = new ProjectSettingsPanel(getSession());
 
 		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				settingsPanel,

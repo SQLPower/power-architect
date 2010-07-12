@@ -59,7 +59,7 @@ public class VelocityTransformationTest extends TestCase {
 	 */
 	public void setUp() throws Exception {
         context = new TestingArchitectSwingSessionContext();
-        session = context.createSession(false);
+        session = context.createSession();
         project = session.getProjectLoader();
         plIni = new PlDotIni();
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());

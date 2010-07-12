@@ -25,13 +25,13 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
@@ -39,8 +39,8 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
 
     private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
     
-    public InsertIndexAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("InsertIndexAction.name"), Messages.getString("InsertIndexAction.description"), "new_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    public InsertIndexAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("InsertIndexAction.name"), Messages.getString("InsertIndexAction.description"), "new_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, 0));
         setEnabled(false);
@@ -77,7 +77,7 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
         
         final JDialog d;
         SQLIndex index = new SQLIndex();
-        final IndexEditPanel editPanel = new IndexEditPanel(index, parent, session);
+        final IndexEditPanel editPanel = new IndexEditPanel(index, parent, getSession());
   
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 editPanel, frame,

@@ -340,7 +340,7 @@ public class PlayPen extends JPanel
 	        logger.debug("view position is: " + viewPosition); //$NON-NLS-1$
 	        return viewPosition;
 	    } else {
-	        return new Point(0, 0);
+	        return viewportPosition;
 	    }
 	}
 
@@ -1269,7 +1269,7 @@ public class PlayPen extends JPanel
 	    //correct session's source database objects.
 	    for (SQLColumn column : newTable.getColumns()) {
 	        SQLColumn sourceColumn = newTable.getColumnByName(column.getName());
-	        ASUtils.correctSourceColumn(sourceColumn, duplicateProperties, column, getSession().getSourceDatabases());
+	        ASUtils.correctSourceColumn(sourceColumn, duplicateProperties, column, getSession().getDBTree());
 	    }
 
 	    // Although this method is called in AddObjectsTask.cleanup(), it
@@ -1898,7 +1898,7 @@ public class PlayPen extends JPanel
 	 * Deselects all selectable items in the PlayPen.
 	 */
 	public void selectNone() {
-	 	session.getSourceDatabases().clearSelection();
+	 	session.getDBTree().clearSelection();
  		for (PlayPenComponent c : contentPane.getChildren()) {
  			if (c instanceof Selectable) {
  				Selectable s = (Selectable) c;
@@ -1986,7 +1986,7 @@ public class PlayPen extends JPanel
 			}
 		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
 		    for (int i = selectionListeners.size() - 1; i >= 0; i--) {
-                selectionListeners.get(i).itemSelected(e);
+                selectionListeners.get(i).itemDeselected(e);
             }
 		} else {
 			throw new IllegalStateException("Unknown selection event type "+e.getType()); //$NON-NLS-1$
@@ -2860,7 +2860,7 @@ public class PlayPen extends JPanel
         ignoreTreeSelection = true;
 
         logger.debug("selecting: " + selections); //$NON-NLS-1$
-        DBTree tree = session.getSourceDatabases();
+        DBTree tree = session.getDBTree();
         
         // tables to add to select because of column selection 
         List<SQLObject> colTables = new ArrayList<SQLObject>();

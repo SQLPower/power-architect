@@ -24,19 +24,19 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
 public class InsertColumnAction extends AbstractTableTargetedAction {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
 	
-	public InsertColumnAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("InsertColumnAction.name"), Messages.getString("InsertColumnAction.description"), "new_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	public InsertColumnAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("InsertColumnAction.name"), Messages.getString("InsertColumnAction.description"), "new_column"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_C,0));
 		setEnabled(false);
@@ -71,9 +71,9 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         }
         
         // Expecting the playpen and dbtree selctions to be synchronized.
-        TablePane tp = (TablePane) playpen.getSelectedItems().get(0);
+        TablePane tp = (TablePane) getPlaypen().getSelectedItems().get(0);
         
-        EditColumnAction editColumnAction = new EditColumnAction(session);
+        EditColumnAction editColumnAction = new EditColumnAction(getSession());
         editColumnAction.showDialog(st, idx, true, tp);
         
     }
@@ -83,7 +83,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         
         if (idx < 0) idx = tp.getModel().getColumns().size();
         
-        EditColumnAction editColumnAction = new EditColumnAction(session);
+        EditColumnAction editColumnAction = new EditColumnAction(getSession());
         
         //The actual column is added to the table when the user presses OK
         //Its added to the end of the table, if a table is selected or added right after

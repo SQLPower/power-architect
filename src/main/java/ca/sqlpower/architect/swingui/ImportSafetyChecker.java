@@ -152,7 +152,7 @@ class ImportSafetyChecker {
         }
         sourceSourceDatabase = SPObjectUtils.getAncestor(sourceColumn.getSourceColumn(), SQLDatabase.class);
 
-        if (targetSession.getSourceDatabases().getDuplicateDbcs(
+        if (targetSession.getDBTree().getDuplicateDbcs(
                 sourceSourceDatabase.getDataSource()) == null) {
             return false;         
         } else {

@@ -40,7 +40,7 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
@@ -53,8 +53,8 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(ReverseRelationshipAction.class);
     
     
-    public ReverseRelationshipAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("ReverseRelationshipAction.name"), //$NON-NLS-1$
+    public ReverseRelationshipAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("ReverseRelationshipAction.name"), //$NON-NLS-1$
                 Messages.getString("ReverseRelationshipAction.description"), "reverse"); //$NON-NLS-1$ //$NON-NLS-2$
         putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
     }
@@ -64,13 +64,13 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
      * primary key and foreign key swapped.
      */
     public void actionPerformed(ActionEvent e) {
-        List<PlayPenComponent> selection = playpen.getSelectedItems();
+        List<PlayPenComponent> selection = getPlaypen().getSelectedItems();
         if (selection.size() != 1) {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.multipleSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("ReverseRelationshipAction.multipleSelected")); //$NON-NLS-1$
         } else if (selection.get(0) instanceof Relationship) {
             reverseRelationship((Relationship) selection.get(0));
         } else {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("ReverseRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("ReverseRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
         }
     }        
 
@@ -80,7 +80,7 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
         boolean identify = relationship.getModel().isIdentifying();
         
         try {
-            playpen.startCompoundEdit("Reverse Relationship"); //$NON-NLS-1$
+            getPlaypen().startCompoundEdit("Reverse Relationship"); //$NON-NLS-1$
             
             SQLRelationship sr = relationship.getModel();
             sr.getPkTable().removeExportedKey(sr);
@@ -97,15 +97,15 @@ public class ReverseRelationshipAction extends AbstractArchitectAction {
             model.setFkCardinality(sr.getFkCardinality());
             model.setPkCardinality(sr.getPkCardinality());
             
-            Relationship r = new Relationship(model, playpen.getContentPane());
-            playpen.addRelationship(r);
+            Relationship r = new Relationship(model, getPlaypen().getContentPane());
+            getPlaypen().addRelationship(r);
             r.revalidate();
         } catch (SQLObjectException ex) {
             logger.error("Couldn't reverse relationship", ex); //$NON-NLS-1$
-            ASUtils.showExceptionDialogNoReport(playpen,
+            ASUtils.showExceptionDialogNoReport(getPlaypen(),
                     Messages.getString("ReverseRelationshipAction.couldNotReverseRelationship"), ex); //$NON-NLS-1$
         } finally {
-            playpen.endCompoundEdit("Reverse Relationship"); //$NON-NLS-1$
+            getPlaypen().endCompoundEdit("Reverse Relationship"); //$NON-NLS-1$
         }
     }
 }

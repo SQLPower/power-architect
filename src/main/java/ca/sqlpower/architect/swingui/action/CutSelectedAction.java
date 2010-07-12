@@ -27,21 +27,21 @@ import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBTree;
 
 public class CutSelectedAction extends AbstractArchitectAction {
     
-    public CutSelectedAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("CutSelectedAction.name"), Messages.getString("CutSelectedAction.description"));
+    public CutSelectedAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("CutSelectedAction.name"), Messages.getString("CutSelectedAction.description"));
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
     }
 
     public void actionPerformed(ActionEvent e) {
-        final DBTree dbTree = session.getSourceDatabases();
-        final Component focusOwner = session.getArchitectFrame().getFocusOwner();
-        if (session.getArchitectFrame().isAncestorOf(focusOwner)) {
+        final DBTree dbTree = getSession().getDBTree();
+        final Component focusOwner = getSession().getArchitectFrame().getFocusOwner();
+        if (getSession().getArchitectFrame().isAncestorOf(focusOwner)) {
             dbTree.cutSelection();
         }
     }

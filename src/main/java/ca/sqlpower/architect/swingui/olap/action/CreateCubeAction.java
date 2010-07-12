@@ -50,7 +50,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        PlayPenContentPane pane = playpen.getContentPane();
+        PlayPenContentPane pane = getPlaypen().getContentPane();
         pane.begin("Creating a Cube and its CubePane");
         try {
             Cube cube = new Cube();
@@ -76,7 +76,7 @@ public class CreateCubeAction extends AbstractArchitectAction {
         private final CubePane cp;
 
         CubePlacer(CubePane cp) {
-            super(CreateCubeAction.this.playpen);
+            super(CreateCubeAction.this.getPlaypen());
             this.cp = cp;
         }
         
@@ -88,14 +88,14 @@ public class CreateCubeAction extends AbstractArchitectAction {
         @Override
         public DataEntryPanel place(Point p) throws SQLObjectException {
             try {
-                session.getWorkspace().begin("Create Cube");
+                getSession().getWorkspace().begin("Create Cube");
                 schema.addCube(cp.getModel());
                 playpen.selectNone();
                 playpen.addPlayPenComponent(cp, p);
                 cp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-                session.getWorkspace().commit();
+                getSession().getWorkspace().commit();
             } catch (Throwable e) {
-                session.getWorkspace().rollback("Exception occured: " + e.toString());
+                getSession().getWorkspace().rollback("Exception occured: " + e.toString());
                 throw new RuntimeException(e);
             }
 
