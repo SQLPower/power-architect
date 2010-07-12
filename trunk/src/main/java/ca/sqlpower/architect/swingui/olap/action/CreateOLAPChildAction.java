@@ -100,12 +100,12 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
         this.friendlyParentName = friendlyParentName;
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(accelKey));
         PlayPenWatcher ppw = new PlayPenWatcher();
-        playpen.addSelectionListener(ppw);
+        getPlaypen().addSelectionListener(ppw);
         updateActionState();
     }
 
     public void actionPerformed(ActionEvent e) {
-        List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
+        List<PlayPenComponent> selectedItems = getPlaypen().getSelectedItems();
         final P pane = paneClass.cast(selectedItems.get(0));
         
         // workaround for javac problem (eclipse doesn't need the cast)
@@ -130,12 +130,12 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
         };
         JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 mep,
-                SwingUtilities.getWindowAncestor(playpen),
+                SwingUtilities.getWindowAncestor(getPlaypen()),
                 friendlyChildName + " Properties",
                 "OK",
                 okCall,
                 cancelCall);
-        d.setLocationRelativeTo(playpen);
+        d.setLocationRelativeTo(getPlaypen());
         d.setVisible(true);
     }
 
@@ -167,7 +167,7 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
      * panes) where overriding is necessary.
      */
     protected void updateActionState() {
-        List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
+        List<PlayPenComponent> selectedItems = getPlaypen().getSelectedItems();
         String description;
         if (selectedItems.size() == 1 && paneClass.isInstance(selectedItems.get(0))) {
             setEnabled(true);

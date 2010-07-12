@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.LayoutEdge;
 import ca.sqlpower.architect.layout.LayoutNode;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.LayoutAnimator;
@@ -48,8 +49,12 @@ public class AutoLayoutAction extends AbstractArchitectAction {
 
 	private int framesPerSecond = 25;
 
-    public AutoLayoutAction(ArchitectSwingSession session, PlayPen playPen, String name, String description, String iconResourceName) {
-        super(session, playPen, name, description, iconResourceName);
+    public AutoLayoutAction(ArchitectSwingSession session, PlayPen pp, String name, String description, String iconResourceName) {
+        super(session, pp, name, description, iconResourceName);
+    }
+
+    public AutoLayoutAction(ArchitectFrame frame, String name, String description, String iconResourceName) {
+        super(frame, name, description, iconResourceName);
     }
 
     public AutoLayoutAction(ArchitectSwingSession session, PlayPen playPen, String name, String description, Icon icon) {
@@ -81,12 +86,12 @@ public class AutoLayoutAction extends AbstractArchitectAction {
         }
         
         // XXX the following block of code is a bit disturbing. Needs refactoring after we figure out what it's supposed to do.
-        List<LayoutNode> notLaidOut = extractLayoutNodes(playpen);
+        List<LayoutNode> notLaidOut = extractLayoutNodes(getPlaypen());
         notLaidOut.removeAll(nodes);
         Point layoutAreaOffset = new Point();
         if (nodes.size() == 0 || nodes.size() == 1) {
-            nodes = extractLayoutNodes(playpen);
-        } else if (nodes.size() != extractLayoutNodes(playpen).size()){
+            nodes = extractLayoutNodes(getPlaypen());
+        } else if (nodes.size() != extractLayoutNodes(getPlaypen()).size()){
             int maxWidth = 0;
             for (LayoutNode tp : notLaidOut) {
                 int width = tp.getWidth() + tp.getX();
@@ -97,14 +102,14 @@ public class AutoLayoutAction extends AbstractArchitectAction {
             layoutAreaOffset = new Point(maxWidth,0);
         }
 
-        List<LayoutEdge> edges = extractLayoutEdges(playpen);
+        List<LayoutEdge> edges = extractLayoutEdges(getPlaypen());
         logger.debug("About to do layout. nodes=" + nodes); //$NON-NLS-1$
         logger.debug("About to do layout. edges=" + edges); //$NON-NLS-1$
 
 
         Rectangle layoutArea = new Rectangle(layoutAreaOffset, layout.getNewArea(nodes));
         layout.setup(nodes, edges, layoutArea);
-        LayoutAnimator anim = new LayoutAnimator(playpen, layout);
+        LayoutAnimator anim = new LayoutAnimator(getPlaypen(), layout);
         anim.setAnimationEnabled(animationEnabled);
         anim.setFramesPerSecond(framesPerSecond);
         anim.startAnimation();
@@ -161,6 +166,6 @@ public class AutoLayoutAction extends AbstractArchitectAction {
      * FIXME: Not sure if this is needed anywhere outside of testing. 
      */
     public PlayPen getPlayPen() {
-        return this.playpen;
+        return this.getPlaypen();
     }
 }

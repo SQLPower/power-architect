@@ -46,7 +46,7 @@ public class TestEditColumnAction extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
 		editColumn = new EditColumnAction(session);
-		pp = session.getArchitectFrame().getPlayPen();
+		pp = session.getPlayPen();
 		SQLTable tm = new SQLTable(session.getTargetDatabase(), true);
 		session.getTargetDatabase().addTable(tm);
 		tp = new TablePane(tm, pp.getContentPane());
@@ -73,26 +73,21 @@ public class TestEditColumnAction extends TestCase {
 	public void testTableSelected() throws SQLObjectException{
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Action should be not enabled", editColumn.isEnabled());		
 	}
 	
 	public void testRelationshipSelected() {
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		editColumn.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Action should be disabled", editColumn.isEnabled());		
 	}
 	
 	public void testTableAndRelationshipSelected() {
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		editColumn.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Action should be disabled", editColumn.isEnabled());		
 		r.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		editColumn.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Action should still be disabled", editColumn.isEnabled());
 		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);		
 	}
@@ -101,13 +96,10 @@ public class TestEditColumnAction extends TestCase {
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);
-		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertEquals("Editing col1", editColumn.getValue(EditColumnAction.SHORT_DESCRIPTION));		
 		tp.selectItem(1);
-		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", editColumn.isEnabled());		
 		tp.selectNone();
-		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("No column is selected, only tables, should disable",editColumn.isEnabled());		
 	}
 	
@@ -115,15 +107,11 @@ public class TestEditColumnAction extends TestCase {
 		assertFalse("Action enabled with no items",editColumn.isEnabled());
 		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectItem(0);
-		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);				
-		editColumn.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));		
 		assertFalse("Action not enabled", editColumn.isEnabled());
 		tp2.setSelected(false,SelectionEvent.SINGLE_SELECT);
-		editColumn.itemSelected(new SelectionEvent(tp2, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", editColumn.isEnabled());		
 		tp.selectNone();
-		editColumn.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Only table is selected, should disable",editColumn.isEnabled());
 	}
 

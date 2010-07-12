@@ -37,6 +37,7 @@ import javax.swing.ProgressMonitorInputStream;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
@@ -49,25 +50,22 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(OpenProjectAction.class);
 
-    RecentMenu recent;
-
-    public OpenProjectAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("OpenProjectAction.name"), Messages.getString("OpenProjectAction.description"), "folder"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        this.recent = session.getRecentMenu();
+    public OpenProjectAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("OpenProjectAction.name"), Messages.getString("OpenProjectAction.description"), "folder"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit()
                 .getMenuShortcutKeyMask()));
     }
 
     public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser(recent.getMostRecentFile());
+        JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
             try {
-                OpenProjectAction.openAsynchronously(session.getContext().createSession(false), f, session);
+                OpenProjectAction.openAsynchronously(getSession().getContext().createSession(), f, getSession());
             } catch (SQLObjectException ex) {
-                SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
                         Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
             }
         }
@@ -194,8 +192,9 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 }
             } else {
                 recent.putRecentFileName(file.getAbsolutePath());
-                session.initGUI(openingSession);
-                ((DBTreeModel) session.getSourceDatabases().getModel()).refreshTreeStructure();
+                openingSession.getArchitectFrame().addSession(session);
+                openingSession.getArchitectFrame().setCurrentSession(session);
+                ((DBTreeModel) session.getDBTree().getModel()).refreshTreeStructure();
             }
 
             try {

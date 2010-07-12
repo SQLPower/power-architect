@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -29,15 +28,19 @@ import java.util.Set;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
+import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -50,23 +53,26 @@ import ca.sqlpower.sqlobject.SQLTable;
 public class DeleteSelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
 
-    /**
-     * The DBTree instance that is associated with this Action.
-     */
-    protected final DBTree dbt;
-    
-    private TreeSelectionHandler treeSelectionHandler = new TreeSelectionHandler();
+    private SelectionHandler selectionHandler = new SelectionHandler();
 
     public DeleteSelectedAction(ArchitectSwingSession session) throws SQLObjectException {
         super(session, Messages.getString("DeleteSelectedAction.name"), Messages.getString("DeleteSelectedAction.description"), "delete"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
         putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
 
-        dbt = frame.getDbTree();
-        dbt.addTreeSelectionListener(treeSelectionHandler);
+        getPlaypen().addSelectionListener(selectionHandler);
         setupAction();
     }
+    
+    public DeleteSelectedAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("DeleteSelectedAction.name"), Messages.getString("DeleteSelectedAction.description"), "delete"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+        putValue(ACTION_COMMAND_KEY, PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
 
+        frame.addSelectionListener(selectionHandler);
+        setupAction();
+    }
+    
     /**
      * This action takes care of handling Delete requests from the DBTree and Playpen.
      *  
@@ -78,8 +84,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
         logger.debug("delete action detected!"); //$NON-NLS-1$
         logger.debug("ACTION COMMAND: " + evt.getActionCommand()); //$NON-NLS-1$
 
-        if (dbt.getSelectionCount() < 1) {
-            JOptionPane.showMessageDialog(playpen, Messages.getString("DeleteSelectedAction.noItemsToDelete")); //$NON-NLS-1$
+        if (getPlaypen().getSelectedItems().size() < 1) {
+            JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("DeleteSelectedAction.noItemsToDelete")); //$NON-NLS-1$
             return;
         }
         
@@ -116,12 +122,12 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             }
         }
 
-        playpen.getContentPane().begin("Delete");
+        getPlaypen().getContentPane().begin("Delete");
         try {
-            playpen.startCompoundEdit("Delete"); //$NON-NLS-1$
+            getPlaypen().startCompoundEdit("Delete"); //$NON-NLS-1$
 
             // prevent tree selection during delete
-            playpen.setIgnoreTreeSelection(true);
+            getPlaypen().setIgnoreTreeSelection(true);
 
             //We deselect the components first because relationships might be already
             //deleted when one of the table that it was attached to got deleted.
@@ -146,29 +152,29 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                         }
                     }
                 } catch (LockedColumnException ex) {
-                    int decision = JOptionPane.showConfirmDialog(playpen,
+                    int decision = JOptionPane.showConfirmDialog(getPlaypen(),
                             Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", o.getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
                             Messages.getString("DeleteSelectedAction.couldNotDeleteColumnDialogTitle"), //$NON-NLS-1$
                             JOptionPane.YES_NO_OPTION);
                     if (decision == JOptionPane.NO_OPTION) {
-                        playpen.getContentPane().commit();
+                        getPlaypen().getContentPane().commit();
                         return;
                     }
                 } catch (IllegalArgumentException e) {
-                    playpen.getContentPane().rollback(e.toString());
+                    getPlaypen().getContentPane().rollback(e.toString());
                     throw new RuntimeException(e);
                 } catch (ObjectDependentException e) {
-                    playpen.getContentPane().rollback(e.toString());
+                    getPlaypen().getContentPane().rollback(e.toString());
                     throw new RuntimeException(e);
                 } catch (Throwable e) {
-                    playpen.getContentPane().rollback(e.toString());
+                    getPlaypen().getContentPane().rollback(e.toString());
                     throw new RuntimeException(e);
                 }
             }
-            playpen.getContentPane().commit();
+            getPlaypen().getContentPane().commit();
         } finally {
-            playpen.endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
-            playpen.setIgnoreTreeSelection(false);
+            getPlaypen().endCompoundEdit("Ending multi-select"); //$NON-NLS-1$
+            getPlaypen().setIgnoreTreeSelection(false);
         }
     }
 
@@ -178,16 +184,16 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
      * Package private for testing.
      */
     List<SQLObject> retrieveDeletableItems() {
-        TreePath[] selectionPaths = dbt.getSelectionPaths();
-        if (selectionPaths == null) return Collections.emptyList();
-        List <SQLObject> deleteItems = new ArrayList<SQLObject>(selectionPaths.length);
-        for (int i = 0; i < selectionPaths.length; i++) {
-            if (   selectionPaths[i].getPathCount() > 1 &&
-                   selectionPaths[i].getPathComponent(1) == session.getTargetDatabase()) {
-                deleteItems.add((SQLObject) selectionPaths[i].getLastPathComponent());
-            } else {
-                logger.debug("Skipping non-deletable object: " +
-                        selectionPaths[i].getLastPathComponent());
+        List<PlayPenComponent> selection = getPlaypen().getSelectedItems();
+        List<SQLObject> deleteItems = new ArrayList<SQLObject>(selection.size());
+        for (PlayPenComponent ppc : selection) {
+            if (ppc instanceof TablePane) {
+                TablePane tp = (TablePane) ppc;
+                deleteItems.addAll(tp.getSelectedItems());
+            }
+            Object model = ppc.getModel();
+            if (model instanceof SQLObject) {
+                deleteItems.add((SQLObject) model);
             }
         }
         
@@ -222,8 +228,24 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
         return deleteItems;
     }
 
-    private class TreeSelectionHandler implements TreeSelectionListener {
-        public void valueChanged(TreeSelectionEvent e) {
+    @SuppressWarnings("unchecked")
+    private class SelectionHandler implements SelectionListener, ItemSelectionListener {
+        public void itemSelected(SelectionEvent e) {
+            setupAction();
+            if (e.getSource() instanceof ContainerPane) {
+                ((ContainerPane) e.getSource()).addItemSelectionListener(this);
+            }
+        }
+        public void itemDeselected(SelectionEvent e) {
+            setupAction();
+            if (e.getSource() instanceof ContainerPane) {
+                ((ContainerPane) e.getSource()).removeItemSelectionListener(this);
+            }
+        }
+        public void itemsDeselected(ItemSelectionEvent e) {
+            setupAction();
+        }
+        public void itemsSelected(ItemSelectionEvent e) {
             setupAction();
         }
     }

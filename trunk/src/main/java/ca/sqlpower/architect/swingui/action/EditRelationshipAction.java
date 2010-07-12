@@ -27,7 +27,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ColumnMappingPanel;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -45,38 +45,32 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
 public class EditRelationshipAction extends AbstractArchitectAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditRelationshipAction.class);
 
-	/**
-	 * The DBTree instance that is associated with this Action.
-	 */
-	protected final DBTree dbt; 
-	
-	public EditRelationshipAction(ArchitectSwingSession session) {
-		super(session, Messages.getString("EditRelationshipAction.name"), Messages.getString("EditRelationshipAction.description"), "edit_relationship"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	public EditRelationshipAction(ArchitectFrame frame) {
+		super(frame, Messages.getString("EditRelationshipAction.name"), Messages.getString("EditRelationshipAction.description"), "edit_relationship"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		setEnabled(false);
-        playpen.addSelectionListener(this);
-        setupAction(playpen.getSelectedItems());
-        dbt = frame.getDbTree();
+        frame.addSelectionListener(this);
+        setupAction(getPlaypen().getSelectedItems());
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List<PlayPenComponent> selection = playpen.getSelectedItems();
+			List<PlayPenComponent> selection = getPlaypen().getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof Relationship) {
 				Relationship r = (Relationship) selection.get(0);
 				makeDialog(r.getModel());
 			} else {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
 			}
 		} else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
-			TreePath [] selections = dbt.getSelectionPaths();
+			TreePath [] selections = getSession().getDBTree().getSelectionPaths();
 			if (selections.length < 1) {
-				JOptionPane.showMessageDialog(dbt, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(frame, Messages.getString("EditRelationshipAction.noRelationshipsSelected")); //$NON-NLS-1$
 			} else if (selections.length > 2) {
-			    JOptionPane.showMessageDialog(playpen, Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
+			    JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditRelationshipAction.multipleItemsSelected")); //$NON-NLS-1$
 			} else {
 			    TreePath tp = selections[0];
 			    SQLObject so = (SQLObject) tp.getLastPathComponent();
@@ -85,7 +79,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 			    if (selections.length == 2) {
 			        SQLObject secondObj = (SQLObject) selections[1].getLastPathComponent();
 			        if (!so.equals(secondObj)) {
-			            JOptionPane.showMessageDialog(dbt, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
+			            JOptionPane.showMessageDialog(frame, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
 			            return;
 			        }
 			    }
@@ -94,7 +88,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 					SQLRelationship sr = (SQLRelationship) so;
 					makeDialog(sr);
 				} else {
-					JOptionPane.showMessageDialog(dbt, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
+					JOptionPane.showMessageDialog(frame, Messages.getString("EditRelationshipAction.pleaseSelectRelationship")); //$NON-NLS-1$
 				}
 			}
 		} else {
@@ -105,9 +99,9 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	private void makeDialog(SQLRelationship sqr) {
 		logger.debug("making edit relationship dialog"); //$NON-NLS-1$
 		
-		Relationship r = session.getPlayPen().getSelectedRelationShips().get(0);
+		Relationship r = getSession().getPlayPen().getSelectedRelationShips().get(0);
         RelationshipEditPanel editPanel = new RelationshipEditPanel(r);
-        ColumnMappingPanel mappingPanel = new ColumnMappingPanel(session, sqr);
+        ColumnMappingPanel mappingPanel = new ColumnMappingPanel(getSession(), sqr);
         
         TabbedDataEntryPanel panel = new TabbedDataEntryPanel();
         panel.addTab(Messages.getString("EditRelationshipAction.relationshipTab"), editPanel); //$NON-NLS-1$
@@ -137,12 +131,12 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	}
 		
 	public void itemSelected(SelectionEvent e) {
-		setupAction(playpen.getSelectedItems());
+		setupAction(getPlaypen().getSelectedItems());
 		
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		setupAction(playpen.getSelectedItems());
+		setupAction(getPlaypen().getSelectedItems());
 	}
 	
 }

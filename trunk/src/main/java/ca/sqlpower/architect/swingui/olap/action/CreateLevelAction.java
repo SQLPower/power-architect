@@ -151,7 +151,7 @@ public class CreateLevelAction extends CreateOLAPChildAction<DimensionPane, Leve
 
     @Override
     protected void updateActionState() {
-        List<PlayPenComponent> selectedItems = playpen.getSelectedItems();
+        List<PlayPenComponent> selectedItems = getPlaypen().getSelectedItems();
         String description;
         if (selectedItems.size() == 1 && selectedItems.get(0) instanceof DimensionPane) {
             setEnabled(true);

@@ -18,8 +18,8 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,12 +39,13 @@ import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -118,9 +119,16 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private final ArchitectSession delegateSession;
 
     /**
-     * The Frame where the main part of the GUI for this session appears.
+     * The frame that this project may appear in
      */
     private ArchitectFrame frame;
+    
+    /**
+     * The panel where the GUI for this session appears
+     */
+    private JComponent projectPanel;
+    
+    private JScrollPane playPenScrollPane;
 
     /**
      * The menu of recently-opened project files on this system.
@@ -137,7 +145,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     private boolean profileDialogPacked = false;
 
-    private PlayPen playPen;
+    private final PlayPen playPen;
 
     /** the small dialog that lists the profiles */
     private ProfileManagerView profileManagerView;
@@ -148,7 +156,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     private boolean isNew;    
 
-    private DBTree sourceDatabases;
+    private final DBTree dbTree;
 
     private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
@@ -223,13 +231,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             return prefsEditor.showJDBCDriverPreferences(owner, ArchitectSwingSessionImpl.this);
         }
     };
-    
+
     /**
-     * Creates a new swing session, including a new visible architect frame, with
-     * the given parent context and the given name.
+     * Creates a new, swing ready, architect session. It will not be displayed
+     * anywhere until it is added to an {@link ArchitectFrame}.
      * 
-     * @param context
-     * @param name
+     * @param context The {@link ArchitectSwingSessionContext} that owns this session.
+     * @param name The User visible name of this session.
      * @throws SQLObjectException
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
@@ -238,19 +246,26 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     /**
-     * The session passed into this swing session as a delegate must have a
-     * swing project in order to properly maintain the state of the swing
-     * components.
+     * Creates a new, swing ready, architect session. It will not be displayed
+     * anywhere until it is added to an {@link ArchitectFrame}.
+     * 
+     * @param context
+     *            The {@link ArchitectSwingSessionContext} that owns this
+     *            session.
+     * @param delegateSession
+     *            An {@link ArchitectSession} that this session will delegate
+     *            functionality to. This session must have a swing project in
+     *            order to properly maintain the state of the swing components.
      */
-    ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, ArchitectSession delegateSession)
-    throws SQLObjectException {
+    ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, ArchitectSession delegateSession) {
 
         if (!(delegateSession.getWorkspace() instanceof ArchitectSwingProject)) {
             throw new IllegalStateException("The delegate session must have a swing project" +
             		"as its workspace. If there is no way to pass in a delegate with a swing" +
             		"project we may need to make the reference non-final.");
         }
-        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(frame);
+        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(null);
+        
         this.isNew = true;
         this.context = context;
         this.delegateSession = delegateSession;
@@ -263,13 +278,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
                 try {
-                    OpenProjectAction.openAsynchronously(getContext().createSession(false), f, ArchitectSwingSessionImpl.this);
+                    OpenProjectAction.openAsynchronously(getContext().createSession(), f, ArchitectSwingSessionImpl.this);
                 } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }
             }
         };
-
+        
         dbConnectionManager = new DatabaseConnectionManager(
                 delegateSession.getDataSources(), dsDialogFactory, dsTypeDialogFactory);
 
@@ -281,9 +296,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         olapSchemaManager = new OLAPSchemaManager(this);
         
-        this.sourceDatabases = new DBTree(this);
+        this.dbTree = new DBTree(this);
 
-        playPen = RelationalPlayPenFactory.createPlayPen(this, sourceDatabases);
+        playPen = RelationalPlayPenFactory.createPlayPen(this, dbTree);
         this.getWorkspace().setPlayPenContentPane(playPen.getContentPane());
         UserSettings sprefs = getUserSettings().getSwingSettings();
         if (sprefs != null) {
@@ -362,44 +377,36 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         getWorkspace().getProjectSettings().addSPListener(settingsListener);       
         
         getWorkspace().getCriticManager().registerStartingCritics();
+        
     }
 
-    public void initGUI() throws SQLObjectException {
-        initGUI(null);
-    }
-
-    public void initGUI(ArchitectSwingSession openingSession) throws SQLObjectException {
+    /**
+     * Creates the GUI components for this session, and parents them to the
+     * given ArchitectFrame. This should only be called by the frame itself, and
+     * then only if you need a GUI.
+     */
+    public void initGUI(ArchitectFrame parentFrame) {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread."); //$NON-NLS-1$
         }
+        
+        this.frame = parentFrame;
 
         // makes the tool tips show up on these components 
         ToolTipManager.sharedInstance().registerComponent(playPen);
-        ToolTipManager.sharedInstance().registerComponent(sourceDatabases);
-
-        if (openingSession != null) {
-            Rectangle bounds = openingSession.getArchitectFrame().getBounds();
-            if (!openingSession.isNew()) {
-                bounds.x += 20;
-                bounds.y += 20;
-            }
-            frame = new ArchitectFrame(this, bounds);
-        } else {
-            frame = new ArchitectFrame(this, null);
-        }
+        ToolTipManager.sharedInstance().registerComponent(dbTree);
 
         if (swinguiUserPrompterFactory instanceof SwingUIUserPrompterFactory) {
             ((SwingUIUserPrompterFactory) swinguiUserPrompterFactory).setParentFrame(frame);
         }
         
-        // MUST be called after constructed to set up the actions
-        frame.init(); 
-        frame.setVisible(true);
-
-        if (openingSession != null && openingSession.isNew()) {
-            openingSession.close();
+        if (projectPanel == null) {
+            playPenScrollPane = new JScrollPane(playPen);
+            projectPanel = new JPanel();
+            projectPanel.setLayout(new BorderLayout());
+            projectPanel.add(playPenScrollPane, BorderLayout.CENTER);
         }
-
+        
         profileDialog = new JDialog(frame, Messages.getString("ArchitectSwingSessionImpl.profilesDialogTitle")); //$NON-NLS-1$
         profileManagerView = new ProfileManagerView(delegateSession.getProfileManager());
         delegateSession.getProfileManager().addProfileChangeListener(profileManagerView);
@@ -409,13 +416,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // This has to be called after frame.init() because playPen gets the keyboard actions from frame,
         // which only get set up after calling frame.init().
         RelationalPlayPenFactory.setupKeyboardActions(playPen, this);
-        sourceDatabases.setupKeyboardActions();
+        dbTree.setupKeyboardActions();
 
         macOSXRegistration(frame);
 
         profileDialog.setLocationRelativeTo(frame);
     }
-
+    
     public SwingUIProjectLoader getProjectLoader() {
         return (SwingUIProjectLoader) delegateSession.getProjectLoader();
     }
@@ -668,26 +675,17 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         }
 
-        try {
-            if (frame != null) {
-                // XXX this could/should be done by the frame with a session closing listener
-                frame.saveSettings();
-            }
-        } catch (SQLObjectException e) {
-            logger.error("Couldn't save settings: "+e); //$NON-NLS-1$
-        }
-
         if (profileDialog != null) {
             // XXX this could/should be done by the profile dialog with a session closing listener
             profileDialog.dispose();
         }
-
-        // It is possible this method will be called again via indirect recursion
-        // because the frame has a windowClosing listener that calls session.close().
-        // It should be harmless to have this close() method invoked a second time.
-        if (frame != null) {
-            // XXX this could/should be done by the frame with a session closing listener
-            frame.dispose();
+        
+        // Write pl.ini data back
+        try {
+            if (!isEnterpriseSession())
+                getDataSources().write(new File(context.getPlDotIniPath()));
+        } catch (IOException e) {
+            logger.error("Couldn't save PL.INI file!", e); //$NON-NLS-1$
         }
 
         // close connections
@@ -710,17 +708,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      *
      * @return the value of sourceDatabases
      */
-    public DBTree getSourceDatabases()  {
-        return this.sourceDatabases;
-    }
-
-    /**
-     * Sets the value of sourceDatabases
-     *
-     * @param argSourceDatabases Value to assign to this.sourceDatabases
-     */
-    public void setSourceDatabases(DBTree argSourceDatabases) {
-        this.sourceDatabases = argSourceDatabases;
+    public DBTree getDBTree()  {
+        return this.dbTree;
     }
 
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws SQLObjectException {
@@ -808,7 +797,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public PlayPen getPlayPen()  {
         return this.playPen;
     }
-
+    
     /**
      * Gets the recent menu list
      * 
@@ -1027,7 +1016,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         // populate
         for (SPDataSource dbcs : getDataSources().getConnections()) {
-            dbcsMenu.add(new JMenuItem(new AddDataSourceAction(sourceDatabases, dbcs)));
+            dbcsMenu.add(new JMenuItem(new AddDataSourceAction(dbTree, dbcs)));
         }
         SPSUtils.breakLongMenu(getArchitectFrame(), dbcsMenu);
         
@@ -1176,20 +1165,16 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public void refresh() {
         if (isEnterpriseSession()) {
             try {
-                // Save the frame's position so that the new session's frame is in the same place.
-                if (frame != null) {
-                    frame.saveSettings();
-                }
+                ArchitectSwingSession newSession = ((ArchitectSwingSessionContextImpl) getContext())
+                    .createServerSession(((ArchitectClientSideSession) delegateSession).getProjectLocation(), false);
                 
-                ArchitectSession newSession = ((ArchitectSwingSessionContextImpl) getContext())
-                    .createServerSession(((ArchitectClientSideSession) delegateSession).getProjectLocation(), true, false);
+                frame.addSession(newSession);
 
-                JFrame newFrame = ((ArchitectSwingSessionImpl) newSession).getArchitectFrame();
                 JLabel messageLabel = new JLabel("Refreshing");
                 JProgressBar progressBar = new JProgressBar();
                 progressBar.setIndeterminate(true);
                 
-                final JDialog dialog = new JDialog(newFrame, "Refreshing");
+                final JDialog dialog = new JDialog(frame, "Refreshing");
                 DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
                 builder.setDefaultDialogBorder();
                 builder.append(messageLabel, 3);
@@ -1198,8 +1183,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 dialog.add(builder.getPanel());
                 
                 dialog.pack();
-                dialog.setLocation(newFrame.getX() + (newFrame.getWidth() - dialog.getWidth())/2, 
-                                   newFrame.getY() + (newFrame.getHeight() - dialog.getHeight())/2);
+                dialog.setLocation(frame.getX() + (frame.getWidth() - dialog.getWidth())/2, 
+                                   frame.getY() + (frame.getHeight() - dialog.getHeight())/2);
                 dialog.setAlwaysOnTop(true);
                 dialog.setVisible(true);
                 
@@ -1253,6 +1238,22 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public List<DomainCategory> getDomainCategories() {
         return delegateSession.getDomainCategories();
+    }
+
+    public JScrollPane getPlayPenScrollPane() {
+        return playPenScrollPane;
+    }
+    
+    public void setPlayPenScrollPane(JScrollPane ppScrollPane) {
+        playPenScrollPane = ppScrollPane;
+    }
+
+    public JComponent getProjectPanel() {
+        return projectPanel;
+    }
+    
+    public void setProjectPanel(JComponent panel) {
+        projectPanel = panel;
     }
     
 }

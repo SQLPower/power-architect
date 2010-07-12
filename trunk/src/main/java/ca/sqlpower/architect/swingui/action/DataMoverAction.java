@@ -22,10 +22,9 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DataMoverPanel;
 
 /**
@@ -34,26 +33,24 @@ import ca.sqlpower.architect.swingui.DataMoverPanel;
  */
 public class DataMoverAction extends AbstractAction {
 
-    private final JFrame owner;
-    private final ArchitectSwingSession architectSession;
+    private final ArchitectFrame frame;
     
-    public DataMoverAction(JFrame owner, ArchitectSwingSession architectSession) {
+    public DataMoverAction(ArchitectFrame frame) {
         super(Messages.getString("DataMoverAction.name")); //$NON-NLS-1$
-        this.owner = owner;
-        this.architectSession = architectSession;
+        this.frame = frame;
     }
     
     public void actionPerformed(ActionEvent e) {
         try {
-            JDialog d = new JDialog(owner, Messages.getString("DataMoverAction.dialogTitle")); //$NON-NLS-1$
-            DataMoverPanel dmp = new DataMoverPanel(architectSession);
+            JDialog d = new JDialog(frame, Messages.getString("DataMoverAction.dialogTitle")); //$NON-NLS-1$
+            DataMoverPanel dmp = new DataMoverPanel(frame.getCurrentSession());
             d.add(dmp.getPanel());
             d.pack();
-            d.setLocationRelativeTo(owner);
+            d.setLocationRelativeTo(frame);
             d.setVisible(true);
         } catch (Exception ex) {
             ASUtils.showExceptionDialogNoReport(
-                    owner, Messages.getString("DataMoverAction.couldNotStartDataMover"), ex); //$NON-NLS-1$
+                    frame, Messages.getString("DataMoverAction.couldNotStartDataMover"), ex); //$NON-NLS-1$
         }
     }
 }

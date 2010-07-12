@@ -114,7 +114,7 @@ public class RefreshAction extends AbstractArchitectAction {
             // block until the event has been delivered to all its listeners. This could probably
             // deadlock too easily though, since the EDT might already have something in the queue
             // that would block until the invokeAndWait item has run.
-            ((DBTreeModel) session.getSourceDatabases().getModel()).refreshTreeStructure();
+            ((DBTreeModel) getSession().getDBTree().getModel()).refreshTreeStructure();
             
             if (getDoStuffException() != null) {
                 ASUtils.showExceptionDialogNoReport(parent, "Refresh failed", getDoStuffException());
@@ -130,7 +130,7 @@ public class RefreshAction extends AbstractArchitectAction {
     }
     
     public void actionPerformed(ActionEvent e) {
-        DBTree dbTree = session.getSourceDatabases();
+        DBTree dbTree = getSession().getDBTree();
         
         Set<SQLDatabase> databasesToRefresh = new HashSet<SQLDatabase>();
         for (TreePath tp : dbTree.getSelectionPaths()) {
@@ -146,14 +146,14 @@ public class RefreshAction extends AbstractArchitectAction {
             return;
         }
 
-        final SPSwingWorker worker = new RefreshMonitorableWorker(session, session.getArchitectFrame(), databasesToRefresh);
+        final SPSwingWorker worker = new RefreshMonitorableWorker(getSession(), getSession().getArchitectFrame(), databasesToRefresh);
         final Thread thread = new Thread(worker, "Refresh database worker");
         JProgressBar progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
         JLabel messageLabel = new JLabel("Refreshing selected databases.");
         ProgressWatcher.watchProgress(progressBar, worker, messageLabel);
         
-        final JDialog dialog = new JDialog(session.getArchitectFrame(), "Refresh");
+        final JDialog dialog = new JDialog(getSession().getArchitectFrame(), "Refresh");
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
         builder.setDefaultDialogBorder();
         builder.append(messageLabel, 3);
@@ -175,7 +175,7 @@ public class RefreshAction extends AbstractArchitectAction {
         
         dialog.pack();
         dialog.setModal(true);
-        dialog.setLocationRelativeTo(session.getArchitectFrame());
+        dialog.setLocationRelativeTo(getSession().getArchitectFrame());
         thread.start();
         dialog.setVisible(true);
         

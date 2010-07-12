@@ -20,7 +20,7 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.Messages;
 
 /**
@@ -29,13 +29,13 @@ import ca.sqlpower.architect.swingui.Messages;
  */
 public class ExportHTMLReportAction extends AbstractArchitectAction {
 
-	public ExportHTMLReportAction(ArchitectSwingSession session) {
-		super(session, Messages.getString("ExportHTMLReportAction.name"), Messages.getString("ExportHTMLReportAction.desc"));
+	public ExportHTMLReportAction(ArchitectFrame frame) {
+		super(frame, Messages.getString("ExportHTMLReportAction.name"), Messages.getString("ExportHTMLReportAction.desc"));
 	}
 
 	public void actionPerformed(ActionEvent e) {
 
-		ExportHTMLPanel panel = new ExportHTMLPanel(session);
+		ExportHTMLPanel panel = new ExportHTMLPanel(getSession());
 		panel.showDialog();
 
 	}

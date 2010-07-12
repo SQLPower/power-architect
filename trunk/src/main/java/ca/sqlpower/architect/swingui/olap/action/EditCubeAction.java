@@ -54,9 +54,9 @@ public class EditCubeAction extends AbstractArchitectAction{
 
     public void actionPerformed(ActionEvent e) {
         try {
-            DataEntryPanel panel = new CubeEditPanel(cube, playpen, session);
+            DataEntryPanel panel = new CubeEditPanel(cube, getPlaypen(), getSession());
             JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Cube Properties", "OK");
-            dialog.setLocationRelativeTo(session.getArchitectFrame());
+            dialog.setLocationRelativeTo(getSession().getArchitectFrame());
             dialog.setVisible(true);
         } catch (SQLObjectException ex) {
             ASUtils.showExceptionDialogNoReport(

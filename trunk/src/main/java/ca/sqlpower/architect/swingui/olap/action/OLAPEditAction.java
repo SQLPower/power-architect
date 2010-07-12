@@ -28,6 +28,7 @@ import javax.swing.JFrame;
 import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
@@ -50,36 +51,42 @@ public class OLAPEditAction extends AbstractArchitectAction {
         this.olapSession = olapSession;
         newSchema = olapSession == null; 
     }
+    
+    public OLAPEditAction(ArchitectFrame frame, OLAPSession olapSession) {
+        super(frame, olapSession == null ? "New Schema..." : olapSession.getSchema().getName(), "Edit OLAP schema");
+        this.olapSession = olapSession;
+        newSchema = olapSession == null; 
+    }
 
     public void actionPerformed(ActionEvent e) {                
         Schema schema;
         try {
             if (newSchema) {
-                session.getWorkspace().begin("Opening OLAP schema");
+                getSession().getWorkspace().begin("Opening OLAP schema");
                 schema = new Schema();
                 schema.setName("New OLAP Schema");
-                session.getOLAPRootObject().addChild(olapSession = new OLAPSession(schema));
+                getSession().getOLAPRootObject().addChild(olapSession = new OLAPSession(schema));
             } else {
                 schema = olapSession.getSchema();
             }
 
-            OLAPEditSession editSession = session.getOLAPEditSession(olapSession);
+            OLAPEditSession editSession = getSession().getOLAPEditSession(olapSession);
 
             final JFrame frame = editSession.getFrame();
-            frame.setLocationRelativeTo(session.getArchitectFrame());
+            frame.setLocationRelativeTo(getSession().getArchitectFrame());
             frame.setVisible(true);     
 
             if (newSchema) {            
-                final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(session, schema);
+                final SchemaEditPanel schemaEditPanel = new SchemaEditPanel(getSession(), schema);
 
                 Callable<Boolean> okCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         try {
                             boolean ok = schemaEditPanel.applyChanges();                                
-                            session.getWorkspace().commit();
+                            getSession().getWorkspace().commit();
                             return ok;
                         } catch (Throwable e) {
-                            session.getWorkspace().rollback("Error applying changes: " + e.toString());
+                            getSession().getWorkspace().rollback("Error applying changes: " + e.toString());
                             throw new RuntimeException(e);
                         }
                     }
@@ -88,8 +95,8 @@ public class OLAPEditAction extends AbstractArchitectAction {
                 Callable<Boolean> cancelCall = new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         frame.dispose();
-                        session.getOLAPRootObject().removeOLAPSession(olapSession);
-                        session.getWorkspace().rollback("New OLAP session cancelled");
+                        getSession().getOLAPRootObject().removeOLAPSession(olapSession);
+                        getSession().getWorkspace().rollback("New OLAP session cancelled");
                         return true;
                     }
                 };
@@ -105,13 +112,13 @@ public class OLAPEditAction extends AbstractArchitectAction {
                 schemaEditDialog.setVisible(true);
             }
         } catch (SQLObjectException ex) {
-            session.getWorkspace().rollback("Error opening OLAP schema: " + ex.toString());
+            getSession().getWorkspace().rollback("Error opening OLAP schema: " + ex.toString());
             ASUtils.showExceptionDialogNoReport(
-                    session.getArchitectFrame(),
+                    getSession().getArchitectFrame(),
                     "Failed to get list of databases.",
                     ex);
         } catch (Throwable ex) {
-            session.getWorkspace().rollback("Error opening OLAP schema: " + ex.toString());
+            getSession().getWorkspace().rollback("Error opening OLAP schema: " + ex.toString());
             throw new RuntimeException(ex);
         }
     }

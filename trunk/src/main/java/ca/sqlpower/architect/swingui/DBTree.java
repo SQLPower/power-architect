@@ -140,7 +140,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	
 	// ----------- CONSTRUCTORS ------------
 
-	public DBTree(final ArchitectSwingSession session) throws SQLObjectException {
+	public DBTree(final ArchitectSwingSession session) {
         this.session = session;
         treeModel = new DBTreeModel(session.getRootObject(), this);
         setModel(treeModel);

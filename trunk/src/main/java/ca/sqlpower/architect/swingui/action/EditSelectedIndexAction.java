@@ -39,12 +39,11 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 
 /**
  * An action that, when invoked, examines the selection in the DBTree and pops up
@@ -56,11 +55,6 @@ public class EditSelectedIndexAction extends EditIndexAction {
     private static final Logger logger = Logger.getLogger(EditSelectedIndexAction.class);
     
     /**
-     * The DBTree instance that is associated with this Action.
-     */
-    protected final DBTree dbt; 
-    
-    /**
      * Creates a new instance of this action which, when invoked, will edit the
      * currently-selected SQLIndex.  Normally only one instance of this action
      * will be created in a particular ArchitectSession.  To create an action that
@@ -68,16 +62,15 @@ public class EditSelectedIndexAction extends EditIndexAction {
      * 
      * @param session The ArchitectSession to which this action belongs.
      */
-    public EditSelectedIndexAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("EditSelectedIndexAction.name"), Messages.getString("EditSelectedIndexAction.description"), "edit_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        dbt = frame.getDbTree();
+    public EditSelectedIndexAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("EditSelectedIndexAction.name"), Messages.getString("EditSelectedIndexAction.description"), "edit_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     public void actionPerformed(ActionEvent evt) {
-        TreePath [] selections = dbt.getSelectionPaths();
+        TreePath [] selections = getSession().getDBTree().getSelectionPaths();
         logger.debug("selections length is: " + selections.length); //$NON-NLS-1$
         if (selections.length != 1) {
-            JOptionPane.showMessageDialog(dbt, Messages.getString("EditSelectedIndexAction.instructions")); //$NON-NLS-1$
+            JOptionPane.showMessageDialog(frame, Messages.getString("EditSelectedIndexAction.instructions")); //$NON-NLS-1$
         } else {
             TreePath tp = selections[0];
             SQLObject so = (SQLObject) tp.getLastPathComponent();
@@ -92,7 +85,7 @@ public class EditSelectedIndexAction extends EditIndexAction {
                     throw new SQLObjectRuntimeException(e);
                 } 
             } else {
-                JOptionPane.showMessageDialog(dbt, Messages.getString("EditSelectedIndexAction.instructions")); //$NON-NLS-1$
+                JOptionPane.showMessageDialog(frame, Messages.getString("EditSelectedIndexAction.instructions")); //$NON-NLS-1$
             }
         }
     }

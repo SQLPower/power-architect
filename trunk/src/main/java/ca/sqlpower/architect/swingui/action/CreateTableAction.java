@@ -28,6 +28,7 @@ import javax.swing.KeyStroke;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.AbstractPlacer;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TableEditPanel;
@@ -47,26 +48,23 @@ public class CreateTableAction extends AbstractArchitectAction {
 	// The default name of a table when it is initially created.
 	private static final String NEW_TABLE_NAME = "New_Table";
 
-	private final ArchitectSwingSession session;
-	
-	public CreateTableAction(ArchitectSwingSession session) {
-        super(session,
+	public CreateTableAction(ArchitectFrame frame) {
+        super(frame,
                 Messages.getString("CreateTableAction.name"), //$NON-NLS-1$
                 Messages.getString("CreateTableAction.description"), //$NON-NLS-1$
                 "new_table"); //$NON-NLS-1$
-        this.session = session;
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_T,0));
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		playpen.fireCancel();
+		getPlaypen().fireCancel();
 		SQLTable t = null; 
 		t = new SQLTable();
 		t.initFolders(true);
 		t.setName(NEW_TABLE_NAME); //$NON-NLS-1$
 		
-		TablePane tp = new TablePane(t, playpen.getContentPane());
-		TablePlacer tablePlacer = new TablePlacer(playpen, tp);
+		TablePane tp = new TablePane(t, getPlaypen().getContentPane());
+		TablePlacer tablePlacer = new TablePlacer(getPlaypen(), tp);
 		tablePlacer.dirtyup();
 	}
 	
@@ -93,7 +91,8 @@ public class CreateTableAction extends AbstractArchitectAction {
                 public boolean applyChanges() {
                     String warnings = generateWarnings();
                     if (warnings.length() == 0) {
-                        try {          
+                        ArchitectSwingSession session = getSession();
+                        try {       
                             session.getWorkspace().begin("Creating a SQLTable and TablePane");
                             if (super.applyChanges()) {
                                 tp.setName(table.getName());

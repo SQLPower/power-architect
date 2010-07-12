@@ -23,7 +23,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JFrame;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.query.QueryFrame;
 
 /**
@@ -31,18 +31,13 @@ import ca.sqlpower.architect.swingui.query.QueryFrame;
  */
 public class SQLQueryAction extends AbstractArchitectAction  {
 
-    private final ArchitectSwingSession session;
-    
-    public SQLQueryAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("SQLQueryAction.name"), Messages.getString("SQLQueryAction.description"), "query");
-        this.session = session;
+    public SQLQueryAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("SQLQueryAction.name"), Messages.getString("SQLQueryAction.description"), "query");
     }
     
     public void actionPerformed(ActionEvent e) {
-        JFrame sqlQueryDialog = new QueryFrame(session, Messages.getString("SQLQueryAction.dialogTitle"));
+        JFrame sqlQueryDialog = new QueryFrame(getSession(), Messages.getString("SQLQueryAction.dialogTitle"));
         sqlQueryDialog.setVisible(true);
-        
-        
     }
 
 }

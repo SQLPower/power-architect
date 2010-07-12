@@ -53,8 +53,6 @@ import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.object.AbstractSPListener;
-import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -77,7 +75,6 @@ public class RelationalPlayPenFactory {
         SelectionSynchronizer synchronizer = new SelectionSynchronizer(dbTree, pp);
         pp.addSelectionListener(synchronizer);
         dbTree.addTreeSelectionListener(synchronizer);
-        pp.getContentPane().addSPListener(synchronizer);
         pp.addMouseListener(synchronizer);
         return pp;
     }
@@ -236,7 +233,7 @@ public class RelationalPlayPenFactory {
 
     }
 
-    static class SelectionSynchronizer extends AbstractSPListener implements SelectionListener, 
+    static class SelectionSynchronizer implements SelectionListener, 
     ItemSelectionListener<SQLTable, SQLColumn>, TreeSelectionListener, MouseListener {
 
         private int eventDepth = 0;
@@ -386,18 +383,6 @@ public class RelationalPlayPenFactory {
                 selectInPlayPen(((JTree) e.getSource()).getSelectionPaths());
             } finally {
                 eventDepth--;
-            }
-        }
-
-        public void childAdded(SPChildEvent evt) {
-            if (evt.getChild() instanceof ContainerPane<?, ?>) {
-                ((ContainerPane<SQLTable, SQLColumn>) evt.getChild()).addItemSelectionListener(this);
-            }
-        }
-
-        public void childRemoved(SPChildEvent evt) {
-            if (evt.getChild() instanceof ContainerPane<?, ?>) {
-                ((ContainerPane<SQLTable, SQLColumn>) evt.getChild()).removeItemSelectionListener(this);
             }
         }
 

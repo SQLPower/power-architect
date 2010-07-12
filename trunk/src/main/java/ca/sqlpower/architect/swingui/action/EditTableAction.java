@@ -28,7 +28,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TableEditPanel;
@@ -41,32 +41,26 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
 public class EditTableAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
 
-	/**
-	 * The DBTree instance that is associated with this Action.
-	 */
-	protected final DBTree dbt; 
-	
-	public EditTableAction(ArchitectSwingSession session) {
-	    super(session, Messages.getString("EditTableAction.name"), Messages.getString("EditTableAction.description"), "edit_table"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        dbt = frame.getDbTree();
+	public EditTableAction(ArchitectFrame frame) {
+	    super(frame, Messages.getString("EditTableAction.name"), Messages.getString("EditTableAction.description"), "edit_table"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List selection = playpen.getSelectedItems();
+			List selection = getPlaypen().getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.noTablesSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditTableAction.noTablesSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.multipleTablesSelected")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditTableAction.multipleTablesSelected")); //$NON-NLS-1$
 			} else if (selection.get(0) instanceof TablePane) {
 				TablePane tp = (TablePane) selection.get(0);
 				makeDialog(tp.getModel());				
 			} else {
-				JOptionPane.showMessageDialog(playpen, Messages.getString("EditTableAction.cannotRecognizeItem")); //$NON-NLS-1$
+				JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditTableAction.cannotRecognizeItem")); //$NON-NLS-1$
 			}
 
 		} else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
-			TreePath [] selections = dbt.getSelectionPaths();
+			TreePath [] selections = getSession().getDBTree().getSelectionPaths();
 			logger.debug("selections length is: " + selections.length); //$NON-NLS-1$
 			if (selections.length == 1 || selections.length == 2) {
                 SQLObject so = (SQLObject) selections[0].getLastPathComponent();
@@ -81,10 +75,10 @@ public class EditTableAction extends AbstractArchitectAction {
                     st = (SQLTable) so;
                     makeDialog(st); 
                 } else {
-                    JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
+                    JOptionPane.showMessageDialog(frame, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
                 }
 			} else {
-			    JOptionPane.showMessageDialog(dbt, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
+			    JOptionPane.showMessageDialog(frame, Messages.getString("EditTableAction.instructions")); //$NON-NLS-1$
 			}
 		} else {
 	  		// unknown action command source, do nothing
@@ -94,7 +88,7 @@ public class EditTableAction extends AbstractArchitectAction {
 	private JDialog editDialog;
 	
 	public void makeDialog(SQLTable table) {
-		final TableEditPanel editPanel = new TableEditPanel(session, table);
+		final TableEditPanel editPanel = new TableEditPanel(getSession(), table);
 
 		Callable<Boolean> okCall = new Callable<Boolean>() {
 			public Boolean call() {

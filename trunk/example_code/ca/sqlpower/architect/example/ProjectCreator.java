@@ -75,7 +75,7 @@ public class ProjectCreator implements Runnable {
             // here we create the session context and a session within it,
             // then call another method to do all the interesting work
             sessionContext = new ArchitectSwingSessionContextImpl();
-            session = sessionContext.createSession(false);
+            session = sessionContext.createSession();
 
             createSampleProject();
             

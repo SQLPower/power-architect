@@ -35,7 +35,6 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.query.SQLQueryUIComponents;
 
 /**
@@ -68,13 +67,9 @@ public class QueryFrame extends JFrame {
        setIconImage(ASUtils.getFrameIconImage());
        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
        setSize(900,650);
-       try {
-           dbTree = new DBTree(session);
-       } catch (SQLObjectException e) {
-           throw new RuntimeException(e);
-       }
+       dbTree = new DBTree(session);
        
-       TreeModel model = session.getSourceDatabases().getModel();
+       TreeModel model = session.getDBTree().getModel();
        dbTree.setModel(model);
         
         queryPanel = SQLQueryUIComponents.createQueryPanel(session, session.getDataSources(), session, this, db, initialSQL);

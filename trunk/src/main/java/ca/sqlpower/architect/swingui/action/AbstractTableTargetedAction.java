@@ -25,53 +25,46 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 
 public abstract class AbstractTableTargetedAction extends AbstractArchitectAction implements SelectionListener {
 
-    /**
-     * The DBTree instance that is associated with this Action.
-     */
-    protected final DBTree dbt; 
-    
     public AbstractTableTargetedAction(
-            ArchitectSwingSession session,
+            ArchitectFrame frame,
             String actionName,
             String actionDescription,
             String iconResourceName) {
-        super(session, actionName, actionDescription, iconResourceName);
+        super(frame, actionName, actionDescription, iconResourceName);
         
-        dbt = frame.getDbTree();
-        if (dbt == null) throw new NullPointerException("Null db tree"); //$NON-NLS-1$
+        frame.addSelectionListener(this);
         
-        playpen.addSelectionListener(this);
-        
-        setupAction(playpen.getSelectedItems());
+        setupAction(getPlaypen().getSelectedItems());
     }
     
     public void actionPerformed(ActionEvent evt) {
         try {
+            DBTree dbt = getSession().getDBTree();
             if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
-                List selection = playpen.getSelectedItems();
+                List selection = getPlaypen().getSelectedItems();
                 if (selection.size() < 1) {
-                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectTable")); //$NON-NLS-1$
+                    JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("AbstractTableTargetedAction.selectTable")); //$NON-NLS-1$
                 } else if (selection.size() > 1) {
-                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.multipleItemsSelected")); //$NON-NLS-1$
+                    JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("AbstractTableTargetedAction.multipleItemsSelected")); //$NON-NLS-1$
                 } else if (selection.get(0) instanceof TablePane) {
                     TablePane tp = (TablePane) selection.get(0);
                     processTablePane(tp);
                 } else {
-                    JOptionPane.showMessageDialog(playpen, Messages.getString("AbstractTableTargetedAction.selectedItemNotRecognized")); //$NON-NLS-1$
+                    JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("AbstractTableTargetedAction.selectedItemNotRecognized")); //$NON-NLS-1$
                 }
             } else if (evt.getActionCommand().equals(DBTree.ACTION_COMMAND_SRC_DBTREE)) {
                 TreePath [] selections = dbt.getSelectionPaths();
@@ -94,7 +87,7 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
                         "Internal Architect Error", JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             }
         } catch (SQLObjectException ex) {
-            ASUtils.showExceptionDialog(session, Messages.getString("AbstractTableTargetedAction.columnCouldNotBeInserted") + ex.getMessage(), ex); //$NON-NLS-1$
+            ASUtils.showExceptionDialog(getSession(), Messages.getString("AbstractTableTargetedAction.columnCouldNotBeInserted") + ex.getMessage(), ex); //$NON-NLS-1$
         }
     }
     
@@ -116,11 +109,11 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
     public abstract void disableAction();
         
     public void itemSelected(SelectionEvent e) {
-        setupAction(playpen.getSelectedItems());
+        setupAction(getPlaypen().getSelectedItems());
         
     }
 
     public void itemDeselected(SelectionEvent e) {
-        setupAction(playpen.getSelectedItems());
+        setupAction(getPlaypen().getSelectedItems());
     }
 }

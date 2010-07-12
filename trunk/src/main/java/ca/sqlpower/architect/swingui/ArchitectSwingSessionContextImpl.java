@@ -25,6 +25,8 @@ import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -71,6 +73,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
     private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x")); //$NON-NLS-1$ //$NON-NLS-2$
+    
+    private final List<ArchitectFrame> frames = new ArrayList<ArchitectFrame>();
     
     /**
      * This dummy transferable is placed on the local clipboard if the system 
@@ -161,36 +165,32 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         
         logger.debug("toolkit has system clipboard " + Toolkit.getDefaultToolkit().getSystemClipboard());
         clipboard.setContents(dummyTransferable, this);
+        
     }
-    
+
     /**
-     * Loads the XML project description from the input stream,
-     * optionally creating the GUI for you.
+     * Loads the XML project description from an input stream. If frame is
+     * non-null, a GUI will be created inside the given frame.
      * <p>
-     * <b>Important Note:</b> If you set showGUI to true, this method
-     * must be called on the Swing Event Dispatch Thread.  If this is
-     * not possible or practical, call this method with showGUI false,
-     * then call {@link ArchitectSwingSession#initGUI()} on the returned
-     * session using the event dispatch thread some time later on.
-     * @throws IOException If the file is not found or can't be read.
-     * @throws SQLObjectException if there is some problem with the file
-     * @throws IllegalStateException if showGUI==true and this method was
-     * not called on the Event Dispatch Thread.
+     * <b>Important Note:</b> If you wish to show a GUI, this method must be
+     * called on the Swing Event Dispatch Thread. If this is not possible or
+     * practical, call {@link #createSession(InputStream)}, then add this
+     * session to an ArchitectFrame on the EDT later on.
+     * 
+     * @throws IOException
+     *             If the file is not found or can't be read.
+     * @throws SQLObjectException
+     *             if there is some problem with the file
+     * @throws IllegalStateException
+     *             if frame is not null and this method was not called on the Event
+     *             Dispatch Thread.
      */
-    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws SQLObjectException, IOException {
-        ArchitectSwingSession session = createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.projectLoadingDialogTitle"), false, null); //$NON-NLS-1$
+    public ArchitectSwingSession createSession(InputStream in) throws SQLObjectException, IOException {
+        ArchitectSwingSession session = createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.projectLoadingDialogTitle")); //$NON-NLS-1$
         
         try {
             session.getProjectLoader().load(in, session.getDataSources());
 
-            if (showGUI) {
-                session.initGUI();
-                if (externalLifecycleListener != null) {
-                    externalLifecycleListener.sessionOpening(
-                            new SessionLifecycleEvent<ArchitectSwingSession>(session));
-                }
-            }
-        
             return session;
         } catch (SQLObjectException ex) {
             try {
@@ -218,24 +218,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     
     /* javadoc inherited from interface */
     public ArchitectSwingSession createSession() throws SQLObjectException {
-        return createSession(true);
+        return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"));
     }
 
-    /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession(boolean showGUI) throws SQLObjectException {
-        return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), showGUI, null); //$NON-NLS-1$
-    }
-    
-    /* javadoc inherited from interface */
-    public ArchitectSwingSession createSession(InputStream in) throws SQLObjectException, IOException {
-        return createSession(in, true);
-    }
-
-    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws SQLObjectException {
-        return createSessionImpl(Messages.getString("ArchitectSwingSessionContextImpl.defaultNewProjectName"), true, openingSession); //$NON-NLS-1$
-    }
-    
-    public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean initGUI, boolean autoStartUpdater) throws SQLObjectException {
+    public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean autoStartUpdater) throws SQLObjectException {
 
         final ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
         final ArchitectSwingSessionImpl swingSession = new ArchitectSwingSessionImpl(this, clientSession);
@@ -305,14 +291,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         
         getSessions().add(swingSession);
         swingSession.addSessionLifecycleListener(sessionLifecycleListener);
-        
-        if (initGUI) {
-            swingSession.initGUI();
-            
-            if (externalLifecycleListener != null) {
-                externalLifecycleListener.sessionOpening(
-                        new SessionLifecycleEvent<ArchitectSwingSession>(swingSession));
-            }
+
+        if (externalLifecycleListener != null) {
+            externalLifecycleListener.sessionOpening(
+                    new SessionLifecycleEvent<ArchitectSwingSession>(swingSession));
         }
         
         return swingSession;
@@ -386,24 +368,15 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      *             if showGUI==true and this method was not called on the Event
      *             Dispatch Thread.
      */
-    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws SQLObjectException {
+    private ArchitectSwingSession createSessionImpl(String projectName) throws SQLObjectException {
         logger.debug("About to create a new session for project \"" + projectName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
         ArchitectSwingSession session = new ArchitectSwingSessionImpl(this, projectName);
         getSessions().add(session);
         session.addSessionLifecycleListener(sessionLifecycleListener);
-        
-        if (showGUI) {
-            logger.debug("Creating the Architect frame..."); //$NON-NLS-1$
-            session.initGUI(openingSession);
 
-            if (externalLifecycleListener != null) {
-                externalLifecycleListener.sessionOpening(
-                        new SessionLifecycleEvent<ArchitectSwingSession>(session));
-            }
-            
-            if (openingSession == null && getSessions().size() == 1) {
-                showWelcomeScreen(session.getArchitectFrame());
-            }
+        if (externalLifecycleListener != null) {
+            externalLifecycleListener.sessionOpening(
+                    new SessionLifecycleEvent<ArchitectSwingSession>(session));
         }
         
         return session;
@@ -433,6 +406,13 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             }
             
             if (getSessions().isEmpty() && exitAfterAllSessionsClosed) {
+                for (ArchitectFrame frame : frames) {
+                    try {
+                        frame.saveSettings();
+                    } catch (SQLObjectException ex) {
+                        logger.error("Exception occurred while saving settings", ex);
+                    }
+                }
                 System.exit(0);
             }
         }
@@ -440,15 +420,50 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         public void sessionOpening(SessionLifecycleEvent<ArchitectSession> e) {
         }
     };
+    
+    public void registerFrame(final ArchitectFrame frame) {
+        frames.add(frame);
+        
+        if (windowLifecycleListener != null) {
+            windowLifecycleListener.sessionOpening(new SessionLifecycleEvent<ArchitectFrame>(frame));
+        }
+        
+        frame.addWindowListener(new WindowListener() {
+            public void windowActivated(WindowEvent e) {
+            }
+            public void windowClosed(WindowEvent e) {
+                if (windowLifecycleListener != null) {
+                    frames.remove(frame);
+                    windowLifecycleListener.sessionClosing(new SessionLifecycleEvent<ArchitectFrame>(frame));
+                }
+            }
+            public void windowClosing(WindowEvent e) {
+            }
+            public void windowDeactivated(WindowEvent e) {
+            }
+            public void windowDeiconified(WindowEvent e) {
+            }
+            public void windowIconified(WindowEvent e) {
+            }
+            public void windowOpened(WindowEvent e) {
+            }
+            
+        });
+    }
 
     /**
-     * Provides a way for architect enterprise to have at the sessions as they are
-     * created and distroyed.
+     * Provides a way for architect enterprise to have at the sessions and
+     * frames as they are created and distroyed.
      */
+    private SessionLifecycleListener<ArchitectFrame> windowLifecycleListener = null;
     private SessionLifecycleListener<ArchitectSwingSession> externalLifecycleListener = null;
     
     public void setExternalLifecycleListener(SessionLifecycleListener<ArchitectSwingSession> externalLifecycleListener) {
         this.externalLifecycleListener = externalLifecycleListener;
+    }
+    
+    public void setWindowLifecycleListener(SessionLifecycleListener<ArchitectFrame> l) {
+        windowLifecycleListener = l;
     }
     
     /**

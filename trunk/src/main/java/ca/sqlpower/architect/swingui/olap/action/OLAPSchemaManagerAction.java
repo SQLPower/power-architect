@@ -21,6 +21,7 @@ package ca.sqlpower.architect.swingui.olap.action;
 
 import java.awt.event.ActionEvent;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 
@@ -29,9 +30,13 @@ public class OLAPSchemaManagerAction extends AbstractArchitectAction {
     public OLAPSchemaManagerAction(ArchitectSwingSession session) {
         super(session, "OLAP Schema Manager...", "OLAP Schema Manager");
     }
+    
+    public OLAPSchemaManagerAction(ArchitectFrame frame) {
+        super(frame, "OLAP Schema Manager...", "OLAP Schema Manager");
+    }
 
     public void actionPerformed(ActionEvent e) {
-        session.showOLAPSchemaManager(session.getArchitectFrame());
+        getSession().showOLAPSchemaManager(getSession().getArchitectFrame());
     }
 
 }

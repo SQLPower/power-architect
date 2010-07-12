@@ -55,10 +55,10 @@ public class InvadersAction extends AbstractArchitectAction {
     
     public void actionPerformed(ActionEvent e) {
         try {
-            Game game = new Game(session);
+            Game game = new Game(getSession());
             game.start();
         } catch (SQLObjectException ex) {
-            SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "FAIL", null, ex);
+            SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(), "FAIL", null, ex);
         }
     }
     

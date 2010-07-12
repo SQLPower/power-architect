@@ -380,7 +380,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 * root object associated with the given session, but it normally
 	 * will be.
 	 */
-	public DBTreeModel(SQLObjectRoot root, JTree tree) throws SQLObjectException {
+	public DBTreeModel(SQLObjectRoot root, JTree tree) {
 		this.root = root;
 		this.treeModelListeners = new LinkedList<TreeModelListener>();
 		tree.addTreeWillExpandListener(treeWillExpandListener);

@@ -30,6 +30,7 @@ public class SelectionEvent extends EventObject {
     public static final int SINGLE_SELECT=4;
     public static final int CTRL_MULTISELECT=8;
     public static final int SHIFT_MULTISELECT=16;
+    public static final int PLAYPEN_SWITCH_MULTISELECT=32;
     
     
 	protected int eventType;

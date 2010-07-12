@@ -28,8 +28,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
+import javax.swing.JScrollPane;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
@@ -123,8 +125,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
             throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
 
-        frame = new ArchitectFrame(this, null);
-        frame.init();
+        frame = new ArchitectFrame(context, null);
+        frame.init(this, false);
         
         kettleJob = new KettleJob(this);
         
@@ -222,7 +224,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return null;
     }
 
-    public DBTree getSourceDatabases() {
+    public DBTree getDBTree() {
         return sourceDatabases;
     }
 
@@ -254,14 +256,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void setKettleJob(KettleJob kettleJob) {
     }
 
-    public void initGUI() throws SQLObjectException {
-        throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
+    public void initGUI(ArchitectFrame frame) {
+        // no-op
     }
 
-    public void initGUI(ArchitectSwingSession session) throws SQLObjectException {
-        throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
-    }
-    
     public void registerSwingWorker(SPSwingWorker worker) {
         
     }
@@ -510,5 +508,25 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public List<DomainCategory> getDomainCategories() {
         return Collections.emptyList();
+    }
+
+    public JScrollPane getPlayPenScrollPane() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public JComponent getProjectPanel() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setPlayPenScrollPane(JScrollPane ppScrollPane) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void setProjectPanel(JComponent panel) {
+        // TODO Auto-generated method stub
+        
     }
 }

@@ -27,8 +27,8 @@ import javax.swing.KeyStroke;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
@@ -39,7 +39,6 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.swingui.CursorManager;
 
 public class CreateRelationshipAction extends AbstractArchitectAction
 	implements ActionListener, SelectionListener, CancelableListener {
@@ -50,8 +49,6 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	protected TablePane pkTable;
 	protected TablePane fkTable;
 	
-	private CursorManager cursorManager;
-	
 	/**
 	 * This property is true when we are actively creating a
 	 * relationship.  The original implementation was to add and
@@ -60,8 +57,8 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	 */
 	protected boolean active;
 
-	public CreateRelationshipAction(ArchitectSwingSession session, boolean identifying, CursorManager cm) {
-        super(session, 
+	public CreateRelationshipAction(ArchitectFrame frame, boolean identifying) {
+        super(frame, 
               identifying ? Messages.getString("CreateRelationshipAction.createIdentifyingRelationshipActionName") : Messages.getString("CreateRelationshipAction.createNonIdentifyingRelationshipActionName"), //$NON-NLS-1$ //$NON-NLS-2$
               identifying ? Messages.getString("CreateRelationshipAction.createIdentifyingRelationshipActionDescription"): Messages.getString("CreateRelationshipAction.createNonIdentifyingRelationshipActionDescription"), //$NON-NLS-1$ //$NON-NLS-2$
               identifying ? "new_id_relationship" : "new_nonid_relationship"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -71,29 +68,23 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 		} else {
 			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,KeyEvent.SHIFT_MASK));
 		}
-		cursorManager = cm;
 		this.identifying = identifying;
 		logger.debug("(constructor) hashcode is: " + super.hashCode()); //$NON-NLS-1$
         
-        if (this.playpen != null) {
-            this.playpen.addSelectionListener(this);
-            this.playpen.addCancelableListener(this);
-            setEnabled(true);
-        } else {
-            setEnabled(false);
-        }
+		frame.addSelectionListener(this);
+		frame.addCancelableListener(this);
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		playpen.fireCancel();
+		getPlaypen().fireCancel();
 		pkTable = null;
 		fkTable = null;
 		logger.debug("Starting to create relationship, setting active to TRUE!"); //$NON-NLS-1$
 		active = true;
-		cursorManager.placeModeStarted();
+		getPlaypen().getCursorManager().placeModeStarted();
 		//playpen.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		// gets over the "can't select a selected item"
-		playpen.selectNone();
+		getPlaypen().selectNone();
 	}
 
 	static public void doCreateRelationship(SQLTable pkTable, SQLTable fkTable, PlayPen pp, boolean identifying) {
@@ -122,6 +113,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
     public void itemSelected(SelectionEvent e) {
 	
 		if (!active) return;
+		if (e.getMultiselectType() == SelectionEvent.PLAYPEN_SWITCH_MULTISELECT) return;
 
 		Selectable s = e.getSelectableSource();
 
@@ -136,7 +128,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 				fkTable = (TablePane) s;
 				logger.debug("Creating relationship: FK Table is "+fkTable); //$NON-NLS-1$
 				try {
-					doCreateRelationship(pkTable.getModel(),fkTable.getModel(),playpen,identifying);  // this might fail, but still set things back to "normal"
+					doCreateRelationship(pkTable.getModel(),fkTable.getModel(),getPlaypen(),identifying);  // this might fail, but still set things back to "normal"
 				} finally {
 					resetAction();
 				}
@@ -150,7 +142,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	private void resetAction() {
 		pkTable = null;
 		fkTable = null;
-		cursorManager.placeModeFinished();
+		getPlaypen().getCursorManager().placeModeFinished();
 		active = false;
 	}
 

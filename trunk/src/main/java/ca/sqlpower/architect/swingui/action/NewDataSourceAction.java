@@ -31,7 +31,7 @@ public class NewDataSourceAction extends AbstractAction {
         final JDBCDataSource dataSource = new JDBCDataSource(plDotIni);
         Runnable onAccept = new Runnable() {
             public void run() {
-                session.getSourceDatabases().addSourceConnection(dataSource);
+                session.getDBTree().addSourceConnection(dataSource);
                 plDotIni.addDataSource(dataSource);
             }
         };

@@ -535,7 +535,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			    getModel().inherit(insertionPoint, table, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
 			    for (SQLColumn column : table.getColumns()) {
 			        SQLColumn targetCol = getModel().getColumnByName(column.getName());
-			        ASUtils.correctSourceColumn(column, duplicateProperties, targetCol, getPlayPen().getSession().getSourceDatabases());
+			        ASUtils.correctSourceColumn(column, duplicateProperties, targetCol, getPlayPen().getSession().getDBTree());
 			    }
 			} else if (someData instanceof SQLColumn) {
 			    SQLColumn col = (SQLColumn) someData;
@@ -575,7 +575,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			    } else {
 			        getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
 			        if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
-			        ASUtils.correctSourceColumn(col, duplicateProperties, getModel().getColumnByName(col.getName()), getPlayPen().getSession().getSourceDatabases());
+			        ASUtils.correctSourceColumn(col, duplicateProperties, getModel().getColumnByName(col.getName()), getPlayPen().getSession().getDBTree());
 			    }
 			} else {
 				return false;

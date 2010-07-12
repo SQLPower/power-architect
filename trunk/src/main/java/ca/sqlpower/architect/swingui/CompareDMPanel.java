@@ -843,7 +843,7 @@ public class CompareDMPanel extends JPanel {
                 // XXX: this will take a non-trivial amount of time, so ideally would be done with a progress bar.
                 // we might be able to use OpenProjectAction.loadAsynchronously() for this, but it would need a flag for not showing the GUI
                 // or better yet, set o=f, and do the load itself in the compare worker, because this approach would share the progress bar with the comparison activity itself
-				ArchitectSwingSession newSession = session.getContext().createSession(in, false);
+				ArchitectSwingSession newSession = session.getContext().createSession(in);
 				
                 o = newSession.getTargetDatabase();
                 

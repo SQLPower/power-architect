@@ -43,6 +43,7 @@ import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
@@ -66,12 +67,12 @@ public class ExportDDLAction extends AbstractArchitectAction {
 	
 	private JDialog d;
 
-	public ExportDDLAction(final ArchitectSwingSession session) {
-		super(session, Messages.getString("ExportDDLAction.name"), Messages.getString("ExportDDLAction.description"), "fwdSQL"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	public ExportDDLAction(final ArchitectFrame frame) {
+		super(frame, Messages.getString("ExportDDLAction.name"), Messages.getString("ExportDDLAction.description"), "fwdSQL"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 
     public void actionPerformed(ActionEvent e) {
-        final DDLExportPanel ddlPanel = new DDLExportPanel(session);
+        final DDLExportPanel ddlPanel = new DDLExportPanel(getSession());
 
         Callable<Boolean> okCall, cancelCall;
         okCall = new Callable<Boolean>() {
@@ -98,14 +99,14 @@ public class ExportDDLAction extends AbstractArchitectAction {
              * generateAndDisplayDDL method.
              */
             private void checkErrorsAndGenerateDDL(final DDLGenerator ddlg) {
-                List<Criticism> criticisms = session.getWorkspace().getCriticManager().
+                List<Criticism> criticisms = getSession().getWorkspace().getCriticManager().
                     criticize(ddlg.getClass());
                 if (criticisms.isEmpty()) {
                     try {
                         generateAndDisplayDDL(ddlPanel, ddlg);
                     } catch (Exception ex) {
                         ASUtils.showExceptionDialog
-                        (session,
+                        (getSession(),
                          Messages.getString("ExportDDLAction.errorGeneratingDDLScript"), ex); //$NON-NLS-1$
                     }
                 } else {
@@ -127,7 +128,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                     
                     final CriticismBucket bucket = new CriticismBucket();
                     bucket.updateCriticismsToMatch(criticisms);
-                    JTable errorTable = CriticSwingUtil.createCriticTable(session, bucket);
+                    JTable errorTable = CriticSwingUtil.createCriticTable(getSession(), bucket);
                     builder.append(new JScrollPane(errorTable));
                     builder.nextLine();
                     
@@ -153,7 +154,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                 generateAndDisplayDDL(ddlPanel, ddlg);
                             } catch (Exception ex) {
                                 ASUtils.showExceptionDialog
-                                (session,
+                                (getSession(),
                                  Messages.getString("ExportDDLAction.errorGeneratingDDLScript"), ex); //$NON-NLS-1$
                             }                        }
                     });
@@ -194,7 +195,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
              */
             private void generateAndDisplayDDL(final DDLExportPanel ddlPanel, DDLGenerator ddlg) throws SQLException,
             SQLObjectException {
-                ddlg.generateDDLScript(session.getTargetDatabase().getTables());
+                ddlg.generateDDLScript(getSession().getTargetDatabase().getTables());
 
                 SQLDatabase ppdb = new SQLDatabase(ddlPanel.getTargetDB());
                 SQLScriptDialog ssd =
@@ -202,10 +203,10 @@ public class ExportDDLAction extends AbstractArchitectAction {
                             ddlg,
                             ppdb.getDataSource(),
                             true,
-                            session);
+                            getSession());
                 SPSwingWorker scriptWorker = ssd.getExecuteTask();
-                ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements(), session);
-                ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp, session);
+                ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements(), getSession());
+                ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp, getSession());
                 cfp.setNextProcess(crp);
                 crp.setNextProcess(scriptWorker);
                 ssd.setExecuteTask(cfp);

@@ -33,17 +33,14 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.swingui.event.SessionLifecycleEvent;
-import ca.sqlpower.swingui.event.SessionLifecycleListener;
 
 public class PasteSelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(PasteSelectedAction.class);
     
-    public PasteSelectedAction(final ArchitectSwingSession session) {
-        super(session, Messages.getString("PasteSelectedAction.name"), Messages.getString("PasteSelectedAction.description"));
+    public PasteSelectedAction(final ArchitectFrame frame) {
+        super(frame, Messages.getString("PasteSelectedAction.name"), Messages.getString("PasteSelectedAction.description"));
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         final FocusListener focusListener = new FocusListener() {
@@ -56,30 +53,20 @@ public class PasteSelectedAction extends AbstractArchitectAction {
                 PasteSelectedAction.this.setEnabled(true);
             }
         };
-        session.getPlayPen().addFocusListener(focusListener);
+        frame.addPlayPenFocusListener(focusListener);
         
-        final SessionLifecycleListener<ArchitectSession> lifecycleListener = new SessionLifecycleListener<ArchitectSession>() {
-        
-            public void sessionClosing(SessionLifecycleEvent<ArchitectSession> e) {
-                session.getPlayPen().removeFocusListener(focusListener);
-            }
-
-            public void sessionOpening(SessionLifecycleEvent<ArchitectSession> e) {
-            }
-        };
-        session.addSessionLifecycleListener(lifecycleListener);
     }
 
     public void actionPerformed(ActionEvent e) {
-        PlayPen playPen = session.getPlayPen();
-        final Component focusOwner = session.getArchitectFrame().getFocusOwner();
+        PlayPen playPen = getSession().getPlayPen();
+        final Component focusOwner = getSession().getArchitectFrame().getFocusOwner();
         if (playPen.isAncestorOf(focusOwner) || playPen == focusOwner) {
-            Transferable clipboardContents = session.getContext().getClipboardContents();
+            Transferable clipboardContents = getSession().getContext().getClipboardContents();
             logger.debug("Pasting " + clipboardContents + " into the playpen.");
             if (clipboardContents != null) {
                 playPen.pasteData(clipboardContents);
             } else {
-                JOptionPane.showMessageDialog(session.getArchitectFrame(), "There is no contents in the clipboard to paste.", "Clipboard empty", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(getSession().getArchitectFrame(), "There is no contents in the clipboard to paste.", "Clipboard empty", JOptionPane.INFORMATION_MESSAGE);
             }
         }
     }

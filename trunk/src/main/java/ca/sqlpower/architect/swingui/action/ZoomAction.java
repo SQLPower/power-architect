@@ -22,8 +22,6 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 
 import javax.swing.AbstractAction;
@@ -31,12 +29,13 @@ import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 
 
-public class ZoomAction extends AbstractArchitectAction implements PropertyChangeListener {
+public class ZoomAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(ZoomAction.class);
 
 	protected double zoomStep;
@@ -45,14 +44,31 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
 	public static final String ZOOM_OUT = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_OUT"; //$NON-NLS-1$
 	public static final String ZOOM_ALL = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_ALL"; //$NON-NLS-1$
 
-	public ZoomAction(ArchitectSwingSession session, PlayPen pp, double amount) {
+	public ZoomAction(ArchitectSwingSession session, PlayPen playpen, double amount) {
         super(session,
-              pp,
+              playpen,
+              amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionName") : Messages.getString("ZoomAction.zoomOutActionName"), //$NON-NLS-1$ //$NON-NLS-2$
+              amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionDescription") : Messages.getString("ZoomAction.zoomOutActionDescription"), //$NON-NLS-1$ //$NON-NLS-2$
+              amount > 0.0 ? "zoom_in" : "zoom_out");         //$NON-NLS-1$ //$NON-NLS-2$
+        this.zoomStep = amount;
+        if (amount > 0.0) {
+            // According to my probing of key events on OS X 10.4.11, you can't get a VK_PLUS
+            // event when modifiers in addition to SHIFT are present.. it's always VK_EQUALS.
+            putValue(AbstractAction.ACCELERATOR_KEY,
+                    KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS,
+                            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | KeyEvent.SHIFT_MASK));
+        } else {
+            putValue(AbstractAction.ACCELERATOR_KEY,
+                    KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        }
+    }
+	
+	public ZoomAction(ArchitectFrame frame, double amount) {
+        super(frame,
               amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionName") : Messages.getString("ZoomAction.zoomOutActionName"), //$NON-NLS-1$ //$NON-NLS-2$
               amount > 0.0 ? Messages.getString("ZoomAction.zoomInActionDescription") : Messages.getString("ZoomAction.zoomOutActionDescription"), //$NON-NLS-1$ //$NON-NLS-2$
               amount > 0.0 ? "zoom_in" : "zoom_out");         //$NON-NLS-1$ //$NON-NLS-2$
 		this.zoomStep = amount;
-        playpen.addPropertyChangeListener(this);
         if (amount > 0.0) {
             // According to my probing of key events on OS X 10.4.11, you can't get a VK_PLUS
             // event when modifiers in addition to SHIFT are present.. it's always VK_EQUALS.
@@ -66,14 +82,14 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
 	}
 		
 	public void actionPerformed(ActionEvent e) {
-		logger.debug("oldZoom="+playpen.getZoom()+",zoomStep="+zoomStep); //$NON-NLS-1$ //$NON-NLS-2$
+		logger.debug("oldZoom="+getPlaypen().getZoom()+",zoomStep="+zoomStep); //$NON-NLS-1$ //$NON-NLS-2$
 		// 	zoom by a factor of sqrt(2) instead of linear so we can go below 0.1
 
 		// playpen.setZoom(playpen.getZoom() + zoomStep); 
-		playpen.setZoom(playpen.getZoom() * Math.pow(2,zoomStep));
-		logger.debug("newZoom="+playpen.getZoom()); //$NON-NLS-1$
+		getPlaypen().setZoom(getPlaypen().getZoom() * Math.pow(2,zoomStep));
+		logger.debug("newZoom="+getPlaypen().getZoom()); //$NON-NLS-1$
 		Rectangle scrollTo = null;
-		Iterator it = playpen.getSelectedItems().iterator();
+		Iterator it = getPlaypen().getSelectedItems().iterator();
 		while (it.hasNext()) {
 			Rectangle bounds = ((PlayPenComponent) it.next()).getBounds();
 			logger.debug("new rectangle, bounds: " + bounds); //$NON-NLS-1$
@@ -85,12 +101,8 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
 			}
 		}
 		if (scrollTo != null && !scrollTo.isEmpty()) {
-			playpen.zoomRect(scrollTo);
-			playpen.scrollRectToVisible(scrollTo);
+			getPlaypen().zoomRect(scrollTo);
+			getPlaypen().scrollRectToVisible(scrollTo);
 		}
-	}
-
-	public void propertyChange(PropertyChangeEvent e) {
-		// this used to enable/disable zooming out when the zoom factor got lower than 0.1
 	}
 }

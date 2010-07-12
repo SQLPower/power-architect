@@ -377,7 +377,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	// -
 	
-	public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo, ArchitectSession session) 
+	public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo) 
 	throws IOException, URISyntaxException, JSONException {
     	HttpClient httpClient = createHttpClient(serviceInfo);
     	try {

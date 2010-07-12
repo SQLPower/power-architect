@@ -479,10 +479,10 @@ public class ASUtils {
             if (session != null &&
                     session.getProjectLoader() != null &&
                     session.getPlayPen() != null &&
-                    session.getSourceDatabases() != null) {
+                    session.getDBTree() != null) {
                 PlayPen pp = session.getPlayPen();
                 report.addAdditionalInfo("Number of objects in the play pen", "" + pp.getPPComponentCount()); //$NON-NLS-1$ //$NON-NLS-2$
-                report.addAdditionalInfo("Number of source connections", "" + session.getSourceDatabases().getDatabaseList().size());  //$NON-NLS-1$ //$NON-NLS-2$
+                report.addAdditionalInfo("Number of source connections", "" + session.getDBTree().getDatabaseList().size());  //$NON-NLS-1$ //$NON-NLS-2$
                 logger.debug(report.toString());
                 report.send();
             }

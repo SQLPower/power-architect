@@ -6,6 +6,7 @@ import javax.swing.AbstractAction;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -17,14 +18,22 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 public class DataSourcePropertiesAction extends AbstractAction {
 
     private final ArchitectSwingSession session;
+    private final ArchitectFrame frame;
 
     public DataSourcePropertiesAction(ArchitectSwingSession session) {
 		super(Messages.getString("DBTree.dbcsPropertiesActionName")); //$NON-NLS-1$
         this.session = session;
+        frame = null;
 	}
-
+    
+    public DataSourcePropertiesAction(ArchitectFrame frame) {
+        super(Messages.getString("DBTree.dbcsPropertiesActionName")); //$NON-NLS-1$
+        this.frame = frame;
+        session = null;
+    }
+    
 	public void actionPerformed(ActionEvent e) {
-        TreePath p = session.getSourceDatabases().getSelectionPath();
+        TreePath p = getSession().getDBTree().getSelectionPath();
         if (p == null) {
             return;
         }
@@ -38,7 +47,11 @@ public class DataSourcePropertiesAction extends AbstractAction {
             ii++;
         }
         if (sd != null) {
-            ASUtils.showDbcsDialog(session.getArchitectFrame(), sd.getDataSource(), null);
+            ASUtils.showDbcsDialog(getSession().getArchitectFrame(), sd.getDataSource(), null);
         }
+    }
+
+    public ArchitectSwingSession getSession() {
+        return session == null ? frame.getCurrentSession() : session;
     }
 }

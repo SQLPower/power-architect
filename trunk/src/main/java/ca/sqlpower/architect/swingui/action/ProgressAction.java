@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -54,6 +55,14 @@ public abstract class ProgressAction extends AbstractArchitectAction {
             String actionDescription,
             Icon icon) {
         super(session, playpen, actionName, actionDescription, icon);
+    }
+    
+    public ProgressAction(
+            ArchitectFrame frame,
+            String actionName,
+            String actionDescription,
+            Icon icon) {
+        super(frame, actionName, actionDescription, icon);
     }
     
     public ProgressAction(
@@ -102,11 +111,11 @@ public abstract class ProgressAction extends AbstractArchitectAction {
         }),c.xy(3,6));
         progressDialog.add(pb.getPanel());
         
-        SPSwingWorker worker = new SPSwingWorker(session) {
+        SPSwingWorker worker = new SPSwingWorker(getSession()) {
             @Override
             public void cleanup() throws Exception {
                 if (getDoStuffException() != null) {
-                    ASUtils.showExceptionDialog(session, Messages.getString("ProgressAction.unexpectedException"), getDoStuffException()); //$NON-NLS-1$
+                    ASUtils.showExceptionDialog(getSession(), Messages.getString("ProgressAction.unexpectedException"), getDoStuffException()); //$NON-NLS-1$
                 }
                 ProgressAction.this.cleanUp(monitor);
                 monitor.setFinished(true);

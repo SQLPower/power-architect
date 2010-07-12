@@ -34,8 +34,8 @@ import ca.sqlpower.swingui.SPSUtils;
 public abstract class AbstractArchitectAction extends AbstractAction {
 
     protected final ArchitectFrame frame;
-    protected final PlayPen playpen;
-    protected final ArchitectSwingSession session;
+    private final PlayPen playpen;
+    private final ArchitectSwingSession session;
     
     /**
      * Helper constructor that all architect action subclasses that use an icon will call.
@@ -52,6 +52,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      */
     public AbstractArchitectAction(
             ArchitectSwingSession session,
+            ArchitectFrame frame,
             PlayPen playpen,
             String actionName,
             String actionDescription,
@@ -63,11 +64,56 @@ public abstract class AbstractArchitectAction extends AbstractAction {
         this.session = session;
         if (session == null) throw new NullPointerException("Null session"); //$NON-NLS-1$
 
-        this.frame = session.getArchitectFrame();
+        this.frame = frame;
         if (frame == null) throw new NullPointerException("Null parentFrame"); //$NON-NLS-1$
         
         this.playpen = playpen;
         if (playpen == null) throw new NullPointerException("Null playpen"); //$NON-NLS-1$
+    }
+    
+    public AbstractArchitectAction(
+            ArchitectSwingSession session,
+            PlayPen playpen,
+            String actionName,
+            String actionDescription,
+            Icon icon) {
+        this(session, session.getArchitectFrame(), playpen, actionName, actionDescription, icon);
+    }
+    
+    public AbstractArchitectAction(
+            ArchitectSwingSession session,
+            ArchitectFrame frame,
+            String actionName,
+            String actionDescription,
+            Icon icon) {
+        super(actionName, icon);
+        putValue(SHORT_DESCRIPTION, actionDescription);
+        
+        this.frame = frame;
+        this.session = session;
+        playpen = null;
+    }
+
+    /**
+     * Creates an action that has an icon, and affects the current active
+     * session in the given frame.
+     * 
+     * @param frame
+     * @param actionName
+     * @param actionDescription
+     * @param icon
+     */
+    public AbstractArchitectAction(
+            ArchitectFrame frame,
+            String actionName,
+            String actionDescription,
+            Icon icon) {
+        super (actionName, icon);
+        putValue(SHORT_DESCRIPTION, actionDescription);
+        
+        this.frame = frame;
+        session = null;
+        playpen = null;
     }
 
     /**
@@ -76,6 +122,31 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      * all non-null.
      * 
      * @param session The session that this action will operate on. Must not be null.
+     * @param frame The ArchitectFrame that owns this action.
+     * @param actionName The name for this action. This will appear in menu items.
+     * @param actionDescription This action's description. Appears in tooltips.
+     * @param iconResourceName The resource name of the icon. See
+     * {@link SPSUtils#createIcon(String, String, int))} for details.
+     */
+    public AbstractArchitectAction(
+            ArchitectSwingSession session,
+            ArchitectFrame frame,
+            String actionName,
+            String actionDescription,
+            String iconResourceName) {
+        
+        this(session, frame, actionName, actionDescription,
+                iconResourceName == null ?
+                        (Icon) null :
+                            SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
+    }
+
+    /**
+     * Helper constructor that all architect action subclasses that use an icon will call.
+     * Ensures that the session, its frame, and its frame's playpen are
+     * all non-null.
+     * 
+     * @param frame The ArchitectFrame that owns this action.
      * @param actionName The name for this action. This will appear in menu items.
      * @param actionDescription This action's description. Appears in tooltips.
      * @param iconResourceName The resource name of the icon. See
@@ -90,7 +161,27 @@ public abstract class AbstractArchitectAction extends AbstractAction {
         this(session, actionName, actionDescription,
                 iconResourceName == null ?
                         (Icon) null :
-                        SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
+                            SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
+    }
+
+    /**
+     * Creates an action that has an icon, and affects the current active
+     * session in the given frame.
+     * 
+     * @param frame
+     * @param actionName
+     * @param actionDescription
+     * @param iconResourceName
+     */
+    public AbstractArchitectAction(
+            ArchitectFrame frame,
+            String actionName,
+            String actionDescription,
+            String iconResourceName) {
+        this (frame, actionName, actionDescription,
+                iconResourceName == null ?
+                        (Icon) null :
+                            SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
     }
     
     /**
@@ -154,5 +245,20 @@ public abstract class AbstractArchitectAction extends AbstractAction {
             String actionName,
             String actionDescription) {
         this(session, actionName, actionDescription, (Icon) null);
+    }
+    
+    public AbstractArchitectAction(
+            ArchitectFrame frame,
+            String actionName,
+            String actionDescription) {
+        this(frame, actionName, actionDescription, (Icon) null);
+    }
+
+    protected ArchitectSwingSession getSession() {
+        return (session == null ? frame.getCurrentSession() : session);
+    }
+    
+    protected PlayPen getPlaypen() {
+        return (playpen == null ? getSession().getPlayPen() : playpen);
     }
 }

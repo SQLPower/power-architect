@@ -87,17 +87,17 @@ implements ActionListener, SelectionListener, CancelableListener {
         super(session, pp, "New " + name + "...", "Create a new " + name, icon);
         this.pane1Class = pane1Class;
         this.pane2Class = pane2Class;
-        cursorManager = playpen.getCursorManager();
+        cursorManager = getPlaypen().getCursorManager();
     }
 
     public void actionPerformed(ActionEvent e) {
         // At start of creation process, register to selection and cancelable listener
         if (!active) {
             logger.debug(">>>>>> Adding to selectable listeners, preparing to start the creation.");
-            playpen.fireCancel();
-            playpen.selectNone();
-            playpen.addSelectionListener(this);
-            playpen.addCancelableListener(this);
+            getPlaypen().fireCancel();
+            getPlaypen().selectNone();
+            getPlaypen().addSelectionListener(this);
+            getPlaypen().addCancelableListener(this);
             cursorManager.placeModeStarted();
             pane1 = null;
             pane2 = null;
@@ -133,7 +133,7 @@ implements ActionListener, SelectionListener, CancelableListener {
         }
         
         if (pane2 != null && pane1 != null) {
-            PlayPenContentPane cp = playpen.getContentPane();
+            PlayPenContentPane cp = getPlaypen().getContentPane();
             try {
                 cp.begin("Creating usage");
                 createUsage(pane1, pane2);
@@ -170,7 +170,7 @@ implements ActionListener, SelectionListener, CancelableListener {
         pane2 = null;
         cursorManager.placeModeFinished();
         active = false;
-        playpen.removeSelectionListener(this);
-        playpen.removeCancelableListener(this);
+        getPlaypen().removeSelectionListener(this);
+        getPlaypen().removeCancelableListener(this);
     }
 }

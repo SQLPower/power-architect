@@ -56,7 +56,7 @@ public class EditHierarchyAction extends AbstractArchitectAction{
         try {
             DataEntryPanel panel = new HierarchyEditPanel(hierarchy);
             JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Hierarchy Properties", "OK");
-            dialog.setLocationRelativeTo(session.getArchitectFrame());
+            dialog.setLocationRelativeTo(getSession().getArchitectFrame());
             dialog.setVisible(true);
         } catch (SQLObjectException ex) {
             throw new SQLObjectRuntimeException(ex);

@@ -42,7 +42,7 @@ public class ArchitectUndoManager extends SQLObjectUndoManager implements Notify
      *             If the manager fails to listen to all objects in the play
      *             pen's database hierarchy.
      */
-    public ArchitectUndoManager(PlayPen playPen) throws SQLObjectException {
+    public ArchitectUndoManager(PlayPen playPen) {
         super(playPen.getSession().getTargetDatabase());
         SQLObjectRoot rootObject = playPen.getSession().getRootObject();
         final SQLObjectUndoableEventAdapter undoListener = new SQLObjectUndoableEventAdapter(false);

@@ -22,19 +22,19 @@ import java.awt.event.ActionEvent;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 public class PreferencesAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
 
-	public PreferencesAction(ArchitectSwingSession session) {
-        super(session, Messages.getString("PreferencesAction.name"), Messages.getString("PreferencesAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
+	public PreferencesAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("PreferencesAction.name"), Messages.getString("PreferencesAction.description")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
 	 * Calls the session context's showPreferencesDialog method
 	 */
 	public void actionPerformed(ActionEvent evt) {
-		session.showPreferenceDialog(session.getArchitectFrame());
+		getSession().showPreferenceDialog(getSession().getArchitectFrame());
 	}
 }
