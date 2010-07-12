@@ -996,17 +996,6 @@ public class PlayPen extends JPanel
     }
     
     /**
-     * Returns the scrollPane used in this PlayPen. If none has been set, it
-     * returns the default scrollPane from the ArchitectFrame
-     */
-	public Component getScrollPane(){
-        if (ppScrollPane == null) {
-            return session.getArchitectFrame().splitPane.getRightComponent();
-        }
-        return ppScrollPane;
-    }
-    
-    /**
      * Modifies the given point p in model space to apparent position in screen
      * space.
      * 
@@ -2216,6 +2205,7 @@ public class PlayPen extends JPanel
      * in the transferable to the play pen. If there is no transferable object
      * then if there is a string or list of strings in the transferable this
      * method will try to create SQLObjects for the transferred values.
+     * This is package protected for the ArchitectFrame's benefit.
      * 
      * @param t
      *            The transferable to get objects from to add to the playpen
@@ -2227,7 +2217,7 @@ public class PlayPen extends JPanel
      * @throws UnsupportedFlavorException 
      * @throws SQLObjectException 
      */
-	private boolean addTransferable(Transferable t, Point dropPoint, TransferStyles transferStyle)
+	boolean addTransferable(Transferable t, Point dropPoint, TransferStyles transferStyle)
 	throws UnsupportedFlavorException, IOException, SQLObjectException {
 	    
 	    if (t.isDataFlavorSupported(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR)
