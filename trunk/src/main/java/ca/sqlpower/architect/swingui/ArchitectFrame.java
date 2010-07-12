@@ -25,6 +25,13 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -144,6 +151,7 @@ import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
@@ -175,9 +183,9 @@ public class ArchitectFrame extends JFrame {
     private JToolBar projectBar = null;
     private JToolBar ppBar = null;
     private JMenuBar menuBar = null;
-    JSplitPane splitPane = null;
-    StackedTabComponent stackedTabPane = new StackedTabComponent();
-    BiMap<ArchitectSwingSession, StackedTab> sessionTabs = HashBiMap.create();
+    private JSplitPane splitPane = null;
+    private StackedTabComponent stackedTabPane = new StackedTabComponent();
+    private BiMap<ArchitectSwingSession, StackedTab> sessionTabs = HashBiMap.create();
     
     private Navigator navigatorDialog;
     private CompareDMDialog compareDMDialog = null;
@@ -188,6 +196,8 @@ public class ArchitectFrame extends JFrame {
     private int prefHeight;
     
     private final UserPrompterFactory nonModalUserPrompterFactory;
+    
+    private final DropTargetListener tabDropTargetListener = new TabDropTargetListener();
 
     private JMenu connectionsMenu;
     private ArchitectLayout autoLayout;
@@ -482,7 +492,8 @@ public class ArchitectFrame extends JFrame {
         // close is handled by a window listener
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
-        stackedTabPane.addChangeListener(tabChangeListener );
+        stackedTabPane.addChangeListener(tabChangeListener);
+        stackedTabPane.setDropTarget(new DropTarget(stackedTabPane, tabDropTargetListener));
         
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(stackedTabPane);
@@ -1498,6 +1509,54 @@ public class ArchitectFrame extends JFrame {
 
     public ArchitectSwingSession getCurrentSession() {
         return currentSession;
+    }
+    
+    private class TabDropTargetListener implements DropTargetListener {
+        public void dragEnter(DropTargetDragEvent dtde) {
+            // don't care
+        }
+
+        public void dragExit(DropTargetEvent dte) {
+            // don't care
+        }
+
+        public void dragOver(DropTargetDragEvent dtde) {
+            Point mouseLocation = dtde.getLocation();
+            int index = stackedTabPane.indexAtLocation(mouseLocation.x, mouseLocation.y);
+            if (index != -1) {
+                dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
+            } else {
+                dtde.rejectDrag();
+            }
+        }
+
+        public void drop(DropTargetDropEvent dtde) {
+            Point mouseLocation = dtde.getLocation();
+            int index = stackedTabPane.indexAtLocation(mouseLocation.x, mouseLocation.y);
+            StackedTab tab = stackedTabPane.getTabs().get(index);
+            PlayPen playPen = sessionTabs.inverse().get(tab).getPlayPen();
+            try {
+                if (playPen.addTransferable(dtde.getTransferable(), new Point(playPen.getLocation().x + 100, playPen.getLocation().y + 100), TransferStyles.COPY)) {
+                    dtde.acceptDrop(DnDConstants.ACTION_COPY);
+                    dtde.dropComplete(true);
+                }
+            } catch (SQLObjectException e) {
+                logger.error(e);
+                dtde.rejectDrop();
+            } catch (UnsupportedFlavorException e) {
+                logger.error(e);
+                dtde.rejectDrop();
+            } catch (IOException e) {
+                logger.error(e);
+                dtde.rejectDrop();
+            }
+        }
+
+        public void dropActionChanged(DropTargetDragEvent dtde) {
+            // TODO Auto-generated method stub
+            
+        }
+        
     }
 
 }
