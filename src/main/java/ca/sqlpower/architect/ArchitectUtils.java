@@ -29,8 +29,12 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
 
@@ -306,6 +310,26 @@ public class ArchitectUtils {
         } else {
             File f = new File(path);
             return (f.canRead() && f.isFile());
+        }
+    }
+    
+    /**
+     * A simple method that converts classes to a nicer human-readable
+     * name.
+     */
+    public static String convertClassToString(Class<?> c) {
+        if (SQLTable.class.equals(c)) {
+            return "Table";
+        } else if (SQLColumn.class.equals(c)) {
+            return "Column";
+        } else if (SQLRelationship.class.equals(c)) {
+            return "Relationship";
+        } else if (SQLIndex.class.equals(c)) {
+            return "Index";
+        } else if (JDBCDataSourceType.class.equals(c)) {
+            return "Data Source Type";
+        } else {
+            return c.getSimpleName();
         }
     }
 }
