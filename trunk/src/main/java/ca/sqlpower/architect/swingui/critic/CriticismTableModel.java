@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
@@ -30,37 +31,12 @@ import ca.sqlpower.architect.ddl.critic.CriticismEvent;
 import ca.sqlpower.architect.ddl.critic.CriticismListener;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.sql.JDBCDataSourceType;
-import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLIndex;
-import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLTable;
 
 /**
  * This table model displays all of the critics in the bucket passed to its
  * constructor.
  */
 public class CriticismTableModel extends AbstractTableModel {
-    
-    /**
-     * A simple method that converts classes to a nicer human-readable
-     * name. This could be refactored to a utility class in the future.
-     */
-    private static String convertClassToString(Class<?> c) {
-        if (SQLTable.class.equals(c)) {
-            return "Table";
-        } else if (SQLColumn.class.equals(c)) {
-            return "Column";
-        } else if (SQLRelationship.class.equals(c)) {
-            return "Relationship";
-        } else if (SQLIndex.class.equals(c)) {
-            return "Index";
-        } else if (JDBCDataSourceType.class.equals(c)) {
-            return "Data Source Type";
-        } else {
-            return c.getSimpleName();
-        }
-    }
     
     private final CriticismBucket criticizer;
     
@@ -133,7 +109,7 @@ public class CriticismTableModel extends AbstractTableModel {
         } else if (columnIndex == 1) {
             return rowVal.getSubject();
         } else if (columnIndex == 2) {
-            return convertClassToString(rowVal.getSubject().getClass());
+            return ArchitectUtils.convertClassToString(rowVal.getSubject().getClass());
         } else if (columnIndex == 3) {
             //All critics in Architect are currently CriticAndSettings objects
             //In the future we may want to look up the settings in the critic
