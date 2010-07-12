@@ -683,7 +683,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // Write pl.ini data back
         try {
             if (!isEnterpriseSession())
-                getDataSources().write(new File(context.getPlDotIniPath()));
+                if (context.getPlDotIniPath() != null) {
+                    getDataSources().write(new File(context.getPlDotIniPath()));
+                } else {
+                    getDataSources().write();
+                }
         } catch (IOException e) {
             logger.error("Couldn't save PL.INI file!", e); //$NON-NLS-1$
         }

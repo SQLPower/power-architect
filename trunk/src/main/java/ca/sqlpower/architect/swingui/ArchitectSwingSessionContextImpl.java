@@ -143,6 +143,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         this(new ArchitectSessionContextImpl(plIniPath, checkPath));
     }
     
+    public ArchitectSwingSessionContextImpl(DataSourceCollection<JDBCDataSource> dsCollection)
+            throws SQLObjectException, BackingStoreException {
+        this(new ArchitectSessionContextImpl(dsCollection));
+    }
+    
     private ArchitectSwingSessionContextImpl(ArchitectSessionContextImpl delegate) 
             throws SQLObjectException, BackingStoreException {
         delegateContext = delegate;

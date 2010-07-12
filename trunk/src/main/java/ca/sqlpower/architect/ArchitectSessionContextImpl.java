@@ -70,9 +70,9 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * will be removed from this list when they fire their sessionClosing lifecycle
      * event.
      */
-    private final Collection<ArchitectSession> sessions;
+    private Collection<ArchitectSession> sessions;
     
-    private final SPServerInfoManager serverManager;
+    private SPServerInfoManager serverManager;
 
     /**
      * Creates a new session context.  You will normally only need one of these
@@ -85,7 +85,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * @throws BackingStoreException 
      */
     public ArchitectSessionContextImpl() throws SQLObjectException, BackingStoreException {
-        this(null);
+        this((String) null);
     }
     
     public ArchitectSessionContextImpl(boolean checkPlDotIni) throws SQLObjectException, BackingStoreException {
@@ -102,12 +102,6 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      * @throws BackingStoreException 
      */
     public ArchitectSessionContextImpl(String PlDotIniPath, boolean checkPath) throws SQLObjectException, BackingStoreException {
-        sessions = new HashSet<ArchitectSession>();
-        
-        ArchitectUtils.startup();
-
-        ArchitectUtils.configureLog4j();
-
         if (PlDotIniPath == null) {
             PlDotIniPath = prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null);
         }
@@ -117,6 +111,26 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         if (checkPath) {
             setPlDotIniPath(ArchitectUtils.checkForValidPlDotIni(PlDotIniPath, "Architect"));
         }
+        init();
+    }
+    
+    /**
+     * Similar to the default constructor, but we can specify a data source collection
+     * ourselves. (This has been created in order to support immutable dsc's for the server).
+     * @throws BackingStoreException 
+     */
+    public ArchitectSessionContextImpl(DataSourceCollection<JDBCDataSource> dataSources) throws SQLObjectException, BackingStoreException {
+        plDotIni = dataSources;
+        init();
+    }
+    
+    private void init() throws BackingStoreException {
+        sessions = new HashSet<ArchitectSession>();
+        
+        ArchitectUtils.startup();
+
+        ArchitectUtils.configureLog4j();
+
         
         SPServerInfo defaultSettings = new SPServerInfo("", "", 8080, DEFAULT_PATH, "", "");
         serverManager = new SPServerInfoManager(getPrefs().node("servers"), new Version(
@@ -178,7 +192,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
      */
     public DataSourceCollection<JDBCDataSource> getPlDotIni() {
         String path = getPlDotIniPath();
-        if (path == null) return null;
+        if (path == null && plDotIni == null) return null;
         
         if (plDotIni == null) {
             DataSourceCollection<SPDataSource> newPlDotIni = new PlDotIni();
