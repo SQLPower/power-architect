@@ -19,6 +19,9 @@
 package ca.sqlpower.architect.transformation;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -90,10 +93,14 @@ public class XsltTransformation
 	  throws Exception {
 
 		File project = session.getProjectLoader().getFile();
-		projectDir = project.getParentFile();
-		InputStream xml = new FileInputStream(project);
+		if (project != null) {
+		    projectDir = project.getParentFile();
+		}
+		
+		ByteArrayOutputStream sessionAsStream = new ByteArrayOutputStream();
+		session.getProjectLoader().save(sessionAsStream, "utf-8");
 
-		Source xmlSource = new StreamSource(xml);
+		Source xmlSource = new StreamSource(new ByteArrayInputStream(sessionAsStream.toByteArray()));
 		Source xsltSource = new StreamSource(xsltStylesheet);
 		FileOutputStream result = new FileOutputStream(output);
 
@@ -109,7 +116,6 @@ public class XsltTransformation
 		result.flush();
 		result.close();
 		xsltStylesheet.close();
-		xml.close();
 	}
 
 	/**
