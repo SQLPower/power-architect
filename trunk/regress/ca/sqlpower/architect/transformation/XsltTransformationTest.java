@@ -40,9 +40,6 @@ public class XsltTransformationTest extends TestCase {
         ArchitectSwingSessionContextImpl context = new ArchitectSwingSessionContextImpl("pl.regression.ini", false);
         ArchitectSwingSession session = context.createSession(false);
         
-        //XXX Still an issue
-        session.getProjectLoader().setFile(File.createTempFile("Garbage test file", ""));
-        
         SQLDatabase db = session.getTargetDatabase();
         SQLTable table = new SQLTable(db, true);
         table.setName("Test table");
