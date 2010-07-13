@@ -283,8 +283,8 @@ public class ProfileResultsViewer {
                 TableUtils.fitColumnWidths(columnTable, 15);
             }
         });
-        columnTable.setCSVColumnFormatter(4, new PercentTableCellRenderer(false).getFormat());
-        columnTable.setCSVColumnFormatter(5, new DateTableCellRenderer().getFormat());
+        columnTable.setColumnFormatter(4, new PercentTableCellRenderer(false).getFormat());
+        columnTable.setColumnFormatter(5, new DateTableCellRenderer().getFormat());
         
         for (int i = 0; i < columnTableModel.getColumnCount(); i++) {
             columnTable.getColumnModel().getColumn(i).setCellRenderer(columnTableModel.getCellRenderer(i));
