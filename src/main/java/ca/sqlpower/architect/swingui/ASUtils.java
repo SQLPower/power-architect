@@ -40,6 +40,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
 
@@ -637,5 +638,51 @@ public class ASUtils {
             column.setSourceColumn((SQLColumn) child);
             
         }
+    }
+
+    /**
+     * Finds the first row of a {@link TableModel} that contains a specific
+     * {@link String} value in a given column. Note that all leading and trailing
+     * spaces are trimmed when matching.
+     * 
+     * @param model
+     *            The {@link TableModel} to search through
+     * @param col
+     *            The column index to search under.
+     * @param value
+     *            The value of the cell to look for.
+     * @return The index of the matched row or -1 if not found.
+     */
+    public static int findFirstRow(TableModel model, int col, String value) {
+        String trimmedValue = value.trim();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            if (((String) model.getValueAt(i, col)).trim().equals(trimmedValue)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Finds the last row of a {@link TableModel} that contains a specific
+     * {@link String} value in a given column. Note that all leading and
+     * trailing spaces are trimmed when matching.
+     * 
+     * @param model
+     *            The {@link TableModel} to search through.
+     * @param col
+     *            The column index to search under.
+     * @param value
+     *            The value of the cell to look for.
+     * @return The index of the matched row or -1 if not found.
+     */
+    public static int findLastRow(TableModel model, int col, String value) {
+        String trimmedValue = value.trim();
+        for (int i = model.getRowCount()-1; i >= 0; i--) {
+            if (((String) model.getValueAt(i, 0)).trim().equals(trimmedValue)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
