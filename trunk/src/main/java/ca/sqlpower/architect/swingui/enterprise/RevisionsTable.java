@@ -182,7 +182,7 @@ public class RevisionsTable extends JTable {
             for (int i = 0; i < transactions.size(); i++) {                
                 TransactionInformation transaction = transactions.get(i);
                 data[i][0] = String.valueOf(transaction.getVersionNumber()) + " ";
-                data[i][1] = new Date(transaction.getTimeCreated()) + " ";
+                data[i][1] = TransactionInformation.DATE_FORMAT.format(transaction.getTimeCreated()) + " ";
                 data[i][2] = transaction.getVersionAuthor() + " ";
                 data[i][3] = transaction.getSimpleDescription();
                 
