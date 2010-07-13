@@ -26,6 +26,7 @@ import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.CheckConstraintTable;
 import ca.sqlpower.sqlobject.SQLCheckConstraint;
 
@@ -62,7 +63,7 @@ public class AddCheckConstraintTableRowAction extends AbstractAction {
             return;
         }
         
-        int index = CheckConstraintTable.findFirstRow(model, name);
+        int index = ASUtils.findFirstRow(model, 0, name);
         if (index != -1) {
             table.setRowSelectionInterval(index, index);
             return;

@@ -95,8 +95,8 @@ public class CheckConstraintTableModelListener implements TableModelListener {
             
             String name = (String) model.getValueAt(row, 0);
             String constraint = (String) model.getValueAt(row, 1);
-            firstIndex = CheckConstraintTable.findFirstRow(model, name);
-            lastIndex = CheckConstraintTable.findLastRow(model, name);
+            firstIndex = ASUtils.findFirstRow(model, 0, name);
+            lastIndex = ASUtils.findLastRow(model, 0, name);
             
             if (name.trim().equals("") || constraint.trim().equals("") || 
                     (firstIndex != -1 && firstIndex != lastIndex)) {
@@ -138,8 +138,8 @@ public class CheckConstraintTableModelListener implements TableModelListener {
                 if (newName.trim().equals("")) {
                     model.setValueAt(checkConstraint.getName(), row, 0);
                 } else {
-                    firstIndex = CheckConstraintTable.findFirstRow(model, newName);
-                    lastIndex = CheckConstraintTable.findLastRow(model, newName);
+                    firstIndex = ASUtils.findFirstRow(model, 0, newName);
+                    lastIndex = ASUtils.findLastRow(model, 0, newName);
                     if (firstIndex == lastIndex) {
                         checkConstraint.setName(newName);
                     } else {
