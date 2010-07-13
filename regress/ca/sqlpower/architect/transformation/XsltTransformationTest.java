@@ -38,7 +38,7 @@ public class XsltTransformationTest extends TestCase {
      */
     public void testExportSimpleSession() throws Exception {
         ArchitectSwingSessionContextImpl context = new ArchitectSwingSessionContextImpl("pl.regression.ini", false);
-        ArchitectSwingSession session = context.createSession(false);
+        ArchitectSwingSession session = context.createSession();
         
         SQLDatabase db = session.getTargetDatabase();
         SQLTable table = new SQLTable(db, true);
