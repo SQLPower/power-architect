@@ -469,6 +469,8 @@ public class ArchitectFrame extends JFrame {
 
     private JMenuItem newWindowMenu;
 
+    private AbstractAction cycleTabAction;
+
     /**
      * Sets up a new ArchitectFrame, which represents a window containing one or
      * more {@link ArchitectSwingSession}s. It will not become visible until
@@ -679,6 +681,24 @@ public class ArchitectFrame extends JFrame {
         
         closeProjectAction = new CloseProjectAction(this);
 
+        cycleTabAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                int index = stackedTabPane.getSelectedIndex();
+                int max = stackedTabPane.getTabCount();
+                if ((e.getModifiers() & ActionEvent.SHIFT_MASK) == 0) {
+                    index++;
+                } else {
+                    index--;
+                }
+                index = (index+max)%max;
+                stackedTabPane.setSelectedIndex(index);
+            }
+        };
+        // Before you ask, yes, I did mean to use control and not the
+        // accelerator key. This is in use in major browsers.
+        cycleTabAction.putValue(AbstractAction.ACCELERATOR_KEY,
+                KeyStroke.getKeyStroke(KeyEvent.VK_TAB, ActionEvent.CTRL_MASK));
+        
         prefAction = new PreferencesAction(this);
         projectSettingsAction = new ProjectSettingsAction(this);
         printAction = new PrintAction(this);
@@ -1046,6 +1066,10 @@ public class ArchitectFrame extends JFrame {
         helpMenu.addSeparator();
         helpMenu.add(checkForUpdateAction);
         menuBar.add(helpMenu);
+        
+        menuBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, ActionEvent.CTRL_MASK), "cycleTabAction");
+        menuBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK), "cycleTabAction");
+        menuBar.getActionMap().put("cycleTabAction", cycleTabAction);
         
         return menuBar;        
     }
