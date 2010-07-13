@@ -24,17 +24,18 @@ import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ProjectSettings;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.CriticGrouping;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
-import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
+import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
-import ca.sqlpower.architect.olap.OLAPObject;
-import ca.sqlpower.architect.olap.OLAPRootObject;
-import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
 import ca.sqlpower.architect.olap.MondrianModel.Schema;
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPRootObject;
+import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
@@ -162,6 +163,9 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             return ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).getOlapRootObject();
         } else if (OLAPObject.class.isAssignableFrom(valueType)) {
             return mondrianValueMaker.makeNewValue(valueType, oldVal, propName);
+        } else if (valueType == DomainCategory.class) {
+            DomainCategory category = new DomainCategory("new");
+            return category;
         } else if (valueType == CriticGrouping.class) {
             CriticGrouping group = new CriticGrouping(CriticAndSettings.StarterPlatformTypes.GENERIC.getName());
             CriticManager manager = (CriticManager) makeNewValue(CriticManager.class, null, "parent of group");
