@@ -42,13 +42,14 @@ import ca.sqlpower.object.MappedSPTree;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
-import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
@@ -72,7 +73,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
      */
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
-            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SQLObjectRoot.class,
+            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SPObjectSnapshot.class, SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
                     CriticManager.class, KettleSettings.class, User.class, Group.class, UserDefinedSQLType.class, 
                     DomainCategory.class)));
@@ -275,6 +276,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         allChildren.addAll(getGroups());
         allChildren.addAll(getSqlTypes());
         allChildren.addAll(domainCategories);
+        allChildren.addAll(getSqlTypeSnapshots());
         return allChildren;
     }
     
@@ -315,6 +317,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             addSQLType((UserDefinedSQLType) child, index);
         } else if (child instanceof DomainCategory) {
             addDomainCategory((DomainCategory) child, index);
+        } else if (child instanceof SPObjectSnapshot) {
+            addSPObjectSnapshot((SPObjectSnapshot) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
