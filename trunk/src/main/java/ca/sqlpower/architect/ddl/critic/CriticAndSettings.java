@@ -71,7 +71,14 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
         ORACLE("Oracle", OracleDDLGenerator.class),
         DB2("DB2", DB2DDLGenerator.class),
         H2("H2", H2DDLGenerator.class),
-        HSQLDB("HSQLDB", HSQLDBDDLGenerator.class);
+        HSQLDB("HSQLDB", HSQLDBDDLGenerator.class),
+        /**
+         * All configuration critics can belong to this group. These errors
+         * are in a special class because they are not model specific and
+         * you may have errors when connecting or forward engineering.
+         * Configuration critics also should not be set to a warning.
+         */
+        CONFIGURATION("Configuration", DDLGenerator.class);
 
         /**
          * Human readable group name of the platform type which the critics using will

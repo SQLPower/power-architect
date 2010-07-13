@@ -30,6 +30,7 @@ import javax.swing.JPanel;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
+import ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -86,6 +87,9 @@ public class CriticSettingsPanel implements DataEntryPanel {
         
         panel = new JPanel();
         severityCombo = new JComboBox(Severity.values());
+        if (settings.getPlatformType().equals(StarterPlatformTypes.CONFIGURATION.getName())) {
+            severityCombo.removeItem(Severity.WARNING);
+        }
         severityCombo.setSelectedItem(settings.getSeverity());
         //It would be nice if the layout used a pref:grow style for the first
         //column but it makes it difficult to set the preferred size correctly.
