@@ -1231,7 +1231,8 @@ public class ArchitectFrame extends JFrame {
 
     class ArchitectFrameWindowListener extends WindowAdapter {
         public void windowClosing(WindowEvent e) {
-            for (ArchitectSession session : sessions) {
+            List<ArchitectSwingSession> localSessions = new ArrayList<ArchitectSwingSession>(sessions);
+            for (ArchitectSession session : localSessions) {
                 session.close();
             }
         }
@@ -1512,6 +1513,7 @@ public class ArchitectFrame extends JFrame {
     }
     
     private class TabDropTargetListener implements DropTargetListener {
+        
         public void dragEnter(DropTargetDragEvent dtde) {
             // don't care
         }
