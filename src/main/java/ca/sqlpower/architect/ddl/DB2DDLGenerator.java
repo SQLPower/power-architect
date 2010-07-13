@@ -164,17 +164,4 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 	    return "DB2";
 	}
 	
-	@Override
-	public boolean supportsCheckConstraint() {
-	    // XXX DB2 has not been tested with check constraints yet.
-	    // Turning feature off for now.
-	    return false;
-	}
-	
-	@Override
-	public boolean supportsEnumeration() {
-	    // XXX DB2 has not been tested with enumerations yet.
-	    // Turning feature off for now.
-	    return false;
-	}
 }
