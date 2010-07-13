@@ -53,14 +53,15 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
-import ca.sqlpower.architect.swingui.Messages;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;
 import ca.sqlpower.architect.swingui.table.MultiFreqValueCountTableModel;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.table.DateTableCellRenderer;
 import ca.sqlpower.swingui.table.FancyExportableJTable;
+import ca.sqlpower.swingui.table.PercentTableCellRenderer;
 import ca.sqlpower.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
@@ -282,6 +283,8 @@ public class ProfileResultsViewer {
                 TableUtils.fitColumnWidths(columnTable, 15);
             }
         });
+        columnTable.setCSVColumnFormatter(4, new PercentTableCellRenderer(false).getFormat());
+        columnTable.setCSVColumnFormatter(5, new DateTableCellRenderer().getFormat());
         
         for (int i = 0; i < columnTableModel.getColumnCount(); i++) {
             columnTable.getColumnModel().getColumn(i).setCellRenderer(columnTableModel.getCellRenderer(i));
