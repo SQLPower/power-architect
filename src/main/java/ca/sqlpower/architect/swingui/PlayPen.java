@@ -1273,21 +1273,15 @@ public class PlayPen extends JPanel
 	        }
 	        SQLColumn.assignTypes(newTable.getColumns(), newTable.getParentDatabase().getDataSource().getParentCollection(), platform, getSession());
 	    }
+	    boolean isAlreadyOnPlaypen = false;
 		
-		String key = source.getName().toLowerCase();
-		boolean isAlreadyOnPlaypen = false;
-		int newSuffix = 0;
-
 		// ensure tablename is unique
 		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames); //$NON-NLS-1$
-		if (!tableNames.add(key)) {
-			boolean done = false;
-			while (!done) {
-				newSuffix++;
-				done = tableNames.add(key+"_"+newSuffix); //$NON-NLS-1$
-			}
-			newTable.setName(source.getName()+"_"+newSuffix); //$NON-NLS-1$
-			isAlreadyOnPlaypen = true;
+		int suffix = uniqueTableSuffix(source.getName());
+		if (suffix != 0) {
+		    String newName = source.getName() + "_" + suffix;
+		    newTable.setName(newName);
+		    isAlreadyOnPlaypen = true;
 		}
 		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames); //$NON-NLS-1$
 
@@ -1297,10 +1291,22 @@ public class PlayPen extends JPanel
 		tp.revalidate();
 
 		if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
-		    createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, newSuffix);
-		    createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, newSuffix);
+		    createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
+		    createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
 		}
 		return tp;
+	}
+	
+	public int uniqueTableSuffix(String base) {
+	    int suffix = 0;
+	    if (!tableNames.add(base.toLowerCase())) {
+            boolean done = false;
+            while (!done) {
+                suffix++;
+                done = tableNames.add(base.toLowerCase() + "_" + suffix); //$NON-NLS-1$
+            }
+        }
+	    return suffix;
 	}
 
 	/**
