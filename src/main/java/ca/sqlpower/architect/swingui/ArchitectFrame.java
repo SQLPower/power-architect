@@ -173,6 +173,8 @@ import com.google.common.collect.HashBiMap;
  */
 public class ArchitectFrame extends JFrame {
 
+    private static final String CYCLE_TAB_ACTION = "ca.sqlpower.architect.swingui.CYCLE_TAB_ACTION";
+
     private static Logger logger = Logger.getLogger(ArchitectFrame.class);
 
     public static final double ZOOM_STEP = 0.25;
@@ -1067,9 +1069,9 @@ public class ArchitectFrame extends JFrame {
         helpMenu.add(checkForUpdateAction);
         menuBar.add(helpMenu);
         
-        menuBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, ActionEvent.CTRL_MASK), "cycleTabAction");
-        menuBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK), "cycleTabAction");
-        menuBar.getActionMap().put("cycleTabAction", cycleTabAction);
+        menuBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, ActionEvent.CTRL_MASK), CYCLE_TAB_ACTION);
+        menuBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, ActionEvent.CTRL_MASK+ActionEvent.SHIFT_MASK), CYCLE_TAB_ACTION);
+        menuBar.getActionMap().put(CYCLE_TAB_ACTION, cycleTabAction);
         
         return menuBar;        
     }

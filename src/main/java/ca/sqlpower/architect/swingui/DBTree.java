@@ -127,6 +127,9 @@ public class DBTree extends JTree implements DragSourceListener {
 	private static final Object KEY_DELETE_SELECTED
         = "ca.sqlpower.architect.swingui.DBTree.KEY_DELETE_SELECTED"; //$NON-NLS-1$
 	
+	private static final String KEY_LEFT = "ca.sqlpower.architect.swingui.DBTree.KEY_LEFT";
+	private static final String KEY_RIGHT = "ca.sqlpower.architect.swingui.DBTree.KEY_RIGHT";
+	
 	/**
 	 * The model behind this DB tree.
 	 */
@@ -202,7 +205,7 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         });
 	}
-
+	
 	// ----------- INSTANCE METHODS ------------
 
 	/**
@@ -911,6 +914,31 @@ public class DBTree extends JTree implements DragSourceListener {
                     } else if (!isTargetDatabaseNode(tp) && tp.getLastPathComponent() instanceof SQLDatabase) {
                         removeDBCSAction.actionPerformed(evt);
                     }
+                }
+            }
+        });
+        
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), KEY_LEFT);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), KEY_RIGHT);
+        
+        getActionMap().put(KEY_LEFT, new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                TreePath selection = getSelectionPath();
+                if (isExpanded(selection) && treeModel.getChildCount(selection.getLastPathComponent()) != 0) {
+                    setExpandedState(selection, false);
+                } else {
+                    if (selection.getPathCount() != 2) {
+                        setSelectionPath(selection.getParentPath());
+                    }
+                }
+            }
+        });
+        
+        getActionMap().put(KEY_RIGHT, new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                TreePath selection = getSelectionPath();
+                if (!(treeModel.isLeaf(selection.getLastPathComponent()) || isExpanded(selection))) {
+                    setExpandedState(selection, true);
                 }
             }
         });
