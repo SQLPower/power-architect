@@ -30,14 +30,15 @@ import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
-import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -64,9 +65,9 @@ public class ArchitectProject extends AbstractSPObject {
      */
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
-            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SQLObjectRoot.class,
-                    ProfileManager.class, ProjectSettings.class,
-                    User.class, Group.class, UserDefinedSQLType.class)));
+            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SPObjectSnapshot.class,
+                    SQLObjectRoot.class, ProfileManager.class, ProjectSettings.class, User.class, Group.class, 
+                    UserDefinedSQLType.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -79,6 +80,7 @@ public class ArchitectProject extends AbstractSPObject {
     private List<User> users = new ArrayList<User>();
     private List<Group> groups = new ArrayList<Group>();
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
+    private final List<SPObjectSnapshot> sqlTypeSnapshots = new ArrayList<SPObjectSnapshot>();
     
     /**
      * The current integrity watcher on the project.
@@ -247,6 +249,12 @@ public class ArchitectProject extends AbstractSPObject {
             fireChildRemoved(UserDefinedSQLType.class, child, index);
             child.setParent(null);
             return true;
+        } else if (child instanceof SPObjectSnapshot) {
+            int index = sqlTypeSnapshots.indexOf((SPObjectSnapshot) child);
+            sqlTypeSnapshots.remove((SPObjectSnapshot) child);
+            fireChildRemoved(SPObjectSnapshot.class, child, index);
+            child.setParent(null);
+            return true;
         }
         return false;
     }        
@@ -304,6 +312,7 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.addAll(users);
         allChildren.addAll(groups);
         allChildren.addAll(sqlTypes);
+        allChildren.addAll(sqlTypeSnapshots);
         return allChildren;
     }
     
@@ -329,11 +338,14 @@ public class ArchitectProject extends AbstractSPObject {
             addGroup((Group) child, index);
         } else if (child instanceof UserDefinedSQLType) {
             addSQLType((UserDefinedSQLType) child, index);
+        } else if (child instanceof SPObjectSnapshot) {
+            addSPObjectSnapshot((SPObjectSnapshot) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
         }
     }
+
 
     public void addSQLType(UserDefinedSQLType sqlType, int index) {
         sqlTypes.add(index, sqlType);
@@ -341,8 +353,19 @@ public class ArchitectProject extends AbstractSPObject {
         fireChildAdded(UserDefinedSQLType.class, sqlType, index);
     }
     
+    protected void addSPObjectSnapshot(SPObjectSnapshot child, int index) {
+        sqlTypeSnapshots.add(index, child);
+        child.setParent(this);
+        fireChildAdded(SPObjectSnapshot.class, child, index);        
+    }
+    
     protected List<UserDefinedSQLType> getSqlTypes() {
         return Collections.unmodifiableList(sqlTypes);
+    }
+    
+    @NonProperty
+    public List<SPObjectSnapshot> getSqlTypeSnapshots() {
+        return Collections.unmodifiableList(sqlTypeSnapshots); 
     }
     
     public void addUser(User user, int index) {
