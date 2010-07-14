@@ -41,7 +41,13 @@ public class TestingArchitectSessionContext implements ArchitectSessionContext {
     private Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
 
     public TestingArchitectSessionContext() throws IOException {
-        plDotIni.read(new File("default_database_types.regression.ini"));
+        this(true);
+    }
+    
+    public TestingArchitectSessionContext(boolean readDataTypes) throws IOException {
+        if (readDataTypes) {
+            plDotIni.read(new File("default_database_types.regression.ini"));
+        }
     }
     
     public ArchitectSession createSession() throws SQLObjectException {
