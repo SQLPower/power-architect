@@ -40,8 +40,10 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.ConflictResolver;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
+import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -138,9 +140,14 @@ public class ExportDDLAction extends AbstractArchitectAction {
                             warningDialog.dispose();
                             for (Criticism criticism : bucket.getCriticisms()) {
                                 if (!criticism.getFixes().isEmpty()) {
-                                    //applying the first one each time as there is no 
-                                    //decision what to apply by the user for this case
-                                    criticism.getFixes().get(0).apply();
+                                    for (CriticFix fix : criticism.getFixes()) {
+                                        if (fix.getFixType().equals(FixType.QUICK_FIX)) {
+                                            fix.apply();
+                                            //applying the first quick fix each time as there is no 
+                                            //decision what to apply by the user for this case
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                             checkErrorsAndGenerateDDL(ddlg);

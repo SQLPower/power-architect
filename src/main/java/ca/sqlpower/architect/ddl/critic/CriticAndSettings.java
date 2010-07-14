@@ -22,6 +22,7 @@ package ca.sqlpower.architect.ddl.critic;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ddl.DB2DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.H2DDLGenerator;
@@ -32,6 +33,7 @@ import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
 import ca.sqlpower.architect.ddl.SQLServer2000DDLGenerator;
 import ca.sqlpower.architect.ddl.SQLServer2005DDLGenerator;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
@@ -246,5 +248,24 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
             throw new IllegalArgumentException("The parent of a critic must be a CriticGrouping.");
         }
         super.setParent(parent);
+    }
+    
+    /**
+     * Walks up the tree to the session and returns it as a swing session. The
+     * critic system only exists in the swing version of the Architect as it is
+     * not core functionality.
+     * 
+     * @return The session as a swing session if the critic is connected to a
+     *         session. This may return null if the critic is not connected.
+     */
+    protected ArchitectSwingSession getSession() {
+        CriticGrouping grouping = getParent();
+        if (grouping == null) return null;
+        CriticManager manager = grouping.getParent();
+        if (manager == null) return null;
+        ArchitectProject project = manager.getParent();
+        if (project == null) return null;
+        ArchitectSwingSession session = (ArchitectSwingSession) project.getSession();
+        return session;
     }
 }
