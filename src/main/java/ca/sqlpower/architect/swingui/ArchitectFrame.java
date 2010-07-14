@@ -616,7 +616,7 @@ public class ArchitectFrame extends JFrame {
                 KeyStroke.getKeyStroke(KeyEvent.VK_N, accelMask));
         
         newWindowAction = new AbstractAction("New Window",
-                SPSUtils.createIcon("new_project", "New Window",
+                SPSUtils.createIcon("new_window", "New Window",
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 try {

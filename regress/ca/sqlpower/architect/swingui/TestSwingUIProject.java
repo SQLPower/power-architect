@@ -124,6 +124,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         session = context.createSession();
         project = session.getProjectLoader();
         plIni = new PlDotIni();
+        plIni.read(new File("default_database_types.regression.ini"));
         // TODO add some database types and a test that loading the project finds them
 	}
 
@@ -659,6 +660,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		ppdb.addChild(table);
 		table.addColumn(target);
 		
+		target.getUserDefinedSQLType().setUpstreamType(plIni.getSQLType("NUMERIC"));
+		
 		Set<String> propertiesToIgnore = getPropertiesToIgnore();
 		propertiesToIgnore.add("parentTable");
 		propertiesToIgnore.add("undoEventListeners");
@@ -669,6 +672,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("precisionType");
 		propertiesToIgnore.add("scaleType");
 		propertiesToIgnore.add("platform");
+		propertiesToIgnore.add("type");
 		
 		propertiesToIgnore.add("childrenWithoutPopulating");
 		propertiesToIgnore.add("variableResolver");
@@ -724,6 +728,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 			ca.sqlpower.testutil.TestUtils.getAllInterestingProperties(target, propertiesToIgnore);
 		
 		assertMapsEqual(oldDescription, newDescription);
+		assertEquals("NUMERIC", target.getUserDefinedSQLType().getUpstreamType().getName());
 	}
 
     public void testSaveCoversAllIndexProperties() throws Exception {
