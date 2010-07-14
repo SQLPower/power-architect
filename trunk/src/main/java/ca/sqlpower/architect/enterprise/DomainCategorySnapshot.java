@@ -22,26 +22,23 @@ package ca.sqlpower.architect.enterprise;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.object.SystemSPObjectSnapshot;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.SystemSPObjectSnapshot;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
-import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 
 public class DomainCategorySnapshot extends SystemSPObjectSnapshot<DomainCategory> {
     private final DomainCategory spObject;
     
     @Constructor
     public DomainCategorySnapshot(
-            @ConstructorParameter (isProperty = ParameterType.CHILD, 
-                    propertyName = "spObject") DomainCategory spObject,
+            @ConstructorParameter (propertyName = "spObject") DomainCategory spObject,
             @ConstructorParameter (propertyName = "originalUUID") String originalUUID,
             @ConstructorParameter (propertyName = "workspaceRevision", defaultValue = "0") int systemRevision) {
         super(originalUUID, systemRevision);
         this.spObject = spObject;
-        this.spObject.setParent(this);
     }
     
     public DomainCategorySnapshot(DomainCategory original,
@@ -50,21 +47,20 @@ public class DomainCategorySnapshot extends SystemSPObjectSnapshot<DomainCategor
         super(original.getUUID(), systemRevision);
         setName(original.getName());
         spObject = new DomainCategory(original.getName());
-        spObject.setParent(this);
     }
 
     /**
      * An unmodifiable {@link List} of allowed child types
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-         Collections.<Class<? extends SPObject>>singletonList(DomainCategory.class);
+         Collections.emptyList();
     
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
 
     public List<? extends SPObject> getChildren() {
-        return Collections.singletonList(spObject);
+        return Collections.emptyList();
     }
 
     @Accessor

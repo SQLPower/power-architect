@@ -57,20 +57,4 @@ public class DomainCategorySnapshotTest extends PersistedSPObjectTest {
     public NewValueMaker createNewValueMaker(SPObject root, DataSourceCollection<SPDataSource> dsCollection) {
         return new ArchitectNewValueMaker(root, dsCollection);
     }
-    
-    /**
-     * Must be overridden to account for the single, final child
-     */
-    @Override
-    public SPObject testSPPersisterAddsChild() throws Exception {
-        return null;
-    }
-    
-    /**
-     * Must be overridden to account for the single, final child
-     */
-    @Override
-    public void testAddChildFiresEvents() throws Exception {
-
-    }
 }

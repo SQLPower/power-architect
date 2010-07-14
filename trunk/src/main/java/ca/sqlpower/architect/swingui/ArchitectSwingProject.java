@@ -73,10 +73,10 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
      */
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
-            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SPObjectSnapshot.class, SQLObjectRoot.class,
+            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
+                    DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
-                    CriticManager.class, KettleSettings.class, User.class, Group.class, UserDefinedSQLType.class, 
-                    DomainCategory.class)));
+                    CriticManager.class, KettleSettings.class, User.class, Group.class)));
     
     /**
      * A hash map mapping all the descendants of this project.
@@ -145,8 +145,6 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
 
     private PlayPenContentPane playPenContentPane;
     
-    private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
-    
     /**
      * This OLAP object contains the OLAP session.
      */
@@ -214,12 +212,6 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             return super.removeChildImpl(child);
         } else if (child instanceof PlayPenContentPane) {
             return removeOLAPContentPane((PlayPenContentPane) child);
-        } else if (child instanceof DomainCategory) {
-            int index = domainCategories.indexOf((DomainCategory) child);
-            domainCategories.remove((DomainCategory) child);
-            fireChildRemoved(DomainCategory.class, child, index);
-            child.setParent(null);
-            return true;
         }
         return false;
     }        
@@ -275,7 +267,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         allChildren.addAll(getUsers());
         allChildren.addAll(getGroups());
         allChildren.addAll(getSqlTypes());
-        allChildren.addAll(domainCategories);
+        allChildren.addAll(getDomainCategories());
         allChildren.addAll(getSqlTypeSnapshots());
         return allChildren;
     }
@@ -325,11 +317,6 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         }
     }
 
-    public void addDomainCategory(DomainCategory domainCategory, int index) {
-        domainCategories.add(index, domainCategory);
-        domainCategory.setParent(this);
-        fireChildAdded(DomainCategory.class, domainCategory, index);
-    }
 
     @NonProperty
     public void setPlayPenContentPane(PlayPenContentPane pane) {

@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.User;
@@ -65,9 +66,9 @@ public class ArchitectProject extends AbstractSPObject {
      */
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
-            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(SPObjectSnapshot.class,
-                    SQLObjectRoot.class, ProfileManager.class, ProjectSettings.class, User.class, Group.class, 
-                    UserDefinedSQLType.class)));
+            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
+                    DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class, ProfileManager.class, 
+                    ProjectSettings.class, User.class, Group.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -81,6 +82,7 @@ public class ArchitectProject extends AbstractSPObject {
     private List<Group> groups = new ArrayList<Group>();
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
     private final List<SPObjectSnapshot> sqlTypeSnapshots = new ArrayList<SPObjectSnapshot>();
+    private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
     
     /**
      * The current integrity watcher on the project.
@@ -249,6 +251,12 @@ public class ArchitectProject extends AbstractSPObject {
             fireChildRemoved(UserDefinedSQLType.class, child, index);
             child.setParent(null);
             return true;
+        } else if (child instanceof DomainCategory) {
+            int index = domainCategories.indexOf((DomainCategory) child);
+            domainCategories.remove((DomainCategory) child);
+            fireChildRemoved(DomainCategory.class, child, index);
+            child.setParent(null);
+            return true;
         } else if (child instanceof SPObjectSnapshot) {
             int index = sqlTypeSnapshots.indexOf((SPObjectSnapshot) child);
             sqlTypeSnapshots.remove((SPObjectSnapshot) child);
@@ -312,6 +320,7 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.addAll(users);
         allChildren.addAll(groups);
         allChildren.addAll(sqlTypes);
+        allChildren.addAll(domainCategories);
         allChildren.addAll(sqlTypeSnapshots);
         return allChildren;
     }
@@ -338,6 +347,8 @@ public class ArchitectProject extends AbstractSPObject {
             addGroup((Group) child, index);
         } else if (child instanceof UserDefinedSQLType) {
             addSQLType((UserDefinedSQLType) child, index);
+        } else if (child instanceof DomainCategory) {
+            addDomainCategory((DomainCategory) child, index);
         } else if (child instanceof SPObjectSnapshot) {
             addSPObjectSnapshot((SPObjectSnapshot) child, index);
         } else {
@@ -366,6 +377,11 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<SPObjectSnapshot> getSqlTypeSnapshots() {
         return Collections.unmodifiableList(sqlTypeSnapshots); 
+    }
+    
+    @NonProperty
+    public List<DomainCategory> getDomainCategories() {
+        return Collections.unmodifiableList(domainCategories); 
     }
     
     public void addUser(User user, int index) {
@@ -404,4 +420,10 @@ public class ArchitectProject extends AbstractSPObject {
         return projectSettings;
     }
     
+
+    public void addDomainCategory(DomainCategory domainCategory, int index) {
+        domainCategories.add(index, domainCategory);
+        domainCategory.setParent(this);
+        fireChildAdded(DomainCategory.class, domainCategory, index);
+    }
 }
