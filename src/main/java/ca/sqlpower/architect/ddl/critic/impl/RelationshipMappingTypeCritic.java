@@ -26,7 +26,8 @@ import java.util.List;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
@@ -77,7 +78,7 @@ public class RelationshipMappingTypeCritic extends CriticAndSettings {
                         cm.getFkColumn().getShortDisplayName() + " related by FK constraint " +
                     		"have different types, scale, or precision",
                     this,
-                    new QuickFix(updateToParentQuickFix) {
+                    new CriticFix(updateToParentQuickFix, FixType.QUICK_FIX) {
                         @Override
                         public void apply() {
                             UserDefinedSQLType typeToUpdate = childColumn.getUserDefinedSQLType();
@@ -88,7 +89,7 @@ public class RelationshipMappingTypeCritic extends CriticAndSettings {
                             childColumn.setScale(parentColumn.getScale());
                         }
                     },
-                    new QuickFix(updateToChildQuickFix) {
+                    new CriticFix(updateToChildQuickFix, FixType.QUICK_FIX) {
                         @Override
                         public void apply() {
                             UserDefinedSQLType typeToUpdate = parentColumn.getUserDefinedSQLType();

@@ -31,7 +31,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.text.Document;
 
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
-import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.diff.SQLObjectComparator;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -108,7 +108,7 @@ public class CriticSwingUtil {
                     List<?> list = (List<?>) clickedVal;
                     final JPopupMenu menu = new JPopupMenu();
                     for (Object o : list) {
-                        final QuickFix fix = (QuickFix) o;
+                        final CriticFix fix = (CriticFix) o;
                         menu.add(new AbstractAction(fix.getDescription()) {
                             public void actionPerformed(ActionEvent e) {
                                 fix.apply();

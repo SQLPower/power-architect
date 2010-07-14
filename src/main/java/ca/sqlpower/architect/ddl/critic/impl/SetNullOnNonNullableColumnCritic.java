@@ -26,7 +26,8 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
@@ -54,7 +55,7 @@ public class SetNullOnNonNullableColumnCritic extends CriticAndSettings {
             criticisms.add(new Criticism(subject, 
                     Messages.getString("SetNullOnNonNullableColumnCritic.deleteRuleCriticism", 
                             cm.getParent().getName(), fkcol.getName()), this,
-                            new QuickFix(Messages.getString("SetNullOnNonNullableColumnCritic.quickFix", fkcol.getName())) {
+                            new CriticFix(Messages.getString("SetNullOnNonNullableColumnCritic.quickFix", fkcol.getName()), FixType.QUICK_FIX) {
                                 @Override
                                 public void apply() {
                                     fkcol.setNullable(DatabaseMetaData.columnNullable);
@@ -68,7 +69,7 @@ public class SetNullOnNonNullableColumnCritic extends CriticAndSettings {
             criticisms.add(new Criticism(subject, 
                     Messages.getString("SetNullOnNonNullableColumnCritic.updateRuleCriticism", 
                             cm.getParent().getName(), fkcol.getName()), this,
-                            new QuickFix(Messages.getString("SetNullOnNonNullableColumnCritic.quickFix", fkcol.getName())) {
+                            new CriticFix(Messages.getString("SetNullOnNonNullableColumnCritic.quickFix", fkcol.getName()), FixType.QUICK_FIX) {
                                 @Override
                                 public void apply() {
                                     fkcol.setNullable(DatabaseMetaData.columnNullable);

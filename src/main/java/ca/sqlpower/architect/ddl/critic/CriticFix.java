@@ -23,12 +23,26 @@ package ca.sqlpower.architect.ddl.critic;
  * A quick fix is an automated way to fix a problem with the object model with
  * the click of a button.
  */
-public abstract class QuickFix {
+public abstract class CriticFix {
+    
+    public enum FixType {
+        /**
+         * Fixes of this type can be fixed without user intervention.
+         */
+        QUICK_FIX,
+        /**
+         * Fixes of this type display some kind of dialog the user must
+         * interact with to fix the criticism.
+         */
+        DIALOG_FIX;
+    }
 
     /**
      * The description of what will be done if you apply this quick fix.
      */
     private final String description;
+    
+    private final FixType fixType;
 
     /**
      * @param description
@@ -37,8 +51,9 @@ public abstract class QuickFix {
      *            used to show the user exactly how the quick fix will make the
      *            change.
      */
-    public QuickFix(String description) {
+    public CriticFix(String description, FixType fixType) {
         this.description = description;
+        this.fixType = fixType;
     }
 
     /**
@@ -49,5 +64,9 @@ public abstract class QuickFix {
     
     public String getDescription() {
         return description;
+    }
+
+    public FixType getFixType() {
+        return fixType;
     }
 }
