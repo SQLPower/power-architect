@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -36,9 +37,13 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 
 public class TestingArchitectSessionContext implements ArchitectSessionContext {
 
-    private DataSourceCollection<JDBCDataSource> emptyPlDotIni = new SpecificDataSourceCollection<JDBCDataSource>(new PlDotIni(), JDBCDataSource.class);
+    private DataSourceCollection<JDBCDataSource> plDotIni = new SpecificDataSourceCollection<JDBCDataSource>(new PlDotIni(), JDBCDataSource.class);
     private Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
 
+    public TestingArchitectSessionContext() throws IOException {
+        plDotIni.read(new File("default_database_types.regression.ini"));
+    }
+    
     public ArchitectSession createSession() throws SQLObjectException {
         return new ArchitectSessionImpl(this, "Test");
     }
@@ -54,7 +59,7 @@ public class TestingArchitectSessionContext implements ArchitectSessionContext {
     }
 
     public DataSourceCollection<JDBCDataSource> getPlDotIni() {
-        return emptyPlDotIni ;
+        return plDotIni ;
     }
 
     public String getPlDotIniPath() {

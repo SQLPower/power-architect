@@ -341,19 +341,19 @@ public class CreateKettleJobTest extends TestCase {
         assertEquals(architectDS.getUser(), dbMeta.getUsername());
     }
     
-    public void testOutputToRepositoryOverwrite() throws SQLException, KettleException {
+    public void testOutputToRepositoryOverwrite() throws Exception {
         testOutputToRepository(UserPromptResponse.OK);
     }
     
-    public void testOutputToRepositoryDontOverwrite() throws SQLException, KettleException {
+    public void testOutputToRepositoryDontOverwrite() throws Exception {
         testOutputToRepository(UserPromptResponse.NOT_OK);
     }
     
-    public void testOutputToRepositoryCancel() throws SQLException, KettleException {
+    public void testOutputToRepositoryCancel() throws Exception {
         testOutputToRepository(UserPromptResponse.CANCEL);
     }
     
-    private void testOutputToRepository(final UserPromptResponse fvr) throws SQLException, KettleException{
+    private void testOutputToRepository(final UserPromptResponse fvr) throws Exception {
         TransMeta transMeta = createTransMeta();
         JobMeta job = createJobMeta();
         

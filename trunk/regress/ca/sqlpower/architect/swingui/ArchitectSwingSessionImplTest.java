@@ -23,6 +23,7 @@ import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.sql.Types;
 import java.util.Collections;
@@ -171,7 +172,9 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         ((ArchitectSwingSessionImpl) session).setUserPrompterFactory(new DefaultUserPrompterFactory());
         
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
-        session.getProjectLoader().load(r, new PlDotIni());
+        PlDotIni plDotIni = new PlDotIni();
+        plDotIni.read(new File("default_database_types.regression.ini"));
+        session.getProjectLoader().load(r, plDotIni);
         assertFalse(session.isNew());
     }
     
@@ -216,9 +219,12 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     
     public void testSaveAndLoadRelationshipLineType() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
+        PlDotIni plDotIni = new PlDotIni();
+        plDotIni.read(new File("default_database_types.regression.ini"));
+        
         ArchitectSwingSession session = context.createSession();
         ((ArchitectSwingSessionImpl) session).setUserPrompterFactory(new DefaultUserPrompterFactory());
-        session.getProjectLoader().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni());
+        session.getProjectLoader().load(new ByteArrayInputStream(testData.getBytes()), plDotIni);
         
         boolean newValueForStraightLines = !session.getRelationshipLinesDirect();
         session.setRelationshipLinesDirect(newValueForStraightLines);
@@ -228,7 +234,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         
         ArchitectSwingSession loadedSession = context.createSession();
         ((ArchitectSwingSessionImpl) loadedSession).setUserPrompterFactory(new DefaultUserPrompterFactory());
-        loadedSession.getProjectLoader().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
+        loadedSession.getProjectLoader().load(new ByteArrayInputStream(out.toByteArray()), plDotIni);
         assertEquals(newValueForStraightLines, loadedSession.getRelationshipLinesDirect());
         
         for (Relationship r : loadedSession.getPlayPen().getContentPane().getChildren(Relationship.class)) {
