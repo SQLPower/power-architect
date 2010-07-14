@@ -25,7 +25,8 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -62,7 +63,7 @@ public abstract class ReservedWordsCritic extends CriticAndSettings {
                                 Messages.getString(typeName), 
                                 sqlObject.getPhysicalName() + " (" + sqlObject.getName() + ")"), 
                         this, 
-                        new QuickFix(Messages.getString("ReservedWordsCritic.quickFixDesc", newName)) {
+                        new CriticFix(Messages.getString("ReservedWordsCritic.quickFixDesc", newName), FixType.QUICK_FIX) {
                             @Override
                             public void apply() {
                                 sqlObject.setPhysicalName(newName);

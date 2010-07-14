@@ -25,7 +25,8 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
@@ -70,7 +71,7 @@ public class CommentCritic extends CriticAndSettings {
                     so,
                     "Comment too long for " + getPlatformName(),
                     this,
-                    new QuickFix("Truncate comment to " + maxLength + " characters") {
+                    new CriticFix("Truncate comment to " + maxLength + " characters", FixType.QUICK_FIX) {
                         public void apply() {
                             if (so instanceof SQLTable) {
                                 SQLTable tbl = (SQLTable)so;

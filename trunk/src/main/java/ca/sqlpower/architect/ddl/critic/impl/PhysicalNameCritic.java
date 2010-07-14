@@ -27,7 +27,8 @@ import java.util.regex.Pattern;
 import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
-import ca.sqlpower.architect.ddl.critic.QuickFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
@@ -91,7 +92,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
                     so,
                     "No physical name for " + so.getName(),
                     this,
-                    new QuickFix("Copy logical name to physical name") {
+                    new CriticFix("Copy logical name to physical name", FixType.QUICK_FIX) {
                         public void apply() {
                             so.setPhysicalName(so.getName());
                         }
@@ -104,7 +105,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
                     so,
                     "Physical name too long for " + getPlatformName(),
                     this,
-                    new QuickFix("Truncate name to " + so.getPhysicalName().substring(0, getMaxNameLength())) {
+                    new CriticFix("Truncate name to " + so.getPhysicalName().substring(0, getMaxNameLength()), FixType.QUICK_FIX) {
                         public void apply() {
                             if (so.getPhysicalName() != null && so.getPhysicalName().length() > getMaxNameLength()) {
                                 so.setPhysicalName(so.getPhysicalName().substring(0, getMaxNameLength()));
@@ -119,7 +120,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
                     so,
                     "Physical name not legal for " + so.getPhysicalName(),
                     this,
-                    new QuickFix("Replace the physical name with " + newLogicalName) {
+                    new CriticFix("Replace the physical name with " + newLogicalName, FixType.QUICK_FIX) {
                         @Override
                         public void apply() {
                             so.setPhysicalName(newLogicalName);
