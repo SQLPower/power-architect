@@ -90,10 +90,11 @@ public class DuplicateNameCritic extends CriticAndSettings {
         if (subject instanceof SQLColumn) {
             final SQLColumn col = (SQLColumn) subject;
             SQLTable parent = col.getParent();
+            if (col.getPhysicalName() == null) return criticisms;
 
             int count = 0;
             for (SQLColumn otherCol : columnPhysicalNameMap.get(parent)) {
-                if (col.getPhysicalName().equals(otherCol)) {
+                if (col.getPhysicalName().equals(otherCol.getPhysicalName())) {
                     count++;
                 }
             }
