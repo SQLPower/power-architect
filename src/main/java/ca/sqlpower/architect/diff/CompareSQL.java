@@ -36,6 +36,7 @@ import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.diff.DiffType;
 import ca.sqlpower.diff.PropertyChange;
+import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -60,7 +61,7 @@ public class CompareSQL implements Monitorable {
 	/**
 	 * A comparator that detects equality by comparing the UUID
 	 */
-    final static Comparator<SQLObject> uuidComparator = new SQLObjectUUIDComparator();
+    final static Comparator<SQLObject> uuidComparator = new SPObjectUUIDComparator<SQLObject>();
 
 	/**
 	 * The source tables that this compare object will use when asked

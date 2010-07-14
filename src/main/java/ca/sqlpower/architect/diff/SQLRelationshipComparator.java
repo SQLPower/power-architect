@@ -25,6 +25,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
@@ -35,7 +36,8 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 	private static Logger logger = Logger.getLogger(SQLRelationshipComparator.class);
 
 	private SQLObjectComparator nameComparator = new SQLObjectComparator();
-    private SQLObjectUUIDComparator uuidComparator = new SQLObjectUUIDComparator();
+    private SPObjectUUIDComparator<SQLObject> uuidComparator = 
+        new SPObjectUUIDComparator<SQLObject>();
 	private boolean useUUID;
 
 	public SQLRelationshipComparator() {
