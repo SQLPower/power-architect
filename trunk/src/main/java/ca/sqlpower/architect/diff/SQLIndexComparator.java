@@ -26,6 +26,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
@@ -50,7 +51,7 @@ public class SQLIndexComparator implements Comparator<SQLIndex>, Serializable {
 
 	public SQLIndexComparator(boolean useUUID) {
 		if (useUUID) {
-			comparator = new SQLObjectUUIDComparator();
+			comparator = new SPObjectUUIDComparator<SQLObject>();
 		} else {
 			comparator = new SQLObjectComparator();
 		}
