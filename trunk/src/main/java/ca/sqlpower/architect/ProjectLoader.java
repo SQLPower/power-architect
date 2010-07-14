@@ -62,6 +62,7 @@ import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
@@ -70,11 +71,15 @@ import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 import ca.sqlpower.xml.UnescapingSaxParser;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 public class ProjectLoader {
 
@@ -303,6 +308,27 @@ public class ProjectLoader {
                     }
                 }
 
+            }
+
+            /*
+             * In old versions of the architect, user defined types weren't
+             * available, so all columns stored their type as a JDBC type code.
+             * For all columns in the playpen, we need to hook up upstream user
+             * defined types.
+             */
+            ListMultimap<String, SQLColumn> columns = ArrayListMultimap.create();
+            for (SQLTable table : getSession().getTargetDatabase().getTables()) {
+                for (SQLColumn column : table.getChildren(SQLColumn.class)) {
+                    SQLColumn sourceColumn = column.getSourceColumn();
+                    if (sourceColumn != null && sourceColumn.getPlatform() != null) {
+                        columns.put(column.getSourceColumn().getPlatform(), column);
+                    } else {
+                        columns.put(SQLTypePhysicalPropertiesProvider.GENERIC_PLATFORM, column);
+                    }
+                }
+            }
+            for (String platform : columns.keySet()) {
+                SQLColumn.assignTypes(columns.get(platform), dataSources, platform, new DefaultUserPrompterFactory());
             }
 
             setModified(false);
@@ -722,19 +748,6 @@ public class ProjectLoader {
             if (sqlTypeUUID != null ){
                 sqlType = session.findSQLTypeByUUID(sqlTypeUUID);
             }
-
-            // If userDefinedTypeUUID isn't in the file, probably because it's
-            // from an older version... or if the userDefinedTypeUUID doesn't
-            // exist in this system, then try to guess it by JDBC type.
-            if (sqlTypeUUID == null || sqlType == null) {
-                String type = attributes.getValue("type");
-                int jdbcType = Integer.valueOf(type);
-                // TODO: If a session contains more than one UserDefinedSQLType
-                // (most likely when loading into a server) with the same JDBC
-                // type, then it may not pick the 'right' one.
-                sqlType = session.findSQLTypeByJDBCType(jdbcType);
-            }
-
             col.getUserDefinedSQLType().setUpstreamType(sqlType);
 
             LoadSQLObjectAttributes(col, attributes);
