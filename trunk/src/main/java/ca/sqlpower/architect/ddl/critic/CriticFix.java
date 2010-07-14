@@ -34,7 +34,7 @@ public abstract class CriticFix {
          * Fixes of this type display some kind of dialog the user must
          * interact with to fix the criticism.
          */
-        DIALOG_FIX;
+        PROMPT_FIX;
     }
 
     /**

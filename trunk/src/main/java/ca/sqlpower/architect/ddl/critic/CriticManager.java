@@ -60,6 +60,7 @@ import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 
 /**
@@ -199,6 +200,9 @@ public class CriticManager extends AbstractSPObject {
         criticisms.addAll(criticize(generatorClass, getParent().getTargetDatabase()));
         for (JDBCDataSourceType dsType : getParent().getSession().getDataSources().getDataSourceTypes()) {
             criticisms.addAll(criticize(generatorClass, dsType));
+        }
+        for (JDBCDataSource ds : getParent().getSession().getDataSources().getConnections()) {
+            criticisms.addAll(criticize(generatorClass, ds));
         }
         return criticisms;
     }
