@@ -78,6 +78,9 @@
 		<fileset dir="${lib}">
 			<include name="*.jar"/>
 		</fileset>
+		<fileset dir="${sqlpower.library.home}/lib">
+			<include name="*.jar"/>
+		</fileset>
 		<pathelement location="${generated}"/>
 	</path>
 
@@ -98,8 +101,8 @@
 
 	
 	<path id="test.classpath"
-			description="All the test-time dependencies of the Wabit code, 
-						including the compiles Wabit code itself">
+			description="All the test-time dependencies of the Architect code, 
+						including the compiles Architect code itself">
 		
 		<path refid="compile.classpath" />
 		<pathelement location="${build}"/>
@@ -228,7 +231,10 @@
 		description="Checks build prereqs, creates output dir, and determines product version"
 		>
 		<tstamp/>
+		
 		<mkdir dir="${build}"/>
+		<mkdir dir="${build_tmp}"/>
+		
 		<!-- get the version number from source code ArchitectUtils -->
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
 		<taskdef name="genVersion"
@@ -308,7 +314,7 @@
 		attribute of the 'current' tag in the clover.report 
 		target.-->
 	<target name="with.clover" description="Activates Clover">
-	    <clover-setup initString="mycoverage.db" source="1.5"
+	    <clover-setup initString="mycoverage.db" source="1.6"
 	    	flushpolicy="threaded" flushinterval="500">
 	    	<!-- This fileset includes all source files that are not
 	    	tests because we do not want to see the coverage results
@@ -367,7 +373,7 @@
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
 		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
-		<pmd shortFilenames="true" targetjdk="1.5">
+		<pmd shortFilenames="true" targetjdk="1.6">
 			<ruleset>basic,imports</ruleset>
 			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
@@ -442,8 +448,6 @@
 	<!-- Compiles the application source files -->
 	<target name="compile" depends="init, copyfiles, build.sqlpower.library, copy.sqlpower.library">
 	   	
-		<mkdir dir="${build_tmp}"/>
-
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
 		
 		<apt srcdir="${src}"
@@ -770,7 +774,12 @@
     	<mkdir dir="${staging.dir}/doc"/>
 
     	<copy todir="${staging.dir}/lib">
-    	    <fileset dir="${lib}" includes="*.jar"/>
+    		<fileset dir="${lib}">
+    			<include name="*.jar"/>
+    		</fileset>
+    		<fileset dir="${sqlpower.library.home}/lib">
+    			<include name="*.jar"/>
+    		</fileset>
     		<fileset dir="${build}" includes="architecthelp.jar" />
     	</copy>
 
@@ -812,7 +821,7 @@
 					customprocname="false"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
-				<jre minVersion="1.5.0"
+				<jre minVersion="1.6.0"
 					 maxHeapSize="600"
 				/>
 			</config>
@@ -834,7 +843,7 @@
 					mutexName="SQL Power Architect Uninstaller"
 					windowTitle="SQL Power Architect Uninstaller"
 				/>
-				<jre minVersion="1.5.0"/>
+				<jre minVersion="1.6.0"/>
 			</config>
 		</launch4j>
     	
@@ -862,10 +871,12 @@
 	</target>
 
 	<target description="Cleans all build files" name="clean">
-		<delete dir="${build}" failonerror="false"/>
-		<delete dir="${build.tests}" failonerror="false"/>
-		<delete dir="${build.examples}" failonerror="false"/>
-		<delete failonerror="false"><fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/></delete>
+		<delete dir="${build}" failonerror="false" includeemptydirs="true"/>
+		<delete dir="${build.tests}" failonerror="false" includeemptydirs="true"/>
+		<delete dir="${build.examples}" failonerror="false" includeemptydirs="true"/>
+		<delete failonerror="false">
+			<fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/>
+		</delete>
 		<delete dir="webstart/lib" failonerror="false"/>
 		<delete dir="${staging.dir}" failonerror="false"/>
 		<delete dir="${generated}/ca" failonerror="false"/>
@@ -949,7 +960,7 @@
 					<appname>Power Architect</appname>
 					<appversion>@{app.version}</appversion>
 					<url>http://www.sqlpower.ca/</url>
-					<javaversion>1.5</javaversion>
+					<javaversion>1.6</javaversion>
 					<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
 					<!-- <pack200/> -->
 				</info>
@@ -1030,7 +1041,7 @@
 						<appname>Power Architect</appname>
 						<appversion>@{app.version}</appversion>
 						<url>http://www.sqlpower.ca/</url>
-						<javaversion>1.5</javaversion>
+						<javaversion>1.6</javaversion>
 						<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
 						<!-- <pack200/> -->
 					</info>
@@ -1123,7 +1134,7 @@
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
 				/>
-				<jre minVersion="1.5.0"/>
+				<jre minVersion="1.6.0"/>
 			</config>
 		</launch4j>
 	</target>
@@ -1147,7 +1158,7 @@
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
 				/>
-				<jre minVersion="1.5.0"/>
+				<jre minVersion="1.6.0"/>
 			</config>
 		</launch4j>
 	</target>
@@ -1173,7 +1184,7 @@
            version="${app.version}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
-           jvmversion="1.5+"
+           jvmversion="1.6+"
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
            vmoptions="-Xmx600m">
@@ -1199,7 +1210,7 @@
            version="${app.version}.jdbc"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
-           jvmversion="1.5+"
+           jvmversion="1.6+"
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
            vmoptions="-Xmx600m">
@@ -1453,7 +1464,7 @@
 	</target>
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
-		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${buildlib}"/>
 	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${buildlib}"/>
 		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${buildlib}"/>
 	</target>
