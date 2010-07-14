@@ -57,14 +57,22 @@ public class CreateTableAction extends AbstractArchitectAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		getPlaypen().fireCancel();
+		PlayPen playpen = getPlaypen();
+        playpen.fireCancel();
 		SQLTable t = null; 
 		t = new SQLTable();
 		t.initFolders(true);
-		t.setName(NEW_TABLE_NAME); //$NON-NLS-1$
 		
-		TablePane tp = new TablePane(t, getPlaypen().getContentPane());
-		TablePlacer tablePlacer = new TablePlacer(getPlaypen(), tp);
+		playpen.resetTableNames();
+		int suffix = playpen.uniqueTableSuffix(NEW_TABLE_NAME);
+		if (suffix != 0) {
+		    t.setName(NEW_TABLE_NAME + "_" + suffix);
+		} else {
+		    t.setName(NEW_TABLE_NAME);
+		}
+		
+		TablePane tp = new TablePane(t, playpen.getContentPane());
+		TablePlacer tablePlacer = new TablePlacer(playpen, tp);
 		tablePlacer.dirtyup();
 	}
 	
@@ -118,9 +126,9 @@ public class CreateTableAction extends AbstractArchitectAction {
                 }
             };
             
-            ((TableEditPanel) editPanel).setNameText(NEW_TABLE_NAME);
-            ((TableEditPanel) editPanel).setPhysicalNameText(NEW_TABLE_NAME);
-            ((TableEditPanel) editPanel).setPkNameText(NEW_TABLE_NAME + "_pk");
+            ((TableEditPanel) editPanel).setNameText(tp.getModel().getName());
+            ((TableEditPanel) editPanel).setPhysicalNameText(tp.getModel().getPhysicalName());
+            ((TableEditPanel) editPanel).setPkNameText(tp.getModel().getName() + "_pk");
             
             return editPanel;
         }
