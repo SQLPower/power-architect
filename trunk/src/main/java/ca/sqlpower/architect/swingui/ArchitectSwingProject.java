@@ -70,6 +70,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
@@ -251,6 +253,9 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     public List<SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         // When changing this, ensure you maintain the order specified by allowedChildTypes
+        allChildren.addAll(getSqlTypes());
+        allChildren.addAll(getDomainCategories());
+        allChildren.addAll(getSqlTypeSnapshots());
         allChildren.add(getRootObject());
         allChildren.add(olapRootObject);
         if (playPenContentPane != null) {
@@ -266,9 +271,6 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         //TODO make specific getters for these types.
         allChildren.addAll(getUsers());
         allChildren.addAll(getGroups());
-        allChildren.addAll(getSqlTypes());
-        allChildren.addAll(getDomainCategories());
-        allChildren.addAll(getSqlTypeSnapshots());
         return allChildren;
     }
     
