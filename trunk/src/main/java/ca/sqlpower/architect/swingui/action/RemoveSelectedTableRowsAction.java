@@ -24,13 +24,14 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 /**
- * This {@link Action} removes selected rows from a {@link JTable}. The
- * assumption made here is that the table uses a {@link DefaultTableModel}.
+ * This {@link Action} removes selected rows from a {@link JTable}. This class
+ * is abstract because different {@link TableModel}s may have different
+ * implementations of removing rows.
  */
-public class RemoveSelectedTableRowsAction extends AbstractAction {
+public abstract class RemoveSelectedTableRowsAction extends AbstractAction {
 
     /**
      * The {@link JTable} to remove the selected rows from.
@@ -49,13 +50,19 @@ public class RemoveSelectedTableRowsAction extends AbstractAction {
 
     public void actionPerformed(ActionEvent e) {
         if (table.getSelectedRowCount() > 0) {
-            DefaultTableModel model = (DefaultTableModel) table.getModel();
-            
             for (int i = table.getSelectedRowCount()-1; i >= 0; i--) {
                 int index = table.getSelectedRows()[i];
-                model.removeRow(index);
+                removeRow(index);
             }
         }
     }
+
+    /**
+     * Removes a row in a {@link TableModel}.
+     * 
+     * @param row
+     *            The index of the row to remove.
+     */
+    public abstract void removeRow(int row);
 
 }
