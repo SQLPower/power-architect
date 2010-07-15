@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.enterprise.client.Group;
@@ -70,7 +71,7 @@ public class ArchitectProject extends AbstractSPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
                     DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class, ProfileManager.class, 
-                    ProjectSettings.class, User.class, Group.class)));
+                    ProjectSettings.class, User.class, Group.class, BusinessDefinition.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -85,6 +86,8 @@ public class ArchitectProject extends AbstractSPObject {
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
     private final List<SPObjectSnapshot> sqlTypeSnapshots = new ArrayList<SPObjectSnapshot>();
     private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
+    
+    private final List<BusinessDefinition> businessDefinitions = new ArrayList<BusinessDefinition>();
     
     /**
      * The current integrity watcher on the project.
@@ -265,6 +268,12 @@ public class ArchitectProject extends AbstractSPObject {
             fireChildRemoved(SPObjectSnapshot.class, child, index);
             child.setParent(null);
             return true;
+        } else if (child instanceof BusinessDefinition) {
+            int index = businessDefinitions.indexOf((BusinessDefinition) child);
+            businessDefinitions.remove((BusinessDefinition) child);
+            fireChildRemoved(BusinessDefinition.class, child, index);
+            child.setParent(null);
+            return true;
         }
         return false;
     }        
@@ -324,6 +333,7 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.add(projectSettings);
         allChildren.addAll(users);
         allChildren.addAll(groups);
+        allChildren.addAll(businessDefinitions);
         return allChildren;
     }
     
@@ -353,10 +363,18 @@ public class ArchitectProject extends AbstractSPObject {
             addDomainCategory((DomainCategory) child, index);
         } else if (child instanceof SPObjectSnapshot) {
             addSPObjectSnapshot((SPObjectSnapshot) child, index);
+        } else if (child instanceof BusinessDefinition) {
+            addBusinessDefinition((BusinessDefinition) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
         }
+    }
+    
+    public void addBusinessDefinition(BusinessDefinition businessDefinition, int index) {
+        businessDefinitions.add(index, businessDefinition);
+        businessDefinition.setParent(this);
+        fireChildAdded(BusinessDefinition.class, businessDefinition, index);
     }
 
 
@@ -372,6 +390,7 @@ public class ArchitectProject extends AbstractSPObject {
         fireChildAdded(SPObjectSnapshot.class, child, index);        
     }
     
+    @NonProperty
     protected List<UserDefinedSQLType> getSqlTypes() {
         return Collections.unmodifiableList(sqlTypes);
     }
@@ -384,6 +403,11 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<DomainCategory> getDomainCategories() {
         return Collections.unmodifiableList(domainCategories); 
+    }
+    
+    @NonProperty
+    public List<BusinessDefinition> getBusinessDefinitions() {
+        return Collections.unmodifiableList(businessDefinitions);
     }
     
     public void addUser(User user, int index) {

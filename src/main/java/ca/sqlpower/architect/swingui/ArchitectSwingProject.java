@@ -30,6 +30,7 @@ import java.util.Map;
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ProjectSettings;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
+import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
@@ -78,7 +79,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
                     DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
-                    CriticManager.class, KettleSettings.class, User.class, Group.class)));
+                    CriticManager.class, KettleSettings.class, User.class, Group.class, 
+                    BusinessDefinition.class)));
     
     /**
      * A hash map mapping all the descendants of this project.
@@ -271,6 +273,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         //TODO make specific getters for these types.
         allChildren.addAll(getUsers());
         allChildren.addAll(getGroups());
+        allChildren.addAll(getBusinessDefinitions());
         return allChildren;
     }
     
@@ -313,6 +316,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             addDomainCategory((DomainCategory) child, index);
         } else if (child instanceof SPObjectSnapshot) {
             addSPObjectSnapshot((SPObjectSnapshot) child, index);
+        } else if (child instanceof BusinessDefinition) {
+            addBusinessDefinition((BusinessDefinition) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
