@@ -162,6 +162,7 @@ import ca.sqlpower.swingui.action.OpenUrlAction;
 import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.BrowserUtil;
 import ca.sqlpower.util.UserPrompterFactory;
 
 import com.google.common.collect.BiMap;
@@ -281,7 +282,17 @@ public class ArchitectFrame extends JFrame {
         }
     };
     
-    private Action openServerManagerAction = new AbstractAction("Configure Server Connections...") {
+    private final Action enterpriseLinkAction = new AbstractAction("Get Enterprise...") {
+        public void actionPerformed(ActionEvent e) {
+            try {
+            BrowserUtil.launch("http://www.sqlpower.ca/page/architect-e");
+            } catch (IOException ex) {
+                ASUtils.showExceptionDialog(currentSession, "Unable to open link: http://www.sqlpower.ca/page/architect-e", ex);
+            }
+        }
+    };
+    
+    private final Action openServerManagerAction = new AbstractAction("Configure Server Connections...") {
         public void actionPerformed(ActionEvent e) {
             
             final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Server Connections");
@@ -472,6 +483,8 @@ public class ArchitectFrame extends JFrame {
     private JMenuItem newWindowMenu;
 
     private AbstractAction cycleTabAction;
+
+    private JMenuItem enterpriseLinkButton;
 
     /**
      * Sets up a new ArchitectFrame, which represents a window containing one or
@@ -985,8 +998,11 @@ public class ArchitectFrame extends JFrame {
 
         // Enterprise stuff ...
         enterpriseMenu = new JMenu("Enterprise");
+        enterpriseLinkButton = enterpriseMenu.add(enterpriseLinkAction);
         enterpriseMenu.add(openServerManagerAction);
+        openServerManagerAction.setEnabled(false);
         enterpriseMenu.add(openProjectManagerAction);
+        openProjectManagerAction.setEnabled(false);
         openRevisionListAction.setEnabled(currentSession.isEnterpriseSession());
         enterpriseMenu.add(openRevisionListAction);
         
@@ -1480,6 +1496,22 @@ public class ArchitectFrame extends JFrame {
         return profileAction;
     }
     
+    public JMenuItem getEnterpriseLinkButton() {
+        return enterpriseLinkButton;
+    }
+
+    public Action getOpenServerManagerAction() {
+        return openServerManagerAction;
+    }
+
+    public void setOpenProjectManagerAction(Action openProjectManagerAction) {
+        this.openProjectManagerAction = openProjectManagerAction;
+    }
+
+    public Action getOpenProjectManagerAction() {
+        return openProjectManagerAction;
+    }
+
     public AlignTableAction getAlignTableHorizontalAction() {
         return alignTableHorizontalAction;
     }
