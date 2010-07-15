@@ -63,6 +63,8 @@ public class ArchitectProject extends AbstractSPObject {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
@@ -312,6 +314,9 @@ public class ArchitectProject extends AbstractSPObject {
     public List<SPObject> getChildren() {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         // When changing this, ensure you maintain the order specified by allowedChildTypes
+        allChildren.addAll(sqlTypes);
+        allChildren.addAll(domainCategories);
+        allChildren.addAll(sqlTypeSnapshots);
         allChildren.add(rootObject);
         if (profileManager != null) {
             allChildren.add(profileManager);
@@ -319,9 +324,6 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.add(projectSettings);
         allChildren.addAll(users);
         allChildren.addAll(groups);
-        allChildren.addAll(sqlTypes);
-        allChildren.addAll(domainCategories);
-        allChildren.addAll(sqlTypeSnapshots);
         return allChildren;
     }
     
