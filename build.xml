@@ -234,7 +234,6 @@
 		
 		<mkdir dir="${build}"/>
 		<mkdir dir="${build_tmp}"/>
-		<mkdir dir="${buildlib}"/>
 		
 		<!-- get the version number from source code ArchitectUtils -->
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
@@ -875,7 +874,12 @@
 		<delete dir="${build}" failonerror="false" includeemptydirs="true"/>
 		<delete dir="${build.tests}" failonerror="false" includeemptydirs="true"/>
 		<delete dir="${build.examples}" failonerror="false" includeemptydirs="true"/>
-		<delete dir="${buildlib}" failonerror="false" includeemptydirs="true"/>
+		<delete>
+			<fileset dir="buildlib">
+			    <include name="sqlpower_library*.jar"/>
+			</fileset>
+		</delete>
+
 		<delete failonerror="false">
 			<fileset dir="${dist.dir}" includes="lib,SQL Power Architect.app,architect.jar"/>
 		</delete>
