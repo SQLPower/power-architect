@@ -105,7 +105,7 @@ implements Selectable {
             return true;
         }
         
-        public boolean updateException(NetworkConflictResolver resolver) {return false;}
+        public boolean updateException(NetworkConflictResolver resolver, Throwable t) {return false;}
 
         public void preUpdatePerformed(NetworkConflictResolver resolver) {
             //do nothing

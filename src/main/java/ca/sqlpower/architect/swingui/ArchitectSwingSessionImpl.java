@@ -465,7 +465,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 Class<?> osxAdapter = ArchitectSwingSessionImpl.class.getClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter"); //$NON-NLS-1$
 
                 // The main registration method.  Takes quitAction, prefsAction, aboutAction.
-                Class[] defArgs = { Action.class, Action.class, Action.class };
+                Class<?>[] defArgs = { Action.class, Action.class, Action.class };
                 Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs); //$NON-NLS-1$
                 Object[] args = { exitAction, prefAction, aboutAction };
                 registerMethod.invoke(osxAdapter, args);
@@ -1201,7 +1201,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                        return true; // true indicates that the listener should be removed
                     }
                     
-                    public boolean updateException(NetworkConflictResolver resolver) {return false;}
+                    public boolean updateException(NetworkConflictResolver resolver, Throwable t) {return false;}
 
                     public void preUpdatePerformed(NetworkConflictResolver resolver) {
                         //do nothing

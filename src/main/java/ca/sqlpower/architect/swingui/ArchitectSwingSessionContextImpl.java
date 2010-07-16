@@ -253,7 +253,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                 return false;
             }
         
-            public boolean updateException(NetworkConflictResolver resolver) {                
+            public boolean updateException(NetworkConflictResolver resolver, Throwable t) {                
                 if (loading) {
                     swingSession.getUndoManager().setLoading(false);
                     loading = false;
@@ -318,12 +318,16 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                 newSecuritySession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
                     public boolean updatePerformed(NetworkConflictResolver resolver) {return false;}
                 
-                    public boolean updateException(NetworkConflictResolver resolver) {
+                    public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
+                        if (t instanceof AccessDeniedException) return false;
+                        
                         newSecuritySession.close();
                         ArchitectClientSideSession.getSecuritySessions().remove(serverInfo.getServerAddress());
+                        final String errorMessage = "Error accessing security session.";
+                        logger.error(errorMessage, t);
+                        SPSUtils.showExceptionDialogNoReport(frames.get(0), errorMessage, t);
                         //If you try to create a new security session here because creating the first
                         //one failed the same error message can continue to repeat. 
-                        //TODO May want to warn the user with a nicer dialog.
                         return true;
                     }
 
