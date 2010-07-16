@@ -914,6 +914,7 @@
 			</packageset>
 			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
+		<copydir dest="${dist.base}/doc" src="${dist.dir}/doc"/>
 	</target>
 
 	<target name="javadoc.with.umlgraph" 
@@ -953,6 +954,8 @@
 			<fileset dir="${dist.dir}/doc" includes="*.dot"/>
 			<mapper type="glob" from="*.dot" to="*.png"/>
 		</apply>
+		
+		<copydir dest="${dist.base}/doc" src="${dist.dir}/doc"/>
 	</target>
 
 	<target name="windows_installer" depends="stage">
