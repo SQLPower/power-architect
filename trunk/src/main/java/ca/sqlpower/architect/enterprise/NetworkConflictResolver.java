@@ -166,7 +166,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             } catch (AccessDeniedException e) {
                 List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
                 for (UpdateListener listener : updateListeners) {
-                    if (listener.updateException(NetworkConflictResolver.this)) {
+                    if (listener.updateException(NetworkConflictResolver.this, e)) {
                         listenersToRemove.add(listener);
                     }
                 }
@@ -324,11 +324,11 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                                if (!postingJSON.get()) {
                                    decodeMessage(json.getString("data"), json.getInt("currentRevision"));
                                }
-                           } catch (AccessDeniedException ade) {
+                           } catch (AccessDeniedException e) {
                                interrupt();
                                List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
                                for (UpdateListener listener : updateListeners) {
-                                   if (listener.updateException(NetworkConflictResolver.this)) {
+                                   if (listener.updateException(NetworkConflictResolver.this, e)) {
                                        listenersToRemove.add(listener);
                                    }
                                }
@@ -342,14 +342,14 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                                            UserPromptResponse.OK, 
                                            "OK", "OK").promptUser("");
                                } else {
-                                   throw ade;
+                                   throw e;
                                }
                            } catch (Exception e) {
                                // TODO: Discard corrupt workspace and start again from scratch.
                                interrupt();
                                List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
                                for (UpdateListener listener : updateListeners) {
-                                   if (listener.updateException(NetworkConflictResolver.this)) {
+                                   if (listener.updateException(NetworkConflictResolver.this, e)) {
                                        listenersToRemove.add(listener);
                                    }
                                }
@@ -977,7 +977,16 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
          * listener list and should not receive any more calls
          */
         public boolean updatePerformed(NetworkConflictResolver resolver);
-        public boolean updateException(NetworkConflictResolver resolver);
+
+        /**
+         * Called when an exception is thrown from the server on an update. One
+         * special exception passed in this call is the
+         * {@link AccessDeniedException}. If the exception is an
+         * {@link AccessDeniedException} then the user does not have valid
+         * permissions to do the operation they were attempting and the
+         * exception is not a fatal one.
+         */
+        public boolean updateException(NetworkConflictResolver resolver, Throwable t);
         
         /**
          * Notifies listeners that the workspace was deleted.

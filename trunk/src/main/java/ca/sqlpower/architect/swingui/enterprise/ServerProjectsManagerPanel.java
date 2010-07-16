@@ -144,7 +144,7 @@ public class ServerProjectsManagerPanel {
                                         return true;
                                     }
 
-                                    public boolean updateException(NetworkConflictResolver resolver) {
+                                    public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
                                         return false;
                                     }
 
