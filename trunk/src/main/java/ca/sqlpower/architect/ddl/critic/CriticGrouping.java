@@ -42,10 +42,11 @@ public class CriticGrouping extends AbstractSPObject {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Collections.singletonList(CriticAndSettings.class)));
+        Collections.<Class<? extends SPObject>>singletonList(CriticAndSettings.class);
     
     /**
      * Contains all of the settings for each critic known to the group. Each
@@ -104,14 +105,6 @@ public class CriticGrouping extends AbstractSPObject {
             child.setParent(null);
         }
         return removed;
-    }
-
-    public boolean allowsChildren() {
-        return true;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        return 0;
     }
 
     @Transient @Accessor

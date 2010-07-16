@@ -131,8 +131,8 @@ public class ArchitectProject extends AbstractSPObject {
      */
     @Constructor
     public ArchitectProject(
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager) 
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager) 
             throws SQLObjectException {
         this.rootObject = rootObject;
         rootObject.setParent(this);
@@ -296,22 +296,6 @@ public class ArchitectProject extends AbstractSPObject {
     @Override @Transient @Accessor
     public RunnableDispatcher getRunnableDispatcher() {
         return getSession();
-    }
-    
-    public boolean allowsChildren() {
-        return true;
-    }
-    
-    public int childPositionOffset(Class<? extends SPObject> childType) {  
-        int offset = 0;
-        for (Class<? extends SPObject> type : allowedChildTypes) {
-            if (type.isAssignableFrom(childType)) {
-                return offset;
-            } else {
-                offset += getChildren(type).size();
-            }
-        }
-        throw new IllegalArgumentException();
     }
 
     @Transient @Accessor

@@ -19,7 +19,6 @@
 package ca.sqlpower.architect.profile;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,11 +36,11 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
-    @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(ColumnValueCount.class))); 
+        Collections.<Class<? extends SPObject>>singletonList(ColumnValueCount.class); 
 
     private static final Logger logger = Logger.getLogger(ColumnProfileResult.class);
 
@@ -264,18 +263,6 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             }
         }
         return false;
-    }
-
-    public boolean allowsChildren() {
-        return true;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        if (childType.isAssignableFrom(ColumnValueCount.class)) {
-            return 0;
-        } else {
-            throw new IllegalArgumentException();
-        }
     }
 
     public List<Class<? extends SPObject>> getAllowedChildTypes() { 

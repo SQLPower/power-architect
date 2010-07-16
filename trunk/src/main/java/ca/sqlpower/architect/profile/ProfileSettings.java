@@ -40,6 +40,8 @@ public class ProfileSettings extends AbstractSPObject {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
@@ -197,17 +199,9 @@ public class ProfileSettings extends AbstractSPObject {
         return false;
     }
 
-    public boolean allowsChildren() {
-        return false;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        return 0;
-    }
-
     @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
-        return Collections.emptyList();
+        return allowedChildTypes;
     }
 
     @NonProperty

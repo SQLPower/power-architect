@@ -191,11 +191,11 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
      */
     @Constructor
     public ArchitectSwingProject(
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="kettleSettings") KettleSettings kettleSettings,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager,
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="criticManager") CriticManager criticManager
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject,
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="kettleSettings") KettleSettings kettleSettings,
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager,
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="criticManager") CriticManager criticManager
             ) throws SQLObjectException {
         super(rootObject, profileManager);
         this.olapRootObject = olapRootObject;
@@ -230,22 +230,6 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         return getSession();
     }
     
-    public boolean allowsChildren() {
-        return true;
-    }
-    
-    public int childPositionOffset(Class<? extends SPObject> childType) {  
-        int offset = 0;
-        for (Class<? extends SPObject> type : allowedChildTypes) {
-            if (type.isAssignableFrom(childType)) {
-                return offset;
-            } else {
-                offset += getChildren(type).size();
-            }
-        }
-        throw new IllegalArgumentException();
-    }
-
     @Transient @Accessor
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;

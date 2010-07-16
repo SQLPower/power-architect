@@ -47,9 +47,13 @@ import ca.sqlpower.swingui.DataEntryPanel;
 
 public class CubePane extends OLAPPane<Cube, OLAPObject> {
 
-    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(CubePane.class);
     
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
     public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
 
     public CubePane(Cube model) {
