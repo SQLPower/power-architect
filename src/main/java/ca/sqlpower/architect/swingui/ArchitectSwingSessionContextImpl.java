@@ -429,6 +429,35 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public void registerFrame(final ArchitectFrame frame) {
         frames.add(frame);
         
+        if (frames.size() == 1) {
+            frame.addWindowListener(new WindowListener() {
+                @Override
+                public void windowActivated(WindowEvent e) {
+                    showWelcomeScreen(frame);
+                    frame.removeWindowListener(this);
+                }
+                @Override
+                public void windowClosed(WindowEvent e) {
+                }
+                @Override
+                public void windowClosing(WindowEvent e) {
+                }
+                @Override
+                public void windowDeactivated(WindowEvent e) {
+                }
+                @Override
+                public void windowDeiconified(WindowEvent e) {
+                }
+                @Override
+                public void windowIconified(WindowEvent e) {
+                }
+                @Override
+                public void windowOpened(WindowEvent e) {
+                }
+                
+            });
+        }
+        
         if (windowLifecycleListener != null) {
             windowLifecycleListener.sessionOpening(new SessionLifecycleEvent<ArchitectFrame>(frame));
         }
@@ -502,7 +531,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     private void showWelcomeScreen(Component dialogOwner) {
-        // should almost certainly move this into the swing context
         if (getUserSettings().getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true)) {
             WelcomeScreen ws = new WelcomeScreen(this);
             ws.showWelcomeDialog(dialogOwner);
