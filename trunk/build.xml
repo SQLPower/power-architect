@@ -234,6 +234,7 @@
 		
 		<mkdir dir="${build}"/>
 		<mkdir dir="${build_tmp}"/>
+		<mkdir dir="${buildlib}"/>
 		
 		<!-- get the version number from source code ArchitectUtils -->
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
