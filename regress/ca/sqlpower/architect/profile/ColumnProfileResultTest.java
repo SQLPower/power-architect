@@ -54,7 +54,7 @@ public class ColumnProfileResultTest extends PersistedSPObjectTest {
         ProfileSettings settings = new ProfileSettings();
         TableProfileResult tableProfile = new TableProfileResult(table, settings);
         getRootObject().addChild(tableProfile, 0);
-        profile = new ColumnProfileResult(column, tableProfile);
+        profile = new ColumnProfileResult(column);
         tableProfile.addColumnProfileResult(profile);
     }
 

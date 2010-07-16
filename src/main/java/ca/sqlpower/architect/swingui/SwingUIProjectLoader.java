@@ -1292,9 +1292,11 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 prompter.promptUser();
                 continue;
             }
+            ioo.print(out, "<table-profile-result"); //$NON-NLS-1$
             printCommonItems(out, tableResult, profiledObjectId);
             ioo.print(out, " rowCount=\"" + tableResult.getRowCount() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-            ioo.niprintln(out, "/>"); //$NON-NLS-1$
+            ioo.niprintln(out, ">"); //$NON-NLS-1$
+            ioo.indent++;
             
             List<ColumnProfileResult> columnProfileResults = tableResult.getColumnProfileResults();
             for (ColumnProfileResult cpr : columnProfileResults) {
@@ -1306,6 +1308,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                     prompter.promptUser();
                     continue;
                 }
+                ioo.print(out, "<column-profile-result");
                 printCommonItems(out, cpr, profiledColumnObjectId);
                 ioo.niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -1356,16 +1359,17 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 }
                 ioo.indent--;
 
-                ioo.println(out, "</profile-result>"); //$NON-NLS-1$
+                ioo.println(out, "</column-profile-result>"); //$NON-NLS-1$
             }
+            ioo.indent--;
+            ioo.println(out, "</table-profile-result>");
         }
         ioo.println(out, "</profiles>"); //$NON-NLS-1$
         ioo.indent--;
     }
 
     private void printCommonItems(PrintWriter out, ProfileResult<?> profileResult, String profiledObjectId) {
-        ioo.print(out, "<profile-result ref-id=\"" + profiledObjectId + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
-                " type=\"" + profileResult.getClass().getName() + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
+        ioo.print(out, "ref-id=\"" + profiledObjectId + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createStartTime=\""+profileResult.getCreateStartTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createEndTime=\""+profileResult.getCreateEndTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " exception=\""+(profileResult.getException() == null ? "false" : "true")+"\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$

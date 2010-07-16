@@ -213,7 +213,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
             JDBCDataSourceType dsType = table.getParentDatabase().getDataSource().getParentType();
             createProfileFunctions(dsType);
             for (SQLColumn col : table.getColumns()) {
-                ColumnProfileResult columnResult = new ColumnProfileResult(col, tpr);
+                ColumnProfileResult columnResult = new ColumnProfileResult(col);
                 tpr.addColumnProfileResult(columnResult);
                 doColumnProfile(columnResult, pm);
                 pm.setProgress(pm.getProgress() + 1);
@@ -642,7 +642,7 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
 
         TableProfileResult dummyParent = new TableProfileResult(col.getParent(), new ProfileSettings());
         dummyParent.setRowCount(1);
-        ColumnProfileResult dummy = new ColumnProfileResult(col, dummyParent);
+        ColumnProfileResult dummy = new ColumnProfileResult(col);
         dummyParent.addColumnProfileResult(dummy);
         
         logger.debug("Discovering profile functions for column "+col);

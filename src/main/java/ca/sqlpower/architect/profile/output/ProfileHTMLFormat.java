@@ -171,7 +171,7 @@ public class ProfileHTMLFormat implements ProfileFormat {
                 }
             } else if ( result instanceof ColumnProfileResult ) {
                 SQLColumn c = (SQLColumn) result.getProfiledObject();
-                TableProfileResult tResult = ((ColumnProfileResult)result).getParentResult();
+                TableProfileResult tResult = ((ColumnProfileResult)result).getParent();
                 double rowCount = (double) tResult.getRowCount();
 
                 outw.print("\n  <tr>");

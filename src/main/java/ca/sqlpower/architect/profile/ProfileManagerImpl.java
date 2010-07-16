@@ -301,6 +301,11 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
         return (ArchitectProject) super.getParent();
     }
     
+    public void addTableProfileResult(TableProfileResult child) {
+        results.add(child);
+        fireProfilesAdded(Collections.singletonList(child));
+    }
+    
     /**
      * This is the method that everything which wants to add a profile result
      * must call in order to add the result. It takes care of setting SQLObject
@@ -460,10 +465,11 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
      * same hierarchy as they had when they were originally created, so we don't
      * need any more error-prone code to recreate what we already had and then
      * threw away?  Beside reducing bugs, it would eliminate the need for this public
-     * method and accompanying docs that warn you against using it."  If so, please
-     * apply to SQL Power at hr (@) sqlpower.ca. 
+     * method and accompanying docs that warn you against using it."  So was I.
+     * Though I fixed it, this method still has to hang around for backwards
+     * compatibility reasons.
      */
-    public void loadResult(ProfileResult pr) {
+    public void loadResult(ProfileResult<? extends SQLObject> pr) {
         if (pr instanceof TableProfileResult) {
             TableProfileResult tpr = (TableProfileResult) pr;
             addResults(Collections.singletonList(tpr));
