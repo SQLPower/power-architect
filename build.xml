@@ -47,6 +47,8 @@
 	
 	<property name="dist.base" value="dist"/>
 	
+	<property name="dist.latest" value="${dist.base}/latest"/>
+	
 	<!-- The target build directory for compiled test classes.
 		 The contents of this directory will get excluded form the architect.jar. -->
 	<property name="build.tests" value="build_tests"/>
@@ -896,7 +898,6 @@
 	<target name="javadoc" 
 		description="Generate the Javadoc documentation for the Architect API in the dist directory"
 		depends="compile">
-		<mkdir dir="${dist.dir}/doc"/>
 		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
 		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
@@ -914,13 +915,11 @@
 			</packageset>
 			<bottom><![CDATA[<i>Copyright &#169; 2003-2008 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
-		<copydir dest="${dist.base}/doc" src="${dist.dir}/doc"/>
 	</target>
 
 	<target name="javadoc.with.umlgraph" 
 		description="Generate the Javadoc documentation for the Architect API along with UML diagrams generated using UMLGraph"
 		depends="compile">
-		<mkdir dir="${dist.dir}/doc"/>
 		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
 		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
@@ -954,8 +953,6 @@
 			<fileset dir="${dist.dir}/doc" includes="*.dot"/>
 			<mapper type="glob" from="*.dot" to="*.png"/>
 		</apply>
-		
-		<copydir dest="${dist.base}/doc" src="${dist.dir}/doc"/>
 	</target>
 
 	<target name="windows_installer" depends="stage">
@@ -1430,6 +1427,11 @@
 				<include name="*-${app.version}.pdf"/>
 			</fileset>
 		</copy>
+		
+		<copy todir="${dist.latest}">
+			<fileset dir="${dist.dir}"/>
+		</copy>
+		
 		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
 	</target>
 
