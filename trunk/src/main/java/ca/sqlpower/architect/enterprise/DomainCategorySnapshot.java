@@ -36,7 +36,7 @@ public class DomainCategorySnapshot extends SystemSPObjectSnapshot<DomainCategor
     public DomainCategorySnapshot(
             @ConstructorParameter (propertyName = "spObject") DomainCategory spObject,
             @ConstructorParameter (propertyName = "originalUUID") String originalUUID,
-            @ConstructorParameter (propertyName = "workspaceRevision", defaultValue = "0") int systemRevision) {
+            @ConstructorParameter (propertyName = "workspaceRevision") int systemRevision) {
         super(originalUUID, systemRevision);
         this.spObject = spObject;
     }
