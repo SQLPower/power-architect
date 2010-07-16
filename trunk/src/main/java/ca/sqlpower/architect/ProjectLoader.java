@@ -488,6 +488,11 @@ public class ProjectLoader {
         d.addFactoryCreate("*/profiles", profileManagerFactory);
         d.addSetProperties("*/profiles");
 
+        /*
+         * Backward compatibility: the table and column profiles used to be
+         * stored as siblings to each other, with the parent of a column result
+         * being the last table result that was read.
+         */
         ProfileResultFactory profileResultFactory = new ProfileResultFactory();
         d.addFactoryCreate("*/profiles/profile-result", profileResultFactory);
         /*
@@ -497,18 +502,26 @@ public class ProjectLoader {
          */
         d.addRule("*/profiles/profile-result", new SetPropertiesRule(new String[] {"exception"}, new String[] {}));
         d.addSetNext("*/profiles/profile-result", "loadResult");
+        
+        d.addFactoryCreate("*/profiles/table-profile-result", new TableProfileResultFactory());
+        d.addRule("*/profiles/table-profile-result", new SetPropertiesRule(new String[] {"exception"}, new String[] {}));
+        d.addSetNext("*/profiles/table-profile-result", "addTableProfileResult");
+        
+        d.addFactoryCreate("*/profiles/table-profile-result/column-profile-result", new ColumnProfileResultFactory());
+        d.addRule("*/profiles/table-profile-result/column-profile-result", new SetPropertiesRule(new String[] {"exception"}, new String[] {}));
+        d.addSetNext("*/profiles/table-profile-result/column-profile-result", "addColumnProfileResult");
 
         ProfileResultValueFactory profileResultValueFactory = new ProfileResultValueFactory();
-        d.addFactoryCreate("*/profiles/profile-result/avgValue", profileResultValueFactory );
-        d.addSetNext("*/profiles/profile-result/avgValue", "setAvgValue");
-        d.addFactoryCreate("*/profiles/profile-result/minValue", profileResultValueFactory);
-        d.addSetNext("*/profiles/profile-result/minValue", "setMinValue");
-        d.addFactoryCreate("*/profiles/profile-result/maxValue", profileResultValueFactory);
-        d.addSetNext("*/profiles/profile-result/maxValue", "setMaxValue");
+        d.addFactoryCreate("*/profiles/table-profile-result/column-profile-result/avgValue", profileResultValueFactory );
+        d.addSetNext("*/profiles/table-profile-result/column-profile-result/avgValue", "setAvgValue");
+        d.addFactoryCreate("*/profiles/table-profile-result/column-profile-result/minValue", profileResultValueFactory);
+        d.addSetNext("*/profiles/table-profile-result/column-profile-result/minValue", "setMinValue");
+        d.addFactoryCreate("*/profiles/table-profile-result/column-profile-result/maxValue", profileResultValueFactory);
+        d.addSetNext("*/profiles/table-profile-result/column-profile-result/maxValue", "setMaxValue");
 
         ProfileResultTopNValueFactory topNValueFactory = new ProfileResultTopNValueFactory();
-        d.addFactoryCreate("*/profiles/profile-result/topNvalue", topNValueFactory );
-        d.addSetNext("*/profiles/profile-result/topNvalue", "addValueCount");
+        d.addFactoryCreate("*/profiles/table-profile-result/column-profile-result/topNvalue", topNValueFactory );
+        d.addSetNext("*/profiles/table-profile-result/column-profile-result/topNvalue", "addValueCount");
 
         FileFactory fileFactory = new FileFactory();
         d.addFactoryCreate("*/file", fileFactory);
@@ -836,12 +849,6 @@ public class ProjectLoader {
     }
 
     /**
-     * The index most recently loaded from the project file.  The SQLIndexColumnFactory
-     * has to know which index owns the index column in order to create it.
-     */
-    private SQLIndex currentIndex;
-
-    /**
      * Creates a SQLIndex instance and adds it to the objectIdMap.
      */
     private class SQLIndexFactory extends AbstractObjectCreationFactory {
@@ -869,8 +876,6 @@ public class ProjectLoader {
                 logger.debug("Attribute: \"" + attributes.getQName(i) + "\" Value:"+attributes.getValue(i));
             }
             index.setType(attributes.getValue("index-type"));
-
-            currentIndex = index;
 
             LoadSQLObjectAttributes(index, attributes);
 
@@ -953,6 +958,9 @@ public class ProjectLoader {
         }
     }
 
+    /**
+     * This class is used for backwards compatibility with 0.9.16 and older
+     */
     private class ProfileResultFactory extends AbstractObjectCreationFactory {
 
         /**
@@ -983,7 +991,7 @@ public class ProjectLoader {
                 if (tableProfileResult == null) {
                     throw new IllegalArgumentException("Column result does not have a parent");
                 }
-                ColumnProfileResult cpr = new ColumnProfileResult(c, tableProfileResult);
+                ColumnProfileResult cpr = new ColumnProfileResult(c);
                 tableProfileResult.addColumnProfileResult(cpr);
                 return cpr;
             } else {
@@ -991,7 +999,37 @@ public class ProjectLoader {
             }
         }
     }
-
+    
+    private class TableProfileResultFactory extends AbstractObjectCreationFactory {
+        
+        public Object createObject(Attributes attributes) throws SQLObjectException {
+            String refid = attributes.getValue("ref-id");
+            
+            if (refid == null) {
+                throw new SQLObjectException("Missing mandatory attribute \"ref-id\" in <table-profile-result> element");
+            }
+            
+            SQLTable t = (SQLTable) sqlObjectLoadIdMap.get(refid);
+            
+            return new TableProfileResult(t, session.getProfileManager().getDefaultProfileSettings());
+        }
+    }
+    
+    private class ColumnProfileResultFactory extends AbstractObjectCreationFactory {
+        
+        public Object createObject(Attributes attributes) throws SQLObjectException {
+            String refid = attributes.getValue("ref-id");
+            
+            if (refid == null) {
+                throw new SQLObjectException("Missing mandatory attribute \"ref-id\" id <column-profile-result> element");
+            }
+            
+            SQLColumn c = (SQLColumn) sqlObjectLoadIdMap.get(refid);
+            
+            return new ColumnProfileResult(c);
+        }
+    }
+ 
     private class ProfileResultValueFactory extends AbstractObjectCreationFactory {
         @Override
         public Object createObject(Attributes attributes) throws SQLObjectException, ClassNotFoundException, InstantiationException, IllegalAccessException {

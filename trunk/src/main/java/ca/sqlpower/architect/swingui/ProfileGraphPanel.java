@@ -242,7 +242,7 @@ public class ProfileGraphPanel {
      * Subroutine of {@link #displayProfile(ColumnProfileResult)}.
      */
     private void displayValidProfile(ColumnProfileResult cr) {
-        TableProfileResult tr = (TableProfileResult) cr.getParentResult();
+        TableProfileResult tr = (TableProfileResult) cr.getParent();
         rowCount = tr.getRowCount();
         rowCountDisplay.setText(Integer.toString(rowCount));
 

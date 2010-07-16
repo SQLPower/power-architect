@@ -103,7 +103,7 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
         } else if (valueType == ColumnProfileResult.class) {
             TableProfileResult tpr = (TableProfileResult) makeNewValue(TableProfileResult.class, null, "");
             ColumnProfileResult cpr = new ColumnProfileResult(
-                    (SQLColumn) makeNewValue(SQLColumn.class, null, ""), tpr);
+                    (SQLColumn) makeNewValue(SQLColumn.class, null, ""));
             tpr.addColumnProfileResult(cpr);
             return cpr;
         } else if (valueType == ColumnValueCount.class) {

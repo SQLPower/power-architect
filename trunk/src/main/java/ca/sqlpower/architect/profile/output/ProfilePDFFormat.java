@@ -197,7 +197,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                 ddlg = tableResult.getDDLGenerator();
             } else if ( result instanceof ColumnProfileResult ) {
                 final ColumnProfileResult columnResult = (ColumnProfileResult) result;
-                TableProfileResult tResult = columnResult.getParentResult();
+                TableProfileResult tResult = columnResult.getParent();
                 addBodyRow(tResult,columnResult, ddlg, pdfTable, bf, f, fsize, widths);
             }
         }
@@ -226,7 +226,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                 ddlg = tableResult.getDDLGenerator();
             } else if ( result instanceof ColumnProfileResult ) {
                 final ColumnProfileResult columnResult = (ColumnProfileResult) result;
-                TableProfileResult tResult = columnResult.getParentResult();
+                TableProfileResult tResult = columnResult.getParent();
                 addBodyRow(tResult,columnResult, ddlg, pdfTable, bf, f, fsize, widths);
             }
         }

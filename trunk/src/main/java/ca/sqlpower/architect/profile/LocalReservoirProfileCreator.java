@@ -120,7 +120,7 @@ public class LocalReservoirProfileCreator extends AbstractTableProfileCreator {
         
         // now the columns (notice we have already released the connection because it's no longer required)
         for (SQLColumn col : table.getColumns()) {
-            tpr.addColumnProfileResult(new ColumnProfileResult(col, tpr));
+            tpr.addColumnProfileResult(new ColumnProfileResult(col));
         }
         profileColumnsFromSample(tpr, sample, pm);
         return true;

@@ -61,7 +61,7 @@ public class SaveProfileAction extends AbstractAction {
         }
         
         public void addColumnProfileResult(ColumnProfileResult cpr){
-            TableProfileResult tpr = cpr.getParentResult();
+            TableProfileResult tpr = cpr.getParent();
             if (!resultTree.containsKey(tpr)) {
                 resultTree.put(tpr, new TreeSet<ColumnProfileResult>());
             }
@@ -141,7 +141,7 @@ public class SaveProfileAction extends AbstractAction {
             for ( int i=0; i<selectedRows.length; i++ ) {
                 int rowid = selectedRows[i];
                 ColumnProfileResult result = viewTable.getColumnProfileResultForRow(rowid);
-                selectedTable.add(result.getParentResult());
+                selectedTable.add(result.getParent());
                 selectedColumn.add(result);
             }
 

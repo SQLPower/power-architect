@@ -54,17 +54,13 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     private int nullCount;
     private List<ColumnValueCount> topTen = new ArrayList<ColumnValueCount>();
     
-    private final TableProfileResult parentResult;
-
     /**
      * This creates a column profile result which stores information about a profiled column.
      */
     @Constructor
-    public ColumnProfileResult(@ConstructorParameter(propertyName="profiledObject") SQLColumn profiledObject, 
-            @ConstructorParameter(propertyName="parentResult") TableProfileResult parentResult) {
+    public ColumnProfileResult(@ConstructorParameter(propertyName="profiledObject") SQLColumn profiledObject) {
         super(profiledObject);
         setName("New Column Profile");
-        this.parentResult = parentResult;
     }
     
     /**
@@ -80,7 +76,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
         this.minLength = cprToCopy.minLength;
         this.minValue = cprToCopy.minValue;
         this.nullCount = cprToCopy.nullCount;
-        this.parentResult = cprToCopy.getParentResult();
+        setParent(cprToCopy.getParent());
         for (int i = 0; i < cprToCopy.getValueCount().size(); i++) {
             ColumnValueCount cvc = cprToCopy.getValueCount().get(i);
             this.addColumnValueCount(new ColumnValueCount(cvc), i);
@@ -209,7 +205,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     }
 
     public void addValueCount(Object value, int count) {
-        double per =  count/(double)parentResult.getRowCount();
+        double per =  count/(double)getParent().getRowCount();
         
         ColumnValueCount columnValueCount;
         if (value == ColumnValueCount.OTHER_VALUE_OBJECT) {
@@ -246,11 +242,6 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     @NonProperty
     public List<ColumnValueCount> getValueCount() {
         return topTen;
-    }
-
-    @Accessor
-    public TableProfileResult getParentResult() {
-        return parentResult;
     }
 
     @Override

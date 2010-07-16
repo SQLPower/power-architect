@@ -141,7 +141,7 @@ public class ProfileTableModel extends AbstractTableModel implements CleanupTabl
     private static Object getColumnValueFromProfile(ProfileColumn column,
              ColumnProfileResult columnProfile) {
         SQLColumn col = columnProfile.getProfiledObject();
-        int rowCount = columnProfile.getParentResult().getRowCount();
+        int rowCount = columnProfile.getParent().getRowCount();
 
         switch(column) {
         case DATABASE:
