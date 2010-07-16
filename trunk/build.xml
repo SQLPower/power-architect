@@ -896,6 +896,7 @@
 	<target name="javadoc" 
 		description="Generate the Javadoc documentation for the Architect API in the dist directory"
 		depends="compile">
+		<mkdir dir="${dist.dir}/doc"/>
 		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
 		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
@@ -918,6 +919,7 @@
 	<target name="javadoc.with.umlgraph" 
 		description="Generate the Javadoc documentation for the Architect API along with UML diagrams generated using UMLGraph"
 		depends="compile">
+		<mkdir dir="${dist.dir}/doc"/>
 		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
 		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
