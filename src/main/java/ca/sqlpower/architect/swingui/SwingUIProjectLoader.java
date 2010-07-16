@@ -1039,15 +1039,15 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.indent++;
         for (CriticGrouping group : criticManager.getCriticGroupings()) {
             ioo.print(out, "<critic-grouping");
-            ioo.print(out, "platformType=\"" + group.getPlatformType() + "\"");
-            ioo.print(out, "enabled=\"" + Boolean.toString(group.isEnabled()) + "\"");
-            ioo.println(out, ">");
+            ioo.niprint(out, " platformType=\"" + group.getPlatformType() + "\"");
+            ioo.niprint(out, " enabled=\"" + Boolean.toString(group.isEnabled()) + "\"");
+            ioo.niprintln(out, ">");
             ioo.indent++;
             for (CriticAndSettings settings : group.getSettings()) {
                 ioo.print(out, "<critic-settings");
-                ioo.print(out, "class=\"" + settings.getClass().getName() + "\"");
-                ioo.print(out, "severity=\"" + settings.getSeverity().name() + "\"");
-                ioo.println(out, "/>");
+                ioo.niprint(out, " class=\"" + settings.getClass().getName() + "\"");
+                ioo.niprint(out, " severity=\"" + settings.getSeverity().name() + "\"");
+                ioo.niprintln(out, "/>");
             }
             ioo.indent--;
             ioo.println(out, "</critic-grouping>");
@@ -1369,7 +1369,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
     }
 
     private void printCommonItems(PrintWriter out, ProfileResult<?> profileResult, String profiledObjectId) {
-        ioo.print(out, "ref-id=\"" + profiledObjectId + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
+        ioo.niprint(out, " ref-id=\"" + profiledObjectId + "\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createStartTime=\""+profileResult.getCreateStartTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " createEndTime=\""+profileResult.getCreateEndTime()+"\"" + //$NON-NLS-1$ //$NON-NLS-2$
                 " exception=\""+(profileResult.getException() == null ? "false" : "true")+"\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
