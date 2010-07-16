@@ -52,9 +52,13 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 public class PlayPenContentPane extends AbstractSPObject {
     private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 
-    @SuppressWarnings("unchecked")
-    public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
-            .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(PlayPenComponent.class)));
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
+    public static final List<Class<? extends SPObject>> allowedChildTypes = 
+        Collections.<Class<? extends SPObject>>singletonList(PlayPenComponent.class);
 
     /**
      * A list of component types that are dependent on other components (see
@@ -310,18 +314,6 @@ public class PlayPenContentPane extends AbstractSPObject {
         return true;
     }
 
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        int offset = 0;
-        for (Class<? extends SPObject> type : allowedChildTypes) {
-            if (type.isAssignableFrom(childType)) {
-                return offset;
-            } else {
-                offset += getChildren(type).size();
-            }
-        }
-        throw new IllegalArgumentException();
-    }
-
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
@@ -359,10 +351,6 @@ public class PlayPenContentPane extends AbstractSPObject {
             throw new IllegalArgumentException("Parent of PlayPenContentPane must be " + "ArchitectProject, not " +
                     parent.getClass().getSimpleName());
         }
-    }
-
-    public boolean allowsChildren() {
-        return true;
     }
 
     @NonBound

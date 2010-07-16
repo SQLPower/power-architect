@@ -20,7 +20,6 @@
 package ca.sqlpower.architect.olap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,11 +36,11 @@ public class OLAPRootObject extends OLAPObject {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
-    @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(OLAPSession.class)));
+        Collections.<Class<? extends SPObject>>singletonList(OLAPSession.class);
 
 
     private final List<OLAPSession> olapSessions = new ArrayList<OLAPSession>();

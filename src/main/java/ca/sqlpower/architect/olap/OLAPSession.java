@@ -19,8 +19,6 @@
 
 package ca.sqlpower.architect.olap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,10 +27,10 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
-import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.sqlobject.SQLDatabase;
 
 /**
@@ -43,11 +41,11 @@ public class OLAPSession extends OLAPObject {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
-    @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(Schema.class)));
+        Collections.<Class<? extends SPObject>>singletonList(Schema.class);
 
     /**
      * The database this session's schema uses.
@@ -74,7 +72,7 @@ public class OLAPSession extends OLAPObject {
      */
     @Constructor
     public OLAPSession(
-            @ConstructorParameter(isProperty=ParameterType.CHILD, propertyName="schema") Schema schema) {
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="schema") Schema schema) {
         setName("New Session");
         if (schema.getParent() != null) {
             throw new IllegalStateException(

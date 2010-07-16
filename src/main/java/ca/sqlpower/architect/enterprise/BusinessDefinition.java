@@ -40,6 +40,11 @@ import ca.sqlpower.object.annotation.NonProperty;
  */
 public class BusinessDefinition extends AbstractSPObject {
     
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.emptyList();
     
@@ -82,14 +87,6 @@ public class BusinessDefinition extends AbstractSPObject {
     @NonProperty
     public List<? extends SPObject> getChildren() {
         return Collections.emptyList();
-    }
-
-    public boolean allowsChildren() {
-        return false;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        return 0;
     }
 
     public void removeDependency(SPObject dependency) {

@@ -31,6 +31,11 @@ import ca.sqlpower.sql.JDBCDataSource;
 
 public class KettleSettings extends AbstractSPObject {
 
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
     public static final List <Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
     /**
@@ -144,14 +149,6 @@ public class KettleSettings extends AbstractSPObject {
     @Override
     protected boolean removeChildImpl(SPObject child) {
         return false;
-    }
-
-    public boolean allowsChildren() {
-        return false;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        return 0;
     }
 
     public List<Class<? extends SPObject>> getAllowedChildTypes() {

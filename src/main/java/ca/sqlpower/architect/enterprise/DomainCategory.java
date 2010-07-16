@@ -36,6 +36,11 @@ import ca.sqlpower.sqlobject.UserDefinedSQLType;
  */
 public class DomainCategory extends AbstractSPObject {
 
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
     public static final List<Class<? extends SPObject>> allowedChildTypes =
         Collections.<Class<? extends SPObject>>singletonList(UserDefinedSQLType.class);
 
@@ -55,18 +60,6 @@ public class DomainCategory extends AbstractSPObject {
         setName(name);
     }
     
-    public boolean allowsChildren() {
-        return true;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        if (childType == UserDefinedSQLType.class) {
-            return 0;
-        } else {
-            throw new IllegalArgumentException("DomainCategory cannot have children of type " + childType);
-        }
-    }
-
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }

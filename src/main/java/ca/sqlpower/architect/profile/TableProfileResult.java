@@ -20,7 +20,6 @@ package ca.sqlpower.architect.profile;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -54,13 +53,12 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
-    @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(ColumnProfileResult.class)));
+        Collections.<Class<? extends SPObject>>singletonList(ColumnProfileResult.class);
 
-    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(TableProfileResult.class);
 
     private int rowCount;
@@ -288,18 +286,6 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
             }
         }
         return false;
-    }
-
-    public boolean allowsChildren() {
-        return true;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        if (childType.isAssignableFrom(ColumnProfileResult.class)) {
-            return 0;
-        } else {
-            throw new IllegalArgumentException();
-        }
     }
 
     @NonBound

@@ -69,6 +69,11 @@ import ca.sqlpower.util.WebColour;
 public class Relationship extends PlayPenComponent implements SPListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 	
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
 	public static final List<Class<? extends SPObject>> allowedChildTypes = PlayPenComponent.allowedChildTypes;
 	
 	public static final String PARENT_TO_CHILD = "receives";

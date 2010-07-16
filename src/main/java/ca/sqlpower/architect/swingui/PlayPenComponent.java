@@ -62,6 +62,11 @@ implements Selectable {
     
     private static final Logger logger = Logger.getLogger(PlayPenComponent.class);    
 
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
     private Rectangle bounds = new Rectangle();
@@ -669,16 +674,8 @@ implements Selectable {
         }
     }
     
-    public boolean allowsChildren() {
-        return (allowedChildTypes.size() > 0);
-    }    
-    
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
-    }
-    
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        throw new IllegalArgumentException("This class does not allow children");
     }
     
     @Override

@@ -40,6 +40,11 @@ import ca.sqlpower.object.annotation.Mutator;
 
 public class ProjectSettings extends AbstractSPObject {
     
+    /**
+     * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
+     */
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
     private boolean savingEntireSource = false;
@@ -171,16 +176,8 @@ public class ProjectSettings extends AbstractSPObject {
         return false;
     }
 
-    public boolean allowsChildren() {
-        return false;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        throw new IllegalArgumentException("This object does not contain children");
-    }
-
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
-        return null;
+        return allowedChildTypes;
     }
 
     public List<? extends SPObject> getChildren() {

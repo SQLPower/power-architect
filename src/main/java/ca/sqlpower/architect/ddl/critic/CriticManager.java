@@ -71,10 +71,11 @@ public class CriticManager extends AbstractSPObject {
     
     /**
      * Defines an absolute ordering of the child types of this class.
+     * 
+     * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Collections.singletonList(CriticGrouping.class)));
+        Collections.<Class<? extends SPObject>>singletonList(CriticGrouping.class);
 
     /**
      * These are the critics that the critic manager will start with when it is
@@ -255,14 +256,6 @@ public class CriticManager extends AbstractSPObject {
             fireChildRemoved(CriticAndSettings.class, child, index);
         }
         return removed;
-    }
-
-    public boolean allowsChildren() {
-        return true;
-    }
-
-    public int childPositionOffset(Class<? extends SPObject> childType) {
-        return 0;
     }
 
     @Transient @Accessor
