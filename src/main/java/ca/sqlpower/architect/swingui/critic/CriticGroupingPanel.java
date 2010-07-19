@@ -239,7 +239,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
 
         panel = new JPanel();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
-                "pref, 5dlu, pref:grow", "top:pref"), panel);
+                "pref, 0dlu, pref:grow", "top:pref"), panel);
         for (CriticAndSettings settings : grouping.getSettings()) {
             final CriticSettingsPanel settingsPanel = new CriticSettingsPanel(settings);
             settingsPanels.put(settings, settingsPanel);
