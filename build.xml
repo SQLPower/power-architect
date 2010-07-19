@@ -445,6 +445,9 @@
 		  </fileset>
 		  <report todir="${reports.junit}" />
 		</junitreport>
+		<copy todir="${dist.latest}/reports/junit">
+			<fileset dir="${reports.junit}"/>
+		</copy>
 	</target>
 	
 	<!-- Compiles the application source files -->
@@ -1428,7 +1431,7 @@
 			</fileset>
 		</copy>
 		
-		<copy todir="${dist.latest}">
+		<copy todir="${dist.latest}" overwrite="true">
 			<fileset dir="${dist.dir}"/>
 		</copy>
 		
