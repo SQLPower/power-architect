@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.swing.Action;
 import javax.swing.JColorChooser;
@@ -98,6 +100,7 @@ import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
 import ca.sqlpower.swingui.db.DatabaseConnectionManager;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompterFactory;
@@ -110,6 +113,8 @@ import com.jgoodies.forms.layout.FormLayout;
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionImpl.class);
+    
+    private static final Executor saveExecutor = new ScheduledThreadPoolExecutor(1);
 
     private final ArchitectSwingSessionContext context;
 
@@ -264,7 +269,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             		"as its workspace. If there is no way to pass in a delegate with a swing" +
             		"project we may need to make the reference non-final.");
         }
-        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(null);
+        swinguiUserPrompterFactory = new DefaultUserPrompterFactory();
         
         this.isNew = true;
         this.context = context;
@@ -396,9 +401,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         ToolTipManager.sharedInstance().registerComponent(playPen);
         ToolTipManager.sharedInstance().registerComponent(dbTree);
 
-        if (swinguiUserPrompterFactory instanceof SwingUIUserPrompterFactory) {
-            ((SwingUIUserPrompterFactory) swinguiUserPrompterFactory).setParentFrame(frame);
-        }
+        swinguiUserPrompterFactory = new SwingUIUserPrompterFactory(parentFrame);
         
         if (projectPanel == null) {
             playPenScrollPane = new JScrollPane(playPen);
@@ -610,7 +613,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
         SaverTask saveTask = new SaverTask();
         if (separateThread) {
-            new Thread(saveTask).start();
+            saveExecutor.execute(saveTask);
             return true; // this is an optimistic lie
         } else {
             saveTask.run();
