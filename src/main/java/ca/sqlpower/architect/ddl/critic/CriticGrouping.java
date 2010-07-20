@@ -159,7 +159,7 @@ public class CriticGrouping extends AbstractSPObject {
     @Override
     @Mutator
     public void setParent(SPObject parent) {
-        if (!(parent instanceof CriticManager)) {
+        if (parent != null && !(parent instanceof CriticManager)) {
             throw new IllegalArgumentException("Critic groups must be a child of a critic manager.");
         }
         super.setParent(parent);
