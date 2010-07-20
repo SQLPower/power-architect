@@ -93,6 +93,9 @@ public class ArchitectProject extends AbstractSPObject {
     private final List<BusinessDefinition> businessDefinitions = new ArrayList<BusinessDefinition>();
     private final List<FormulaMetricCalculation> formulas = new ArrayList<FormulaMetricCalculation>();
     
+    // Metadata property
+    private String etlProcessDescription;
+    
     /**
      * The current integrity watcher on the project.
      */
@@ -500,4 +503,17 @@ public class ArchitectProject extends AbstractSPObject {
         domainCategory.setParent(this);
         fireChildAdded(DomainCategory.class, domainCategory, index);
     }
+    
+    @Accessor(isInteresting=true)
+    public String getEtlProcessDescription() {
+        return etlProcessDescription;
+    }
+    
+    @Mutator
+    public void setEtlProcessDescription(String etlProcessDescription) {
+        String oldDescription = this.etlProcessDescription;
+        this.etlProcessDescription = etlProcessDescription;
+        firePropertyChange("etlProcessDescription", oldDescription, etlProcessDescription);
+    }
+    
 }
