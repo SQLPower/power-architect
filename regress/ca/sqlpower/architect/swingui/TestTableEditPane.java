@@ -57,24 +57,24 @@ public class TestTableEditPane extends TestCase {
     }
 
     public void testPrimaryNameChangeUpdatesPk() throws Exception {
-        assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
+        assertEquals("Test_Table_1_pk", t.getPrimaryKeyIndex().getName());
         tep.setPhysicalNameText("New Name");
         tep.applyChanges();
-        assertEquals ("New Name_pk", t.getPrimaryKeyName());     
+        assertEquals ("New Name_pk", t.getPrimaryKeyIndex().getName());     
     }
 
     public void testNameChangeDoesNotUpdatePK() throws Exception {
         tep.setNameText("New Table Name");
         tep.applyChanges();
-        assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
+        assertEquals("Test_Table_1_pk", t.getPrimaryKeyIndex().getName());
     }
     
     public void testPhysicalNameChangeDoesNotUpdatePkWhenPkNameAlsoChanged() throws Exception {
-        assertEquals("Test_Table_1_pk", t.getPrimaryKeyName());
+        assertEquals("Test_Table_1_pk", t.getPrimaryKeyIndex().getName());
         tep.setPhysicalNameText("New Name");
         tep.setPkNameText("New PK Name");
         tep.applyChanges();
-        assertEquals ("New PK Name", t.getPrimaryKeyName());     
+        assertEquals ("New PK Name", t.getPrimaryKeyIndex().getName());     
         assertEquals ("New PK Name", t.getPrimaryKeyIndex().getPhysicalName());     
     }
 

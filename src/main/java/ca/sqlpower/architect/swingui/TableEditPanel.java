@@ -37,6 +37,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -116,10 +117,11 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
 		logicalName.setText(t.getName());
 		physicalName.setText(t.getPhysicalName());
         try {
-            if (t.getPrimaryKeyIndex() == null) {
+            SQLIndex primaryKeyIndex = t.getPrimaryKeyIndex();
+            if (primaryKeyIndex == null) {
                 pkName.setEnabled(false);
             } else {
-                pkName.setText(t.getPrimaryKeyName());
+                pkName.setText(primaryKeyIndex.getName());
                 pkName.setEnabled(true);
             }
             SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);            
