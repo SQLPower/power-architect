@@ -32,6 +32,7 @@ import ca.sqlpower.architect.ProjectSettings;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
+import ca.sqlpower.architect.enterprise.FormulaMetricCalculation;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -80,7 +81,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
                     DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
                     CriticManager.class, KettleSettings.class, User.class, Group.class, 
-                    BusinessDefinition.class)));
+                    BusinessDefinition.class, FormulaMetricCalculation.class)));
     
     /**
      * A hash map mapping all the descendants of this project.
@@ -212,12 +213,11 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     
     @Override
     protected boolean removeChildImpl(SPObject child) {
-        if (super.allowsChildType(child.getClass())) {
-            return super.removeChildImpl(child);
-        } else if (child instanceof PlayPenContentPane) {
+        if (child instanceof PlayPenContentPane) {
             return removeOLAPContentPane((PlayPenContentPane) child);
+        } else {
+            return super.removeChildImpl(child);
         }
-        return false;
     }        
     
     @Override @Transient @Accessor
@@ -258,6 +258,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         allChildren.addAll(getUsers());
         allChildren.addAll(getGroups());
         allChildren.addAll(getBusinessDefinitions());
+        allChildren.addAll(getFormulas());
         return allChildren;
     }
     
@@ -279,32 +280,15 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     }
     
     protected void addChildImpl(SPObject child, int index) {
-        if (child instanceof ProfileManager) {
-            setProfileManager((ProfileManager) child);
-        } else if (child instanceof PlayPenContentPane) {
+        if (child instanceof PlayPenContentPane) {
             PlayPenContentPane pane = (PlayPenContentPane) child;
             if (index == 0) {
                 setPlayPenContentPane(pane);
             } else {
                 addOLAPContentPane(pane);
-            }            
-        } else if (child instanceof ProjectSettings) {
-            setProjectSettings((ProjectSettings) child);            
-        } else if (child instanceof User) {
-            addUser((User) child, index);
-        } else if (child instanceof Group) {
-            addGroup((Group) child, index);
-        } else if (child instanceof UserDefinedSQLType) {
-            addSQLType((UserDefinedSQLType) child, index);
-        } else if (child instanceof DomainCategory) {
-            addDomainCategory((DomainCategory) child, index);
-        } else if (child instanceof SPObjectSnapshot) {
-            addSPObjectSnapshot((SPObjectSnapshot) child, index);
-        } else if (child instanceof BusinessDefinition) {
-            addBusinessDefinition((BusinessDefinition) child, index);
+            }
         } else {
-            throw new IllegalArgumentException("Cannot add child of type " + 
-                    child.getClass() + " to the project once it has been created.");
+            super.addChildImpl(child, index);
         }
     }
 

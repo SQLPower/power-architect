@@ -28,7 +28,9 @@ import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
 import ca.sqlpower.architect.ddl.critic.CriticGrouping;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.ddl.critic.impl.AlphaNumericNameCritic;
+import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
+import ca.sqlpower.architect.enterprise.FormulaMetricCalculation;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Dimension;
@@ -182,6 +184,19 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             } else {
                 return Severity.ERROR;
             }
+        } else if (valueType == BusinessDefinition.class) {
+            String term = (String) makeNewValue(String.class, null, "BusinessDefinition term");
+            String definition = (String) makeNewValue(String.class, null, "BusinessDefinition definition");
+            BusinessDefinition busDef = new BusinessDefinition(term, definition);
+            valueMakerProject.addBusinessDefinition(busDef, 0);
+            return busDef;
+        } else if (valueType == FormulaMetricCalculation.class) {
+            String name = (String) makeNewValue(String.class, null, "FormulaMetricCalculation name");
+            String formula = (String) makeNewValue(String.class, null, "FormulaMetricCalculation formula");
+            String description = (String) makeNewValue(String.class, null, "FormulaMetricCalculation description");
+            FormulaMetricCalculation fmc = new FormulaMetricCalculation(name, formula, description);
+            valueMakerProject.addFormulaMetricCalculation(fmc, 0);
+            return fmc;
         } else {
             return super.makeNewValue(valueType, oldVal, propName);
         }
