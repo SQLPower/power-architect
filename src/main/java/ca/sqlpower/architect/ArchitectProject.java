@@ -26,6 +26,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
+import ca.sqlpower.architect.enterprise.FormulaMetricCalculation;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.User;
@@ -71,7 +72,8 @@ public class ArchitectProject extends AbstractSPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
                     DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class, ProfileManager.class, 
-                    ProjectSettings.class, User.class, Group.class, BusinessDefinition.class)));
+                    ProjectSettings.class, User.class, Group.class, 
+                    BusinessDefinition.class, FormulaMetricCalculation.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -84,10 +86,12 @@ public class ArchitectProject extends AbstractSPObject {
     private List<User> users = new ArrayList<User>();
     private List<Group> groups = new ArrayList<Group>();
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
-    private final List<SPObjectSnapshot> sqlTypeSnapshots = new ArrayList<SPObjectSnapshot>();
+    private final List<SPObjectSnapshot<?>> sqlTypeSnapshots = new ArrayList<SPObjectSnapshot<?>>();
     private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
     
+    // Metadata children
     private final List<BusinessDefinition> businessDefinitions = new ArrayList<BusinessDefinition>();
+    private final List<FormulaMetricCalculation> formulas = new ArrayList<FormulaMetricCalculation>();
     
     /**
      * The current integrity watcher on the project.
@@ -239,44 +243,92 @@ public class ArchitectProject extends AbstractSPObject {
     @Override
     protected boolean removeChildImpl(SPObject child) {
         if (child instanceof User) {
-            int index = users.indexOf((User) child);
-            users.remove((User) child);
-            fireChildRemoved(User.class, child, index);
-            child.setParent(null);
-            return true;
+            return removeUser((User) child);
         } else if (child instanceof Group) {
-            int index = users.indexOf((Group) child);
-            groups.remove((Group) child);
-            fireChildRemoved(Group.class, child, index);
-            child.setParent(null);
-            return true;
+            return removeGroup((Group) child);
         } else if (child instanceof UserDefinedSQLType) {
-            int index = sqlTypes.indexOf((UserDefinedSQLType) child);
-            sqlTypes.remove((UserDefinedSQLType) child);
-            fireChildRemoved(UserDefinedSQLType.class, child, index);
-            child.setParent(null);
-            return true;
+            return removeSQLType((UserDefinedSQLType) child);
         } else if (child instanceof DomainCategory) {
-            int index = domainCategories.indexOf((DomainCategory) child);
-            domainCategories.remove((DomainCategory) child);
-            fireChildRemoved(DomainCategory.class, child, index);
-            child.setParent(null);
-            return true;
+            return removeDomainCategory((DomainCategory) child);
         } else if (child instanceof SPObjectSnapshot) {
-            int index = sqlTypeSnapshots.indexOf((SPObjectSnapshot) child);
-            sqlTypeSnapshots.remove((SPObjectSnapshot) child);
-            fireChildRemoved(SPObjectSnapshot.class, child, index);
-            child.setParent(null);
-            return true;
+            return removeSPObjectSnapshot((SPObjectSnapshot<?>) child);
         } else if (child instanceof BusinessDefinition) {
-            int index = businessDefinitions.indexOf((BusinessDefinition) child);
-            businessDefinitions.remove((BusinessDefinition) child);
-            fireChildRemoved(BusinessDefinition.class, child, index);
-            child.setParent(null);
-            return true;
+            return removeBusinessDefinition((BusinessDefinition) child);
+        } else if (child instanceof FormulaMetricCalculation) {
+            return removeFormulaMetricCalculation((FormulaMetricCalculation) child);
         }
         return false;
-    }        
+    }
+    
+    public boolean removeUser(User child) {
+        int index = users.indexOf(child);
+        boolean removed = users.remove(child);
+        if (removed) {
+            fireChildRemoved(User.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    public boolean removeGroup(Group child) {
+        int index = users.indexOf(child);
+        boolean removed = groups.remove(child);
+        if (removed) {
+            fireChildRemoved(Group.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    public boolean removeSQLType(UserDefinedSQLType child) {
+        int index = sqlTypes.indexOf(child);
+        boolean removed = sqlTypes.remove(child);
+        if (removed) {
+            fireChildRemoved(UserDefinedSQLType.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    public boolean removeDomainCategory(DomainCategory child) {
+        int index = domainCategories.indexOf(child);
+        boolean removed = domainCategories.remove(child);
+        if (removed) {
+            fireChildRemoved(DomainCategory.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    public boolean removeSPObjectSnapshot(SPObjectSnapshot<?> child) {
+        int index = sqlTypeSnapshots.indexOf(child);
+        boolean removed = sqlTypeSnapshots.remove(child);
+        if (removed) {
+            fireChildRemoved(SPObjectSnapshot.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    public boolean removeBusinessDefinition(BusinessDefinition child) {
+        int index = businessDefinitions.indexOf(child);
+        boolean removed = businessDefinitions.remove(child);
+        if (removed) {
+            fireChildRemoved(BusinessDefinition.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    public boolean removeFormulaMetricCalculation(FormulaMetricCalculation child) {
+        int index = formulas.indexOf(child);
+        boolean removed = formulas.remove(child);
+        if (removed) {
+            fireChildRemoved(FormulaMetricCalculation.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
     
     @Transient @Accessor
     public ArchitectSession getSession() throws SessionNotFoundException {
@@ -318,6 +370,7 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.addAll(users);
         allChildren.addAll(groups);
         allChildren.addAll(businessDefinitions);
+        allChildren.addAll(formulas);
         return allChildren;
     }
     
@@ -346,9 +399,11 @@ public class ArchitectProject extends AbstractSPObject {
         } else if (child instanceof DomainCategory) {
             addDomainCategory((DomainCategory) child, index);
         } else if (child instanceof SPObjectSnapshot) {
-            addSPObjectSnapshot((SPObjectSnapshot) child, index);
+            addSPObjectSnapshot((SPObjectSnapshot<?>) child, index);
         } else if (child instanceof BusinessDefinition) {
             addBusinessDefinition((BusinessDefinition) child, index);
+        } else if (child instanceof FormulaMetricCalculation) {
+            addFormulaMetricCalculation((FormulaMetricCalculation) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
@@ -361,6 +416,11 @@ public class ArchitectProject extends AbstractSPObject {
         fireChildAdded(BusinessDefinition.class, businessDefinition, index);
     }
 
+    public void addFormulaMetricCalculation(FormulaMetricCalculation formula, int index) {
+        formulas.add(index, formula);
+        formula.setParent(this);
+        fireChildAdded(FormulaMetricCalculation.class, formula, index);
+    }
 
     public void addSQLType(UserDefinedSQLType sqlType, int index) {
         sqlTypes.add(index, sqlType);
@@ -368,7 +428,7 @@ public class ArchitectProject extends AbstractSPObject {
         fireChildAdded(UserDefinedSQLType.class, sqlType, index);
     }
     
-    protected void addSPObjectSnapshot(SPObjectSnapshot child, int index) {
+    protected void addSPObjectSnapshot(SPObjectSnapshot<?> child, int index) {
         sqlTypeSnapshots.add(index, child);
         child.setParent(this);
         fireChildAdded(SPObjectSnapshot.class, child, index);        
@@ -380,7 +440,7 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     @NonProperty
-    public List<SPObjectSnapshot> getSqlTypeSnapshots() {
+    public List<SPObjectSnapshot<?>> getSqlTypeSnapshots() {
         return Collections.unmodifiableList(sqlTypeSnapshots); 
     }
     
@@ -392,6 +452,11 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<BusinessDefinition> getBusinessDefinitions() {
         return Collections.unmodifiableList(businessDefinitions);
+    }
+    
+    @NonProperty
+    public List<FormulaMetricCalculation> getFormulas() {
+        return Collections.unmodifiableList(formulas);
     }
     
     public void addUser(User user, int index) {
@@ -430,7 +495,6 @@ public class ArchitectProject extends AbstractSPObject {
         return projectSettings;
     }
     
-
     public void addDomainCategory(DomainCategory domainCategory, int index) {
         domainCategories.add(index, domainCategory);
         domainCategory.setParent(this);
