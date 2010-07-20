@@ -205,7 +205,7 @@
 	<!--
 		Set the format of the findbugs report to html by default
 	-->
-	<condition property="findbugs.report.format" value="html">
+	<condition property="findbugs.report.format" value="xml">
 		<not>
 			<isset property="findbugs.report.format"/>
 		</not>
@@ -214,7 +214,7 @@
 	<!--
 		Set the format of the pmd report to html by default
 	-->
-	<condition property="pmd.report.format" value="html">
+	<condition property="pmd.report.format" value="xml">
 		<not>
 			<isset property="pmd.report.format"/>
 		</not>
@@ -223,7 +223,7 @@
 	<!--
 		Set the format of the clover report to html by default
 	-->
-	<condition property="clover.report.format" value="html">
+	<condition property="clover.report.format" value="xml">
 		<not>
 			<isset property="clover.report.format"/>
 		</not>
@@ -1480,9 +1480,9 @@
 	</target>
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
-		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${buildlib}"/>
-	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${buildlib}"/>
-		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${buildlib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
+	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${lib}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">
