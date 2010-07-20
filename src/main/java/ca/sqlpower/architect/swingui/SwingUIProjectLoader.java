@@ -1294,7 +1294,8 @@ public class SwingUIProjectLoader extends ProjectLoader {
             }
             ioo.print(out, "<table-profile-result"); //$NON-NLS-1$
             printCommonItems(out, tableResult, profiledObjectId);
-            ioo.print(out, " rowCount=\"" + tableResult.getRowCount() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+            ioo.niprint(out, " rowCount=\"" + tableResult.getRowCount() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+            ioo.niprint(out, " UUID=\"" + tableResult.getUUID() + "\"");
             ioo.niprintln(out, ">"); //$NON-NLS-1$
             ioo.indent++;
             
@@ -1316,6 +1317,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 ioo.niprint(out, " maxLength=\"" + cpr.getMaxLength() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
                 ioo.niprint(out, " nullCount=\"" + cpr.getNullCount() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
                 ioo.niprint(out, " distinctValueCount=\"" + cpr.getDistinctValueCount() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+                ioo.niprint(out, " UUID=\"" + cpr.getUUID() + "\"");
                 ioo.niprintln(out, ">"); //$NON-NLS-1$
 
                 ioo.indent++;
