@@ -80,7 +80,7 @@
 		<fileset dir="${lib}">
 			<include name="*.jar"/>
 		</fileset>
-		<fileset dir="${sqlpower.library.home}/lib">
+		<fileset dir="${sqlpower.library.home}/lib/main">
 			<include name="*.jar"/>
 		</fileset>
 		<pathelement location="${generated}"/>
@@ -959,7 +959,7 @@
 	</target>
 
 	<target name="windows_installer" depends="stage">
-		<izpack output="${dist.dir}/Architect-Setup-Windows-${app.version}.jar"
+		<izpack output="${dist.dir}/SQL-Power-Architect-Setup-Windows-${app.version}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
 		        izPackDir="${izpack.dir}/">
@@ -968,7 +968,7 @@
 			<installation version="1.0">
 				<!-- comment -->
 				<info>
-					<appname>Power Architect</appname>
+					<appname>SQL Power Architect</appname>
 					<appversion>@{app.version}</appversion>
 					<url>http://www.sqlpower.ca/</url>
 					<javaversion>1.6</javaversion>
@@ -1040,7 +1040,7 @@
 	</target>
 
 	<target name="windows_jdbc_installer" depends="stage">
-			<izpack output="${basedir}/${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
+			<izpack output="${basedir}/${dist.dir}/SQL-Power-Architect-Setup-Windows-jdbc-${app.version}.jar"
 			        installerType="standard"
 				    basedir="${basedir}/${installer.dir}"
 			        izPackDir="${basedir}/${izpack.dir}/">
@@ -1049,7 +1049,7 @@
 				<installation version="1.0">
 					<!-- comment -->
 					<info>
-						<appname>Power Architect</appname>
+						<appname>SQL Power Architect</appname>
 						<appversion>@{app.version}</appversion>
 						<url>http://www.sqlpower.ca/</url>
 						<javaversion>1.6</javaversion>
@@ -1132,8 +1132,8 @@
 		<launch4j>
 			<config dontwrapjar="false" 
 					headertype="gui"
-					jar="${dist.dir}/Architect-Setup-Windows-${app.version}.jar"
-					outfile="${dist.dir}/Architect-Setup-Windows-${app.version}.exe"
+					jar="${dist.dir}/SQL-Power-Architect-Setup-Windows-${app.version}.jar"
+					outfile="${dist.dir}/SQL-Power-Architect-Setup-Windows-${app.version}.exe"
 					errtitle="Java Runtime Required"
 					priority="normal"
 					downloadurl="http://java.com/download"
@@ -1156,8 +1156,8 @@
 		<launch4j>
 			<config dontwrapjar="false" 
 					headertype="gui"
-					jar="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.jar"
-					outfile="${dist.dir}/Architect-Setup-Windows-jdbc-${app.version}.exe"
+					jar="${dist.dir}/SQL-Power-Architect-Setup-Windows-jdbc-${app.version}.jar"
+					outfile="${dist.dir}/SQL-Power-Architect-Setup-Windows-jdbc-${app.version}.exe"
 					errtitle="Java Runtime Required"
 					priority="normal"
 					downloadurl="http://java.com/download"
@@ -1191,7 +1191,7 @@
 
 		<!-- jarbundler is from sourceforge, defined near top of file -->
 		<jarbundler dir="${staging.dir}"
-           name="Power Architect"
+           name="SQL Power Architect"
            version="${app.version}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
@@ -1206,7 +1206,7 @@
 		</jarbundler>
 
 		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
-		<replace file="${staging.dir}/Power Architect.app/Contents/Info.plist"
+		<replace file="${staging.dir}/SQL Power Architect.app/Contents/Info.plist"
 				 token="${basedir}/KICKME"
 				 value="$JAVAROOT" />
 	</target>
@@ -1217,7 +1217,7 @@
 
 		<!-- jarbundler is from sourceforge, defined near top of file -->
 		<jarbundler dir="${staging.dir}"
-           name="Power Architect JDBC"
+           name="SQL Power Architect JDBC"
            version="${app.version}.jdbc"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
@@ -1234,7 +1234,7 @@
 		</jarbundler>
 
 		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
-		<replace file="${staging.dir}/Power Architect JDBC.app/Contents/Info.plist"
+		<replace file="${staging.dir}/SQL Power Architect JDBC.app/Contents/Info.plist"
 				 token="${basedir}/KICKME"
 				 value="$JAVAROOT" />
 
@@ -1244,13 +1244,13 @@
 
 	<target name="osx_dmg" depends="osx_dist" if="isMac">
 		<!-- What this basically does is:
-                     hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
+                     hdiutil create -size 50m -fs HFS+ -volname "SQL Power Architect" RWArchitect.dmg
 				     hdiutil attach RWArchitect.dmg
 				     (copy architect.app over, position it, etc)
-				     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
-				     hdiutil detach /Volumes/Power\*Architect/
-				     rm Power_Architect-1.0.19.dmg
-				     hdiutil convert -format UDCO -o Power_Architect-1.0.19.dmg RWArchitect.dmg
+				     /Developer/Tools/SetFile -a V /Volumes/SQL\ Power\ Architect/install_folder_background.png
+				     hdiutil detach /Volumes/SQL Power\ Architect/
+				     rm SQL-Power-Architect-OSX-${app.version}.dmg
+				     hdiutil convert -format UDCO -o SQL-Power-Architect-OSX-${app.version}.dmg RWArchitect.dmg
 				  -->
 		<copy file="osx_packaging_utils/RWArchitect.dmg.sparseimage" tofile="${staging.dir}/RWArchitect.dmg.sparseimage" overwrite="true" />
 		<exec executable="hdiutil">
@@ -1262,7 +1262,7 @@
 			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
 		</exec>
 		<copy todir="/Volumes/SQL Power Architect/SQL Power Architect.app/" overwrite="true"  >
-			<fileset dir="${staging.dir}/Power Architect.app"></fileset>
+			<fileset dir="${staging.dir}/SQL Power Architect.app"></fileset>
 		</copy>
 		<exec executable="chmod">
 			<arg value="a+x"/>
@@ -1272,33 +1272,33 @@
 			<arg value="detach" />
 			<arg value="/Volumes/SQL Power Architect" />
 		</exec>
-		<delete file="${dist.dir}/Architect-OSX-${app.version}.dmg" />
+		<delete file="${dist.dir}/SQL-Power-Architect-OSX-${app.version}.dmg" />
 		<exec executable="hdiutil">
 			<arg value="convert"/>
 			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage"/>
 			<arg value="-format"/>
 			<arg value="UDCO"/>
 			<arg value="-o"/>
-			<arg value="${dist.dir}/Architect-OSX-${app.version}.dmg"/>
+			<arg value="${dist.dir}/SQL-Power-Architect-OSX-${app.version}.dmg"/>
 		</exec>
 
 		<taskdef name="addLicenseToDMG"
 				 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
 			     classpath="build"/>
 		<addLicenseToDMG
-				dmgFile="${dist.dir}/Architect-OSX-${app.version}.dmg"
+				dmgFile="${dist.dir}/SQL-Power-Architect-OSX-${app.version}.dmg"
                 licenseFile="${staging.dir}/LICENSE"
 		        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
     </target>
 
 	<target name="osx_jdbc_dmg" depends="osx_jdbc_dist" if="isMac">
-			<!-- hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
+			<!-- hdiutil create -size 50m -fs HFS+ -volname "SQL Power Architect" RWArchitect.dmg
 					     hdiutil attach RWArchitect.dmg
 					     (copy architect.app over, position it, etc)
-					     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
-					     hdiutil detach /Volumes/Power\*Architect/
-					     rm Power_Architect-1.0.19.dmg
-					     hdiutil convert -format UDCO -o Power_Architect-1.0.19.dmg RWArchitect.dmg
+					     /Developer/Tools/SetFile -a V /Volumes/SQL\ Power\ Architect/install_folder_background.png
+					     hdiutil detach /Volumes/SQL\ Power\ Architect/
+					     rm SQL-Power-Architect-OSX-${app.version}.dmg
+					     hdiutil convert -format UDCO -o SQL-Power-Architect-OSX-${app.version}.dmg RWArchitect.dmg
 					  -->
 			<copy file="osx_packaging_utils/RWArchitect.dmg.sparseimage" tofile="${staging.dir}/RWArchitect.dmg.sparseimage" overwrite="true" />
 			<exec executable="hdiutil">
@@ -1311,7 +1311,7 @@
 			</exec>
 			<delete dir="/Volumes/SQL Power Architect/SQL Power Architect.app/Contents/Resources/Java"/>
 			<copy todir="/Volumes/SQL Power Architect/SQL Power Architect.app/" overwrite="true"  >
-				<fileset dir="${staging.dir}/Power Architect JDBC.app"></fileset>
+				<fileset dir="${staging.dir}/SQL Power Architect JDBC.app"></fileset>
 			</copy>
 			<exec executable="chmod">
 				<arg value="a+x"/>
@@ -1321,27 +1321,27 @@
 				<arg value="detach" />
 				<arg value="/Volumes/SQL Power Architect" />
 			</exec>
-			<delete file="${dist.dir}/Architect-OSX-jdbc-${app.version}.dmg" />
+			<delete file="${dist.dir}/SQL-Power-Architect-OSX-jdbc-${app.version}.dmg" />
 			<exec executable="hdiutil">
 				<arg value="convert"/>
 				<arg value="${staging.dir}/RWArchitect.dmg.sparseimage"/>
 				<arg value="-format"/>
 				<arg value="UDCO"/>
 				<arg value="-o"/>
-				<arg value="${dist.dir}/Architect-OSX-jdbc-${app.version}.dmg"/>
+				<arg value="${dist.dir}/SQL-Power-Architect-OSX-jdbc-${app.version}.dmg"/>
 			</exec>
 
 			<taskdef name="addLicenseToDMG"
 					 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
 				     classpath="build"/>
 			<addLicenseToDMG
-					dmgFile="${dist.dir}/Architect-OSX-jdbc-${app.version}.dmg"
+					dmgFile="${dist.dir}/SQL-Power-Architect-OSX-jdbc-${app.version}.dmg"
 	                licenseFile="${staging.dir}/LICENSE"
 			        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
 	    </target>
 
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
-		<tar destfile="${dist.dir}/Architect-OSX-${app.version}.tar.gz"
+		<tar destfile="${dist.dir}/SQL-Power-Architect-OSX-${app.version}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="SQL Power Architect.app/**"/>
 		</tar>
@@ -1350,14 +1350,14 @@
 	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotWindows">
 		<exec executable="tar" dir="${staging.dir}">
 			<arg value="-cpzf" />
-			<arg value="../${dist.dir}/Architect-OSX-${app.version}.tar.gz"/>
-			<arg value="Power Architect JDBC.app"/>
+			<arg value="../${dist.dir}/SQL-Power-Architect-OSX-${app.version}.tar.gz"/>
+			<arg value="SQL Power Architect JDBC.app"/>
 		</exec>
 	</target>
 
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
     <target name="generic_install" depends="stage">
-		<tar destfile="${dist.dir}/Architect-generic-${app.version}.tar.gz"
+		<tar destfile="${dist.dir}/SQL-Power-Architect-generic-${app.version}.tar.gz"
 			compression="gzip">
 			<tarfileset
 			    prefix="architect-${app.version}"
@@ -1371,7 +1371,7 @@
     </target>
 
     <target name="generic_jdbc_install" depends="stage">
-		<tar destfile="${dist.dir}/Architect-generic-jdbc-${app.version}.tar.gz"
+		<tar destfile="${dist.dir}/SQL-Power-Architect-generic-jdbc-${app.version}.tar.gz"
 			compression="gzip">
 			<tarfileset
 			    prefix="architect-${app.version}"
@@ -1386,7 +1386,7 @@
 
 	<target name="source_tgz" depends="init"
 		description="Builds a source tarball of the Architect">
-		<tar destfile="${dist.dir}/Architect-src-${app.version}.tar.gz"
+		<tar destfile="${dist.dir}/SQL-Power-Architect-src-${app.version}.tar.gz"
 			 compression="gzip" longfile="gnu">
 			<tarfileset dir="."
 				prefix="architect-src-${app.version}"
@@ -1397,7 +1397,7 @@
 	<!-- Creates a tarball containing only the Java source files -->
 	<target name="source_only_tgz" depends="init"
 		description="Builds a source only tarball of the Architect">
-		<tar destfile="${dist.dir}/Architect-src-only-${app.version}.tar.gz"
+		<tar destfile="${dist.dir}/SQL-Power-Architect-src-only-${app.version}.tar.gz"
 			 compression="gzip" longfile="gnu">
 			<tarfileset dir="."
 				prefix="architect-src-only-${app.version}"
