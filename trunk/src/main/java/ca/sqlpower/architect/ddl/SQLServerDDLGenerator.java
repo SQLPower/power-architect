@@ -39,7 +39,6 @@ import ca.sqlpower.sqlobject.SQLEnumeration;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -521,14 +520,10 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public void dropPrimaryKey(SQLTable t) {
-        try {
-            SQLIndex pk = t.getPrimaryKeyIndex();
-            print("\nALTER TABLE " + toQualifiedName(t.getName())
-                    + " DROP " + pk.getPhysicalName());
-            endStatement(StatementType.DROP, t);
-        } catch (SQLObjectException e) {
-            throw new SQLObjectRuntimeException(e);
-        }
+        SQLIndex pk = t.getPrimaryKeyIndex();
+        print("\nALTER TABLE " + toQualifiedName(t.getName())
+                + " DROP " + pk.getPhysicalName());
+        endStatement(StatementType.DROP, t);
     }
 
     @Override

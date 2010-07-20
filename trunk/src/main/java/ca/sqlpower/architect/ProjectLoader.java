@@ -56,19 +56,18 @@ import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
+import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
+import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
+import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
-import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
-import ca.sqlpower.sqlobject.SQLIndex.Column;
-import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
-import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
-import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
@@ -859,11 +858,7 @@ public class ProjectLoader {
 
             String pkIndex = attributes.getValue("primaryKeyIndex");
             if (Boolean.valueOf(pkIndex)) {
-                try {
-                    index = currentTable.getPrimaryKeyIndex();
-                } catch (SQLObjectException e) {
-                    throw new SQLObjectRuntimeException(e);
-                }
+                index = currentTable.getPrimaryKeyIndex();
             }
 
             String id = attributes.getValue("id");
