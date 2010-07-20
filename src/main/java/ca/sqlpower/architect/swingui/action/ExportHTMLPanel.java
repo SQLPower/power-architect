@@ -22,10 +22,7 @@ import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.Closeable;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -55,7 +52,6 @@ import ca.sqlpower.architect.transformation.ReportTransformer;
 import ca.sqlpower.architect.transformation.TransformerFactory;
 import ca.sqlpower.architect.transformation.UnknowTemplateTypeException;
 import ca.sqlpower.architect.transformation.XsltTransformation;
-import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
@@ -77,6 +73,8 @@ import com.jgoodies.forms.layout.FormLayout;
 public class ExportHTMLPanel {
 
 	private static final Logger logger = Logger.getLogger(ExportHTMLPanel.class);
+	
+	private static String builtinTransform = "/xsltStylesheets/architect2html.xslt";
 
 	private JRadioButton builtin;
 	private JRadioButton external;
@@ -93,10 +91,6 @@ public class ExportHTMLPanel {
 
 	private JDialog dialog;
 
-	private static final String ENCODING = "UTF-8";
-	private PipedOutputStream xmlOutputStream;
-	private FileOutputStream result;
-
     private final JPanel panel;
 
 	private static final String PREF_KEY_BUILTIN = "htmlgen.builtin";
@@ -105,6 +99,10 @@ public class ExportHTMLPanel {
 	private static final String PREF_KEY_OUTPUT = "htmlgen.lastoutput";
 	private static final int MAX_HISTORY_ENTRIES = 15;
 
+	public static void setBuiltinTransform(String builtinTransform) {
+	    ExportHTMLPanel.builtinTransform = builtinTransform;
+	}
+	
 	public ExportHTMLPanel(ArchitectSwingSession architect) {
 
 		session = architect;
@@ -491,35 +489,7 @@ public class ExportHTMLPanel {
 	}
 
 	protected void _transformFile() {
-		PipedInputStream xmlInputStream = new PipedInputStream();
-		try {
-			xmlOutputStream = new PipedOutputStream(xmlInputStream);
-			new Thread(
-					new Runnable() {
-
-						public void run() {
-							try {
-								session.getProjectLoader().save(xmlOutputStream, ENCODING);
-							} catch (IOException e2) {
-								SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "You got an error", e2);
-							} catch (SQLObjectException e2) {
-								SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "You got an error", e2);
-							}
-						}
-					}).start();
-			xmlOutputStream.flush();
-
-		} catch (IOException e2) {
-			SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "You got an error", e2);
-		}
-
 		File file = new File(getOutputFilename());
-
-		try {
-			result = new FileOutputStream(file);
-		} catch (FileNotFoundException e2) {
-			SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "You got an error", e2);
-		}
 
 		final ReportTransformer transformer;
 		try {
@@ -533,7 +503,7 @@ public class ExportHTMLPanel {
 		try {
 			File xslt = getTemplateFile();
 			if (xslt == null) {
-				transformer.transform("/xsltStylesheets/architect2html.xslt", getOutputFile(), session);
+			    transformer.transform(builtinTransform, getOutputFile(), session);
 			} else {
 				transformer.transform(xslt, getOutputFile(), session);
 			}
@@ -550,23 +520,11 @@ public class ExportHTMLPanel {
 			}
 		} catch (Exception e1) {
 			SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "Transformation error", e1);
-		} finally {
-			closeQuietly(result);
-			closeQuietly(xmlInputStream);
-			closeQuietly(xmlOutputStream);
 		}
 
 		setStatusBarText("");
 	}
 
-	private void closeQuietly(Closeable stream) {
-		try {
-			stream.close();
-		} catch (IOException io) {
-			logger.error("Error closing file", io);
-		}
-
-	}
 	protected void setStatusBarText(final String text) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
