@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -47,7 +48,7 @@ public class EditTableAction extends AbstractArchitectAction {
 
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(PlayPen.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List selection = getPlaypen().getSelectedItems();
+			List<PlayPenComponent> selection = getPlaypen().getSelectedItems();
 			if (selection.size() < 1) {
 				JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("EditTableAction.noTablesSelected")); //$NON-NLS-1$
 			} else if (selection.size() > 1) {
