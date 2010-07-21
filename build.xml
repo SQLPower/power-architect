@@ -1480,9 +1480,9 @@
 	</target>
 	
 	<target name="copy.sqlpower.library" depends="check.sqlpower.library.dir">
-		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${lib}"/>
-	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${lib}"/>
-		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${lib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library.jar" todir="${buildlib}"/>
+	    <copy file="${sqlpower.library.home}/dist/sqlpower_library-tests.jar" todir="${buildlib}"/>
+		<copy file="${sqlpower.library.home}/dist/sqlpower_library-apt.jar" todir="${buildlib}"/>
 	</target>
 	
 	<target name="architect.version.properties" depends="init">
