@@ -19,9 +19,10 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
 import java.util.List;
-import java.util.concurrent.Callable;
 
+import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
@@ -34,13 +35,97 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 
 public class EditTableAction extends AbstractArchitectAction {
+    
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
+
+    /**
+     * This {@link SPListener} listens to changes for the {@link SQLTable} this
+     * {@link Action} is tied to to update the UI it creates accordingly.
+     */
+    private final SPListener sqlTableListener = new AbstractSPListener() {
+        
+        /**
+         * Checks to see if its respective table is removed from playpen. If yes,
+         * exit the editing dialog window.
+         */
+        public void childRemoved(SPChildEvent evt) {
+            logger.debug("SQLObject children got removed: " + evt); //$NON-NLS-1$
+            if (tableEditPanel.getTable() == evt.getChild()) {
+                evt.getChild().removeSPListener(this);
+                tableEditPanel.getTablePane().removeSPListener(tablePaneListener);
+                tableEditPanel = null;
+                if (editDialog != null) {
+                    editDialog.dispose();
+                    editDialog = null;
+                }
+            }
+        }
+
+        /**
+         * Checks to see if any of the {@link SQLTable}'s properties that the
+         * {@link TableEditPanel} is interested in has changed.
+         */
+        public void propertyChanged(PropertyChangeEvent evt) {
+            String property = evt.getPropertyName();
+            
+            boolean foundError = false;
+            
+            if (evt.getSource() == tableEditPanel.getTable()) {
+                if (property.equals("name")) {
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getLogicalName(), evt);
+                } else if (property.equals("physicalName")) {
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getPhysicalName(), evt);
+                } else if (property.equals("pkName")) {
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getPkName(), evt);
+                } else if (property.equals("remarks")) {   
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getRemarks(), evt);
+                }
+            }
+            if (foundError) {
+                tableEditPanel.setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+            }
+        }
+    };
+    
+    private SPListener tablePaneListener = new AbstractSPListener() {
+        public void propertyChanged(PropertyChangeEvent evt) {
+            String property = evt.getPropertyName();
+            
+            boolean foundError = false;
+            
+            if (evt.getSource() == tableEditPanel.getTablePane()) {
+                if (property.equals("backgroundColor")) {
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getBgColor(), evt);
+                } else if (property.equals("foregroundColor")) {
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getFgColor(), evt);
+                } else if (property.equals("rounded")) {
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getRounded(), evt);
+                } else if (property.equals("dashed")) {
+                    foundError = DataEntryPanelChangeUtil.incomingChange(tableEditPanel.getDashed(), evt);
+                }
+            }
+            if (foundError) {
+                tableEditPanel.setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
+            }
+        }
+    };
+	
+    /**
+     * The {@link JDialog} this {@link Action} creates.
+     */
+	protected JDialog editDialog;
+	
+	private TableEditPanel tableEditPanel;
 
 	public EditTableAction(ArchitectFrame frame) {
 	    super(frame, Messages.getString("EditTableAction.name"), Messages.getString("EditTableAction.description"), "edit_table"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -85,34 +170,15 @@ public class EditTableAction extends AbstractArchitectAction {
 	  		// unknown action command source, do nothing
 		}	
 	}
-
-	private JDialog editDialog;
 	
 	public void makeDialog(SQLTable table) {
-		final TableEditPanel editPanel = new TableEditPanel(getSession(), table);
-
-		Callable<Boolean> okCall = new Callable<Boolean>() {
-			public Boolean call() {
-				//We need to see if the operation is successful, if
-                //successful, we close down the dialog, if not, we need 
-                //to return the dialog (hence why it is setVisible(!success))
-                return Boolean.valueOf(editPanel.applyChanges());
-				// XXX: also apply changes on mapping tab                
-			}
-		};
-
-		Callable<Boolean> cancelCall = new Callable<Boolean>() {
-			public Boolean call() {
-				editPanel.discardChanges();
-				// XXX: also discard changes on mapping tab
-				return Boolean.TRUE;
-			}
-		};
+		tableEditPanel = new TableEditPanel(getSession(), table);
+		table.addSPListener(sqlTableListener);
+		tableEditPanel.getTablePane().addSPListener(tablePaneListener);
 
 		editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
-				editPanel, frame,
-				Messages.getString("EditTableAction.dialogTitle"), Messages.getString("EditTableAction.okOption"), okCall, cancelCall); //$NON-NLS-1$ //$NON-NLS-2$
-		editPanel.setEditDialog(editDialog);
+		        tableEditPanel, frame,
+				Messages.getString("EditTableAction.dialogTitle"), Messages.getString("EditTableAction.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
 		editDialog.pack();
 		editDialog.setLocationRelativeTo(frame);
 		editDialog.setVisible(true);

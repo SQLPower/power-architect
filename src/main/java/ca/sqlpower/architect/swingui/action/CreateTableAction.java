@@ -103,7 +103,7 @@ public class CreateTableAction extends AbstractArchitectAction {
                         try {       
                             session.getWorkspace().begin("Creating a SQLTable and TablePane");
                             if (super.applyChanges()) {
-                                tp.setName(table.getName());
+                                tp.setName(tp.getModel().getName());
                                 session.getTargetDatabase().addChild(tp.getModel());
                                 playpen.selectNone();
                                 playpen.addTablePane(tp, p);

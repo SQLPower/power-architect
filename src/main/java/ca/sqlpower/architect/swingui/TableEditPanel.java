@@ -25,7 +25,6 @@ import java.util.HashMap;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -35,40 +34,31 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.object.SPChildEvent;
-import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLIndex;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.ColorCellRenderer;
 import ca.sqlpower.swingui.ColourScheme;
-import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
-import ca.sqlpower.util.SQLPowerUtils;
-import ca.sqlpower.util.TransactionEvent;
 
-public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPListener {
+public class TableEditPanel extends ChangeListeningDataEntryPanel {
     
     private static final Logger logger = Logger.getLogger(TableEditPanel.class);
-
+    
     /**
      * The frame which this table edit panel resides in.
      */
-    private JDialog editDialog;
     private JPanel panel;
-	protected SQLTable table;
-	JTextField logicalName;
-	JTextField physicalName;
-	JTextField pkName;
-	JTextArea remarks;
+	private SQLTable table;
+	private JTextField logicalName;
+	private JTextField physicalName;
+	private JTextField pkName;
+	private JTextArea remarks;
 	private JComboBox bgColor;
 	private JComboBox fgColor;
 	private JCheckBox rounded;
 	private JCheckBox dashed;
 	
-	private final ArchitectSwingSession session;
-	private final TablePane tp;
+	private final TablePane tablePane;
 	
 	final HashMap<String, PropertyChangeEvent> propertyConflicts = new HashMap<String, PropertyChangeEvent>();
 	
@@ -77,9 +67,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
 	
 	public TableEditPanel(ArchitectSwingSession session, SQLTable t) {
 		this.panel = new JPanel(new FormLayout());
-		this.session = session;
-		this.tp = session.getPlayPen().findTablePane(t);
-		if (tp != null) tp.addSPListener(this);
+		this.tablePane = session.getPlayPen().findTablePane(t);
         panel.add(new JLabel(Messages.getString("TableEditPanel.tableLogicalNameLabel"))); //$NON-NLS-1$
         panel.add(logicalName = new JTextField("", 30)); //$NON-NLS-1$        
         panel.add(new JLabel(Messages.getString("TableEditPanel.tablePhysicalNameLabel"))); //$NON-NLS-1$
@@ -116,79 +104,69 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
 		table = t;
 		logicalName.setText(t.getName());
 		physicalName.setText(t.getPhysicalName());
-        try {
-            SQLIndex primaryKeyIndex = t.getPrimaryKeyIndex();
-            if (primaryKeyIndex == null) {
-                pkName.setEnabled(false);
-            } else {
-                pkName.setText(primaryKeyIndex.getName());
-                pkName.setEnabled(true);
-            }
-            SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);            
-        } catch (SQLObjectException e) {
-            throw new SQLObjectRuntimeException(e);
+        SQLIndex primaryKeyIndex = t.getPrimaryKeyIndex();
+        if (primaryKeyIndex == null) {
+            pkName.setEnabled(false);
+        } else {
+            pkName.setText(primaryKeyIndex.getName());
+            pkName.setEnabled(true);
         }
 		remarks.setText(t.getRemarks());
 		logicalName.selectAll();
 		
-		if (tp != null) {
-    		bgColor.setSelectedItem(tp.getBackgroundColor());
-    		fgColor.setSelectedItem(tp.getForegroundColor());
-    		dashed.setSelected(tp.isDashed());
-    		rounded.setSelected(tp.isRounded());
+		if (tablePane != null) {
+    		bgColor.setSelectedItem(tablePane.getBackgroundColor());
+    		fgColor.setSelectedItem(tablePane.getForegroundColor());
+    		dashed.setSelected(tablePane.isDashed());
+    		rounded.setSelected(tablePane.isRounded());
 		}
 	}
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
-	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
-	    if (tp != null) tp.removeSPListener(this);
-		table.begin(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
-        try {	
-		    String warnings = generateWarnings();
+	    String warnings = generateWarnings();
 
-            if (warnings.length() == 0) {
-                
-                // important: set the primary key name first, because if the primary
-                // key was called (for example) new_table_pk, and the table was called
-                // new_table, then the user changes the table name to cow_table, the
-                // table itself will notice this pattern and automatically change its
-                // primary key name to cow_table_pk.  If we set the table name first,
-                // the magic still happens, but then we would overwrite the new pk name
-                // with the old one from the pk name text field in this panel.
-                if (pkName.isEnabled() && table.getPrimaryKeyIndex() != null) {
-                    table.getPrimaryKeyIndex().setName(pkName.getText());
-                }
-                
-                table.setPhysicalName(physicalName.getText());
-                table.setName(logicalName.getText());
-                table.setRemarks(remarks.getText());   
-                
-                if (tp != null) {
-                    if (!tp.getBackgroundColor().equals((Color)bgColor.getSelectedItem())) {
-                        tp.setBackgroundColor((Color)bgColor.getSelectedItem());
-                    } 
-                    if (!tp.getForegroundColor().equals((Color)fgColor.getSelectedItem())) {
-                        tp.setForegroundColor((Color)fgColor.getSelectedItem());
-                    } 
-                    if (tp.isDashed() != dashed.isSelected()) {
-                        tp.setDashed(dashed.isSelected());
-                    } 
-                    if (tp.isRounded() != rounded.isSelected()) {
-                        tp.setRounded(rounded.isSelected());
-                    }
-                }
-                return true;
-            } else {
-                JOptionPane.showMessageDialog(panel,warnings);
-                //this is done so we can go back to this dialog after the error message
-                return false;
-            }            
-		} catch (SQLObjectException e) {
-            throw new SQLObjectRuntimeException(e);
-        } finally {
-			table.commit();
-		}
+	    if (warnings.length() == 0) {
+	        table.begin(Messages.getString("TableEditPanel.compoundEditName"));		 //$NON-NLS-1$
+
+	        // important: set the primary key name first, because if the primary
+	        // key was called (for example) new_table_pk, and the table was called
+	        // new_table, then the user changes the table name to cow_table, the
+	        // table itself will notice this pattern and automatically change its
+	        // primary key name to cow_table_pk.  If we set the table name first,
+	        // the magic still happens, but then we would overwrite the new pk name
+	        // with the old one from the pk name text field in this panel.
+	        if (pkName.isEnabled() && table.getPrimaryKeyIndex() != null) {
+	            table.getPrimaryKeyIndex().setName(pkName.getText());
+	        }
+
+	        table.setPhysicalName(physicalName.getText());
+	        table.setName(logicalName.getText());
+	        table.setRemarks(remarks.getText());   
+
+	        if (tablePane != null) {
+	            tablePane.begin("TableEditPanel.compoundEditName");
+	            if (!tablePane.getBackgroundColor().equals((Color)bgColor.getSelectedItem())) {
+	                tablePane.setBackgroundColor((Color)bgColor.getSelectedItem());
+	            } 
+	            if (!tablePane.getForegroundColor().equals((Color)fgColor.getSelectedItem())) {
+	                tablePane.setForegroundColor((Color)fgColor.getSelectedItem());
+	            } 
+	            if (tablePane.isDashed() != dashed.isSelected()) {
+	                tablePane.setDashed(dashed.isSelected());
+	            } 
+	            if (tablePane.isRounded() != rounded.isSelected()) {
+	                tablePane.setRounded(rounded.isSelected());
+	            }
+	            tablePane.commit();
+	        }
+	        table.commit();
+	        return true;
+	    } else {
+	        JOptionPane.showMessageDialog(panel,warnings);
+	        //this is done so we can go back to this dialog after the error message
+	        return false;
+	    }
 	}
 
     /**
@@ -211,57 +189,38 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
     }
 
 	public void discardChanges() {
-	    SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
-	    if (tp != null) tp.removeSPListener(this);
+	    // No operation.
 	}
 	
 	public JPanel getPanel() {
 		return panel;
 	}
-	
-	 /**
-     * For testing only
-     * @return the String currently in the logicalName textField
-     */
-    public String getNameText() {
-        return logicalName.getText();
-    }
-    
+
     /**
-     * For testing only or when initially creating a table.
-     * @param newName new logical name for the table
+     * Sets the table's logical name field for this panel.
+     * 
+     * @param newName
+     *            new logical name for the table
      */
     public void setNameText(String newName) {
         logicalName.setText(newName);
     }
-    
+
     /**
-     * For testing only
-     * @return the String currently in the pkName textField
-     */
-    public String getPkNameText() {
-        return pkName.getText();
-    }
-    
-    /**
-     * For testing only or when initially creating a table.
-     * @param newPKName new primaryKeyName for the table
+     * Sets the table's primary key name field for this panel.
+     * 
+     * @param newPKName
+     *            new primaryKeyName for the table
      */
     public void setPkNameText(String newPkName) {
         pkName.setText(newPkName);
     }
-    
+
     /**
-     * For testing only
-     * @return the String currently in the physicalName textField
-     */
-    public String getPhysicalNameTest() {
-        return physicalName.getText();
-    }
-    
-    /**
-     * For testing only or when initially creating a table.
-     * @param newPhysicalName new physical name for the table
+     * Sets the table's physical name field for this panel.
+     * 
+     * @param newPhysicalName
+     *            new physical name for the table
      */
     public void setPhysicalNameText(String newPhysicalName) {
         physicalName.setText(newPhysicalName);
@@ -272,69 +231,82 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel implements SPL
         return true;
     }
 
-    public void childAdded(SPChildEvent e) {
-        // no-op
+    /**
+     * Gets the {@link SQLTable} this panel is editing.
+     * 
+     * @return The {@link SQLTable}.
+     */
+    public SQLTable getTable() {
+        return table;
     }
 
     /**
-     * Checks to see if its respective table is removed from playpen. If yes,
-     * exit the editing dialog window.
+     * Gets the {@link TablePane} for the {@link SQLTable} this panel is
+     * editing.
+     * 
+     * @return The {@link TablePane}. If the table is being created for the
+     *         first time, there is no {@link TablePane} and null is returned.
      */
-    public void childRemoved(SPChildEvent e) {
-        logger.debug("SQLObject children got removed: " + e); //$NON-NLS-1$
-        if (table.equals(e.getChild())) {
-            SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
-            tp.removeSPListener(this);
-            if (editDialog != null) {
-                editDialog.dispose();
-            }
-        }
+    public TablePane getTablePane() {
+        return tablePane;
+    }
+    
+    /**
+     * Returns the {@link JComboBox} that picks the table's background colour.
+     */
+    public JComboBox getBgColor() {
+        return bgColor;
+    }
+    
+    /**
+     * Returns the {@link JCheckBox} that determines if dashed lines are used. 
+     */
+    public JCheckBox getDashed() {
+        return dashed;
     }
 
-    public void propertyChanged(PropertyChangeEvent e) {
-        String property = e.getPropertyName();
-        
-        boolean foundError = false;
-        
-        if (e.getSource() == table) {
-            if (property.equals("name")) {
-                foundError = DataEntryPanelChangeUtil.incomingChange(logicalName, e);
-            } else if (property.equals("physicalName")) {
-                foundError = DataEntryPanelChangeUtil.incomingChange(physicalName, e);
-            } else if (property.equals("pkName")) {
-                foundError = DataEntryPanelChangeUtil.incomingChange(pkName, e);
-            } else if (property.equals("remarks")) {   
-                foundError = DataEntryPanelChangeUtil.incomingChange(remarks, e);
-            }
-        } else if (e.getSource() == tp) {
-            if (property.equals("backgroundColor")) {
-                foundError = DataEntryPanelChangeUtil.incomingChange(bgColor, e);
-            } else if (property.equals("foregroundColor")) {
-                foundError = DataEntryPanelChangeUtil.incomingChange(fgColor, e);
-            } else if (property.equals("rounded")) {
-                foundError = DataEntryPanelChangeUtil.incomingChange(rounded, e);
-            } else if (property.equals("dashed")) {
-                foundError = DataEntryPanelChangeUtil.incomingChange(dashed, e);
-            }
-        }
-        if (foundError) {
-            setErrorText(DataEntryPanelChangeUtil.ERROR_MESSAGE);
-        }
-    }
-    
-    public void transactionStarted(TransactionEvent e) {
-        // no-op
-    }
-    
-    public void transactionEnded(TransactionEvent e) {
-        // no-op
-    }
-    
-    public void transactionRollback(TransactionEvent e) {
-        // no-op
+    /**
+     * Returns the {@link JComboBox} that picks the table's foreground colour.
+     */
+    public JComboBox getFgColor() {
+        return fgColor;
     }
 
-    public void setEditDialog(JDialog editDialog) {
-        this.editDialog = editDialog;
+    /**
+     * Returns the {@link JTextField} containing the logical name of the table.
+     */
+    public JTextField getLogicalName() {
+        return logicalName;
     }
+    
+    /**
+     * Returns the {@link JTextField} containing the physical name of the table.
+     */
+    public JTextField getPhysicalName() {
+        return physicalName;
+    }
+
+    /**
+     * Returns the {@link JTextField} containing the primary key name of the
+     * table.
+     */
+    public JTextField getPkName() {
+        return pkName;
+    }
+    
+    /**
+     * Returns the {@link JTextArea} containing the table's remarks.
+     */
+    public JTextArea getRemarks() {
+        return remarks;
+    }
+
+    /**
+     * Returns the {@link JCheckBox} that determines whether the table uses
+     * rounded lines.
+     */
+    public JCheckBox getRounded() {
+        return rounded;
+    }
+    
 }
