@@ -58,7 +58,7 @@ public class EditVirtualCubeAction extends AbstractArchitectAction{
 
     public void actionPerformed(ActionEvent e) {
         DataEntryPanel panel = new VirtualCubeEditPanel(vCube);
-        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Virtual Cube Properties", "OK");
+        JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Virtual Cube Properties", DataEntryPanelBuilder.OK_BUTTON_LABEL);
         dialog.setLocationRelativeTo(getSession().getArchitectFrame());
         dialog.setVisible(true);
     }

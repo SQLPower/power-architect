@@ -132,7 +132,7 @@ public abstract class CreateOLAPChildAction<P extends OLAPPane<?, ?>, C extends 
                 mep,
                 SwingUtilities.getWindowAncestor(getPlaypen()),
                 friendlyChildName + " Properties",
-                "OK",
+                DataEntryPanelBuilder.OK_BUTTON_LABEL,
                 okCall,
                 cancelCall);
         d.setLocationRelativeTo(getPlaypen());

@@ -41,6 +41,7 @@ import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 
@@ -172,15 +173,20 @@ public class EditTableAction extends AbstractArchitectAction {
 	}
 	
 	public void makeDialog(SQLTable table) {
-		tableEditPanel = new TableEditPanel(getSession(), table);
-		table.addSPListener(sqlTableListener);
-		tableEditPanel.getTablePane().addSPListener(tablePaneListener);
-
+	    DataEntryPanel panel = makeDataEntryPanel(table);
 		editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
-		        tableEditPanel, frame,
-				Messages.getString("EditTableAction.dialogTitle"), Messages.getString("EditTableAction.okOption")); //$NON-NLS-1$ //$NON-NLS-2$
+		        panel, frame,
+				Messages.getString("EditTableAction.dialogTitle"), DataEntryPanelBuilder.OK_BUTTON_LABEL); //$NON-NLS-1$ //$NON-NLS-2$
 		editDialog.pack();
 		editDialog.setLocationRelativeTo(frame);
 		editDialog.setVisible(true);
 	}
+	
+	public DataEntryPanel makeDataEntryPanel(SQLTable table) {
+	    tableEditPanel = new TableEditPanel(getSession(), table);
+	    table.addSPListener(sqlTableListener);
+	    tableEditPanel.getTablePane().addSPListener(tablePaneListener);
+	    return tableEditPanel;
+	}
+	
 }

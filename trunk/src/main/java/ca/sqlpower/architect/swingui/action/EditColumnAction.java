@@ -92,7 +92,7 @@ public class EditColumnAction extends AbstractArchitectAction {
 	            dialogTitle = Messages.getString("EditColumnAction.multiEditDialogTitle");
 	        }
 	        JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-	                cep, frame, dialogTitle, Messages.getString("EditColumnAction.okOption"));
+	                cep, frame, dialogTitle, DataEntryPanelBuilder.OK_BUTTON_LABEL);
 	        d.setLocationRelativeTo(frame);
 	        d.setVisible(true);
 	        
@@ -156,8 +156,8 @@ public class EditColumnAction extends AbstractArchitectAction {
 			JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					columnEditPanel,
 					frame,
-					 Messages.getString("EditColumnAction.columnPropertiesDialogTitle", column.getName()), //$NON-NLS-1$
-					 Messages.getString("EditColumnAction.okOption"), //$NON-NLS-1$
+					Messages.getString("EditColumnAction.columnPropertiesDialogTitle", column.getName()), //$NON-NLS-1$
+					DataEntryPanelBuilder.OK_BUTTON_LABEL, //$NON-NLS-1$
 					 new Callable<Boolean>(){
 						public Boolean call() {
 						    if (addToTable) {

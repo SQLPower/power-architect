@@ -55,7 +55,7 @@ public class EditLevelAction extends AbstractArchitectAction{
     public void actionPerformed(ActionEvent e) {
         try {
             DataEntryPanel panel = new LevelEditPanel(level);
-            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Level Properties", "OK");
+            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Level Properties", DataEntryPanelBuilder.OK_BUTTON_LABEL);
             dialog.setLocationRelativeTo(getSession().getArchitectFrame());
             dialog.setVisible(true);
         } catch (SQLObjectException ex) {

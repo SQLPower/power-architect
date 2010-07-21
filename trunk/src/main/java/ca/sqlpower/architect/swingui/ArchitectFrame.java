@@ -267,7 +267,7 @@ public class ArchitectFrame extends JFrame {
         public void actionPerformed(ActionEvent e) {
             JDialog criticManagerDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
                     new CriticManagerPanel(currentSession), ArchitectFrame.this, 
-                    Messages.getString("ArchitectFrame.criticManagerName"), "OK");
+                    Messages.getString("ArchitectFrame.criticManagerName"), DataEntryPanelBuilder.OK_BUTTON_LABEL);
             criticManagerDialog.pack();
             criticManagerDialog.setVisible(true);
         }
