@@ -62,7 +62,7 @@ public class EditSchemaAction extends AbstractArchitectAction{
     public void actionPerformed(ActionEvent e) {
         try {
             DataEntryPanel panel = new SchemaEditPanel(session, schema);
-            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Schema Properties", "OK");
+            JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(panel, dialogOwner, "Schema Properties", DataEntryPanelBuilder.OK_BUTTON_LABEL);
             dialog.setLocationRelativeTo(session.getArchitectFrame());
             dialog.setVisible(true);
         } catch (SQLObjectException ex) {

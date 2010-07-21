@@ -105,7 +105,7 @@ public class OLAPEditAction extends AbstractArchitectAction {
                         schemaEditPanel,
                         frame,
                         "New Schema Properties",
-                        "OK",
+                        DataEntryPanelBuilder.OK_BUTTON_LABEL,
                         okCall,
                         cancelCall);
                 schemaEditDialog.setLocationRelativeTo(frame);

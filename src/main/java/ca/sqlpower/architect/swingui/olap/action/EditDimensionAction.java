@@ -62,7 +62,7 @@ public class EditDimensionAction extends AbstractArchitectAction {
         try {
             DataEntryPanel panel = new DimensionEditPanel(dimension);
             JDialog dialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
-                    panel, dialogOwner, "Dimension Properties", "OK");
+                    panel, dialogOwner, "Dimension Properties", DataEntryPanelBuilder.OK_BUTTON_LABEL);
             dialog.setLocationRelativeTo(getSession().getArchitectFrame());
             dialog.setVisible(true);
         } catch (SQLObjectException ex) {

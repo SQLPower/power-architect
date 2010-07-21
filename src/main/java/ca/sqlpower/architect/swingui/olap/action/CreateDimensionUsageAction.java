@@ -94,7 +94,7 @@ public class CreateDimensionUsageAction extends CreateUsageAction<DimensionPane,
                         mep,
                         SwingUtilities.getWindowAncestor(getPlaypen()),
                         "Dimension Usage Properties",
-                        "OK",
+                        DataEntryPanelBuilder.OK_BUTTON_LABEL,
                         okCall,
                         cancelCall);
                 d.setLocationRelativeTo(getPlaypen());
