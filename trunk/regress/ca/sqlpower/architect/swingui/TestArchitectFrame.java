@@ -27,9 +27,6 @@ import junit.framework.TestCase;
 
 public class TestArchitectFrame extends TestCase {
 	
-	private ArchitectFrame af;
-    private ArchitectSwingSession session;
-    
     private final String testData =
         "<?xml version='1.0'?>" +
         "<architect-project version='0.1'>" +
@@ -126,20 +123,14 @@ public class TestArchitectFrame extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-		session = context.createSession();
-        af = session.getArchitectFrame();
-        
-        File tmp = File.createTempFile("Architect", "Test");
-        
-        FileWriter fw = new FileWriter(tmp);
-        fw.write(testData);
-        fw.close();
-        
-        ArchitectFrame.main(new String[]{tmp.getAbsolutePath()});
+       
 	}
 	
-	public void testAutoLayoutAction() {
+	public void testAutoLayoutAction() throws Exception {
+	    TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+	    ArchitectSwingSession session = context.createSession();
+	    ArchitectFrame af = session.getArchitectFrame();
+	    
 		assertNotNull(af.getAutoLayoutAction());
 		assertSame(session.getPlayPen(), af.getAutoLayoutAction().getPlayPen());
 		
@@ -150,6 +141,14 @@ public class TestArchitectFrame extends TestCase {
 	 * Regression test for 1336. Loading a file from the command prompt should be remembered.
 	 */
 	public void testFileLoadFromCMDPrompt() throws Exception {
+	    File tmp = File.createTempFile("Architect", "Test");
+        
+        FileWriter fw = new FileWriter(tmp);
+        fw.write(testData);
+        fw.close();
+        
+        ArchitectFrame.main(new String[]{"-headless", tmp.getAbsolutePath()});
+        
 	    Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionImpl.class);
 
 	    String recentFile = prefs.get("recentFile0", null);

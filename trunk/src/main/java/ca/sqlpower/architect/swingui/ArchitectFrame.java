@@ -1344,26 +1344,33 @@ public class ArchitectFrame extends JFrame {
                     // unless you like being attacked by screaming monkeys, that is.
                     ArchitectSwingSessionContext context = ASUtils.getContext();
                     
+                    boolean headless = false;
                     final List<ArchitectSwingSession> sessions = new ArrayList<ArchitectSwingSession>();
                     if (args.length > 0) {
                         for (int i = 0; i < args.length; i++) {
-                            File openFile = new File(args[i]);
-                            InputStream in = new BufferedInputStream(new FileInputStream(openFile));
-                            ArchitectSwingSession session = context.createSession(in);
-                            session.getRecentMenu().putRecentFileName(openFile.getAbsolutePath());
-                            session.getProjectLoader().setFile(openFile);
-                            sessions.add(session);
+                            if (args[i].equalsIgnoreCase("-headless")) {
+                                headless = true;
+                            } else {
+                                File openFile = new File(args[i]);
+                                InputStream in = new BufferedInputStream(new FileInputStream(openFile));
+                                ArchitectSwingSession session = context.createSession(in);
+                                session.getRecentMenu().putRecentFileName(openFile.getAbsolutePath());
+                                session.getProjectLoader().setFile(openFile);
+                                sessions.add(session);
+                            }
                         }
                     } else {
                         sessions.add(context.createSession());
                     }
-                    ArchitectFrame frame = new ArchitectFrame(context, null);
-                    frame.init(sessions.get(0));
-                    for (int i = 1; i < sessions.size(); i++) {
-                        frame.addSession(sessions.get(i));
-                        frame.setCurrentSession(sessions.get(i));
+                    if (!headless) {
+                        ArchitectFrame frame = new ArchitectFrame(context, null);
+                        frame.init(sessions.get(0));
+                        for (int i = 1; i < sessions.size(); i++) {
+                            frame.addSession(sessions.get(i));
+                            frame.setCurrentSession(sessions.get(i));
+                        }
+                        frame.setCurrentSession(sessions.get(0));
                     }
-                    frame.setCurrentSession(sessions.get(0));
                 } catch (Exception e) {
                     e.printStackTrace();
                     //We wish we had a parent component to direct the dialog to
