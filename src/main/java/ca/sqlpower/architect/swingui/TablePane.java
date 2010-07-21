@@ -42,7 +42,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
@@ -89,6 +88,7 @@ import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
@@ -530,6 +530,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 		} else if (insertionPoint < getModel().getPkSize()) {
 		    newColumnsInPk = true;
 		}
+		
+		ListMultimap<String, SQLColumn> newColumns = ArrayListMultimap.create();
 
 		for (int i = items.size()-1; i >= 0; i--) {
 			SQLObject someData = items.get(i);
@@ -537,7 +539,9 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			logger.debug("insertObjects: got item of type "+someData.getClass().getName()); //$NON-NLS-1$
 			if (someData instanceof SQLTable) {
 			    SQLTable table = (SQLTable) someData;
-			    getModel().inherit(insertionPoint, table, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			    newColumns.putAll(
+			            table.getParentDatabase().getDataSource().getParentType().getName(),
+			            getModel().inherit(insertionPoint, table, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource()));
 			    for (SQLColumn column : table.getColumns()) {
 			        SQLColumn targetCol = getModel().getColumnByName(column.getName());
 			        ASUtils.correctSourceColumn(column, duplicateProperties, targetCol, getPlayPen().getSession().getDBTree());
@@ -573,12 +577,16 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
 			        } else {
 			            // importing column from a source database
-			            getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			            newColumns.put(
+			                    col.getParent().getParentDatabase().getDataSource().getParentType().getName(), 
+			                    getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource()));
 			            if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
 			        }
 
 			    } else {
-			        getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource());
+			        newColumns.put(
+			                col.getParent().getParentDatabase().getDataSource().getParentType().getName(), 
+			                getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource()));
 			        if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
 			        ASUtils.correctSourceColumn(col, duplicateProperties, getModel().getColumnByName(col.getName()), getPlayPen().getSession().getDBTree());
 			    }
@@ -586,6 +594,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 				return false;
 			}
 		}
+		
+		DataSourceCollection<SPDataSource> dsCollection = getModel().getParentDatabase().getDataSource().getParentCollection(); 
+        for (String platform : newColumns.keySet()) {
+            SQLColumn.assignTypes(newColumns.get(platform), dsCollection, platform, getPlayPen().getSession());
+        }
 		
 		return true;
 	}
@@ -830,39 +843,24 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             }
 
             try {
-                ArrayListMultimap<String, SQLColumn> droppedColumns = ArrayListMultimap.create();
+                ArrayList<SQLColumn> droppedColumns = new ArrayList<SQLColumn>();
                 for (SQLObject o : droppedItems) {
                     if (o instanceof SQLColumn) {
-                        String fromDataSource;
-                        SQLTable parent = ((SQLColumn) o).getParent();
-                        if (parent != null) {
-                            fromDataSource = parent.getParentDatabase().getDataSource().getParentType().getName();
-                        } else {
-                            fromDataSource = null;
-                        }
-                        droppedColumns.put(fromDataSource, (SQLColumn) o);
+                        droppedColumns.add((SQLColumn) o);
                     } else if (o instanceof SQLTable) {
-                        droppedColumns.putAll(((SQLTable) o).getParentDatabase().getDataSource().getParentType().getName(), ((SQLTable) o).getChildren(SQLColumn.class));
+                        droppedColumns.addAll(((SQLTable) o).getChildren(SQLColumn.class));
                     }
                 }
                 
                 for (int i = 0; i < importedKeys.size(); i++) {
                     // Not dealing with self-referencing tables right now.
                     if (importedKeys.get(i).getPkTable().equals(importedKeys.get(i).getFkTable())) continue;  
-                    for (Entry<String, SQLColumn> entry : droppedColumns.entries()) {
-                        if (importedKeys.get(i).containsFkColumn(entry.getValue())) {
+                    for (SQLColumn droppedColumn : droppedColumns) {
+                        if (importedKeys.get(i).containsFkColumn(droppedColumn)) {
                             importedKeys.get(i).setIdentifying(newColumnsInPk);
                             break;
                         }
                     }
-                }
-                
-                DataSourceCollection<SPDataSource> dsCollection = getModel().getParentDatabase().getDataSource().getParentCollection();
-                
-                // Note that it is safe to assign types to previously assigned
-                // columns, they will be ignored.
-                for (String platform : droppedColumns.keySet()) {
-                    SQLColumn.assignTypes(droppedColumns.get(platform), dsCollection, platform, getPlayPen().getSession());
                 }
                 
                 ArchitectProject project = this.getParent().getParent();
