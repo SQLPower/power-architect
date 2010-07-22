@@ -41,7 +41,7 @@ import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 public class RelationshipMappingTypeCritic extends CriticAndSettings {
     
     public RelationshipMappingTypeCritic() {
-        super(StarterPlatformTypes.GENERIC.getName(), "Relationships map columns of different types");
+        super(StarterPlatformTypes.GENERIC.getName(), Messages.getString("RelationshipMappingTypeCritic.name"));
     }
 
     public List<Criticism> criticize(Object so) {

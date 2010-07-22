@@ -32,7 +32,7 @@ import ca.sqlpower.sqlobject.SQLRelationship;
 public class EmptyRelationshipCritic extends CriticAndSettings {
 
     public EmptyRelationshipCritic() {
-        super(StarterPlatformTypes.GENERIC.getName(), "Empty relationships");
+        super(StarterPlatformTypes.GENERIC.getName(), Messages.getString("EmptyRelationshipCritic.name"));
     }
 
     public List<Criticism> criticize(Object subject) {
