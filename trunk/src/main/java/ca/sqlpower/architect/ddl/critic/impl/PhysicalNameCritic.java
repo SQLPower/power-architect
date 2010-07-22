@@ -68,7 +68,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
             @ConstructorParameter(propertyName="platformName") String platformName, 
             @ConstructorParameter(propertyName="legalNamePattern") Pattern legalNamePattern, 
             @ConstructorParameter(propertyName="maxNameLength") int maxNameLength) {
-        super(platformName, "Physical name restrictions");
+        super(platformName, Messages.getString("PhysicalNameCritic.name"));
         this.platformName = platformName;
         this.legalNamePattern = legalNamePattern;
         this.maxNameLength = maxNameLength;

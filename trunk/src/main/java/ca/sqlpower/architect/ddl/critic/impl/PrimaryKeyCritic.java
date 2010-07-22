@@ -32,7 +32,7 @@ import ca.sqlpower.sqlobject.SQLTable;
 public class PrimaryKeyCritic extends CriticAndSettings {
     
     public PrimaryKeyCritic() {
-        super(StarterPlatformTypes.GENERIC.getName(), "Empty primary key");
+        super(StarterPlatformTypes.GENERIC.getName(), Messages.getString("PrimaryKeyCritic.name"));
     }
 
     public List<Criticism> criticize(final Object so) {

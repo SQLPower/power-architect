@@ -44,7 +44,7 @@ public class CommentCritic extends CriticAndSettings {
             @ConstructorParameter(propertyName="platformName") String platformName, 
             @ConstructorParameter(propertyName="maxTableCommentLength") int maxLengthTable, 
             @ConstructorParameter(propertyName="maxColumnCommentLength")int maxLengthColumn) {
-        super(platformName, "Comment restriction critic");
+        super(platformName, Messages.getString("CommentCritic.name"));
         this.platformName = platformName;
         this.maxColumnCommentLength = maxLengthColumn;
         this.maxTableCommentLength = maxLengthTable;

@@ -66,7 +66,7 @@ public class DuplicateNameCritic extends CriticAndSettings {
     private Multimap<SQLTable, SQLColumn> columnPhysicalNameMap = ArrayListMultimap.create();
     
     public DuplicateNameCritic() {
-        super(StarterPlatformTypes.GENERIC.getName(), "Error on objects with the same name.");
+        super(StarterPlatformTypes.GENERIC.getName(), Messages.getString("DuplicateNameCritic.name"));
     }
 
     @Override
