@@ -50,7 +50,6 @@ import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.object.ObjectDependentException;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
@@ -65,6 +64,7 @@ import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.SQLPowerUtils;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.ButtonBarFactory;
@@ -282,11 +282,11 @@ public class DataMoverPanel {
      * @throws SQLObjectException
      */
     private int moveSingleTable(final SQLTable sourceTable) throws SQLException, SQLObjectException {
-        final SQLDatabase sourceDB = SPObjectUtils.getAncestor(sourceTable, SQLDatabase.class);
+        final SQLDatabase sourceDB = SQLPowerUtils.getAncestor(sourceTable, SQLDatabase.class);
         
         final TreePath destPath = destTree.getSelectionPath();
         final SQLObject destObject = (SQLObject) destPath.getLastPathComponent();
-        final SQLDatabase destDB = SPObjectUtils.getAncestor(destObject, SQLDatabase.class);
+        final SQLDatabase destDB = SQLPowerUtils.getAncestor(destObject, SQLDatabase.class);
         
         String destCatalogName = null;
         String destSchemaName = null;

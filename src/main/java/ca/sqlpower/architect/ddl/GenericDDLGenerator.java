@@ -37,7 +37,6 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.object.SPResolverRegistry;
 import ca.sqlpower.object.SPVariableHelper;
 import ca.sqlpower.object.SPVariableResolver;
@@ -61,6 +60,7 @@ import ca.sqlpower.sqlobject.SQLTypePhysicalProperties.SQLTypeConstraint;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
+import ca.sqlpower.util.SQLPowerUtils;
 
 public class GenericDDLGenerator implements DDLGenerator {
 
@@ -214,7 +214,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		try {
 			if (allowConnection && tableList.size() > 0) {
-                SQLDatabase parentDb = SPObjectUtils.getAncestor(tableList.get(0), SQLDatabase.class);
+                SQLDatabase parentDb = SQLPowerUtils.getAncestor(tableList.get(0), SQLDatabase.class);
                 if (parentDb.isPlayPenDatabase()) {
                     con = null;
                 } else {

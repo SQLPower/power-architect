@@ -31,7 +31,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -39,6 +38,7 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.SQLPowerUtils;
 
 
 public class ProfileAction extends AbstractArchitectAction {
@@ -87,43 +87,43 @@ public class ProfileAction extends AbstractArchitectAction {
                 else if ( tp.getLastPathComponent() instanceof SQLCatalog ) {
                     SQLCatalog cat = (SQLCatalog)tp.getLastPathComponent();
                     sqlObject.add(cat);
-                    SQLDatabase db = SPObjectUtils.getAncestor(cat,SQLDatabase.class);
+                    SQLDatabase db = SQLPowerUtils.getAncestor(cat,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
                 } else if ( tp.getLastPathComponent() instanceof SQLSchema ) {
                     SQLSchema sch = (SQLSchema)tp.getLastPathComponent();
                     sqlObject.add(sch);
 
-                    SQLCatalog cat = SPObjectUtils.getAncestor(sch,SQLCatalog.class);
+                    SQLCatalog cat = SQLPowerUtils.getAncestor(sch,SQLCatalog.class);
                     if ( cat != null && sqlObject.contains(cat))
                         sqlObject.remove(cat);
-                    SQLDatabase db = SPObjectUtils.getAncestor(sch,SQLDatabase.class);
+                    SQLDatabase db = SQLPowerUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
                 }  else if ( tp.getLastPathComponent() instanceof SQLTable ) {
                     SQLTable tab = (SQLTable)tp.getLastPathComponent();
                     sqlObject.add(tab);
 
-                    SQLSchema sch = SPObjectUtils.getAncestor(tab,SQLSchema.class);
+                    SQLSchema sch = SQLPowerUtils.getAncestor(tab,SQLSchema.class);
                     if ( sch != null && sqlObject.contains(sch))
                         sqlObject.remove(sch);
-                    SQLCatalog cat = SPObjectUtils.getAncestor(sch,SQLCatalog.class);
+                    SQLCatalog cat = SQLPowerUtils.getAncestor(sch,SQLCatalog.class);
                     if ( cat != null && sqlObject.contains(cat))
                         sqlObject.remove(cat);
-                    SQLDatabase db = SPObjectUtils.getAncestor(sch,SQLDatabase.class);
+                    SQLDatabase db = SQLPowerUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
 
                 } else if ( tp.getLastPathComponent() instanceof SQLColumn ) {
                     SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParent();
                     sqlObject.add((SQLColumn)tp.getLastPathComponent());
-                    SQLSchema sch = SPObjectUtils.getAncestor(tab,SQLSchema.class);
+                    SQLSchema sch = SQLPowerUtils.getAncestor(tab,SQLSchema.class);
                     if ( sch != null && sqlObject.contains(sch))
                         sqlObject.remove(sch);
-                    SQLCatalog cat = SPObjectUtils.getAncestor(sch,SQLCatalog.class);
+                    SQLCatalog cat = SQLPowerUtils.getAncestor(sch,SQLCatalog.class);
                     if ( cat != null && sqlObject.contains(cat))
                         sqlObject.remove(cat);
-                    SQLDatabase db = SPObjectUtils.getAncestor(sch,SQLDatabase.class);
+                    SQLDatabase db = SQLPowerUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
 

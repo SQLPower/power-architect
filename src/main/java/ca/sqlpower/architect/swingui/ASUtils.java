@@ -47,7 +47,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.SPDataSource;
@@ -64,6 +63,7 @@ import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.JDBCDataSourcePanel;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.ExceptionReport;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -598,7 +598,7 @@ public class ASUtils {
         if (sourceColumn != null && !SQLObjectUtils.isInSameSession(column, sourceColumn)) {
             
             //The source database of the source column ETL lineage from the source column from the import/copy (if you can understand that) 
-            SQLDatabase sourceSourceDatabase = SPObjectUtils.getAncestor(sourceColumn, SQLDatabase.class);
+            SQLDatabase sourceSourceDatabase = SQLPowerUtils.getAncestor(sourceColumn, SQLDatabase.class);
             
             //The source data source of the target of this import/copy if it exists (less confusing than above thankfully)
             SPDataSource targetSourceSPDataSource = dbTree.getDuplicateDbcs(sourceSourceDatabase.getDataSource());

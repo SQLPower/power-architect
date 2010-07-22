@@ -25,10 +25,10 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.object.SPObject;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
@@ -150,7 +150,7 @@ class ImportSafetyChecker {
         if (sourceColumn.getSourceColumn() == null) {
             sourceColumn.setSourceColumn(sourceColumn);
         }
-        sourceSourceDatabase = SPObjectUtils.getAncestor(sourceColumn.getSourceColumn(), SQLDatabase.class);
+        sourceSourceDatabase = SQLPowerUtils.getAncestor(sourceColumn.getSourceColumn(), SQLDatabase.class);
 
         if (targetSession.getDBTree().getDuplicateDbcs(
                 sourceSourceDatabase.getDataSource()) == null) {

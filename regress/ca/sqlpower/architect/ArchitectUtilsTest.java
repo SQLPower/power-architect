@@ -19,10 +19,10 @@
 package ca.sqlpower.architect;
 
 import java.sql.Types;
+
 import junit.framework.TestCase;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPListener;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.CountingSQLObjectListener;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -206,13 +206,13 @@ public class ArchitectUtilsTest extends TestCase {
         parentdb.addChild(sch);
         sch.addChild(t);
         
-        assertEquals(parentdb, SPObjectUtils.getAncestor(t, SQLDatabase.class));
-        assertEquals(sch, SPObjectUtils.getAncestor(t, SQLSchema.class));
-        assertEquals(t, SPObjectUtils.getAncestor(t, SQLTable.class));
-        assertNull(SPObjectUtils.getAncestor(t, SQLCatalog.class));
+        assertEquals(parentdb, SQLPowerUtils.getAncestor(t, SQLDatabase.class));
+        assertEquals(sch, SQLPowerUtils.getAncestor(t, SQLSchema.class));
+        assertEquals(t, SQLPowerUtils.getAncestor(t, SQLTable.class));
+        assertNull(SQLPowerUtils.getAncestor(t, SQLCatalog.class));
         
         parentdb.removeChild(sch);
-        assertNull(SPObjectUtils.getAncestor(t, SQLDatabase.class));
+        assertNull(SQLPowerUtils.getAncestor(t, SQLDatabase.class));
     }
     
     public void testCreateTableWhenExisting() throws Exception {
