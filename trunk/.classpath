@@ -19,7 +19,11 @@
 	<classpathentry kind="lib" path="lib/edtftpj-1.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
-	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jfreechart-1.0.1.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://www.jfree.org/jfreechart/api/javadoc"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
 	<classpathentry kind="lib" path="lib/spring-core.jar"/>
 	<classpathentry kind="lib" path="lib/iText-2.0.8.jar"/>
