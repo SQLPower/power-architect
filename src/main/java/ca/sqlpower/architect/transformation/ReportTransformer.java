@@ -43,4 +43,9 @@ public interface ReportTransformer {
 	 */
 	void transform(File template, File output, ArchitectSwingSession session) throws Exception;
 
+	/**
+	 * Sets a parameter, to be used in the transformation step.
+	 */
+	void setParameter(String name, Object value);
+	
 }

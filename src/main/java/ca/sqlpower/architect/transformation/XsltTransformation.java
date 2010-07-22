@@ -18,8 +18,6 @@
  */
 package ca.sqlpower.architect.transformation;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -27,6 +25,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -35,6 +36,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 
 /**
  * This class transforms xml content from the InputStream passed, into the
@@ -46,6 +49,8 @@ public class XsltTransformation
 
 	private File baseDir;
 	private File projectDir;
+	
+	private Map<String, Object> parameters = new HashMap<String, Object>();
 
 	public XsltTransformation() {
 	}
@@ -110,7 +115,9 @@ public class XsltTransformation
 		transFact.setURIResolver(this);
 		Transformer trans = transFact.newTransformer(xsltSource);
 		
-		
+		for (Entry<String, Object> entry : parameters.entrySet()) {
+		    trans.setParameter(entry.getKey(), entry.getValue());
+		}
 
 		trans.transform(xmlSource, new StreamResult(result));
 		result.flush();
@@ -182,4 +189,9 @@ public class XsltTransformation
 			return null;
 		}
 	}
+
+    @Override
+    public void setParameter(String name, Object value) {
+        parameters.put(name, value);
+    }
 }
