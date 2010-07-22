@@ -37,7 +37,6 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -46,6 +45,7 @@ import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 import ca.sqlpower.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.swingui.event.TaskTerminationListener;
+import ca.sqlpower.util.SQLPowerUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -135,7 +135,7 @@ public class RefreshAction extends AbstractArchitectAction {
         Set<SQLDatabase> databasesToRefresh = new HashSet<SQLDatabase>();
         for (TreePath tp : dbTree.getSelectionPaths()) {
             SQLObject so = (SQLObject) tp.getLastPathComponent();
-            SQLDatabase db = SPObjectUtils.getAncestor(so, SQLDatabase.class);
+            SQLDatabase db = SQLPowerUtils.getAncestor(so, SQLDatabase.class);
             if (db != null && !db.isPlayPenDatabase()) {
                 databasesToRefresh.add(db);
             }

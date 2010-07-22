@@ -28,7 +28,6 @@ import ca.sqlpower.architect.profile.event.ProfileResultListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.Transient;
@@ -38,6 +37,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * Base class for storing profile results that relate to a database object.
@@ -190,8 +190,8 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         SQLObject so1, so2;
 
         // database name
-        so1 = SPObjectUtils.getAncestor(po, SQLDatabase.class);
-        so2 = SPObjectUtils.getAncestor(opo, SQLDatabase.class);
+        so1 = SQLPowerUtils.getAncestor(po, SQLDatabase.class);
+        so2 = SQLPowerUtils.getAncestor(opo, SQLDatabase.class);
         if (so1 == null && so2 != null) diff = -1;
         else if (so1 != null && so2 == null) diff = 1;
         else if (so1 != null && so2 != null) diff = so1.getName().compareTo(so2.getName());
@@ -199,8 +199,8 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         if (diff != 0) return diff;
 
         // catalog name
-        so1 = SPObjectUtils.getAncestor(po, SQLCatalog.class);
-        so2 = SPObjectUtils.getAncestor(opo, SQLCatalog.class);
+        so1 = SQLPowerUtils.getAncestor(po, SQLCatalog.class);
+        so2 = SQLPowerUtils.getAncestor(opo, SQLCatalog.class);
         if (so1 == null && so2 != null) diff = -1;
         else if (so1 != null && so2 == null) diff = 1;
         else if (so1 != null && so2 != null) diff = so1.getName().compareTo(so2.getName());
@@ -208,8 +208,8 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         if (diff != 0) return diff;
 
         // schema name
-        so1 = SPObjectUtils.getAncestor(po, SQLSchema.class);
-        so2 = SPObjectUtils.getAncestor(opo, SQLSchema.class);
+        so1 = SQLPowerUtils.getAncestor(po, SQLSchema.class);
+        so2 = SQLPowerUtils.getAncestor(opo, SQLSchema.class);
         if (so1 == null && so2 != null) diff = -1;
         else if (so1 != null && so2 == null) diff = 1;
         else if (so1 != null && so2 != null) diff = so1.getName().compareTo(so2.getName());
@@ -217,8 +217,8 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         if (diff != 0) return diff;
 
         // table name
-        so1 = SPObjectUtils.getAncestor(po, SQLTable.class);
-        so2 = SPObjectUtils.getAncestor(opo, SQLTable.class);
+        so1 = SQLPowerUtils.getAncestor(po, SQLTable.class);
+        so2 = SQLPowerUtils.getAncestor(opo, SQLTable.class);
         if (so1 == null && so2 != null) diff = -1;
         else if (so1 != null && so2 == null) diff = 1;
         else if (so1 != null && so2 != null) diff = so1.getName().compareTo(so2.getName());
@@ -226,8 +226,8 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         if (diff != 0) return diff;
 
         // column name
-        so1 = SPObjectUtils.getAncestor(po, SQLColumn.class);
-        so2 = SPObjectUtils.getAncestor(opo, SQLColumn.class);
+        so1 = SQLPowerUtils.getAncestor(po, SQLColumn.class);
+        so2 = SQLPowerUtils.getAncestor(opo, SQLColumn.class);
         if (so1 == null && so2 != null) diff = -1;
         else if (so1 != null && so2 == null) diff = 1;
         else if (so1 != null && so2 != null) diff = so1.getName().compareTo(so2.getName());
@@ -265,19 +265,19 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         SQLObject po = getProfiledObject();
         SQLObject so;
 
-        so = SPObjectUtils.getAncestor(po, SQLDatabase.class);
+        so = SQLPowerUtils.getAncestor(po, SQLDatabase.class);
         if (so != null) hash *= so.getName().hashCode();
 
-        so = SPObjectUtils.getAncestor(po, SQLCatalog.class);
+        so = SQLPowerUtils.getAncestor(po, SQLCatalog.class);
         if (so != null) hash *= so.getName().hashCode();
 
-        so = SPObjectUtils.getAncestor(po, SQLSchema.class);
+        so = SQLPowerUtils.getAncestor(po, SQLSchema.class);
         if (so != null) hash *= so.getName().hashCode();
 
-        so = SPObjectUtils.getAncestor(po, SQLTable.class);
+        so = SQLPowerUtils.getAncestor(po, SQLTable.class);
         if (so != null) hash *= so.getName().hashCode();
 
-        so = SPObjectUtils.getAncestor(po, SQLColumn.class);
+        so = SQLPowerUtils.getAncestor(po, SQLColumn.class);
         if (so != null) hash *= so.getName().hashCode();
 
         hash *= createEndTime;

@@ -40,21 +40,21 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.olap.OLAPObject;
-import ca.sqlpower.architect.olap.OLAPSession;
-import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.Measure;
 import ca.sqlpower.architect.olap.MondrianModel.SQL;
 import ca.sqlpower.architect.olap.MondrianModel.Table;
 import ca.sqlpower.architect.olap.MondrianModel.View;
+import ca.sqlpower.architect.olap.OLAPObject;
+import ca.sqlpower.architect.olap.OLAPSession;
+import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLDatabaseMapping;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.validation.Validator;
 import ca.sqlpower.validation.swingui.FormValidationHandler;
 import ca.sqlpower.validation.swingui.StatusComponent;
@@ -267,7 +267,7 @@ public class CubeEditPanel implements ValidatableDataEntryPanel {
      * cube can be made from tables in this database.
      */
     private SQLDatabase getDatabase() {
-        return SPObjectUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
+        return SQLPowerUtils.getAncestor(CubeEditPanel.this.cube, OLAPSession.class).getDatabase();
     }
 
     public String getSelectText() {

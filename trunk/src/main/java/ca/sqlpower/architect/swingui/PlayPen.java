@@ -93,7 +93,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.olap.MondrianModel;
-import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
@@ -105,6 +104,7 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
@@ -112,17 +112,16 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
+import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.architect.swingui.olap.OLAPPane;
 import ca.sqlpower.architect.swingui.olap.OLAPTree;
 import ca.sqlpower.architect.swingui.olap.PaneSection;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
-import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
-import ca.sqlpower.object.SPObjectUtils;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -132,11 +131,11 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
-import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
 import ca.sqlpower.sqlobject.undo.CompoundEventListener;
 import ca.sqlpower.swingui.CursorManager;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -1611,7 +1610,7 @@ public class PlayPen extends JPanel
 						setMessage(ArchitectUtils.truncateString(((SQLTable)someData).getName()));
                         preferredLocation.x += tp.getPreferredSize().width + 5;
                         
-                        SQLDatabase dbAncestor = SPObjectUtils.getAncestor(someData, SQLDatabase.class);
+                        SQLDatabase dbAncestor = SQLPowerUtils.getAncestor(someData, SQLDatabase.class);
                         String platform;
                         if (dbAncestor == null) {
                             platform = null;
@@ -1631,7 +1630,7 @@ public class PlayPen extends JPanel
 							TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, false);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
 							
-							String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
+							String platform = SQLPowerUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
 	                        addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
 							
 							increaseProgress();
@@ -1650,7 +1649,7 @@ public class PlayPen extends JPanel
 									TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, false);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
 									
-									String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
+									String platform = SQLPowerUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
 		                            addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
 									
 									increaseProgress();
@@ -1664,7 +1663,7 @@ public class PlayPen extends JPanel
 								TablePane tp = importTableCopy(sourceTable, preferredLocation, duplicateProperties, false);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
 								
-								String platform = SPObjectUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
+								String platform = SQLPowerUtils.getAncestor(someData, SQLDatabase.class).getDataSource().getParentType().getName();
 	                            addedColumns.putAll(platform, tp.getModel().getChildren(SQLColumn.class));
 								
 								increaseProgress();
