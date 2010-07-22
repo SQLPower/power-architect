@@ -66,9 +66,15 @@ public class CriticManagerPanel implements DataEntryPanel {
      * in the critic settings panel to line up.
      */
     private int preferredCriticPanelSize = 0;
+    
+    /**
+     * This factory will be used to create the settings editors.
+     */
+    private final CriticSettingsPanelFactory settingsPanelFactory;
 
-    public CriticManagerPanel(ArchitectSwingSession session) {
+    public CriticManagerPanel(ArchitectSwingSession session, CriticSettingsPanelFactory settingsPanelFactory) {
         
+        this.settingsPanelFactory = settingsPanelFactory;
         mainPanel = new JPanel();
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref"));
         
@@ -169,6 +175,10 @@ public class CriticManagerPanel implements DataEntryPanel {
 
     public int getPreferredCriticPanelSize() {
         return preferredCriticPanelSize;
+    }
+
+    public CriticSettingsPanelFactory getSettingsPanelFactory() {
+        return settingsPanelFactory;
     }
 
 }
