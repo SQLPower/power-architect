@@ -195,7 +195,7 @@ public class ColumnValueCount extends AbstractSPObject {
     @Override
     @Mutator
     public void setParent(SPObject parent) {
-        if (!(parent instanceof ColumnProfileResult)) {
+        if (!(parent instanceof ColumnProfileResult || parent == null)) {
             throw new IllegalArgumentException("The parent of " + this + " must be a " + 
                     ColumnProfileResult.class + " object.");
         }
