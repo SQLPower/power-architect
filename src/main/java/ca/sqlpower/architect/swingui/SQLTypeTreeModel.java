@@ -50,18 +50,11 @@ public class SQLTypeTreeModel implements TreeModel {
     /**
      * This {@link Comparator} can compare {@link UserDefinedSQLType} and
      * {@link DomainCategory} objects. {@link UserDefinedSQLType}s always come
-     * after {@link DomainCategory}s. Comparison between objects with different
-     * parents should never occur.
+     * after {@link DomainCategory}s.
      */
     private final Comparator<SPObject> typeComparator = new Comparator<SPObject>() {
         
         public int compare(SPObject spo1, SPObject spo2) {
-            if (spo1.getParent() != spo2.getParent()) {
-                throw new ClassCastException("Cannot compare " +
-                		spo1.getClass().getSimpleName() + " and " + 
-                		DomainCategory.class.getSimpleName() + " objects with " +
-                		"different parents.");
-            }
             
             if (spo1 instanceof UserDefinedSQLType && spo2 instanceof UserDefinedSQLType) {
                 return Integer.signum(spo1.getName().compareToIgnoreCase(spo2.getName()));
