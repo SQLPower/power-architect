@@ -19,8 +19,6 @@
 package ca.sqlpower.architect;
 
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,8 +59,6 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private final ArchitectSessionContext context;
     private final ArchitectProject project;
     private String name;
-
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     private final List<SessionLifecycleListener<ArchitectSession>> lifecycleListeners =
         new ArrayList<SessionLifecycleListener<ArchitectSession>>();
@@ -219,14 +215,6 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public void runInForeground(Runnable runner) {
         runner.run();
-    }
-
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        pcs.addPropertyChangeListener(l);
     }
 
     public boolean close() {

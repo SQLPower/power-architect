@@ -18,7 +18,6 @@
  */
 package ca.sqlpower.architect;
 
-import java.beans.PropertyChangeListener;
 import java.sql.Types;
 import java.util.List;
 
@@ -119,10 +118,6 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
     
     public boolean isEnterpriseSession();
 
-    void addPropertyChangeListener(PropertyChangeListener l);
-    
-    void removePropertyChangeListener(PropertyChangeListener l);
-    
     public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l);
 
     public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l);        

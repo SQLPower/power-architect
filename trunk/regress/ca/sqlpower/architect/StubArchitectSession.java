@@ -19,13 +19,12 @@
 
 package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.swingui.LiquibaseSettings;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -39,11 +38,6 @@ import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 public class StubArchitectSession implements ArchitectSession {
-
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        // TODO Auto-generated method stub
-
-    }
 
     public void addSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {
         // TODO Auto-generated method stub
@@ -93,11 +87,6 @@ public class StubArchitectSession implements ArchitectSession {
     public ArchitectProject getWorkspace() {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        // TODO Auto-generated method stub
-
     }
 
     public void removeSessionLifecycleListener(SessionLifecycleListener<ArchitectSession> l) {

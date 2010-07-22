@@ -20,7 +20,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Window;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -434,16 +433,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     
     public void runInForeground(Runnable runner) {
         runner.run();
-    }
-
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        // TODO Auto-generated method stub
-        
     }
 
     public boolean isEnterpriseSession() {
