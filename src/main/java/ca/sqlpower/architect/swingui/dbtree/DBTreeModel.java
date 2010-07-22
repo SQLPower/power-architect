@@ -102,11 +102,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	    }
 
         @Override
-        public boolean allowsChildren() {
-            return true;
-        }
-
-        @Override
         public List<? extends SQLObject> getChildrenWithoutPopulating() {
             return parentTable.getChildrenWithoutPopulating(containingChildType);
         }
@@ -149,14 +144,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             		"remove them from the table the folder is contained by.");
         }
 
-        public int childPositionOffset(Class<? extends SPObject> childType) {
-            return 0;
-        }
-
         public List<Class<? extends SPObject>> getAllowedChildTypes() {
-            List<Class<? extends SPObject>> allowedTypes = new ArrayList<Class<? extends SPObject>>();
-            allowedTypes.add(containingChildType);
-            return allowedTypes;
+            return Collections.<Class<? extends SPObject>>singletonList(containingChildType);
         }
 
         public List<? extends SPObject> getDependencies() {
