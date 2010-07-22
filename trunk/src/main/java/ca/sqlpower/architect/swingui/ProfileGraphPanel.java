@@ -255,7 +255,7 @@ public class ProfileGraphPanel {
         setTitle(sb.toString());
         nullableLabel.setText(Boolean.toString(c.isDefinitelyNullable()));
 
-        chartPanel.setChart(createTopNChart(cr));
+        chartPanel.setChart(createTopNChart(cr, rowCount));
         nullCountLabel.setText(Integer.toString(cr.getNullCount()));
         int nullsInRecords = cr.getNullCount();
         double ratio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
@@ -287,7 +287,7 @@ public class ProfileGraphPanel {
         freqValueTable.initColumnSizes();
     }
 
-    private JFreeChart createTopNChart(ColumnProfileResult cr){
+    public static JFreeChart createTopNChart(ColumnProfileResult cr, int rowCount){
         JFreeChart chart;
         List<ColumnValueCount> valueCounts = cr.getValueCount();
         SQLColumn col = cr.getProfiledObject();

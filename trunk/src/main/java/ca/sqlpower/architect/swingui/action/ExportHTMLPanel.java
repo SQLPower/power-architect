@@ -46,6 +46,7 @@ import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.transformation.ReportTransformer;
@@ -516,7 +517,7 @@ public class ExportHTMLPanel {
 		}
 
 		if (builtinOptionPanel != null) {
-		    builtinOptionPanel.applyChanges(transformer);
+		    builtinOptionPanel.applyChanges(transformer, getOutputFile(), session);
 		}
 		
 		try {
@@ -597,7 +598,7 @@ public class ExportHTMLPanel {
 	}
 	
 	public static abstract class BuiltinOptionPanel extends JPanel {
-	    public abstract void applyChanges(ReportTransformer transformer);
+	    public abstract void applyChanges(ReportTransformer transformer, File outputFile, ArchitectSession session);
 	}
 	
 	public static interface BuiltinOptionPanelFactory {
