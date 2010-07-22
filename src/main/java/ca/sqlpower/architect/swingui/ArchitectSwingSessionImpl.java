@@ -570,7 +570,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 project.clearFileVersion();
                 String projName = file.getName().substring(0, file.getName().length()-".architect".length()); //$NON-NLS-1$
                 setName(projName);
-                frame.setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", projName)); //$NON-NLS-1$
             }
         }
         final boolean finalSeparateThread = separateThread;
@@ -1127,14 +1126,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }     
     }
     
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        delegateSession.addPropertyChangeListener(l);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        delegateSession.removePropertyChangeListener(l);
-    }
-
     public boolean isEnterpriseSession() {
         return delegateSession.isEnterpriseSession();
     }

@@ -32,14 +32,13 @@
 
 package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.swingui.LiquibaseSettings;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -164,16 +163,6 @@ public class TestingArchitectSession implements ArchitectSession {
     }
 
     public void runInForeground(Runnable runner) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener l) {
         // TODO Auto-generated method stub
         
     }

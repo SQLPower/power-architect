@@ -43,8 +43,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -445,14 +443,6 @@ public class ArchitectFrame extends JFrame {
         }        
     };
     
-    private final PropertyChangeListener nameChangeListener = new PropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent evt) {
-            if ("name".equals(evt.getPropertyName())) {
-                stackedTabPane.setTitleAt(stackedTabPane.indexOfTab(sessionTabs.get((ArchitectSwingSession) evt.getSource())), (String) evt.getNewValue());
-            }
-        }
-    };
-    
     private JMenu securityMenu;
 
     private ChangeListener tabChangeListener = new ChangeListener() {
@@ -656,6 +646,8 @@ public class ArchitectFrame extends JFrame {
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 currentSession.saveOrSaveAs(false, true);
+                stackedTabPane.setTitleAt(stackedTabPane.getSelectedIndex(), currentSession.getName());
+                setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
             }
         };
         saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.saveProjectActionDescription")); //$NON-NLS-1$
@@ -668,6 +660,8 @@ public class ArchitectFrame extends JFrame {
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 currentSession.saveOrSaveAs(true, true);
+                stackedTabPane.setTitleAt(stackedTabPane.getSelectedIndex(), currentSession.getName());
+                setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
             }
         };
         saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.saveProjectAsActionDescription")); //$NON-NLS-1$
@@ -679,7 +673,9 @@ public class ArchitectFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 for (ArchitectSwingSession session : sessions) {
                     session.saveOrSaveAs(false, true);
+                    stackedTabPane.setTitleAt(stackedTabPane.indexOfTab(sessionTabs.get(session)), session.getName());
                 }
+                setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
             }
         };
         saveAllProjectsAction.putValue(AbstractAction.ACCELERATOR_KEY,
@@ -845,6 +841,8 @@ public class ArchitectFrame extends JFrame {
         stackedTabPane.setSelectedIndex(0);
         
         context.registerFrame(this);
+        
+        setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", session.getName())); //$NON-NLS-1$
         
         setVisible(showGUI);
     }
@@ -1133,11 +1131,15 @@ public class ArchitectFrame extends JFrame {
             newSession.getPlayPen().addFocusListener(l);
         }
 
+        setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", newSession.getName())); //$NON-NLS-1$
+        
         stackedTabPane.setSelectedIndex(stackedTabPane.indexOfTab(sessionTabs.get(newSession)));
+        stackedTabPane.setTitleAt(stackedTabPane.getSelectedIndex(), newSession.getName());
         
         int div = splitPane.getDividerLocation();
         splitPane.setRightComponent(newSession.getProjectPanel());
         splitPane.setDividerLocation(div);
+        
         firePropertyChange("currentSession", oldSession, newSession);
     }
     
