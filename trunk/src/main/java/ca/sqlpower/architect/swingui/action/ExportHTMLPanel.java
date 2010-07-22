@@ -133,7 +133,7 @@ public class ExportHTMLPanel {
 		builder.append(builtin, 5);
 		builder.appendRelatedComponentsGapColumn();
 		if (builtinOptions != null) {
-		    builtinOptionPanel = builtinOptions.createPanel();
+		    builtinOptionPanel = builtinOptions.createPanel(session);
 		    builder.append("");
             builder.append(builtinOptionPanel, 4);
 		} else {
@@ -564,7 +564,7 @@ public class ExportHTMLPanel {
 	 * But unfortunately Swing cannot handle a dropdown where the popup is wider
 	 * than the actual component.
 	 */
-	private class ComboBoxFile
+	private static class ComboBoxFile
 		extends File {
 
 		public ComboBoxFile(File f) {
@@ -580,7 +580,7 @@ public class ExportHTMLPanel {
 		}
 	}
 
-	private class ComboTooltipRenderer extends DefaultListCellRenderer {
+	private static class ComboTooltipRenderer extends DefaultListCellRenderer {
 
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
 				boolean cellHasFocus) {
@@ -602,7 +602,7 @@ public class ExportHTMLPanel {
 	}
 	
 	public static interface BuiltinOptionPanelFactory {
-	    public BuiltinOptionPanel createPanel(); 
+	    public BuiltinOptionPanel createPanel(ArchitectSession session); 
 	}
 }
 
