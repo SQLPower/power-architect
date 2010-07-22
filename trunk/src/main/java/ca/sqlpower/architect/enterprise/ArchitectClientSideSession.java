@@ -9,7 +9,9 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
@@ -74,6 +76,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SpecificDataSourceCollection;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
+import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
@@ -967,8 +970,64 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
      */
     @Override
     public List<UserDefinedSQLType> getSQLTypes() {
-        return Collections.unmodifiableList(
-                getSystemWorkspace().getChildren(UserDefinedSQLType.class));
+        // The following was my attempt to merge the snapshot and system types lists together
+        // without making it O(mn), but the code is a bit lengthier than I'd like, so perhaps
+        // the added complexity may not be worth it?
+        List<UserDefinedSQLTypeSnapshot> typeSnapshots = getWorkspace().getChildren(UserDefinedSQLTypeSnapshot.class);
+        List<UserDefinedSQLType> systemTypes = getSystemWorkspace().getChildren(UserDefinedSQLType.class);
+        
+        // Remove domain snapshots from the list
+        for (int i = typeSnapshots.size() - 1; i >= 0; i--) {
+            UserDefinedSQLTypeSnapshot snapshot = typeSnapshots.get(i);
+            if (snapshot.isDomainSnapshot()) {
+                typeSnapshots.remove(i);
+            }
+        }
+        
+        // If there are no snapshots, just return the system types.
+        if (typeSnapshots.size() == 0) return Collections.unmodifiableList(systemTypes);
+
+        // Sort both lists by the UUIDs of the system types
+        Collections.sort(typeSnapshots, new Comparator<UserDefinedSQLTypeSnapshot>() {
+            public int compare(UserDefinedSQLTypeSnapshot o1, UserDefinedSQLTypeSnapshot o2) {
+                return o1.getOriginalUUID().compareTo(o2.getOriginalUUID());
+            }
+        });
+        Collections.sort(systemTypes, new Comparator<UserDefinedSQLType>() {
+            public int compare(UserDefinedSQLType o1, UserDefinedSQLType o2) {
+                return o1.getUUID().compareTo(o2.getUUID());
+            }
+        });
+
+        // Now go through the list of system types. If a snapshot type's
+        // original UUID matches, then replace the system type with the snapshot.
+        Iterator<UserDefinedSQLTypeSnapshot> snapshotIterator = typeSnapshots.iterator();
+        UserDefinedSQLTypeSnapshot currentSnapshot = snapshotIterator.next();
+        
+        for (int i = 0; i < systemTypes.size() ; i++) {
+            UserDefinedSQLType type = systemTypes.get(i);
+            int compareTo = currentSnapshot.getOriginalUUID().compareTo(type.getUUID());
+            if (compareTo <= 0) {
+                if (compareTo == 0) {
+                    systemTypes.set(i, currentSnapshot.getSPObject());
+                } else {
+                    systemTypes.add(i, currentSnapshot.getSPObject());
+                }
+                if (snapshotIterator.hasNext() && i != systemTypes.size() - 1) {
+                    currentSnapshot = snapshotIterator.next();
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        // If we've gone through all the system types, then append the remaining snapshot types
+        while (snapshotIterator.hasNext()) {
+            currentSnapshot = snapshotIterator.next();
+            systemTypes.add(currentSnapshot.getSPObject());
+        }
+        
+        return Collections.unmodifiableList(systemTypes);
     }
 
     /**
@@ -977,8 +1036,56 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
      */
     @Override
     public List<DomainCategory> getDomainCategories() {
-        return Collections.unmodifiableList(
-                getSystemWorkspace().getChildren(DomainCategory.class));
+        // The following was my attempt to merge the snapshot and system category lists together
+        // without making it O(nm), but the code is a bit lengthier than I'd like, so perhaps
+        // the added complexity may not be worth it?
+        List<DomainCategorySnapshot> categorySnapshots = getWorkspace().getChildren(DomainCategorySnapshot.class);
+        List<DomainCategory> systemCategories = getSystemWorkspace().getChildren(DomainCategory.class);
+        
+        // If there are no snapshots, just return the system categories.
+        if (categorySnapshots.size() == 0) return Collections.unmodifiableList(systemCategories);
+        
+        // Sort both lists by the UUIDs of the system categories
+        Collections.sort(categorySnapshots, new Comparator<DomainCategorySnapshot>() {
+            public int compare(DomainCategorySnapshot o1, DomainCategorySnapshot o2) {
+                return o1.getOriginalUUID().compareTo(o2.getOriginalUUID());
+            }
+        });
+        Collections.sort(systemCategories, new Comparator<DomainCategory>() {
+            public int compare(DomainCategory o1, DomainCategory o2) {
+                return o1.getUUID().compareTo(o2.getUUID());
+            }
+        });
+
+        // Now go through the list of system categories. If a snapshot category's
+        // original UUID matches, then replace the system category with the snapshot.
+        Iterator<DomainCategorySnapshot> snapshotIterator = categorySnapshots.iterator();
+        DomainCategorySnapshot currentSnapshot = snapshotIterator.next();
+        
+        for (int i = 0; i < systemCategories.size() ; i++) {
+            DomainCategory type = systemCategories.get(i);
+            int compareTo = currentSnapshot.getOriginalUUID().compareTo(type.getUUID());
+            if (compareTo <= 0) {
+                if (compareTo == 0) {
+                    systemCategories.set(i, currentSnapshot.getSPObject());
+                } else {
+                    systemCategories.add(i, currentSnapshot.getSPObject());
+                }
+                if (snapshotIterator.hasNext() && i != systemCategories.size() - 1) {
+                    currentSnapshot = snapshotIterator.next();
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        // If we've gone through all the system types, then append the remaining snapshot categories
+        while (snapshotIterator.hasNext()) {
+            currentSnapshot = snapshotIterator.next();
+            systemCategories.add(currentSnapshot.getSPObject());
+        }
+        
+        return Collections.unmodifiableList(systemCategories);
     }
     
     @Override
