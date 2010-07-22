@@ -17,6 +17,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeCellEditor;
@@ -201,6 +203,9 @@ public class CriticGroupingPanel implements DataEntryPanel {
                 parentPanel.setPreferredCriticPanelSize(preferredCriticPanelSize);
                 JComponent thisSettingsPanel = settingsPanels.get((CriticAndSettings) value).getPanel();
                 thisSettingsPanel.setPreferredSize(new Dimension(preferredCriticPanelSize, thisSettingsPanel.getPreferredSize().height));
+                for (Component c : thisSettingsPanel.getComponents()) {
+                    c.setEnabled(tree.isEnabled());
+                }
                 return thisSettingsPanel;
             }
             return null;
@@ -253,7 +258,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
         
         grouping.addSPListener(groupListener);
         
-        JTree settingsTree = new JTree(treeModel);
+        final JTree settingsTree = new JTree(treeModel);
         settingsTree.setCellRenderer(treeCellRenderer);
         settingsTree.setRowHeight(0);
         settingsTree.setShowsRootHandles(true);
@@ -265,6 +270,17 @@ public class CriticGroupingPanel implements DataEntryPanel {
         
         settingsTree.setBackground(panel.getBackground());
         builder.append(settingsTree);
+        
+        enabledCheckbox.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                settingsTree.setEnabled(enabledCheckbox.isSelected());
+                settingsTree.setEditable(enabledCheckbox.isSelected());
+            }
+        });
+        settingsTree.setEnabled(enabledCheckbox.isSelected());
+        settingsTree.setEditable(enabledCheckbox.isSelected());
+        
     }
     
     public boolean applyChanges() {
