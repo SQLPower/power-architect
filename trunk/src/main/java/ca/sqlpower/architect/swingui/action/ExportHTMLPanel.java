@@ -75,6 +75,7 @@ public class ExportHTMLPanel {
 	private static final Logger logger = Logger.getLogger(ExportHTMLPanel.class);
 	
 	private static String builtinTransform = "/xsltStylesheets/architect2html.xslt";
+	private static BuiltinOptionPanelFactory builtinOptions;
 
 	private JRadioButton builtin;
 	private JRadioButton external;
@@ -92,6 +93,8 @@ public class ExportHTMLPanel {
 	private JDialog dialog;
 
     private final JPanel panel;
+    
+    private final BuiltinOptionPanel builtinOptionPanel;
 
 	private static final String PREF_KEY_BUILTIN = "htmlgen.builtin";
 	private static final String PREF_KEY_LAST_XSLT = "htmlgen.lastxslt";
@@ -99,8 +102,13 @@ public class ExportHTMLPanel {
 	private static final String PREF_KEY_OUTPUT = "htmlgen.lastoutput";
 	private static final int MAX_HISTORY_ENTRIES = 15;
 
+
 	public static void setBuiltinTransform(String builtinTransform) {
 	    ExportHTMLPanel.builtinTransform = builtinTransform;
+	}
+	
+	public static void setBuiltinOptionPanelFactory(BuiltinOptionPanelFactory builtinOptions) {
+        ExportHTMLPanel.builtinOptions = builtinOptions;
 	}
 	
 	public ExportHTMLPanel(ArchitectSwingSession architect) {
@@ -122,6 +130,14 @@ public class ExportHTMLPanel {
 
 		// place Radio buttons
 		builder.append(builtin, 5);
+		builder.appendRelatedComponentsGapColumn();
+		if (builtinOptions != null) {
+		    builtinOptionPanel = builtinOptions.createPanel();
+		    builder.append("");
+            builder.append(builtinOptionPanel, 4);
+		} else {
+		    builtinOptionPanel = null;
+		}
 
 		builder.appendUnrelatedComponentsGapRow();
 		builder.nextLine();
@@ -385,7 +401,6 @@ public class ExportHTMLPanel {
 		}
 	}
 
-
 	private void selectTemplate() {
 		JFileChooser chooser = new JFileChooser(session.getProjectLoader().getFile());
 		File tmpl = getTemplateFile();
@@ -500,6 +515,10 @@ public class ExportHTMLPanel {
 			return;
 		}
 
+		if (builtinOptionPanel != null) {
+		    builtinOptionPanel.applyChanges(transformer);
+		}
+		
 		try {
 			File xslt = getTemplateFile();
 			if (xslt == null) {
@@ -575,6 +594,14 @@ public class ExportHTMLPanel {
 			}
 			return comp;
 		}
+	}
+	
+	public static abstract class BuiltinOptionPanel extends JPanel {
+	    public abstract void applyChanges(ReportTransformer transformer);
+	}
+	
+	public static interface BuiltinOptionPanelFactory {
+	    public BuiltinOptionPanel createPanel(); 
 	}
 }
 

@@ -28,13 +28,13 @@ import org.apache.log4j.Logger;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.sqlobject.SQLType;
 import org.apache.velocity.tools.generic.AlternatorTool;
 import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.NumberTool;
 import org.apache.velocity.tools.generic.SortTool;
+
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.sqlobject.SQLType;
 
 /**
  *
@@ -85,5 +85,11 @@ public class VelocityTransformation implements ReportTransformer {
 			IOUtils.closeQuietly(writer);
 		}
 	}
+
+    @Override
+    public void setParameter(String name, Object value) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }
