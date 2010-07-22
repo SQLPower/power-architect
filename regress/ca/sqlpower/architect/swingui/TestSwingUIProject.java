@@ -124,7 +124,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         session = context.createSession();
         project = session.getProjectLoader();
         plIni = new PlDotIni();
-        plIni.read(new File("default_database_types.regression.ini"));
+        plIni.read(new File("pl.regression.ini"));
         // TODO add some database types and a test that loading the project finds them
 	}
 

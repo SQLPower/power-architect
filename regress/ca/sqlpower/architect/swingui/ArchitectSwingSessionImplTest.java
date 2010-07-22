@@ -173,7 +173,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         PlDotIni plDotIni = new PlDotIni();
-        plDotIni.read(new File("default_database_types.regression.ini"));
+        plDotIni.read(new File("pl.regression.ini"));
         session.getProjectLoader().load(r, plDotIni);
         assertFalse(session.isNew());
     }
@@ -220,7 +220,7 @@ public class ArchitectSwingSessionImplTest extends TestCase {
     public void testSaveAndLoadRelationshipLineType() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
         PlDotIni plDotIni = new PlDotIni();
-        plDotIni.read(new File("default_database_types.regression.ini"));
+        plDotIni.read(new File("pl.regression.ini"));
         
         ArchitectSwingSession session = context.createSession();
         ((ArchitectSwingSessionImpl) session).setUserPrompterFactory(new DefaultUserPrompterFactory());
