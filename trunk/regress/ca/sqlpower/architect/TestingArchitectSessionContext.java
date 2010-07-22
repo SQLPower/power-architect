@@ -37,17 +37,13 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 
 public class TestingArchitectSessionContext implements ArchitectSessionContext {
 
-    private DataSourceCollection<JDBCDataSource> plDotIni = new SpecificDataSourceCollection<JDBCDataSource>(new PlDotIni(), JDBCDataSource.class);
+    private final DataSourceCollection<JDBCDataSource> plDotIni;
     private Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
 
     public TestingArchitectSessionContext() throws IOException {
-        this(true);
-    }
-    
-    public TestingArchitectSessionContext(boolean readDataTypes) throws IOException {
-        if (readDataTypes) {
-            plDotIni.read(new File("default_database_types.regression.ini"));
-        }
+        PlDotIni delegate = new PlDotIni();
+        delegate.read(new File("pl.regression.ini"));
+        plDotIni = new SpecificDataSourceCollection<JDBCDataSource>(delegate, JDBCDataSource.class);
     }
     
     public ArchitectSession createSession() throws SQLObjectException {
