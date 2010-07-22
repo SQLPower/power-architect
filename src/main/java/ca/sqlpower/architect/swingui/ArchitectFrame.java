@@ -104,6 +104,7 @@ import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
+import ca.sqlpower.architect.swingui.action.EditCriticSettingsAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
 import ca.sqlpower.architect.swingui.action.EditSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditSelectedIndexAction;
@@ -136,7 +137,6 @@ import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
-import ca.sqlpower.architect.swingui.critic.CriticManagerPanel;
 import ca.sqlpower.architect.swingui.enterprise.ProjectSecurityPanel;
 import ca.sqlpower.architect.swingui.enterprise.RevisionListPanel;
 import ca.sqlpower.architect.swingui.enterprise.SecurityPanel;
@@ -152,7 +152,6 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
-import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.StackedTabComponent;
@@ -263,15 +262,7 @@ public class ArchitectFrame extends JFrame {
     
     private List<SelectionListener> selectionListeners = new ArrayList<SelectionListener>();
     
-    private Action showCriticsManagerAction = new AbstractAction(Messages.getString("ArchitectFrame.criticManagerName")) {
-        public void actionPerformed(ActionEvent e) {
-            JDialog criticManagerDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
-                    new CriticManagerPanel(currentSession), ArchitectFrame.this, 
-                    Messages.getString("ArchitectFrame.criticManagerName"), DataEntryPanelBuilder.OK_BUTTON_LABEL);
-            criticManagerDialog.pack();
-            criticManagerDialog.setVisible(true);
-        }
-    };
+    private final EditCriticSettingsAction showCriticsManagerAction = new EditCriticSettingsAction(this);
     
     /**
      * Closes all sessions and terminates the JVM.
@@ -1060,7 +1051,7 @@ public class ArchitectFrame extends JFrame {
                 currentSession.getProfileDialog().setVisible(true);
             }
         });
-        windowMenu.add(new JMenuItem(showCriticsManagerAction));
+        windowMenu.add(new JMenuItem(getShowCriticsManagerAction()));
         
         menuBar.add(windowMenu);
 
@@ -1579,6 +1570,10 @@ public class ArchitectFrame extends JFrame {
         return currentSession;
     }
     
+    public EditCriticSettingsAction getShowCriticsManagerAction() {
+        return showCriticsManagerAction;
+    }
+
     private class TabDropTargetListener implements DropTargetListener {
         
         public void dragEnter(DropTargetDragEvent dtde) {

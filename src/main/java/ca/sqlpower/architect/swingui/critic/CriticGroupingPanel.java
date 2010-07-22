@@ -237,7 +237,7 @@ public class CriticGroupingPanel implements DataEntryPanel {
      * grouping panels.
      */
     private final CriticManagerPanel parentPanel;
-
+    
     public CriticGroupingPanel(CriticGrouping grouping, CriticManagerPanel parentPanel) {
         this.grouping = grouping;
         this.parentPanel = parentPanel;
@@ -246,7 +246,8 @@ public class CriticGroupingPanel implements DataEntryPanel {
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout(
                 "pref, 0dlu, pref:grow", "top:pref"), panel);
         for (CriticAndSettings settings : grouping.getSettings()) {
-            final CriticSettingsPanel settingsPanel = new CriticSettingsPanel(settings);
+            final CriticSettingsPanel settingsPanel = 
+                parentPanel.getSettingsPanelFactory().createCriticsSettingsPanel(settings);
             settingsPanels.put(settings, settingsPanel);
         }
         

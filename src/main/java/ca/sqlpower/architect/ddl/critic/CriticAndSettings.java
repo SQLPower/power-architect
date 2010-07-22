@@ -21,7 +21,6 @@ package ca.sqlpower.architect.ddl.critic;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ddl.DB2DDLGenerator;
@@ -41,7 +40,6 @@ import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
-import ca.sqlpower.object.annotation.NonProperty;
 
 /**
  * The settings of a specific {@link Critic}. Includes if the critic is enabled
@@ -265,49 +263,4 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
         return session;
     }
 
-    /**
-     * Returns a map of property names to their properties that a user can
-     * change and update to affect the settings of a critic. These properties
-     * can be of different types which can affect how the user can interact with
-     * them. This method exists to allow an editor interface to display and
-     * change the properties of a critic in a way that is not implementation
-     * specific.
-     * <p>
-     * If this method is overridden you must also override
-     * {@link #setProperty(String, Object)}
-     * <p>
-     * If the properties in this map are to be persisted they need proper
-     * getters and setters that are annotated.
-     */
-    @NonProperty
-    public Map<String, Object> getProperties() {
-        return Collections.emptyMap();
-    }
-    
-    /**
-     * @see #getProperties()
-     */
-    @NonProperty
-    public void setProperty(String propertyName, Object value) {
-        //do nothing
-    }
-    
-    /**
-     * Returns a user-friendly description of what the property is used for in the
-     * critic. If the property name is not known in this critic a null value will be returned. 
-     */
-    @NonProperty
-    public String getPropertyDescription(String propertyName) {
-        return null;
-    }
-
-    /**
-     * Returns the list of enum objects that the given property can be set to.
-     * If the property is not an enum or does not exist in the object null will
-     * be returned.
-     */
-    public List<Object> getEnumPropertyValues(String propertyName) {
-        return null;
-    }
-    
 }
