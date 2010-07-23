@@ -79,9 +79,9 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
-import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.swingui.SPSUtils;
@@ -963,7 +963,15 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         SQLPowerUtils.unlistenToHierarchy(session.getRootObject(), this);
         List<String> errors = updateModel();
         if (!errors.isEmpty()) {
-            JOptionPane.showMessageDialog(panel, errors.toString());
+            StringBuffer buffer = new StringBuffer();
+            buffer.append("<html>");
+            for (String error : errors) {
+                buffer.append(error);
+                buffer.append("<br>");
+            }
+            buffer.append("</html>");
+            JOptionPane.showMessageDialog(panel, buffer.toString(), 
+                    Messages.getString("ColumnEditPanel.errorTitle"), JOptionPane.WARNING_MESSAGE);
             return false;
         } else {
             return true;

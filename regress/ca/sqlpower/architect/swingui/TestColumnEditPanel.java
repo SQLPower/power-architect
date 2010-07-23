@@ -160,9 +160,12 @@ public class TestColumnEditPanel extends TestCase {
 	}
 	
 	/** Tests for real problem (columns in pk were getting moved to bottom of PK after editing) */
-	public void testPKColumnMoveRegression() throws Exception{		
+	public void testPKColumnMoveRegression() throws Exception{
+	    UserDefinedSQLType stubType = session.getSQLTypes().get(0);
 		SQLColumn c1 = new SQLColumn(table,"PKColumn 1",1,2,3);
 		SQLColumn c2 = new SQLColumn(table,"PKColumn 2",1,2,3);
+		c1.getUserDefinedSQLType().setUpstreamType(stubType);
+		c2.getUserDefinedSQLType().setUpstreamType(stubType);
 		table.addColumn(c1);
 		table.addColumn(c2);
 		table.addToPK(c1);
@@ -173,7 +176,8 @@ public class TestColumnEditPanel extends TestCase {
 		
         int previousIdx = table.getColumnIndex(table.getColumnByName("PKColumn 1"));
         ColumnEditPanel editPanel = new ColumnEditPanel(c1, session);
-		editPanel.applyChanges();
+		boolean changesApplied = editPanel.applyChanges();
+		assertTrue(changesApplied);
 		assertEquals(previousIdx, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
 	}
     
@@ -186,13 +190,16 @@ public class TestColumnEditPanel extends TestCase {
     public void testColumnStaysSelectedWhenMovedToPK() throws SQLObjectException, IOException {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
+        UserDefinedSQLType stubType = session.getSQLTypes().get(0);
         PlayPen pp = new PlayPen(session);        
         TablePane tp = new TablePane(table, pp.getContentPane());
         tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
         tp.selectItem(table.getColumnIndex(col3));
+        col3.getUserDefinedSQLType().setUpstreamType(stubType);
         ColumnEditPanel ce = new ColumnEditPanel(col3, session);        
         ce.getColInPK().setSelected(true);
-        ce.applyChanges();
+        boolean changesApplied = ce.applyChanges();
+        assertTrue(changesApplied);
         assertEquals(table.getColumnIndex(col3), tp.getSelectedItemIndex());
     }
 
