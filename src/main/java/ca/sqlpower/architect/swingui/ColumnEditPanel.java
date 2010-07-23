@@ -66,7 +66,6 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.enterprise.DomainCategorySnapshot;
@@ -216,7 +215,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
      */
     private String seqNameSuffix;
 
-    private final ArchitectSession session;
+    private final ArchitectSwingSession session;
 
     public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws SQLObjectException {
         this(Collections.singleton(col), session);
@@ -852,23 +851,24 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                               (upstreamType.getParent() instanceof DomainCategory && 
                               upstreamType.getParent().getParent().equals(session.getWorkspace())))) // not an already existing domain snapshot
                     { 
+                        int systemRevision =  session.getEnterpriseSession().getSystemSession().getCurrentRevisionNumber();;
                         boolean isDomainSnapshot = upstreamType.getParent() instanceof DomainCategory;
                         UserDefinedSQLTypeSnapshot snapshot;
                         if (upstreamType.getUpstreamType() != null) {
                             UserDefinedSQLType upUpStreamType = upstreamType.getUpstreamType();
-                            UserDefinedSQLTypeSnapshot upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, 0, isDomainSnapshot);
+                            UserDefinedSQLTypeSnapshot upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isDomainSnapshot);
                             session.getWorkspace().addChild(upstreamSnapshot, 0);
                             session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
-                            snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, 0, isDomainSnapshot, upstreamSnapshot);
+                            snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);
                         } else {
-                            snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, 0, isDomainSnapshot);
+                            snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot);
                         }
                     	session.getWorkspace().addChild(snapshot, 0);
                     	column.getUserDefinedSQLType().setUpstreamType(snapshot.getSPObject());
                     	if ((upstreamType.getParent() instanceof DomainCategory)) {
                     	    DomainCategory parent = (DomainCategory) upstreamType.getParent();
                     	    DomainCategorySnapshot domainSnapshot = 
-                    	        new DomainCategorySnapshot(parent, 0);
+                    	        new DomainCategorySnapshot(parent, systemRevision);
                     	    session.getWorkspace().addChild(domainSnapshot, 0);
                     	    session.getWorkspace().addChild(domainSnapshot.getSPObject(), 0);
                     	    domainSnapshot.getSPObject().addChild(snapshot.getSPObject(), 0);
