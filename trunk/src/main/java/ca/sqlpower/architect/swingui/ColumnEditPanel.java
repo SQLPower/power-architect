@@ -822,6 +822,11 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private List<String> updateModel() {
         logger.debug("Updating model"); //$NON-NLS-1$
         List<String> errors = new ArrayList<String>();
+        if (componentEnabledMap.get(colType).isSelected() &&
+                colType.getLastSelectedPathComponent() == null) {
+            errors.add(Messages.getString("ColumnEditPanel.missingType"));
+            return errors;
+        }
         SQLObject compoundEditRoot = SQLObjectUtils.findCommonAncestor(columns);
         logger.debug("Compound edit root is " + compoundEditRoot);
         try {
