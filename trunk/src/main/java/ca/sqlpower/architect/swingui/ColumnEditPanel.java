@@ -69,6 +69,8 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.enterprise.DomainCategorySnapshot;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
@@ -78,11 +80,12 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
-import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
+import ca.sqlpower.swingui.PopupJTreeAction;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
@@ -165,7 +168,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
      * Label that shows where the column was reverse engineered from, or
      * where its data comes from when building an ETL mapping.
      */
-    private final JLabel sourceLabel;
+    private final JButton colSourceButton;
+    
+    private final JTree colSourceTree;
 
     private final JTextField colLogicalName;
     
@@ -254,8 +259,27 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.source")), cc.xyw(2, row++, width)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
-        panel.add(sourceLabel = new JLabel(), cc.xyw(2, row++, width));
-
+        
+        cb = new JCheckBox();
+        if (cols.size() > 1) {
+            panel.add(cb, cc.xy(1, row));
+        }
+        
+        colSourceTree = new JTree();
+        DBTreeModel sourceTreeModel = new DBTreeModel(session.getRootObject(), colSourceTree, false, true, false, false, false);
+        colSourceTree.setModel(sourceTreeModel);
+        colSourceTree.setRootVisible(false);
+        colSourceTree.setShowsRootHandles(true);
+        colSourceTree.setCellRenderer(new DBTreeCellRenderer());
+        colSourceTree.getSelectionModel().setSelectionMode(
+                TreeSelectionModel.SINGLE_TREE_SELECTION);
+        
+        colSourceButton = new JButton();
+        colSourceButton.setAction(new PopupJTreeAction(panel, colSourceTree, colSourceButton, SQLColumn.class));
+        
+        panel.add(colSourceButton, cc.xyw(2, row++, 2));
+        componentEnabledMap.put(colSourceTree, cb);
+        
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
         
@@ -350,10 +374,12 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             colType.expandRow(i);
         }
         colType.setRootVisible(true);
+        colType.setShowsRootHandles(true);
         colType.getSelectionModel().setSelectionMode(
                 TreeSelectionModel.SINGLE_TREE_SELECTION);
         
-        typeChooserButton.addActionListener(new SQLTypeTreePopupAction(panel, colType, typeChooserButton));
+        typeChooserButton.setAction(
+                new PopupJTreeAction(panel, colType, typeChooserButton, UserDefinedSQLType.class));
 
         componentEnabledMap.put(colType, cb);
         panel.add(typeChooserButton, cc.xyw(2, row++, 2));
@@ -609,13 +635,38 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         SQLPowerUtils.listenToHierarchy(session.getRootObject(), this);
         panel.addAncestorListener(cleanupListener);
         
+        colSourceTree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                TreePath path = e.getNewLeadSelectionPath();
+                if (path != null) {
+                    Object selection = path.getLastPathComponent();
+                    if (selection instanceof SQLColumn) {
+                        SQLColumn sourceColumn = (SQLColumn) selection;
+                        colSourceButton.setText(DDLUtils.toQualifiedName(
+                                sourceColumn.getParent()) + "." + sourceColumn.getName());
+                    } else {
+                        colSourceButton.setText(Messages.getString("ColumnEditPanel.noneSpecified"));
+                    }
+                } else {
+                    colSourceButton.setText(Messages.getString("ColumnEditPanel.noneSpecified"));
+                }
+            }
+        });
+        
         colType.addTreeSelectionListener(new TreeSelectionListener() {
             public void valueChanged(TreeSelectionEvent e) {
                 TreePath path = e.getNewLeadSelectionPath();
-                Object selection = path.getLastPathComponent();
-                if (selection instanceof UserDefinedSQLType) {
-                    typeChooserButton.setText(((UserDefinedSQLType) selection).getName());
-                    updateSQLTypeComponents((UserDefinedSQLType) selection, false);
+                if (path != null) {
+                    Object selection = path.getLastPathComponent();
+                    if (selection instanceof UserDefinedSQLType) {
+                        typeChooserButton.setText(((UserDefinedSQLType) selection).getName());
+                        updateSQLTypeComponents((UserDefinedSQLType) selection, false);
+                    } else {
+                        typeChooserButton.setText(Messages.getString("ColumnEditPanel.chooseType"));
+                    }
+                } else {
+                    typeChooserButton.setText(Messages.getString("ColumnEditPanel.chooseType"));
                 }
             }
         });
@@ -654,17 +705,27 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private void updateComponents(SQLColumn col) throws SQLObjectException {
         SQLColumn sourceColumn = col.getSourceColumn();
         if (sourceColumn == null) {
-            sourceLabel.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
+            colSourceButton.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
         } else {
+            updateComponent(colSourceTree, sourceColumn);
             
-            sourceLabel.setText(
+            DBTreeModel model = (DBTreeModel) colSourceTree.getModel();
+            colSourceTree.setSelectionPath(new TreePath(model.getPathToNode(sourceColumn)));
+            colSourceButton.setText(
                     DDLUtils.toQualifiedName(
                             sourceColumn.getParent()) + "." + sourceColumn.getName());
         }
         
         updateComponent(colLogicalName, col.getName());
         updateComponent(colPhysicalName, col.getPhysicalName());
+        
         updateComponent(colType, col.getUserDefinedSQLType().getUpstreamType());
+        if (!colType.isSelectionEmpty()) {
+            typeChooserButton.setText(
+                    ((UserDefinedSQLType) col.getUserDefinedSQLType().getUpstreamType()).getName());
+        } else {
+            colSourceButton.setText(Messages.getString("ColumnEditPanel.noneSpecified"));
+        }
 
         updateSQLTypeComponents(col.getUserDefinedSQLType(), true);
         
@@ -696,10 +757,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         if (componentEnabledMap.get(comp).isSelected() &&
                 (comp.isSelectionEmpty() || comp.getLastSelectedPathComponent() == expectedValue)) {
             for (int i = 0; i < comp.getRowCount(); i++) {
-                if (comp.getPathForRow(i).getLastPathComponent() == expectedValue) {
+                Object lastPathComponent = comp.getPathForRow(i).getLastPathComponent();
+                if (lastPathComponent == expectedValue) {
                     comp.setSelectionRow(i);
-                    typeChooserButton.setText(
-                            ((UserDefinedSQLType) expectedValue).getName());
                 }
             }
         } else {
@@ -801,7 +861,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             colNullable.setEnabled(false);
         }
 
-        if (((YesNoEnum) colAutoInc.getSelectedItem()).getValue() || 
+        if (colAutoInc.getSelectedIndex() == -1 || 
+                ((YesNoEnum) colAutoInc.getSelectedItem()).getValue() || 
                 !typeOverrideMap.get(colDefaultValue).isSelected()) {
             colDefaultValue.setText(""); //$NON-NLS-1$
             colDefaultValue.setEnabled(false);
@@ -809,7 +870,11 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             colDefaultValue.setEnabled(true);
         }
 
-        colAutoIncSequenceName.setEnabled(((YesNoEnum) colAutoInc.getSelectedItem()).getValue());
+        if (colAutoInc.getSelectedIndex() != -1) {
+            colAutoIncSequenceName.setEnabled(((YesNoEnum) colAutoInc.getSelectedItem()).getValue());
+        } else {
+            colAutoIncSequenceName.setEnabled(false);
+        }
     }
 
     /**
@@ -822,7 +887,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         logger.debug("Updating model"); //$NON-NLS-1$
         List<String> errors = new ArrayList<String>();
         if (componentEnabledMap.get(colType).isSelected() &&
-                colType.getLastSelectedPathComponent() == null) {
+                !(colType.getLastSelectedPathComponent() instanceof UserDefinedSQLType)) {
             errors.add(Messages.getString("ColumnEditPanel.missingType"));
             return errors;
         }
@@ -832,6 +897,15 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             compoundEditRoot.begin(Messages.getString("ColumnEditPanel.compoundEditName")); //$NON-NLS-1$
             
             for (SQLColumn column : columns) {
+                if (componentEnabledMap.get(colSourceTree).isSelected()) {
+                    Object selection = colSourceTree.getLastSelectedPathComponent();
+                    if (selection instanceof SQLColumn) {
+                        column.setSourceColumn((SQLColumn) selection);
+                    } else {
+                        column.setSourceColumn(null);
+                    }
+                }
+                
                 if (componentEnabledMap.get(colPhysicalName).isSelected()) {
                     column.setPhysicalName(colPhysicalName.getText());
                 }                
@@ -851,7 +925,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                               (upstreamType.getParent() instanceof DomainCategory && 
                               upstreamType.getParent().getParent().equals(session.getWorkspace())))) // not an already existing domain snapshot
                     { 
-                        int systemRevision =  session.getEnterpriseSession().getSystemSession().getCurrentRevisionNumber();;
+                        int systemRevision =  session.getEnterpriseSession().getSystemSession().getCurrentRevisionNumber();
                         boolean isDomainSnapshot = upstreamType.getParent() instanceof DomainCategory;
                         UserDefinedSQLTypeSnapshot snapshot;
                         if (upstreamType.getUpstreamType() != null) {
@@ -1040,8 +1114,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JLabel getSourceLabel() {
-        return sourceLabel;
+    public JButton getSourceColumnButton() {
+        return colSourceButton;
     }
 
     public boolean hasUnsavedChanges() {

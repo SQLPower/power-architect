@@ -34,7 +34,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -166,7 +165,7 @@ public class DBTree extends JTree implements DragSourceListener {
         getTreeCellRenderer().addIconFilter(new ProfiledTableIconFilter());
         setCellRenderer(getTreeCellRenderer());
         selectAllChildTablesAction = new SelectAllChildTablesAction();
-        addMouseListener(new MouseListener() {
+        addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
                 if (getPathForLocation(e.getX(), e.getY()) != null) {
                     Object node = getPathForLocation(e.getX(), e.getY()).getLastPathComponent();
@@ -178,18 +177,6 @@ public class DBTree extends JTree implements DragSourceListener {
                                 Messages.getString("DBTree.exceptionNodeReport"), firstException); //$NON-NLS-1$
                     }
                 }
-            }
-            public void mousePressed(MouseEvent e) {
-                //no-op
-            }
-            public void mouseExited(MouseEvent e) {
-                //no-op
-            }
-            public void mouseEntered(MouseEvent e) {
-                //no-op
-            }
-            public void mouseClicked(MouseEvent e) {
-                //no-op
             }
         });
         
@@ -211,12 +198,12 @@ public class DBTree extends JTree implements DragSourceListener {
 	/**
 	 * Returns a list of all the databases in this DBTree's model.
 	 */
-	public List getDatabaseList() {
-		ArrayList databases = new ArrayList();
+	public List<SQLDatabase> getDatabaseList() {
+		List<SQLDatabase> databases = new ArrayList<SQLDatabase>();
 		TreeModel m = getModel();
 		int dbCount = m.getChildCount(m.getRoot());
 		for (int i = 0; i < dbCount; i++) {
-			databases.add(m.getChild(m.getRoot(), i));
+			databases.add((SQLDatabase) m.getChild(m.getRoot(), i));
 		}
 		return databases;
 	}
@@ -266,12 +253,12 @@ public class DBTree extends JTree implements DragSourceListener {
      * User Settings.  If we find one, return a handle to it.  If we don't find
      * one, return null.
 	 */
-	public SPDataSource getDuplicateDbcs(SPDataSource spec) {
-		SPDataSource dup = null;
+	public JDBCDataSource getDuplicateDbcs(SPDataSource spec) {
+	    JDBCDataSource dup = null;
 		boolean found = false;
-		Iterator it = session.getContext().getConnections().iterator();
+		Iterator<JDBCDataSource> it = session.getContext().getConnections().iterator();
 		while (it.hasNext() && found == false) {
-			SPDataSource dbcs = (SPDataSource) it.next();
+		    JDBCDataSource dbcs = (JDBCDataSource) it.next();
 			if (spec.equals(dbcs)) {
 				dup = dbcs;
 				found = true;
