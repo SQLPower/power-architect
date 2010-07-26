@@ -46,13 +46,14 @@ import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 
@@ -184,6 +185,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	    
 	    public void childAdded(SPChildEvent e) {
             if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
+            if (!showColumns && e.getChild() instanceof SQLColumn) return;
+            if (!showRelationships && e.getChild() instanceof SQLRelationship) return;
+            if (!showImportedKeys && e.getChild() instanceof SQLImportedKey) return;
+            if (!showIndices && e.getChild() instanceof SQLIndex) return;
+            if (!showPlayPenDatabase && SQLPowerUtils.getAncestor(e.getSource(), SQLDatabase.class).isPlayPenDatabase()) return;
             
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Adding a child " + e.getChild() + " to " + e.getSource() + 
@@ -221,6 +227,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 
         public void childRemoved(SPChildEvent e) {
             if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
+            if (!showColumns && e.getChild() instanceof SQLColumn) return;
+            if (!showRelationships && e.getChild() instanceof SQLRelationship) return;
+            if (!showImportedKeys && e.getChild() instanceof SQLImportedKey) return;
+            if (!showIndices && e.getChild() instanceof SQLIndex) return;
+            if (!showPlayPenDatabase && SQLPowerUtils.getAncestor(e.getSource(), SQLDatabase.class).isPlayPenDatabase()) return;
             
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Removing a child " + e.getChild() + " to " + e.getSource() + 
@@ -262,7 +273,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 
         public void propertyChanged(PropertyChangeEvent e) {
             if (!SQLPowerUtils.getAncestorList(((SPObject) e.getSource())).contains(root) && !e.getSource().equals(root)) return;
-            
+            if (!showColumns && e.getSource() instanceof SQLColumn) return;
+            if (!showRelationships && e.getSource() instanceof SQLRelationship) return;
+            if (!showImportedKeys && e.getSource() instanceof SQLImportedKey) return;
+            if (!showIndices && e.getSource() instanceof SQLIndex) return;
+            if (!showPlayPenDatabase && e.getSource() instanceof SQLDatabase && ((SQLDatabase) e.getSource()).isPlayPenDatabase()) return;
             
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Changing the property" + e.getPropertyName() + " on " + e.getSource() + 
@@ -359,27 +374,82 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             }
         }
     };
-	
-	/**
-	 * Creates a tree model with all of the SQLDatabase objects in the
-	 * given session's root object in its root list of databases.
-	 *
-	 * @param root A SQLObject that contains all the databases you
-	 * want in the tree.  This does not necessarily have to be the
-	 * root object associated with the given session, but it normally
-	 * will be.
-	 */
+    
+    /**
+     * Determinant of whether the playpen database should be shown.
+     */
+    private final boolean showPlayPenDatabase;
+    
+    /**
+     * Determinant of whether the column folder should be shown.
+     */
+    private final boolean showColumns;
+    
+    /**
+     * Determinant of whether the relationship folder should be shown.
+     */
+    private final boolean showRelationships;
+    
+    /**
+     * Determinant of whether the imported keys folder should be shown.
+     */
+    private final boolean showImportedKeys;
+    
+    /**
+     * Determinant of whether the indices folder should be shown.
+     */
+    private final boolean showIndices;
+
+    /**
+     * Creates a tree model with all of the SQLDatabase objects in the given
+     * session's root object in its root list of databases, as well as all the
+     * column, relationship, imported keys, and indices folders.
+     * 
+     * @param root
+     *            A SQLObject that contains all the databases you want in the
+     *            tree. This does not necessarily have to be the root object
+     *            associated with the given session, but it normally will be.
+     */
 	public DBTreeModel(SQLObjectRoot root, JTree tree) {
-		this.root = root;
-		this.treeModelListeners = new LinkedList<TreeModelListener>();
-		tree.addTreeWillExpandListener(treeWillExpandListener);
-		SQLPowerUtils.listenToHierarchy(root, treeListener); 
-		
- 		for (SPObject ancestor : SQLPowerUtils.getAncestorList(root)) {
-		    ancestor.addSPListener(treeListener);
-		}
-		
-		setupTreeForNode(root);
+		this(root, tree, true, true, true, true, true);
+	}
+
+    /**
+     * Creates a new tree model with all the SQLDatabase objects with exclusion
+     * of specified {@link SQLObject}s.
+     * 
+     * @param root
+     *            The {@link SQLObjectRoot} object that contains all the
+     *            databases that should be displayed in the tree.
+     * @param tree
+     *            The {@link JTree} that uses this {@link DBTreeModel}.
+     * @param showPlayPenDatabase
+     *            true if the playpen database should be shown.
+     * @param showColumns
+     *            true if the {@link SQLColumn} folder should be shown.
+     * @param showRelationships
+     *            true if the {@link SQLRelationship} folder should be shown.
+     * @param showImportedKeys
+     *            true if the {@link SQLImportedKey} folder should be shown.
+     * @param showIndices
+     *            true if the {@link SQLIndex} folder should be shown.
+     */
+	public DBTreeModel(SQLObjectRoot root, JTree tree, boolean showPlayPenDatabase, boolean showColumns, boolean showRelationships, boolean showImportedKeys, boolean showIndices) {
+	    this.root = root;
+	    this.showPlayPenDatabase = showPlayPenDatabase;
+	    this.showColumns = showColumns;
+	    this.showRelationships = showRelationships;
+	    this.showImportedKeys = showImportedKeys;
+	    this.showIndices = showIndices;
+	    this.treeModelListeners = new LinkedList<TreeModelListener>();
+	    tree.addTreeWillExpandListener(treeWillExpandListener);
+	    SQLPowerUtils.listenToHierarchy(root, treeListener); 
+
+	    for (SPObject ancestor : SQLPowerUtils.getAncestorList(root)) {
+	        ancestor.addSPListener(treeListener);
+	    }
+
+	    setupTreeForNode(root);
 	}
 	
 	/**
@@ -409,6 +479,25 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		    return foldersInTables.get((SQLTable) parent).get(index);
 		}
 		
+		// If the playpen database is hidden, adjust the index accordingly.
+		// The index passed into this method is in terms of a non-PP-database
+		// tree.
+		if (!showPlayPenDatabase && parent instanceof SQLObjectRoot) {
+		    SQLObjectRoot root = (SQLObjectRoot) parent;
+		    List<? extends SQLObject> children = root.getChildren();
+		    for (int childIndex = 0, treeIndex = 0; childIndex < children.size(); childIndex++) {
+		        SQLObject child = children.get(childIndex);
+
+		        if (!(child instanceof SQLDatabase && 
+		                ((SQLDatabase) child).isPlayPenDatabase())) {
+		            if (treeIndex == index) {
+		                return child;
+		            }
+		            treeIndex++;
+		        }
+		    }
+		}
+		
 		SQLObject sqlParent = (SQLObject) parent;
 		try {
             if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChild(index)); //$NON-NLS-1$
@@ -427,6 +516,15 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             return foldersInTables.get((SQLTable) parent).size();
         } else if (parent instanceof SQLColumn) {
             return 0;
+        } else if (!showPlayPenDatabase && parent instanceof SQLObjectRoot) {
+            SQLObjectRoot root = (SQLObjectRoot) parent;
+            int size = root.getChildren().size();
+            for (SQLDatabase db : ((SQLObjectRoot) parent).getChildren(SQLDatabase.class)) {
+                if (db.isPlayPenDatabase()) {
+                    size--;
+                }
+            }
+            return size;
         }
 		
 		SQLObject sqlParent = (SQLObject) parent;
@@ -467,7 +565,28 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             return foldersInTables.get((SQLTable) parent).indexOf(child);
         }
 		
-        return ((SQLObject) parent).getChildren(spChild.getClass()).indexOf(child);
+		int index = ((SQLObject) parent).getChildren(spChild.getClass()).indexOf(child);
+		
+		if (!showPlayPenDatabase && parent instanceof SQLObjectRoot) {
+            if (child instanceof SQLDatabase && ((SQLDatabase) child).isPlayPenDatabase()) {
+                index = -1;
+            } else {
+                SQLObjectRoot root = (SQLObjectRoot) parent;
+                List<? extends SQLObject> children = root.getChildren();
+                int playPenDatabaseCount = 0;
+                for (int i = 0; i < index; i++) {
+                    SQLObject childOfRoot = children.get(i);
+
+                    if (childOfRoot instanceof SQLDatabase && 
+                            ((SQLDatabase) childOfRoot).isPlayPenDatabase()) {
+                        playPenDatabaseCount++;
+                    }
+                }
+                index -= playPenDatabaseCount;
+            }
+        }
+		
+        return index;
 	}
 
 	// -------------- treeModel event source support -----------------
@@ -619,30 +738,38 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         if (foldersInTables.get(table) == null) {
             List<FolderNode> folderList = new ArrayList<FolderNode>();
             foldersInTables.put(table, folderList);
-            FolderNode SQLColumnFolder = new FolderNode(table, SQLColumn.class, new Callable<Boolean>() {
-                public Boolean call() throws Exception {
-                    return table.isColumnsPopulated();
-                }
-            });
-            folderList.add(SQLColumnFolder);
-            FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class, new Callable<Boolean>() {
-                public Boolean call() throws Exception {
-                    return table.isExportedKeysPopulated();
-                }
-            });
-            folderList.add(SQLRelationshipFolder);
-            FolderNode SQLImportedKeys = new FolderNode(table, SQLImportedKey.class, new Callable<Boolean>() {
-                public Boolean call() throws Exception {
-                    return table.isImportedKeysPopulated();
-                }
-            });
-            folderList.add(SQLImportedKeys);
-            FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class, new Callable<Boolean>() {
-                public Boolean call() throws Exception {
-                    return table.isIndicesPopulated();
-                }
-            });
-            folderList.add(SQLIndexFolder);
+            if (showColumns) {
+                FolderNode SQLColumnFolder = new FolderNode(table, SQLColumn.class, new Callable<Boolean>() {
+                    public Boolean call() throws Exception {
+                        return table.isColumnsPopulated();
+                    }
+                });
+                folderList.add(SQLColumnFolder);
+            }
+            if (showRelationships) {
+                FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class, new Callable<Boolean>() {
+                    public Boolean call() throws Exception {
+                        return table.isExportedKeysPopulated();
+                    }
+                });
+                folderList.add(SQLRelationshipFolder);
+            }
+            if (showImportedKeys) {
+                FolderNode SQLImportedKeys = new FolderNode(table, SQLImportedKey.class, new Callable<Boolean>() {
+                    public Boolean call() throws Exception {
+                        return table.isImportedKeysPopulated();
+                    }
+                });
+                folderList.add(SQLImportedKeys);
+            }
+            if (showIndices) {
+                FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class, new Callable<Boolean>() {
+                    public Boolean call() throws Exception {
+                        return table.isIndicesPopulated();
+                    }
+                });
+                folderList.add(SQLIndexFolder);
+            }
         }
     }
 }

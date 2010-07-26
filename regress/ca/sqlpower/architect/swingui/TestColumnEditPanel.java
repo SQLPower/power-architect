@@ -91,7 +91,7 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals(col3.isAutoIncrement(), ((YesNoEnum) panel.getColAutoInc().getSelectedItem()).getValue());
 		assertEquals(col3.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
 		assertEquals(col3.getNullable() == DatabaseMetaData.columnNullable, ((YesNoEnum) panel.getColNullable().getSelectedItem()).getValue());
-		assertEquals("None Specified",panel.getSourceLabel().getText());
+		assertEquals("None Specified",panel.getSourceColumnButton().getText());
 
 		col2.getUserDefinedSQLType().setUpstreamType(session.getSQLTypes().get(1));
         panel = new ColumnEditPanel(col2, session);
@@ -103,7 +103,7 @@ public class TestColumnEditPanel extends TestCase {
         assertEquals(col2.isAutoIncrement(), ((YesNoEnum) panel.getColAutoInc().getSelectedItem()).getValue());
         assertEquals(col2.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
         assertEquals(col2.getNullable() == DatabaseMetaData.columnNullable, ((YesNoEnum) panel.getColNullable().getSelectedItem()).getValue());
-        assertEquals("None Specified",panel.getSourceLabel().getText());
+        assertEquals("None Specified",panel.getSourceColumnButton().getText());
 	}
 
 	public void testApplyChanges() {
