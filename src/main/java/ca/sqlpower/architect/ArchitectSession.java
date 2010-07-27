@@ -185,4 +185,11 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
 	 */
 	public void setLiquibaseSettings(LiquibaseSettings settings);
 
+    /**
+     * Returns the status information object to update the user on different
+     * kinds of progress. May return null if no status information exists (for
+     * headless mode).
+     */
+	public ArchitectStatusInformation getStatusInformation();
+
 }

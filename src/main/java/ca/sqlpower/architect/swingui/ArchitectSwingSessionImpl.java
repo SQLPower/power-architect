@@ -396,6 +396,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
         
         this.frame = parentFrame;
+        
+        ((ArchitectSessionImpl)delegateSession).setStatusInfo(getStatusInformation());
 
         // makes the tool tips show up on these components 
         ToolTipManager.sharedInstance().registerComponent(playPen);
@@ -1252,6 +1254,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     public void setProjectPanel(JComponent panel) {
         projectPanel = panel;
+    }
+
+    @Override
+    public ArchitectStatusBar getStatusInformation() {
+        if (frame == null || frame.getStatusBar() == null) return null;
+        return frame.getStatusBar();
     }
     
 }
