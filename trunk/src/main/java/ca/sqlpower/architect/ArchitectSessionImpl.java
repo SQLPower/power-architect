@@ -84,6 +84,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	private LiquibaseSettings liquibaseSettings;
 
     protected boolean isEnterpriseSession;
+    
+    private ArchitectStatusInformation statusInfo;
 
 	public ArchitectSessionImpl(final ArchitectSessionContext context,
 	        String name) throws SQLObjectException {
@@ -291,5 +293,14 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	public void setLiquibaseSettings(LiquibaseSettings settings) {
 		liquibaseSettings = settings;
 	}
+
+    @Override
+    public ArchitectStatusInformation getStatusInformation() {
+        return statusInfo;
+    }
+    
+    public void setStatusInfo(ArchitectStatusInformation statusInfo) {
+        this.statusInfo = statusInfo;
+    }
 }
 

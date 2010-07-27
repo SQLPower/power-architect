@@ -256,6 +256,11 @@ public class ArchitectFrame extends JFrame {
     private CutSelectedAction cutAction;
     private PasteSelectedAction pasteAction;
     
+    /**
+     * A status bar that can have its content changed to useful messages.
+     */
+    private final ArchitectStatusBar statusBar = new ArchitectStatusBar();
+    
     private RefreshProjectAction refreshProjectAction;
     
     private List<SelectionListener> selectionListeners = new ArrayList<SelectionListener>();
@@ -837,6 +842,8 @@ public class ArchitectFrame extends JFrame {
         splitPane.setRightComponent(session.getProjectPanel());
         cp.add(splitPane, BorderLayout.CENTER);
         logger.debug("Added splitpane to content pane"); //$NON-NLS-1$
+        
+        projectBarPane.add(statusBar.getStatusBar(), BorderLayout.SOUTH);
         
         stackedTabPane.setSelectedIndex(0);
         
@@ -1574,6 +1581,10 @@ public class ArchitectFrame extends JFrame {
     
     public EditCriticSettingsAction getShowCriticsManagerAction() {
         return showCriticsManagerAction;
+    }
+    
+    public ArchitectStatusBar getStatusBar() {
+        return statusBar;
     }
 
     private class TabDropTargetListener implements DropTargetListener {

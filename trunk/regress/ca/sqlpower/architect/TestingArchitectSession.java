@@ -223,4 +223,10 @@ public class TestingArchitectSession implements ArchitectSession {
 	public void setLiquibaseSettings(LiquibaseSettings settings) {
 
 	}
+
+    @Override
+    public ArchitectStatusInformation getStatusInformation() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

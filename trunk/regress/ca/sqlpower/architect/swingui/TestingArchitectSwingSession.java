@@ -518,4 +518,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         // TODO Auto-generated method stub
         
     }
+
+    @Override
+    public ArchitectStatusBar getStatusInformation() {
+        return null;
+    }
 }

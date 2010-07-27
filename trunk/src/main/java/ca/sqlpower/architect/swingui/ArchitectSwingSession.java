@@ -341,4 +341,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public JScrollPane getPlayPenScrollPane();
 
     void setPlayPenScrollPane(JScrollPane ppScrollPane);
+    
+    ArchitectStatusBar getStatusInformation();
 }

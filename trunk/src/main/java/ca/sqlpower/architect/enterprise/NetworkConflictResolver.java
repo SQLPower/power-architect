@@ -55,6 +55,7 @@ import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -75,6 +76,13 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
      */
     private static final int MAX_CONFLICTS_TO_DISPLAY = 10;
 
+    /**
+     * This is currently a static average wait time for how long each change to
+     * the server will take. This will let the progress bar update at a decent
+     * rate.
+     */
+    private static final int AVG_WAIT_TIME_FOR_PERSIST = 12;
+    
     private static final Logger logger = Logger.getLogger(NetworkConflictResolver.class);
     private AtomicBoolean postingJSON = new AtomicBoolean(false);
     private boolean updating = false;
@@ -88,6 +96,14 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private int currentRevision = 0;
     
     private long retryDelay = 1000;
+
+    /**
+     * This double will store and be updated with the average wait time for each
+     * persist calls so the progress of the progress bar is on average correct.
+     * At some point we may want the server to respond with the actual progress
+     * but this is a start.
+     */
+    private double currentWaitPerPersist = AVG_WAIT_TIME_FOR_PERSIST;
     
     private final SPJSONMessageDecoder jsonDecoder;
 
@@ -157,8 +173,36 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         if (postingJSON.get() && !reflush) {
             return;
         }
+        MonitorableImpl monitor = null;
+        long startTimeMillis = System.currentTimeMillis();
         try {
             postingJSON.set(true);
+            
+            // Start a progress bar to update the user with the current changes.
+            if (session.getStatusInformation() != null) {
+                monitor = session.getStatusInformation().createProgressMonitor();
+                monitor.setJobSize(messageBuffer.length() + 2);
+                monitor.setMessage("Writing " + messageBuffer.length() + " changes to the server.");
+                monitor.setProgress(0);
+                final MonitorableImpl finalMonitor = monitor;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (finalMonitor.getProgress() < finalMonitor.getJobSize()) {
+                            try {
+                                Thread.sleep((long) currentWaitPerPersist);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            finalMonitor.incrementProgress();
+                            finalMonitor.setMessage("Working on " + finalMonitor.getProgress() + 
+                                    " of " + finalMonitor.getJobSize());
+                        }
+                        finalMonitor.setMessage("Completing server update.");
+                    }
+                }).start();
+            }
+            
             // Try to send json message ...
             JSONMessage response = null;
             try {
@@ -191,6 +235,9 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 } catch (JSONException e) {
                     throw new RuntimeException("Could not update current revision" + e.getMessage());
                 }
+                long endTime = System.currentTimeMillis();
+                double processTimePerObj = (endTime - startTimeMillis) / messageBuffer.length();
+                currentWaitPerPersist = currentWaitPerPersist * 0.9 + processTimePerObj * 0.1;
             } else {
                 // Did not successfully post json, we must update ourselves, and then try again if we can. 
                 if (!reflush) {
@@ -264,6 +311,9 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 }
             }
         } finally {
+            if (monitor != null) {
+                monitor.setFinished(true);
+            }
             postingJSON.set(false);
             clear(true);
         }
@@ -513,7 +563,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private Set<String> getColumnMappingChanges(Multimap<String, PersistedSPOProperty> properties) {
         Set<String> changes = new HashSet<String>();        
         for (String uuid : properties.keySet()) {
-            Class type;
+            Class<?> type;
             String parentId;       
             SPObject spo = session.getWorkspace().getObjectInTree(uuid);
             PersistedSPObject o = outboundObjectsToAdd.get(uuid);
