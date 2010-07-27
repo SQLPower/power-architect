@@ -194,6 +194,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
+                            if (finalMonitor.isCancelled() || finalMonitor.isFinished()) break;
                             finalMonitor.incrementProgress();
                             finalMonitor.setMessage("Working on " + finalMonitor.getProgress() + 
                                     " of " + finalMonitor.getJobSize());

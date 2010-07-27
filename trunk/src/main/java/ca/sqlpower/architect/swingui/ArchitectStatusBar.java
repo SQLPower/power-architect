@@ -127,8 +127,8 @@ public class ArchitectStatusBar implements ArchitectStatusInformation {
                 Graphics bufferG = buffer.getGraphics();
                 bufferG = progressBarPanel.getGraphics();
 
-                g.setColor(progressBarPanel.getBackground());
-                g.fillRect(getX(), 0, getWidth(), progressBarPanel.getHeight());
+                bufferG.setColor(progressBarPanel.getBackground());
+                bufferG.fillRect(getX(), 0, getWidth(), progressBarPanel.getHeight());
                 bufferG.drawImage(PROGRESS_BAR_ICON.getImage(), getX(), 0, 
                         (int) (getWidth() * getProgress() / getJobSize()), 
                         progressBarPanel.getHeight(), null);
@@ -210,7 +210,7 @@ public class ArchitectStatusBar implements ArchitectStatusInformation {
     }
 
     @Override
-    public MonitorableImpl createProgressMonitor() {
+    public synchronized MonitorableImpl createProgressMonitor() {
         ArchitectStatusProgressBar newBar = new ArchitectStatusProgressBar();
         progressBars.add(newBar);
         resizeProgressBars();
@@ -220,7 +220,7 @@ public class ArchitectStatusBar implements ArchitectStatusInformation {
     /**
      * Call to clear a progress bar off of the status bar.
      */
-    private void removeProgressBar(ArchitectStatusProgressBar bar) {
+    private synchronized void removeProgressBar(ArchitectStatusProgressBar bar) {
         progressBars.remove(bar);
         resizeProgressBars();
     }
