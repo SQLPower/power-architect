@@ -65,6 +65,7 @@ import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
+import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
 import ca.sqlpower.sql.DatabaseListChangeListener;
@@ -973,8 +974,12 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         // The following was my attempt to merge the snapshot and system types lists together
         // without making it O(mn), but the code is a bit lengthier than I'd like, so perhaps
         // the added complexity may not be worth it?
-        List<UserDefinedSQLTypeSnapshot> typeSnapshots = getWorkspace().getChildren(UserDefinedSQLTypeSnapshot.class);
-        List<UserDefinedSQLType> systemTypes = getSystemWorkspace().getChildren(UserDefinedSQLType.class);
+        List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
+            new ArrayList<UserDefinedSQLTypeSnapshot>(
+                    getWorkspace().getChildren(UserDefinedSQLTypeSnapshot.class));
+        List<UserDefinedSQLType> systemTypes = 
+            new ArrayList<UserDefinedSQLType>(
+                    getSystemWorkspace().getChildren(UserDefinedSQLType.class));
         
         // Remove domain snapshots from the list
         for (int i = typeSnapshots.size() - 1; i >= 0; i--) {
@@ -993,11 +998,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 return o1.getOriginalUUID().compareTo(o2.getOriginalUUID());
             }
         });
-        Collections.sort(systemTypes, new Comparator<UserDefinedSQLType>() {
-            public int compare(UserDefinedSQLType o1, UserDefinedSQLType o2) {
-                return o1.getUUID().compareTo(o2.getUUID());
-            }
-        });
+        Collections.sort(systemTypes, new SPObjectUUIDComparator<UserDefinedSQLType>());
 
         // Now go through the list of system types. If a snapshot type's
         // original UUID matches, then replace the system type with the snapshot.
@@ -1039,8 +1040,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         // The following was my attempt to merge the snapshot and system category lists together
         // without making it O(nm), but the code is a bit lengthier than I'd like, so perhaps
         // the added complexity may not be worth it?
-        List<DomainCategorySnapshot> categorySnapshots = getWorkspace().getChildren(DomainCategorySnapshot.class);
-        List<DomainCategory> systemCategories = getSystemWorkspace().getChildren(DomainCategory.class);
+        List<DomainCategorySnapshot> categorySnapshots = 
+            new ArrayList<DomainCategorySnapshot>(getWorkspace().getChildren(DomainCategorySnapshot.class));
+        List<DomainCategory> systemCategories = 
+            new ArrayList<DomainCategory>(getSystemWorkspace().getChildren(DomainCategory.class));
         
         // If there are no snapshots, just return the system categories.
         if (categorySnapshots.size() == 0) return Collections.unmodifiableList(systemCategories);
@@ -1051,11 +1054,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 return o1.getOriginalUUID().compareTo(o2.getOriginalUUID());
             }
         });
-        Collections.sort(systemCategories, new Comparator<DomainCategory>() {
-            public int compare(DomainCategory o1, DomainCategory o2) {
-                return o1.getUUID().compareTo(o2.getUUID());
-            }
-        });
+        Collections.sort(systemCategories, new SPObjectUUIDComparator<DomainCategory>());
 
         // Now go through the list of system categories. If a snapshot category's
         // original UUID matches, then replace the system category with the snapshot.
@@ -1087,7 +1086,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         return Collections.unmodifiableList(systemCategories);
     }
-    
+
     @Override
     public ArchitectSwingProject getWorkspace() {
         return (ArchitectSwingProject) super.getWorkspace();

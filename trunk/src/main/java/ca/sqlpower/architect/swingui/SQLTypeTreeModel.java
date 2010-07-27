@@ -45,8 +45,6 @@ public class SQLTypeTreeModel implements TreeModel {
     
     private static final Logger logger = Logger.getLogger(SQLTypeTreeModel.class);
     
-    private final ArchitectSession session;
-
     /**
      * This {@link Comparator} can compare {@link UserDefinedSQLType} and
      * {@link DomainCategory} objects. {@link UserDefinedSQLType}s always come
@@ -68,21 +66,54 @@ public class SQLTypeTreeModel implements TreeModel {
         }
     };
     
+    /**
+     * The {@link ArchitectProject} that is the root of this tree.
+     */
+    private final ArchitectProject root;
+
+    /**
+     * The {@link List} of {@link UserDefinedSQLType}s reflective of the types
+     * in the {@link ArchitectProject} when the constructor of this tree model
+     * is called. Types are not directly retrieved from the
+     * {@link ArchitectProject} as it may have changed after creation of this
+     * model.
+     */
+    private final List<UserDefinedSQLType> sqlTypes;
+
+    /**
+     * The {@link List} of {@link DomainCategory}s reflective of the categories
+     * in the {@link ArchitectProject} when the constructor of this tree model
+     * is called. Categories are not directly retrieved from the
+     * {@link ArchitectProject} as it may have changed after creation of this
+     * model.
+     */
+    private final List<DomainCategory> domainCategories;
+
+    /**
+     * Creates a new SQLTypeTreeModel.
+     * 
+     * @param session
+     *            The {@link ArchitectSession} to retrieve the
+     *            {@link ArchitectProject}, and its child
+     *            {@link UserDefinedSQLType}s and {@link DomainCategory}s from.
+     */
     public SQLTypeTreeModel(ArchitectSession session) {
-        this.session = session;
+        root = session.getWorkspace();
+        sqlTypes = new ArrayList<UserDefinedSQLType>(session.getSQLTypes());
+        domainCategories = new ArrayList<DomainCategory>(session.getDomainCategories());
     }
     
     public SPObject getChild(Object parent, int index) {
         // If the parent is the delegate ArchitectProject, get the child at 
         // the specified index which should be of type UserDefinedSQLType 
         // or DomainCategory.
-        if (session.getWorkspace() == parent) {
+        if (root == parent) {
             return getChildren().get(index);
         
         // If the parent is DomainCategory, get the child at the specified 
         // index which should be of type UserDefinedSQLType.
         } else if (parent instanceof DomainCategory &&
-                session.getDomainCategories().contains(parent)) {
+                domainCategories.contains(parent)) {
             return getDomainTypes((DomainCategory) parent).get(index);
         }
         
@@ -90,10 +121,10 @@ public class SQLTypeTreeModel implements TreeModel {
     }
 
     public int getChildCount(Object parent) {
-        if (session.getWorkspace() == parent) {
+        if (root == parent) {
             return getChildren().size();
         } else if (parent instanceof DomainCategory && 
-                session.getDomainCategories().contains(parent)) {
+                domainCategories.contains(parent)) {
             return getDomainTypes((DomainCategory) parent).size();
         }
         return 0;
@@ -105,8 +136,8 @@ public class SQLTypeTreeModel implements TreeModel {
      */
     private List<? extends SPObject> getChildren() {
         List<SPObject> children = new ArrayList<SPObject>();
-        children.addAll(session.getDomainCategories());
-        children.addAll(session.getSQLTypes());
+        children.addAll(domainCategories);
+        children.addAll(sqlTypes);
         Collections.sort(children, typeComparator);
         return Collections.unmodifiableList(children);
     }
@@ -121,19 +152,19 @@ public class SQLTypeTreeModel implements TreeModel {
      *         contained under the given {@link DomainCategory}.
      */
     private List<UserDefinedSQLType> getDomainTypes(DomainCategory category) {
-        List<UserDefinedSQLType> children = new ArrayList<UserDefinedSQLType>();
-        children.addAll(category.getChildren(UserDefinedSQLType.class));
+        List<UserDefinedSQLType> children = new ArrayList<UserDefinedSQLType>(
+                category.getChildren(UserDefinedSQLType.class));
         Collections.sort(children, typeComparator);
-        return children;
+        return Collections.unmodifiableList(children);
     }
 
     public int getIndexOfChild(Object parent, Object child) {
         if (parent == null || child == null) {
             return -1;
-        } else if (session.getWorkspace() == parent) {
+        } else if (root == parent) {
             return getChildren().indexOf(child);
         } else if (parent instanceof DomainCategory &&
-                session.getDomainCategories().contains(parent)) {
+                domainCategories.contains(parent)) {
             if (child instanceof UserDefinedSQLType) {
                 return getDomainTypes((DomainCategory) parent).indexOf(child);
             }
@@ -142,7 +173,7 @@ public class SQLTypeTreeModel implements TreeModel {
     }
 
     public ArchitectProject getRoot() {
-        return session.getWorkspace();
+        return root;
     }
     
     public boolean isLeaf(Object node) {

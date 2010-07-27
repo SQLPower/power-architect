@@ -27,6 +27,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.enterprise.DomainCategory;
+import ca.sqlpower.architect.enterprise.UpstreamTypeUpdaterListener;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
@@ -41,9 +42,9 @@ import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.UserPrompter;
-import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -106,7 +107,8 @@ public class ArchitectSessionImpl implements ArchitectSession {
         } catch (SQLException e) {
             throw new SQLObjectException("SQL Error in ddlGenerator",e);
         }
-
+        
+        project.addSPListener(new UpstreamTypeUpdaterListener(this));
 	}
 
 	// --------------- accessors and mutators ------------------
