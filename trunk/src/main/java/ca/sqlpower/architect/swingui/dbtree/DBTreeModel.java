@@ -184,12 +184,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	private class DBTreeSPListener implements SPListener {
 	    
 	    public void childAdded(SPChildEvent e) {
-            if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
-            if (!showColumns && e.getChild() instanceof SQLColumn) return;
-            if (!showRelationships && e.getChild() instanceof SQLRelationship) return;
-            if (!showImportedKeys && e.getChild() instanceof SQLImportedKey) return;
-            if (!showIndices && e.getChild() instanceof SQLIndex) return;
-            if (!showPlayPenDatabase && SQLPowerUtils.getAncestor(e.getSource(), SQLDatabase.class).isPlayPenDatabase()) return;
+            if (!isSPObjectRelevant(e.getSource())) return;
+            if (!isSPObjectRelevant(e.getChild())) return;
             
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Adding a child " + e.getChild() + " to " + e.getSource() + 
@@ -226,12 +222,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void childRemoved(SPChildEvent e) {
-            if (!SQLPowerUtils.getAncestorList(e.getSource()).contains(root) && !e.getSource().equals(root)) return;
-            if (!showColumns && e.getChild() instanceof SQLColumn) return;
-            if (!showRelationships && e.getChild() instanceof SQLRelationship) return;
-            if (!showImportedKeys && e.getChild() instanceof SQLImportedKey) return;
-            if (!showIndices && e.getChild() instanceof SQLIndex) return;
-            if (!showPlayPenDatabase && SQLPowerUtils.getAncestor(e.getSource(), SQLDatabase.class).isPlayPenDatabase()) return;
+            if (!isSPObjectRelevant(e.getSource())) return;
+            if (!isSPObjectRelevant(e.getChild())) return;
             
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Removing a child " + e.getChild() + " to " + e.getSource() + 
@@ -272,12 +264,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         }
 
         public void propertyChanged(PropertyChangeEvent e) {
-            if (!SQLPowerUtils.getAncestorList(((SPObject) e.getSource())).contains(root) && !e.getSource().equals(root)) return;
-            if (!showColumns && e.getSource() instanceof SQLColumn) return;
-            if (!showRelationships && e.getSource() instanceof SQLRelationship) return;
-            if (!showImportedKeys && e.getSource() instanceof SQLImportedKey) return;
-            if (!showIndices && e.getSource() instanceof SQLIndex) return;
-            if (!showPlayPenDatabase && e.getSource() instanceof SQLDatabase && ((SQLDatabase) e.getSource()).isPlayPenDatabase()) return;
+            if (!isSPObjectRelevant((SPObject) e.getSource())) return;
             
             if (!root.getRunnableDispatcher().isForegroundThread()) 
                 throw new IllegalStateException("Changing the property" + e.getPropertyName() + " on " + e.getSource() + 
@@ -328,6 +315,40 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             } else {
                 final TreeModelEvent evt = new TreeModelEvent(this, getPathToNode(source));
                 fireTreeNodesChanged(evt);
+            }
+        }
+
+        /**
+         * Determines if this listener should be dealing with events coming from
+         * a given {@link SPObject}. Specifically, if the object's ancestor list
+         * does not contain the {@link SQLObjectRoot} of this
+         * {@link DBTreeModel} and is not the root object itself, it is not
+         * relevant. Also, if the flag indicating that the playpen database
+         * should not be shown is set, and the object is a playpen database, it
+         * is not relevant. Similarly with the playpen database handling:
+         * columns, relationships, imported keys, and indices should not be
+         * relevant if their "show" flag is not set.
+         * 
+         * @param spObject
+         *            The {@link SPObject} to check.
+         * @return true if this listener should be dealing with events from the
+         *         {@link SPObject}.
+         */
+        private boolean isSPObjectRelevant(SPObject spObject) {
+            if (!SQLPowerUtils.getAncestorList(spObject).contains(root) && !spObject.equals(root)) {
+                return false;
+            } else if (!showPlayPenDatabase && spObject instanceof SQLDatabase) {
+                return ((SQLDatabase) spObject).isPlayPenDatabase();
+            } else if (!showColumns && spObject instanceof SQLColumn) {
+                return false;
+            } else if (!showRelationships && spObject instanceof SQLRelationship) {
+                return false;
+            } else if (!showImportedKeys && spObject instanceof SQLImportedKey) {
+                return false;
+            } else if (!showIndices && spObject instanceof SQLIndex) {
+                return false;
+            } else {
+                return true;
             }
         }
 	    
