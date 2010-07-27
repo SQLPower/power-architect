@@ -349,9 +349,9 @@ public class CriticManager extends AbstractSPObject {
     public void loadDefaults() {
         Preferences prefs = Preferences.userNodeForPackage(CriticManager.class);
         for (CriticGrouping group : getCriticGroupings()) {
-            group.setEnabled(prefs.getBoolean(CriticGrouping.class.getSimpleName() + "." + group.getPlatformType() + ".enabled", false));
+            group.setEnabled(prefs.getBoolean(CriticGrouping.class.getSimpleName() + "." + group.getPlatformType() + ".enabled", true));
             for (CriticAndSettings settings : group.getSettings()) {
-                String severity = prefs.get(settings.getClass().getSimpleName() + ".severity", Severity.IGNORE.name());
+                String severity = prefs.get(settings.getClass().getSimpleName() + ".severity", Severity.ERROR.name());
                 settings.setSeverity(Severity.valueOf(severity));
             }
         }
