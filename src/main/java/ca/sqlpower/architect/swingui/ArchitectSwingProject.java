@@ -259,7 +259,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         allChildren.addAll(getGroups());
         allChildren.addAll(getBusinessDefinitions());
         allChildren.addAll(getFormulas());
-        return allChildren;
+        return Collections.unmodifiableList(allChildren);
     }
     
     @NonBound
