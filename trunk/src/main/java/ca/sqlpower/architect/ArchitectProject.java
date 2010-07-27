@@ -100,7 +100,7 @@ public class ArchitectProject extends AbstractSPObject {
      * The current integrity watcher on the project.
      */
     private SourceObjectIntegrityWatcher currentWatcher;
-
+    
     /**
      * Constructs an architect project. The init method must be called
      * immediately after creating a project.
@@ -374,7 +374,7 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.addAll(groups);
         allChildren.addAll(businessDefinitions);
         allChildren.addAll(formulas);
-        return allChildren;
+        return Collections.unmodifiableList(allChildren);
     }
     
     @NonBound
@@ -443,22 +443,22 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     @NonProperty
-    public List<SPObjectSnapshot<?>> getSqlTypeSnapshots() {
+    protected List<SPObjectSnapshot<?>> getSqlTypeSnapshots() {
         return Collections.unmodifiableList(sqlTypeSnapshots); 
     }
     
     @NonProperty
-    public List<DomainCategory> getDomainCategories() {
+    protected List<DomainCategory> getDomainCategories() {
         return Collections.unmodifiableList(domainCategories); 
     }
     
     @NonProperty
-    public List<BusinessDefinition> getBusinessDefinitions() {
+    protected List<BusinessDefinition> getBusinessDefinitions() {
         return Collections.unmodifiableList(businessDefinitions);
     }
     
     @NonProperty
-    public List<FormulaMetricCalculation> getFormulas() {
+    protected List<FormulaMetricCalculation> getFormulas() {
         return Collections.unmodifiableList(formulas);
     }
     
