@@ -20,6 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -341,6 +342,8 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public JScrollPane getPlayPenScrollPane();
 
     void setPlayPenScrollPane(JScrollPane ppScrollPane);
+
+    public Executor getSaveExecutor();
     
     ArchitectStatusBar getStatusInformation();
 }

@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -517,6 +518,12 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void setProjectPanel(JComponent panel) {
         // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public Executor getSaveExecutor() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override

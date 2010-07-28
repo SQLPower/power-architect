@@ -176,6 +176,10 @@ public class ArchitectFrame extends JFrame {
     private static Logger logger = Logger.getLogger(ArchitectFrame.class);
 
     public static final double ZOOM_STEP = 0.25;
+    
+    public static interface Saver {
+        public boolean save(ArchitectSwingSession session, boolean showChooser);
+    }
 
     private ArchitectSwingSessionContext context;
     private ArchitectSwingSession currentSession = null;
@@ -264,6 +268,12 @@ public class ArchitectFrame extends JFrame {
     private RefreshProjectAction refreshProjectAction;
     
     private List<SelectionListener> selectionListeners = new ArrayList<SelectionListener>();
+    
+    private Saver saveBehaviour = new Saver() {
+        public boolean save(ArchitectSwingSession session, boolean showChooser) {
+            return session.saveOrSaveAs(showChooser, true);
+        }
+    };
     
     private final EditCriticSettingsAction showCriticsManagerAction = new EditCriticSettingsAction(this);
     
@@ -472,6 +482,14 @@ public class ArchitectFrame extends JFrame {
 
     private JMenuItem enterpriseLinkButton;
 
+    private JButton saveProjectButton;
+
+    private JMenuItem saveProjectMenu;
+
+    private JMenuItem saveProjectAsMenu;
+
+    private JMenuItem saveAllProjectsMenu;
+
     /**
      * Sets up a new ArchitectFrame, which represents a window containing one or
      * more {@link ArchitectSwingSession}s. It will not become visible until
@@ -628,7 +646,7 @@ public class ArchitectFrame extends JFrame {
                         JMenuBar mb = newFrame.menuBar;
                         for (int i = 0; i < mb.getMenuCount(); i++) {
                             if ("TOOLS_MENU".equals(mb.getMenu(i).getName())) {
-                                mb.getMenu(i).add(new InvadersAction(newSession));
+                                mb.getMenu(i).add(new InvadersAction(newFrame));
                             }
                         }
                     }
@@ -650,7 +668,7 @@ public class ArchitectFrame extends JFrame {
                         Messages.getString("ArchitectFrame.saveProjectActionIconDescription"), //$NON-NLS-1$
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
-                currentSession.saveOrSaveAs(false, true);
+                saveBehaviour.save(currentSession, false);
                 stackedTabPane.setTitleAt(stackedTabPane.getSelectedIndex(), currentSession.getName());
                 setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
             }
@@ -664,7 +682,7 @@ public class ArchitectFrame extends JFrame {
                         Messages.getString("ArchitectFrame.saveProjectAsActionIconDescription"), //$NON-NLS-1$
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
-                currentSession.saveOrSaveAs(true, true);
+                saveBehaviour.save(currentSession, true);
                 stackedTabPane.setTitleAt(stackedTabPane.getSelectedIndex(), currentSession.getName());
                 setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
             }
@@ -677,7 +695,7 @@ public class ArchitectFrame extends JFrame {
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 for (ArchitectSwingSession session : sessions) {
-                    session.saveOrSaveAs(false, true);
+                    saveBehaviour.save(session, false);
                     stackedTabPane.setTitleAt(stackedTabPane.indexOfTab(sessionTabs.get(session)), session.getName());
                 }
                 setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
@@ -775,7 +793,7 @@ public class ArchitectFrame extends JFrame {
 
         newProjectButton = projectBar.add(newProjectAction);
         projectBar.add(openProjectAction);
-        projectBar.add(saveProjectAction);
+        saveProjectButton = projectBar.add(saveProjectAction);
         projectBar.addSeparator();
         
         projectBar.add(refreshProjectAction);
@@ -872,7 +890,7 @@ public class ArchitectFrame extends JFrame {
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
                 try {
-                    OpenProjectAction.openAsynchronously(context.createSession(), f, currentSession);
+                    OpenProjectAction.getFileLoader().openAsynchronously(context.createSession(), f, currentSession);
                 } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(ArchitectFrame.this, Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }
@@ -880,9 +898,9 @@ public class ArchitectFrame extends JFrame {
         });
         fileMenu.add(closeProjectAction);
         fileMenu.addSeparator();
-        fileMenu.add(saveProjectAction);
-        fileMenu.add(saveProjectAsAction);
-        fileMenu.add(saveAllProjectsAction);
+        saveProjectMenu = fileMenu.add(saveProjectAction);
+        saveProjectAsMenu = fileMenu.add(saveProjectAsAction);
+        saveAllProjectsMenu = fileMenu.add(saveAllProjectsAction);
         fileMenu.add(printAction);
         fileMenu.add(exportPlaypenToPDFAction);
         fileMenu.add(exportHTMLReportAction);
@@ -1410,7 +1428,11 @@ public class ArchitectFrame extends JFrame {
         this.newWindowAction = newWindowAction;
         newWindowMenu.setAction(newWindowAction);
     }
-
+    
+    public void setSaveBehaviour(Saver saveBehaviour) {
+        this.saveBehaviour = saveBehaviour;
+    }
+    
     public ZoomToFitAction getZoomToFitAction() {
         return zoomToFitAction;
     }

@@ -49,26 +49,9 @@ import ca.sqlpower.swingui.SPSwingWorker;
 public class OpenProjectAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(OpenProjectAction.class);
-
-    public OpenProjectAction(ArchitectFrame frame) {
-        super(frame, Messages.getString("OpenProjectAction.name"), Messages.getString("OpenProjectAction.description"), "folder"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit()
-                .getMenuShortcutKeyMask()));
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
-        chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
-        int returnVal = chooser.showOpenDialog(frame);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File f = chooser.getSelectedFile();
-            try {
-                OpenProjectAction.openAsynchronously(getSession().getContext().createSession(), f, getSession());
-            } catch (SQLObjectException ex) {
-                SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
-                        Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
-            }
-        }
+    
+    public static interface FileLoader {
+        public void openAsynchronously(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession);
     }
 
     /**
@@ -92,21 +75,52 @@ public class OpenProjectAction extends AbstractArchitectAction {
      *            and unmodified project) then openingSession.close() will be
      *            called once the project is finished loading.
      */
-    public static void openAsynchronously(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession) {
-        LoadFileWorker worker;
-        try {
-            worker = new LoadFileWorker(f, newSession, openingSession);
-            new Thread(worker).start();
-        } catch (Exception e1) {
-            ASUtils.showExceptionDialogNoReport(Messages.getString("OpenProjectAction.errorLoadingFile"), e1); //$NON-NLS-1$
-        }
+    private static FileLoader fileLoader = new FileLoader() {
+        public void openAsynchronously(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession) {
+            LoadFileWorker worker;
+            try {
+                worker = new LoadFileWorker(f, newSession, openingSession);
+                new Thread(worker).start();
+            } catch (Exception e1) {
+                ASUtils.showExceptionDialogNoReport(Messages.getString("OpenProjectAction.errorLoadingFile"), e1); //$NON-NLS-1$
+            }
 
+        }
+    };
+    
+    public static void setFileLoader(FileLoader loader) {
+        fileLoader = loader;
+    }
+    
+    public static FileLoader getFileLoader() {
+        return fileLoader;
     }
 
+    public OpenProjectAction(ArchitectFrame frame) {
+        super(frame, Messages.getString("OpenProjectAction.name"), Messages.getString("OpenProjectAction.description"), "folder"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit()
+                .getMenuShortcutKeyMask()));
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
+        chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
+        int returnVal = chooser.showOpenDialog(frame);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File f = chooser.getSelectedFile();
+            try {
+                fileLoader.openAsynchronously(getSession().getContext().createSession(), f, getSession());
+            } catch (SQLObjectException ex) {
+                SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
+                        Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
+            }
+        }
+    }
+    
     /**
      * A worker for asynchronously loading a new project file.
      */
-    private static class LoadFileWorker extends SPSwingWorker {
+    public static class LoadFileWorker extends SPSwingWorker {
         private final ArchitectSwingSessionContext context;
 
         private final InputStream in;
