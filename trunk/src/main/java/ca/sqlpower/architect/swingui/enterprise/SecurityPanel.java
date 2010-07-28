@@ -256,7 +256,7 @@ public class SecurityPanel {
         if (groupOrUser instanceof Group) {
             groupOrUserEditPanel = new GroupEditorPanel((Group) groupOrUser, username, closeAction);
         } else if (groupOrUser instanceof User) {
-            groupOrUserEditPanel = new UserEditorPanel((User) groupOrUser, username, closeAction, dialog, session);
+            groupOrUserEditPanel = new UserEditorPanel((User) groupOrUser, username, closeAction, session);
         } else {
             throw new IllegalStateException("Argument must be instance of Group or User");
         }
