@@ -1481,6 +1481,10 @@ public class ArchitectFrame extends JFrame {
         return editTableAction;
     }
     
+    public void setEditTableAction(EditTableAction editTableAction) {
+        this.editTableAction = editTableAction;
+    }
+    
     public InsertColumnAction getInsertColumnAction() {
         return insertColumnAction;
     }
