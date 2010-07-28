@@ -24,11 +24,14 @@ import java.io.InputStreamReader;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.security.AccessDeniedException;
 
 public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
+    
+    private static final Logger logger = Logger.getLogger(JSONResponseHandler.class);
 
     /*
      * Unsuccessful responses should have information sent in a header, 
@@ -60,6 +63,13 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
     }
     
     public JSONMessage handleResponse(String json, int status) {
+        if (status == 500) {
+            logger.error("Internal server error: " + json);
+            throw new RuntimeException("Internal Server Error. See logs for more details.");
+        } else if (status == 404) {
+            throw new RuntimeException("Server resource is not available.");
+        }
+        
         try {
             JSONObject message = new JSONObject(json);
             

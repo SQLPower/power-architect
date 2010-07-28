@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +22,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
@@ -34,6 +37,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -81,6 +85,7 @@ import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
@@ -484,6 +489,73 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             httpClient.getConnectionManager().shutdown();
         }
         
+	}
+
+    /**
+     * This method can update any users password on the server given the correct
+     * old password and done by a user with the privileges to change the user's
+     * password.
+     * 
+     * @param session
+     *            The client session that has the correct server information to
+     *            post requests to the server.
+     * @param username
+     *            The user name of the user to update.
+     * @param oldPassword
+     *            The old password of the user to validate that the password can
+     *            be updated correctly.
+     * @param newPassword
+     *            The new password to update to.
+     * @param upf
+     *            A user prompter to display message and error information to
+     *            the user as necessary.
+     */
+	public static void updateUserPassword(ArchitectClientSideSession session, String username, 
+	        String oldPassword, String newPassword, UserPrompterFactory upf) {
+	    SPServerInfo serviceInfo = session.getProjectLocation().getServiceInfo();
+        
+        HttpClient client = ArchitectClientSideSession.createHttpClient(serviceInfo);
+        
+        MessageDigest digester;
+        try {
+            digester = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        try {
+            JSONObject json = new JSONObject();
+            json.put("username", username);
+            json.put("oldPassword", new String(Hex.encodeHex(digester.digest(oldPassword.getBytes()))));
+            json.put("newPassword", new String(Hex.encodeHex(digester.digest(newPassword.getBytes()))));
+            
+            URI serverURI = new URI("http", null, 
+                    serviceInfo.getServerAddress(), 
+                    serviceInfo.getPort(),
+                    serviceInfo.getPath() + "/" + REST_TAG + "/project/system/change_password", 
+                    null, null);
+            HttpPost postRequest = new HttpPost(serverURI);
+            postRequest.setEntity(new StringEntity(json.toString())); 
+            postRequest.setHeader("Content-Type", "application/json");
+            HttpUriRequest request = postRequest;
+            client.execute(request, new JSONResponseHandler());
+        } catch (AccessDeniedException ex) {
+            logger.warn("Failed password change", ex);
+            upf.createUserPrompter("The password you have entered is incorrect.", 
+                    UserPromptType.MESSAGE, 
+                    UserPromptOptions.OK, 
+                    UserPromptResponse.OK, 
+                    "OK", "OK").promptUser("");
+        } catch (Exception ex) {
+            logger.warn("Failed password change", ex);
+            upf.createUserPrompter(
+                    "Could not change the password due to the following: " + 
+                    ex.getMessage() + " See logs for more details.", 
+                    UserPromptType.MESSAGE, 
+                    UserPromptOptions.OK, 
+                    UserPromptResponse.OK, 
+                    "OK", "OK").promptUser("");
+        }
 	}
 	
 	public void persistRevisionFromServer(int revisionNo, SPJSONMessageDecoder targetDecoder)
