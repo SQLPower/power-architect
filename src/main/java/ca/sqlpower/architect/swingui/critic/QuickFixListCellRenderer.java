@@ -53,7 +53,9 @@ public class QuickFixListCellRenderer extends DefaultTableCellRenderer {
             if (((List<?>) value).isEmpty()) {
                 return new JLabel(NO_QUICK_FIX_IMAGE);
             } else {
-                return new JLabel(QUICK_FIX_IMAGE);
+                JLabel label = new JLabel(QUICK_FIX_IMAGE);
+                label.setText("Fix");
+                return label;
             }
         } else {
             return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
