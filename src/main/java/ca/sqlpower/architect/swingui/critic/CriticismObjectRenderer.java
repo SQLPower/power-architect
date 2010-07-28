@@ -21,12 +21,19 @@ package ca.sqlpower.architect.swingui.critic;
 
 import java.awt.Component;
 
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.JDBCDataSourceType;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 
 /**
  * Renderer for Objects displayed in the critic table. 
@@ -36,7 +43,36 @@ public class CriticismObjectRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
             int row, int column) {
-        return super.getTableCellRendererComponent(table, getVisibleText(value), isSelected, hasFocus, row, column);
+        String visibleText = getVisibleText(value);
+        Component originalComponent = super.getTableCellRendererComponent(table, visibleText, 
+                isSelected, hasFocus, row, column);
+        JLabel label = new JLabel();
+        label.setFont(originalComponent.getFont());
+        label.setText(visibleText);
+        if (value instanceof SQLTable) {
+            label.setIcon(DBTreeCellRenderer.TABLE_ICON);
+            return label;
+        } else if (value instanceof SQLIndex) {
+            SQLIndex index = (SQLIndex) value;
+            if (index.isPrimaryKeyIndex()) {
+                label.setIcon(DBTreeCellRenderer.PK_ICON);
+            } else {
+                label.setIcon(DBTreeCellRenderer.INDEX_ICON);
+            }
+            label.setText(visibleText);
+            return label;
+        } else if (value instanceof SQLColumn) {
+            label.setIcon(DBTreeCellRenderer.COLUMN_ICON);
+            return label;
+        } else if (value instanceof SQLRelationship) {
+            label.setIcon(DBTreeCellRenderer.EXPORTED_KEY_ICON);
+            return label;
+        } else if (value instanceof SQLImportedKey) {
+            label.setIcon(DBTreeCellRenderer.IMPORTED_KEY_ICON);
+            return label;
+        } else {
+            return originalComponent;
+        }
     }
 
     /**
@@ -46,6 +82,48 @@ public class CriticismObjectRenderer extends DefaultTableCellRenderer {
     public static String getVisibleText(Object value) {
         if (value == null) {
             return "";
+        } else if (value instanceof SQLTable) {
+            return ((SQLTable) value).getName();
+        } else if (value instanceof SQLIndex) {
+            SQLIndex index = (SQLIndex) value;
+            StringBuffer text = new StringBuffer();
+            if (index.getParent() != null) {
+                text.append(index.getParent().getName() + ".");
+            } else {
+                text.append("(no parent).");
+            }
+            text.append(index.getName());
+            return text.toString();
+        } else if (value instanceof SQLColumn) {
+            SQLColumn sqlColumn = (SQLColumn) value;
+            StringBuffer text = new StringBuffer();
+            if (sqlColumn.getParent() != null) {
+                text.append(sqlColumn.getParent().getName() + ".");
+            } else {
+                text.append("(no parent).");
+            }
+            text.append(sqlColumn.getName());
+            return text.toString();
+        } else if (value instanceof SQLRelationship) {
+            SQLRelationship relation = (SQLRelationship) value;
+            StringBuffer text = new StringBuffer();
+            if (relation.getParent() != null) {
+                text.append(relation.getParent().getName() + ".");
+            } else {
+                text.append("(no parent).");
+            }
+            text.append(relation.getName());
+            return text.toString();
+        } else if (value instanceof SQLImportedKey) {
+            SQLRelationship relation = (SQLRelationship) value;
+            StringBuffer text = new StringBuffer();
+            if (relation.getParent() != null) {
+                text.append(relation.getParent().getName() + ".");
+            } else {
+                text.append("(no parent).");
+            }
+            text.append(relation.getName());
+            return text.toString();
         } else if (value instanceof SQLObject) {
             String name = ((SQLObject) value).getShortDisplayName();
             if (name == null || name.trim().length() == 0) {

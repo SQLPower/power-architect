@@ -125,6 +125,9 @@ public class ExportDDLAction extends AbstractArchitectAction {
                     explanation.setPreferredSize(new Dimension(0, 0));
                     builder.append(explanation);
                     
+                    builder.appendRow("10dlu");
+                    builder.nextLine();
+                    
                     builder.appendRow("fill:pref:grow");
                     builder.nextLine();
                     
