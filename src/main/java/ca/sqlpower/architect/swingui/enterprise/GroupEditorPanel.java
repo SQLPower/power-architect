@@ -45,7 +45,7 @@ import ca.sqlpower.enterprise.client.GroupMember;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.swingui.DataEntryPanel;
 
-import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.builder.ButtonBarBuilder2;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -210,11 +210,11 @@ public class GroupEditorPanel implements DataEntryPanel {
         bottomBuilder.add(new JLabel("System Privileges"), cc.xy(1, 1));
         bottomBuilder.add(privilegesEditorPanel.getPanel(), cc.xy(1, 3));
         
-        ButtonBarBuilder bbb = ButtonBarBuilder.createLeftToRightBuilder();
+        ButtonBarBuilder2 bbb = ButtonBarBuilder2.createLeftToRightBuilder();
         bbb.addGlue();
-        bbb.addGridded(new JButton(okAction));
+        bbb.addButton(new JButton(okAction));
         bbb.addRelatedGap();
-        bbb.addGridded(new JButton(cancelAction));
+        bbb.addButton(new JButton(cancelAction));
         
         bottomBuilder.add(bbb.getPanel(), cc.xy(3, 3));
         builder.add(bottomBuilder.getPanel(), cc.xy(1, 5));
@@ -226,8 +226,14 @@ public class GroupEditorPanel implements DataEntryPanel {
         disableIfNecessary();
     }
     
+    /**
+     * Calling this method will update the two lists of available and existing
+     * groups a user can be in.
+     * <p>
+     * XXX This is almost identical to the one in UserEditorPanel
+     */
     private void fillUserLists() {
-        List<User> users = securityWorkspace.getChildren(User.class);
+        List<User> users = new ArrayList<User>(securityWorkspace.getChildren(User.class));
         List<GroupMember> groupMembers = group.getChildren(GroupMember.class);
         
         List<User> toRemove = new ArrayList<User>();
