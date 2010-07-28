@@ -45,6 +45,11 @@ import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 
+/**
+ * This {@link Action} create a {@link JDialog} with an embedded
+ * {@link TableEditPanel} inside of it. This dialog is specifically tied to the
+ * {@link SQLTable} it is editing and its corresponding {@link TablePane}.
+ */
 public class EditTableAction extends AbstractArchitectAction {
     
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
@@ -125,9 +130,19 @@ public class EditTableAction extends AbstractArchitectAction {
      * The {@link JDialog} this {@link Action} creates.
      */
 	protected JDialog editDialog;
-	
+
+    /**
+     * The {@link TableEditPanel} that is embedded inside the
+     * {@link #editDialog}.
+     */
 	private TableEditPanel tableEditPanel;
 
+    /**
+     * Creates a new {@link EditTableAction}.
+     * 
+     * @param frame
+     *            The {@link ArchitectFrame} this {@link Action} is tied to.
+     */
 	public EditTableAction(ArchitectFrame frame) {
 	    super(frame, Messages.getString("EditTableAction.name"), Messages.getString("EditTableAction.description"), "edit_table"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
@@ -171,18 +186,49 @@ public class EditTableAction extends AbstractArchitectAction {
 	  		// unknown action command source, do nothing
 		}	
 	}
-	
-	public void makeDialog(SQLTable table) {
+
+    /**
+     * Makes a {@link JDialog} with a {@link TableEditPanel} embedded inside of
+     * it, and sets it to {@link #editDialog}.
+     * 
+     * @param table
+     *            The {@link SQLTable} that is being edited.
+     */
+	protected void makeDialog(SQLTable table) {
 	    DataEntryPanel panel = makeDataEntryPanel(table);
 		editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 		        panel, frame,
-				Messages.getString("EditTableAction.dialogTitle"), DataEntryPanelBuilder.OK_BUTTON_LABEL); //$NON-NLS-1$ //$NON-NLS-2$
+				Messages.getString("EditTableAction.dialogTitle"), 
+				DataEntryPanelBuilder.OK_BUTTON_LABEL); //$NON-NLS-1$ //$NON-NLS-2$
 		editDialog.pack();
 		editDialog.setLocationRelativeTo(frame);
 		editDialog.setVisible(true);
 	}
-	
-	public DataEntryPanel makeDataEntryPanel(SQLTable table) {
+
+    /**
+     * Makes a {@link DataEntryPanel} that is or contains the
+     * {@link TableEditPanel} that edits the {@link SQLTable} to embed inside of
+     * the {@link #editDialog} {@link JDialog}.
+     * 
+     * @param table
+     *            The {@link SQLTable} that is being edited.
+     * @return The {@link DataEntryPanel}.
+     */
+	protected DataEntryPanel makeDataEntryPanel(SQLTable table) {
+	    return makeTableEditPanel(table);
+	}
+
+    /**
+     * Makes a {@link TableEditPanel} that edits a {@link SQLTable}. If there
+     * are any incoming changes to the {@link SQLTable} or its corresponding
+     * {@link TablePane}, an error will be flagged on the panel notifying the
+     * user to close and reopen the dialog to prevent conflicting changes.
+     * 
+     * @param table
+     *            The {@link SQLTable} that is being edited.
+     * @return The {@link TableEditPanel}.
+     */
+	protected TableEditPanel makeTableEditPanel(SQLTable table) {
 	    tableEditPanel = new TableEditPanel(getSession(), table);
 	    table.addSPListener(sqlTableListener);
 	    tableEditPanel.getTablePane().addSPListener(tablePaneListener);
