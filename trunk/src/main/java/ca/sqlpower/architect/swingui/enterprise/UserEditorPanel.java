@@ -66,7 +66,7 @@ import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
-import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.builder.ButtonBarBuilder2;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -249,9 +249,9 @@ public class UserEditorPanel implements DataEntryPanel{
                 dialogBuilder.add(new JLabel("Confirm your password"), cc.xy(1, 5));
                 dialogBuilder.add(newPasswordFiled2, cc.xy(1, 6));
                 
-                ButtonBarBuilder bbb = ButtonBarBuilder.createLeftToRightBuilder();
+                ButtonBarBuilder2 bbb = ButtonBarBuilder2.createLeftToRightBuilder();
                 bbb.addGlue();
-                bbb.addGridded(new JButton(new AbstractAction("OK") {
+                bbb.addButton(new JButton(new AbstractAction("OK") {
                     public void actionPerformed(ActionEvent e) {
                         if (newPasswordField.getText().equals(newPasswordFiled2.getText())) {
                             SPServerInfo serviceInfo = ((ArchitectClientSideSession) securityWorkspace.getSession())
@@ -296,7 +296,7 @@ public class UserEditorPanel implements DataEntryPanel{
                     }
                 }));
                 bbb.addRelatedGap();
-                bbb.addGridded(new JButton(new AbstractAction("Cancel") {
+                bbb.addButton(new JButton(new AbstractAction("Cancel") {
                     public void actionPerformed(ActionEvent e) {
                         dialog.dispose();
                     }
@@ -312,9 +312,9 @@ public class UserEditorPanel implements DataEntryPanel{
             }
         });
         
-        ButtonBarBuilder passwordBuilder = ButtonBarBuilder.createLeftToRightBuilder();
+        ButtonBarBuilder2 passwordBuilder = ButtonBarBuilder2.createLeftToRightBuilder();
         passwordBuilder.addGlue();
-        passwordBuilder.addGridded(passwordButton);
+        passwordBuilder.addButton(passwordButton);
             
         DefaultFormBuilder buttonPanelBuilder = new DefaultFormBuilder(new FormLayout(
                 "pref", "pref:grow, pref, 5dlu, pref, pref:grow"));
@@ -338,11 +338,11 @@ public class UserEditorPanel implements DataEntryPanel{
         bottomBuilder.add(new JLabel("System Privileges"), cc.xy(1, 1));
         bottomBuilder.add(privilegesEditorPanel.getPanel(), cc.xy(1, 3));
         
-        ButtonBarBuilder bbb = ButtonBarBuilder.createLeftToRightBuilder();
+        ButtonBarBuilder2 bbb = ButtonBarBuilder2.createLeftToRightBuilder();
         bbb.addGlue();
-        bbb.addGridded(new JButton(okAction));
+        bbb.addButton(new JButton(okAction));
         bbb.addRelatedGap();
-        bbb.addGridded(new JButton(cancelAction));
+        bbb.addButton(new JButton(cancelAction));
         
         bottomBuilder.add(bbb.getPanel(), cc.xy(3, 3));
         builder.add(bottomBuilder.getPanel(), cc.xy(1, 6));
@@ -353,9 +353,13 @@ public class UserEditorPanel implements DataEntryPanel{
         fillGroupLists();
         disableIfNecessary();
     }
-    
+
+    /**
+     * Calling this method will update the two lists of available and existing
+     * groups a user can be in.
+     */
     private void fillGroupLists() {
-        List<Group> availableGroups = securityWorkspace.getChildren(Group.class);
+        List<Group> availableGroups = new ArrayList<Group>(securityWorkspace.getChildren(Group.class));
         List<Group> currentGroups = new ArrayList<Group>();
         
         for (Group group : availableGroups) {
