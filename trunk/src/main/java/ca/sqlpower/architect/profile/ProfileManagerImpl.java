@@ -303,6 +303,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     
     public void addTableProfileResult(TableProfileResult child) {
         results.add(child);
+        child.setParent(this);
         fireProfilesAdded(Collections.singletonList(child));
     }
     

@@ -430,7 +430,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         }               
         
     }
-
+    
     public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name, ArchitectSession session)
     throws URISyntaxException, ClientProtocolException, IOException, JSONException {
         

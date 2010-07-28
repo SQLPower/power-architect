@@ -283,7 +283,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
                 try {
-                    OpenProjectAction.openAsynchronously(getContext().createSession(), f, ArchitectSwingSessionImpl.this);
+                    OpenProjectAction.getFileLoader().openAsynchronously(getContext().createSession(), f, ArchitectSwingSessionImpl.this);
                 } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }
@@ -620,6 +620,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             saveTask.run();
             return saveTask.success;
         }
+    }
+    
+    public Executor getSaveExecutor() {
+        return saveExecutor;
     }
 
     // STUFF BROUGHT IN FROM SwingUIProject

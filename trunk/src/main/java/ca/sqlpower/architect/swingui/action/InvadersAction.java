@@ -34,6 +34,7 @@ import java.util.Random;
 
 import javax.swing.Timer;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
@@ -49,8 +50,8 @@ import ca.sqlpower.swingui.SPSUtils;
 
 public class InvadersAction extends AbstractArchitectAction {
 
-    public InvadersAction(ArchitectSwingSession session) {
-        super(session, "Architect Invaders", "Defend your data model against interplanetary attack");
+    public InvadersAction(ArchitectFrame frame) {
+        super(frame, "Architect Invaders", "Defend your data model against interplanetary attack");
     }
     
     public void actionPerformed(ActionEvent e) {
