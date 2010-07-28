@@ -23,7 +23,6 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
@@ -58,7 +57,7 @@ public class CriticismTableModel extends AbstractTableModel {
     }
     
     public int getColumnCount() {
-        return 6;
+        return 5;
     }
     
     @Override
@@ -66,10 +65,8 @@ public class CriticismTableModel extends AbstractTableModel {
         if (column == 1) {
             return "Object";
         } else if (column == 2) {
-            return "Object Type";
-        } else if (column == 3) {
             return "Critic Type";
-        } else if (column == 4) {    
+        } else if (column == 3) {    
             return "Description";
         } else {
             return null;
@@ -87,8 +84,6 @@ public class CriticismTableModel extends AbstractTableModel {
         } else if (columnIndex == 3) {
             return String.class;
         } else if (columnIndex == 4) {
-            return String.class;
-        } else if (columnIndex == 5) {
             return List.class;
         } else {
             return null;
@@ -109,15 +104,13 @@ public class CriticismTableModel extends AbstractTableModel {
         } else if (columnIndex == 1) {
             return rowVal.getSubject();
         } else if (columnIndex == 2) {
-            return ArchitectUtils.convertClassToString(rowVal.getSubject().getClass());
-        } else if (columnIndex == 3) {
             //All critics in Architect are currently CriticAndSettings objects
             //In the future we may want to look up the settings in the critic
             //manager but since we already have the object that would be overkill.
             return ((CriticAndSettings) rowVal.getCritic()).getPlatformType();
-        } else if (columnIndex == 4) {
+        } else if (columnIndex == 3) {
             return rowVal.getDescription();
-        } else if (columnIndex == 5) {
+        } else if (columnIndex == 4) {
             return rowVal.getFixes();
         } else {
             throw new IllegalArgumentException(

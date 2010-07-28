@@ -28,6 +28,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.text.Document;
 
 import ca.sqlpower.architect.ddl.critic.CriticismBucket;
@@ -92,6 +93,7 @@ public class CriticSwingUtil {
         final QuickFixListCellRenderer renderer = new QuickFixListCellRenderer();
         errorTable.setDefaultRenderer(List.class, renderer);
         errorTable.setDefaultRenderer(Object.class, new CriticismObjectRenderer());
+        errorTable.setAlignmentX(JTable.LEFT_ALIGNMENT);
         
         //Sorts the objects by their name. This can be more fancy if we desire in 
         //the future but works as a decent default for now.

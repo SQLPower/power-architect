@@ -49,16 +49,21 @@ public class QuickFixListCellRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, final Object value, boolean isSelected, boolean hasFocus,
             int row, int column) {
+        Component originalComponent = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (value instanceof List<?>) {
             if (((List<?>) value).isEmpty()) {
-                return new JLabel(NO_QUICK_FIX_IMAGE);
+                JLabel label = new JLabel();
+                label.setIcon(NO_QUICK_FIX_IMAGE);
+                return label;
             } else {
-                JLabel label = new JLabel(QUICK_FIX_IMAGE);
+                JLabel label = new JLabel();
+                label.setIcon(QUICK_FIX_IMAGE);
                 label.setText("Fix");
+                label.setFont(originalComponent.getFont());
                 return label;
             }
         } else {
-            return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            return originalComponent;
         }
     }
     
