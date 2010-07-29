@@ -22,6 +22,8 @@ package ca.sqlpower.architect.swingui.enterprise;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -33,8 +35,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
@@ -97,7 +97,7 @@ public class CompareRevisionsPanel {
         
         final JCheckBox autoCompare = new JCheckBox("Auto-compare", true);
                 
-        final ListSelectionListener changeListener = new ListSelectionListener() {            
+        final ListSelectionListener listSelectionListener = new ListSelectionListener() {            
             public void valueChanged(ListSelectionEvent e) {
                 refreshPanel();
                 if (autoCompare.isSelected()
@@ -108,13 +108,14 @@ public class CompareRevisionsPanel {
             }
         };
         
-        autoCompare.addChangeListener(new ChangeListener() {            
-            public void stateChanged(ChangeEvent e) {
-                changeListener.valueChanged(null);
+        autoCompare.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                listSelectionListener.valueChanged(null);
             }
-        });       
-        revisionsTableLeft.getSelectionModel().addListSelectionListener(changeListener);
-        revisionsTableRight.getSelectionModel().addListSelectionListener(changeListener);
+        });
+        revisionsTableLeft.getSelectionModel().addListSelectionListener(listSelectionListener);
+        revisionsTableRight.getSelectionModel().addListSelectionListener(listSelectionListener);
         
         comparePane = new JTextPane();
         comparePane.setEditable(false);
