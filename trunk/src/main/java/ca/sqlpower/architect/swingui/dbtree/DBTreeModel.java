@@ -339,6 +339,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 return false;
             } else if (!showPlayPenDatabase && spObject instanceof SQLDatabase) {
                 return ((SQLDatabase) spObject).isPlayPenDatabase();
+            } else if (!showPlayPenDatabase && SQLPowerUtils.getAncestor(spObject, SQLDatabase.class).isPlayPenDatabase()) {
+                return false;
             } else if (!showColumns && spObject instanceof SQLColumn) {
                 return false;
             } else if (!showRelationships && spObject instanceof SQLRelationship) {
