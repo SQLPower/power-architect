@@ -326,7 +326,17 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         colSourceTree.setModel(sourceTreeModel);
         colSourceTree.setRootVisible(false);
         colSourceTree.setShowsRootHandles(true);
-        colSourceTree.setCellRenderer(new DBTreeCellRenderer());
+        colSourceTree.setCellRenderer(new DBTreeCellRenderer() {
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
+                    boolean leaf, int row, boolean hasFocus) {
+                super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+                if (!sel && value == sourceNotSpecifiedTreeNode) {
+                    setForeground(getTextNonSelectionColor());
+                }
+                return this;
+            }
+        });
         colSourceTree.getSelectionModel().setSelectionMode(
                 TreeSelectionModel.SINGLE_TREE_SELECTION);
         
