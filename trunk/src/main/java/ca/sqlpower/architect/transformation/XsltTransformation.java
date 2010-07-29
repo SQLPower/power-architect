@@ -96,14 +96,8 @@ public class XsltTransformation
 	 */
 	public void transform(InputStream xsltStylesheet, File output, ArchitectSwingSession session)
 	  throws Exception {
-
-		File project = session.getProjectLoader().getFile();
-		if (project != null) {
-		    projectDir = project.getParentFile();
-		}
-		
 		ByteArrayOutputStream sessionAsStream = new ByteArrayOutputStream();
-		session.getProjectLoader().save(sessionAsStream, "utf-8");
+		session.getSaveBehaviour().saveToStream(session, sessionAsStream);
 
 		Source xmlSource = new StreamSource(new ByteArrayInputStream(sessionAsStream.toByteArray()));
 		Source xsltSource = new StreamSource(xsltStylesheet);

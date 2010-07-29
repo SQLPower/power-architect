@@ -530,4 +530,16 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public ArchitectStatusBar getStatusInformation() {
         return null;
     }
+
+    @Override
+    public void setSaveBehaviour(Saver saveBehaviour) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public Saver getSaveBehaviour() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

@@ -27,6 +27,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -115,7 +116,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionImpl.class);
     
     private static final Executor saveExecutor = new ScheduledThreadPoolExecutor(1);
-
+    
     private final ArchitectSwingSessionContext context;
 
     /**
@@ -135,6 +136,62 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private JScrollPane playPenScrollPane;
 
+    private Saver saveBehaviour = new Saver() {
+        public boolean save(ArchitectSwingSession session, boolean showChooser, boolean separateThread) {
+            final boolean finalSeparateThread = separateThread;
+            final ProgressMonitor pm = new ProgressMonitor
+            (frame, Messages.getString("ArchitectSwingSessionImpl.saveProgressDialogTitle"), "", 0, 100); //$NON-NLS-1$ //$NON-NLS-2$
+
+            class SaverTask implements Runnable {
+                boolean success;
+
+                public void run() {
+                    SwingUIProjectLoader project = getProjectLoader();
+                    try {
+                        success = false;
+                        if (finalSeparateThread) {
+                            SwingUtilities.invokeAndWait(new Runnable() {
+                                public void run() {
+                                    getArchitectFrame().setEnableSaveOption(false);
+                                }
+                            });
+                        }
+                        project.setSaveInProgress(true);
+                        project.save(finalSeparateThread ? pm : null);
+                        success = true;
+                    } catch (Exception ex) {
+                        success = false;
+                        ASUtils.showExceptionDialog(
+                                ArchitectSwingSessionImpl.this,
+                                Messages.getString("ArchitectSwingSessionImpl.cannotSaveProject")+ex.getMessage(), ex); //$NON-NLS-1$
+                    } finally {
+                        project.setSaveInProgress(false);
+                        if (finalSeparateThread) {
+                            SwingUtilities.invokeLater(new Runnable() {
+                                public void run() {
+                                    getArchitectFrame().setEnableSaveOption(true);
+                                }
+                            });
+                        } 
+                    }
+                }
+            }
+            SaverTask saveTask = new SaverTask();
+            if (separateThread) {
+                saveExecutor.execute(saveTask);
+                return true; // this is an optimistic lie
+            } else {
+                saveTask.run();
+                return saveTask.success;
+            }
+        }
+
+        @Override
+        public void saveToStream(ArchitectSwingSession session, OutputStream out) throws IOException {
+            session.getProjectLoader().save(out, "utf-8");
+        }
+    };
+    
     /**
      * The menu of recently-opened project files on this system.
      */
@@ -574,52 +631,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 setName(projName);
             }
         }
-        final boolean finalSeparateThread = separateThread;
-        final ProgressMonitor pm = new ProgressMonitor
-        (frame, Messages.getString("ArchitectSwingSessionImpl.saveProgressDialogTitle"), "", 0, 100); //$NON-NLS-1$ //$NON-NLS-2$
-
-        class SaverTask implements Runnable {
-            boolean success;
-
-            public void run() {
-                SwingUIProjectLoader project = getProjectLoader();
-                try {
-                    success = false;
-                    if (finalSeparateThread) {
-                        SwingUtilities.invokeAndWait(new Runnable() {
-                            public void run() {
-                                getArchitectFrame().setEnableSaveOption(false);
-                            }
-                        });
-                    }
-                    project.setSaveInProgress(true);
-                    project.save(finalSeparateThread ? pm : null);
-                    success = true;
-                } catch (Exception ex) {
-                    success = false;
-                    ASUtils.showExceptionDialog(
-                            ArchitectSwingSessionImpl.this,
-                            Messages.getString("ArchitectSwingSessionImpl.cannotSaveProject")+ex.getMessage(), ex); //$NON-NLS-1$
-                } finally {
-                    project.setSaveInProgress(false);
-                    if (finalSeparateThread) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                getArchitectFrame().setEnableSaveOption(true);
-                            }
-                        });
-                    } 
-                }
-            }
-        }
-        SaverTask saveTask = new SaverTask();
-        if (separateThread) {
-            saveExecutor.execute(saveTask);
-            return true; // this is an optimistic lie
-        } else {
-            saveTask.run();
-            return saveTask.success;
-        }
+        return saveBehaviour.save(this, showChooser, separateThread);
     }
     
     public Executor getSaveExecutor() {
@@ -849,6 +861,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             profileDialogPacked = true;
         }
         return profileDialog;
+    }
+    
+    public void setSaveBehaviour(Saver saveBehaviour) {
+        this.saveBehaviour = saveBehaviour;
+    }
+    
+    public Saver getSaveBehaviour() {
+        return saveBehaviour;
     }
 
     /**

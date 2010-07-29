@@ -829,7 +829,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
      * @throws IOException
      * @throws SQLObjectException
      */
-    public void save(PrintWriter out, String encoding) throws IOException, SQLObjectException {
+    public void save(PrintWriter out, String encoding) throws IOException {
         sqlObjectSaveIdMap = new IdentityHashMap<SQLObject, String>();
         olapObjectSaveIdMap = new IdentityHashMap<OLAPObject, String>();
         dbcsSaveIdMap = new HashMap<SPDataSource, String>();
@@ -866,9 +866,6 @@ public class SwingUIProjectLoader extends ProjectLoader {
         } catch (IOException e) {
             ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
-        } catch (SQLObjectException e) {
-            ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
-            throw e;
         } catch (RuntimeException e) {
             ioo.println(out, new ExceptionReport(e, "", ArchitectVersion.APP_FULL_VERSION.toString(), "Architect").toXML());
             throw e;
@@ -877,7 +874,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         }
     }
 
-    public void save(OutputStream out, String encoding) throws IOException, SQLObjectException {
+    public void save(OutputStream out, String encoding) throws IOException {
         save(new PrintWriter(new OutputStreamWriter(out, encoding)), encoding);
     }
     
@@ -931,7 +928,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.indent--;
     }
     
-    private void saveDataSources(PrintWriter out) throws IOException, SQLObjectException {
+    private void saveDataSources(PrintWriter out) throws IOException {
         // FIXME this needs work.  It should include everything we need in order to build
         //       the referenced parent type from scratch (except the jdbc driver path)
         //       and the code that loads a project should check if the referenced parent
@@ -1088,7 +1085,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
      * or more &lt;database&gt; elements.
      * @param out2
      */
-    private void saveSourceDatabases(PrintWriter out) throws IOException, SQLObjectException {
+    private void saveSourceDatabases(PrintWriter out) throws IOException {
         ioo.println(out, "<source-databases>"); //$NON-NLS-1$
         ioo.indent++;
         SQLObject dbTreeRoot = (SQLObject) getSession().getDBTree().getModel().getRoot();
@@ -1107,7 +1104,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
      * Recursively walks through the children of db, writing to the
      * output file all SQLRelationship objects encountered.
      */
-    private void saveRelationships(PrintWriter out, SQLDatabase db) throws SQLObjectException, IOException {
+    private void saveRelationships(PrintWriter out, SQLDatabase db) throws IOException {
         ioo.println(out, "<relationships>"); //$NON-NLS-1$
         ioo.indent++;
         Iterator<? extends SQLObject> it = db.getChildren().iterator();
@@ -1121,7 +1118,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
     /**
      * The recursive subroutine of saveRelationships.
      */
-    private void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws SQLObjectException, IOException {
+    private void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws IOException {
         if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
             return;
         } else if (o instanceof SQLRelationship) {
@@ -1134,7 +1131,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
         }
     }
 
-    private void saveTargetDatabase(PrintWriter out) throws IOException, SQLObjectException {
+    private void saveTargetDatabase(PrintWriter out) throws IOException {
         SQLDatabase db = (SQLDatabase) getSession().getTargetDatabase();
         ioo.println(out, "<target-database id=\"ppdb\" dbcs-ref="+ //$NON-NLS-1$
                 quote(dbcsSaveIdMap.get(db.getDataSource()))+ ">"); //$NON-NLS-1$
@@ -1396,7 +1393,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
      * is responsible for deferencing the attribute and setting the
      * property manually.
      */
-    private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, SQLObjectException {
+    private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException {
         if (o instanceof SQLRelationship.SQLImportedKey) {
             // ImportedKeys only store the fkTable for a SQLRelationship, which
             // is saved with the relationship for forward compatability.

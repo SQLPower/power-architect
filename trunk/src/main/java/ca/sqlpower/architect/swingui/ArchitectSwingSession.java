@@ -19,6 +19,8 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -50,6 +52,11 @@ import ca.sqlpower.swingui.event.SessionLifecycleListener;
  */
 public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegistry {
    
+    public static interface Saver {
+        public boolean save(ArchitectSwingSession session, boolean showChooser, boolean separateThread);
+        public void saveToStream(ArchitectSwingSession session, OutputStream out) throws IOException;
+    }
+
     /**
      * Returns the context that created this session.
      */
@@ -346,4 +353,8 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public Executor getSaveExecutor();
     
     ArchitectStatusBar getStatusInformation();
+
+    void setSaveBehaviour(Saver saveBehaviour);
+
+    public Saver getSaveBehaviour();
 }
