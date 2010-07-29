@@ -337,10 +337,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
         private boolean isSPObjectRelevant(SPObject spObject) {
             if (!SQLPowerUtils.getAncestorList(spObject).contains(root) && !spObject.equals(root)) {
                 return false;
-            } else if (!showPlayPenDatabase && spObject instanceof SQLDatabase) {
-                return ((SQLDatabase) spObject).isPlayPenDatabase();
-            } else if (!showPlayPenDatabase && SQLPowerUtils.getAncestor(spObject, SQLDatabase.class).isPlayPenDatabase()) {
-                return false;
             } else if (!showColumns && spObject instanceof SQLColumn) {
                 return false;
             } else if (!showRelationships && spObject instanceof SQLRelationship) {
@@ -349,6 +345,15 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 return false;
             } else if (!showIndices && spObject instanceof SQLIndex) {
                 return false;
+            } else if (!showPlayPenDatabase && spObject instanceof SQLDatabase) {
+                return ((SQLDatabase) spObject).isPlayPenDatabase();
+            } else if (!showPlayPenDatabase) {
+                SQLDatabase db = SQLPowerUtils.getAncestor(spObject, SQLDatabase.class);
+                if (db != null && db.isPlayPenDatabase()) {
+                    return false;
+                } else {
+                    return true;
+                }
             } else {
                 return true;
             }
