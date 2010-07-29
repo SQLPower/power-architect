@@ -61,6 +61,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -171,6 +173,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private final JButton colSourceButton;
     
     private final JTree colSourceTree;
+    
+    private final TreeNode sourceNotSpecifiedTreeNode = 
+        new DefaultMutableTreeNode(Messages.getString("ColumnEditPanel.noneSpecified"), false);
 
     private final JTextField colLogicalName;
     
@@ -266,7 +271,58 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         }
         
         colSourceTree = new JTree();
-        DBTreeModel sourceTreeModel = new DBTreeModel(session.getRootObject(), colSourceTree, false, true, false, false, false);
+        DBTreeModel sourceTreeModel = new DBTreeModel(session.getRootObject(), colSourceTree, false, true, false, false, false) {
+            @Override
+            public Object getChild(Object parent, int index) {
+                if (parent == sourceNotSpecifiedTreeNode) {
+                    return null;
+                } else if (parent == getRoot()) {
+                    if (index == 0) {
+                        return sourceNotSpecifiedTreeNode;
+                    } else {
+                        return super.getChild(parent, index - 1);
+                    }
+                } else {
+                    return super.getChild(parent, index);
+                }
+            }
+            @Override
+            public int getChildCount(Object parent) {
+                if (parent == sourceNotSpecifiedTreeNode) {
+                    return 0;
+                } else if (parent == getRoot()) {
+                    return super.getChildCount(parent) + 1;
+                } else {
+                    return super.getChildCount(parent);
+                }
+            }
+            @Override
+            public int getIndexOfChild(Object parent, Object child) {
+                if (parent == sourceNotSpecifiedTreeNode) {
+                    return -1;
+                } else if (child == sourceNotSpecifiedTreeNode) {
+                    return 0;
+                } else if (parent == getRoot()) {
+                    int index = super.getIndexOfChild(parent, child);
+                    if (index != -1) {
+                        return index + 1;
+                    } else {
+                        return -1;
+                    }
+                } else {
+                    return super.getIndexOfChild(parent, child);
+                }
+            }
+            @Override
+            public boolean isLeaf(Object parent) {
+                if (parent == sourceNotSpecifiedTreeNode) {
+                    return true;
+                } else {
+                   return super.isLeaf(parent);
+                }
+            }
+            
+        };
         colSourceTree.setModel(sourceTreeModel);
         colSourceTree.setRootVisible(false);
         colSourceTree.setShowsRootHandles(true);
@@ -705,6 +761,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private void updateComponents(SQLColumn col) throws SQLObjectException {
         SQLColumn sourceColumn = col.getSourceColumn();
         if (sourceColumn == null) {
+            Object[] treePath = {session.getRootObject(), sourceNotSpecifiedTreeNode};
+            colSourceTree.setSelectionPath(new TreePath(treePath));
             colSourceButton.setText(Messages.getString("ColumnEditPanel.noneSpecified")); //$NON-NLS-1$
         } else {
             updateComponent(colSourceTree, sourceColumn);
