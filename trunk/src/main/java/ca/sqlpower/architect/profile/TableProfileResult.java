@@ -283,6 +283,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
             int index = columnProfileResults.indexOf(child);
             if (columnProfileResults.remove(child)) {
                 fireChildRemoved(ColumnProfileResult.class, child, index);
+                child.setParent(null);
             }
         }
         return false;
