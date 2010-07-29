@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JTable;
+import javax.swing.RowSorter;
 import javax.swing.table.TableModel;
 
 /**
@@ -50,9 +51,17 @@ public abstract class RemoveSelectedTableRowsAction extends AbstractAction {
 
     public void actionPerformed(ActionEvent e) {
         if (table.getSelectedRowCount() > 0) {
-            for (int i = table.getSelectedRowCount()-1; i >= 0; i--) {
-                int index = table.getSelectedRows()[i];
-                removeRow(index);
+            RowSorter<? extends TableModel> rowSorter = table.getRowSorter();
+            int[] selectedRows = table.getSelectedRows();
+            
+            if (rowSorter == null) {
+                for (int i = selectedRows.length - 1; i >= 0; i--) {
+                    removeRow(selectedRows[i]);
+                }
+            } else {
+                for (int i = selectedRows.length - 1; i >= 0; i--) {
+                    removeRow(rowSorter.convertRowIndexToModel(selectedRows[i]));
+                }
             }
         }
     }

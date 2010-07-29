@@ -22,8 +22,6 @@ package ca.sqlpower.architect.enterprise;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
@@ -68,8 +66,8 @@ public class BusinessDefinition extends AbstractSPObject {
      */
     @Constructor
     public BusinessDefinition(
-            @ConstructorParameter(propertyName="term") @Nonnull String term,
-            @ConstructorParameter(propertyName="definition") @Nonnull String definition) {
+            @ConstructorParameter(propertyName="term") String term,
+            @ConstructorParameter(propertyName="definition") String definition) {
         setTerm(term);
         this.definition = definition;
     }
