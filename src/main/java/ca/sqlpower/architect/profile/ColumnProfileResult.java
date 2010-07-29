@@ -275,7 +275,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     @Override
     @Mutator
     public void setParent(SPObject parent) {
-        if (!(parent instanceof TableProfileResult)) {
+        if (parent != null && !(parent instanceof TableProfileResult)) {
             throw new IllegalArgumentException("Parent of " + this + " must be of type " + 
                     TableProfileResult.class);
         }
