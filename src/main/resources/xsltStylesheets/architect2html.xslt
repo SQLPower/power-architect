@@ -118,7 +118,7 @@
       <xsl:value-of select="$title"/>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:value-of select="'Power*Architect Datamodel'"/>
+      <xsl:value-of select="'SQL Power Architect Datamodel'"/>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>

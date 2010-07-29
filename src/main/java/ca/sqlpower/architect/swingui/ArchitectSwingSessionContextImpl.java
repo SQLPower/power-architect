@@ -229,7 +229,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public ArchitectSwingSession createServerSession(ProjectLocation projectLocation, boolean autoStartUpdater) throws SQLObjectException {
 
         final ArchitectClientSideSession clientSession = new ArchitectClientSideSession(this, projectLocation.getName(), projectLocation);
-        final ArchitectSwingSessionImpl swingSession = new ArchitectSwingSessionImpl(this, clientSession);
+        final ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
         clientSession.getUpdater().setUserPrompterFactory(new NonModalSwingUIUserPrompterFactory(swingSession.getArchitectFrame()));
         
         clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {

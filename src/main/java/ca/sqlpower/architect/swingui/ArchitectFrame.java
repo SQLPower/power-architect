@@ -177,10 +177,6 @@ public class ArchitectFrame extends JFrame {
 
     public static final double ZOOM_STEP = 0.25;
     
-    public static interface Saver {
-        public boolean save(ArchitectSwingSession session, boolean showChooser);
-    }
-
     private ArchitectSwingSessionContext context;
     private ArchitectSwingSession currentSession = null;
     private List<ArchitectSwingSession> sessions = new ArrayList<ArchitectSwingSession>();
@@ -268,12 +264,6 @@ public class ArchitectFrame extends JFrame {
     private RefreshProjectAction refreshProjectAction;
     
     private List<SelectionListener> selectionListeners = new ArrayList<SelectionListener>();
-    
-    private Saver saveBehaviour = new Saver() {
-        public boolean save(ArchitectSwingSession session, boolean showChooser) {
-            return session.saveOrSaveAs(showChooser, true);
-        }
-    };
     
     private final EditCriticSettingsAction showCriticsManagerAction = new EditCriticSettingsAction(this);
     
@@ -668,7 +658,7 @@ public class ArchitectFrame extends JFrame {
                         Messages.getString("ArchitectFrame.saveProjectActionIconDescription"), //$NON-NLS-1$
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
-                saveBehaviour.save(currentSession, false);
+                currentSession.saveOrSaveAs(false, true);
                 stackedTabPane.setTitleAt(stackedTabPane.getSelectedIndex(), currentSession.getName());
                 setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
             }
@@ -682,7 +672,7 @@ public class ArchitectFrame extends JFrame {
                         Messages.getString("ArchitectFrame.saveProjectAsActionIconDescription"), //$NON-NLS-1$
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
-                saveBehaviour.save(currentSession, true);
+                currentSession.saveOrSaveAs(true, true);
                 stackedTabPane.setTitleAt(stackedTabPane.getSelectedIndex(), currentSession.getName());
                 setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
             }
@@ -695,7 +685,7 @@ public class ArchitectFrame extends JFrame {
                         sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 for (ArchitectSwingSession session : sessions) {
-                    saveBehaviour.save(session, false);
+                    session.saveOrSaveAs(false, true);
                     stackedTabPane.setTitleAt(stackedTabPane.indexOfTab(sessionTabs.get(session)), session.getName());
                 }
                 setTitle(Messages.getString("ArchitectSwingSessionImpl.mainFrameTitle", currentSession.getName())); //$NON-NLS-1$
@@ -1427,10 +1417,6 @@ public class ArchitectFrame extends JFrame {
         newWindowAction.putValue(AbstractAction.ACCELERATOR_KEY, accelKey);
         this.newWindowAction = newWindowAction;
         newWindowMenu.setAction(newWindowAction);
-    }
-    
-    public void setSaveBehaviour(Saver saveBehaviour) {
-        this.saveBehaviour = saveBehaviour;
     }
     
     public ZoomToFitAction getZoomToFitAction() {
