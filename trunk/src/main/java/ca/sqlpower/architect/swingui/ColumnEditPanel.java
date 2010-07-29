@@ -77,15 +77,14 @@ import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
-import ca.sqlpower.sqlobject.SPObjectSnapshotUpdateListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
-import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.swingui.PopupJTreeAction;
@@ -998,6 +997,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                         boolean isDomainSnapshot = upstreamType.getParent() instanceof DomainCategory;
                         UserDefinedSQLTypeSnapshot snapshot;
                         if (upstreamType.getUpstreamType() != null) {
+                            //For domains
                             UserDefinedSQLType upUpStreamType = upstreamType.getUpstreamType();
                             UserDefinedSQLTypeSnapshot upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isDomainSnapshot);
                             session.getWorkspace().addChild(upstreamSnapshot, 0);
@@ -1006,8 +1006,6 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                         } else {
                             snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot);
                         }
-                        SPObjectSnapshotUpdateListener updateListener = new SPObjectSnapshotUpdateListener(snapshot);
-                    	upstreamType.addSPListener(updateListener);
                         session.getWorkspace().addChild(snapshot, 0);
                     	column.getUserDefinedSQLType().setUpstreamType(snapshot.getSPObject());
                     	if ((upstreamType.getParent() instanceof DomainCategory)) {
