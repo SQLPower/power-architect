@@ -77,6 +77,7 @@ import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.sqlobject.SPObjectSnapshotUpdateListener;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -1005,7 +1006,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                         } else {
                             snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot);
                         }
-                    	session.getWorkspace().addChild(snapshot, 0);
+                        SPObjectSnapshotUpdateListener updateListener = new SPObjectSnapshotUpdateListener(snapshot);
+                    	upstreamType.addSPListener(updateListener);
+                        session.getWorkspace().addChild(snapshot, 0);
                     	column.getUserDefinedSQLType().setUpstreamType(snapshot.getSPObject());
                     	if ((upstreamType.getParent() instanceof DomainCategory)) {
                     	    DomainCategory parent = (DomainCategory) upstreamType.getParent();
