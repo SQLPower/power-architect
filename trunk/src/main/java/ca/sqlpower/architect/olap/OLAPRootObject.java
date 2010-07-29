@@ -90,8 +90,8 @@ public class OLAPRootObject extends OLAPObject {
     public OLAPSession removeOLAPSession(int pos) {
         OLAPSession removedItem = olapSessions.remove(pos);
         if (removedItem != null) {
-            removedItem.setParent(null);
             fireChildRemoved(OLAPSession.class, removedItem, pos);
+            removedItem.setParent(null);
         }
         return removedItem;
     }
