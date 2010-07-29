@@ -22,8 +22,6 @@ package ca.sqlpower.architect.enterprise;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
@@ -66,9 +64,9 @@ public class FormulaMetricCalculation extends AbstractSPObject {
      */
     @Constructor
     public FormulaMetricCalculation(
-            @ConstructorParameter(propertyName="name") @Nonnull String name,
-            @ConstructorParameter(propertyName="formula") @Nonnull String formula,
-            @ConstructorParameter(propertyName="description") @Nonnull String description) {
+            @ConstructorParameter(propertyName="name") String name,
+            @ConstructorParameter(propertyName="formula") String formula,
+            @ConstructorParameter(propertyName="description") String description) {
         setName(name);
         this.formula = formula;
         this.description = description;
@@ -125,7 +123,7 @@ public class FormulaMetricCalculation extends AbstractSPObject {
      *            The {@link String} formula. This value cannot be null.
      */
     @Mutator
-    public void setFormula(@Nonnull String formula) {
+    public void setFormula(String formula) {
         String oldFormula = this.formula;
         this.formula = formula;
         firePropertyChange("formula", oldFormula, formula);
@@ -148,7 +146,7 @@ public class FormulaMetricCalculation extends AbstractSPObject {
      *            The {@link String} description of the formula.
      */
     @Mutator
-    public void setDescription(@Nonnull String description) {
+    public void setDescription(String description) {
         String oldDescription = this.description;
         this.description = description;
         firePropertyChange("description", oldDescription, description);
