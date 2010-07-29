@@ -83,46 +83,58 @@ public class CriticismObjectRenderer extends DefaultTableCellRenderer {
         if (value == null) {
             return "";
         } else if (value instanceof SQLTable) {
-            return ((SQLTable) value).getName();
+            return "<html><b>" + ((SQLTable) value).getName() + "</b></html>";
         } else if (value instanceof SQLIndex) {
             SQLIndex index = (SQLIndex) value;
             StringBuffer text = new StringBuffer();
+            text.append("<html>");
             if (index.getParent() != null) {
                 text.append(index.getParent().getName() + ".");
             } else {
                 text.append("(no parent).");
             }
+            text.append("<b>");
             text.append(index.getName());
+            text.append("</b></html>");
             return text.toString();
         } else if (value instanceof SQLColumn) {
             SQLColumn sqlColumn = (SQLColumn) value;
             StringBuffer text = new StringBuffer();
+            text.append("<html>");
             if (sqlColumn.getParent() != null) {
                 text.append(sqlColumn.getParent().getName() + ".");
             } else {
                 text.append("(no parent).");
             }
+            text.append("<b>");
             text.append(sqlColumn.getName());
+            text.append("</b></html>");
             return text.toString();
         } else if (value instanceof SQLRelationship) {
             SQLRelationship relation = (SQLRelationship) value;
             StringBuffer text = new StringBuffer();
+            text.append("<html>");
             if (relation.getParent() != null) {
                 text.append(relation.getParent().getName() + ".");
             } else {
                 text.append("(no parent).");
             }
+            text.append("<b>");
             text.append(relation.getName());
+            text.append("</b></html>");
             return text.toString();
         } else if (value instanceof SQLImportedKey) {
             SQLRelationship relation = (SQLRelationship) value;
             StringBuffer text = new StringBuffer();
+            text.append("<html>");
             if (relation.getParent() != null) {
                 text.append(relation.getParent().getName() + ".");
             } else {
                 text.append("(no parent).");
             }
+            text.append("<b>");
             text.append(relation.getName());
+            text.append("</b></html>");
             return text.toString();
         } else if (value instanceof SQLObject) {
             String name = ((SQLObject) value).getShortDisplayName();
