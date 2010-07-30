@@ -86,7 +86,12 @@ public class ArchitectProject extends AbstractSPObject {
     private List<User> users = new ArrayList<User>();
     private List<Group> groups = new ArrayList<Group>();
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
-    private final List<SPObjectSnapshot<?>> sqlTypeSnapshots = new ArrayList<SPObjectSnapshot<?>>();
+
+    /**
+     * The list of all snapshots in our current system. This includes types,
+     * domains, and domain category snapshots.
+     */
+    private final List<SPObjectSnapshot<?>> spobjectSnapshots = new ArrayList<SPObjectSnapshot<?>>();
     private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
     
     // Metadata children
@@ -253,7 +258,7 @@ public class ArchitectProject extends AbstractSPObject {
             return removeSQLType((UserDefinedSQLType) child);
         } else if (child instanceof DomainCategory) {
             return removeDomainCategory((DomainCategory) child);
-        } else if (child instanceof SPObjectSnapshot) {
+        } else if (child instanceof SPObjectSnapshot<?>) {
             return removeSPObjectSnapshot((SPObjectSnapshot<?>) child);
         } else if (child instanceof BusinessDefinition) {
             return removeBusinessDefinition((BusinessDefinition) child);
@@ -304,8 +309,8 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     public boolean removeSPObjectSnapshot(SPObjectSnapshot<?> child) {
-        int index = sqlTypeSnapshots.indexOf(child);
-        boolean removed = sqlTypeSnapshots.remove(child);
+        int index = spobjectSnapshots.indexOf(child);
+        boolean removed = spobjectSnapshots.remove(child);
         if (removed) {
             fireChildRemoved(SPObjectSnapshot.class, child, index);
             child.setParent(null);
@@ -364,7 +369,7 @@ public class ArchitectProject extends AbstractSPObject {
         // When changing this, ensure you maintain the order specified by allowedChildTypes
         allChildren.addAll(sqlTypes);
         allChildren.addAll(domainCategories);
-        allChildren.addAll(sqlTypeSnapshots);
+        allChildren.addAll(spobjectSnapshots);
         allChildren.add(rootObject);
         if (profileManager != null) {
             allChildren.add(profileManager);
@@ -401,7 +406,7 @@ public class ArchitectProject extends AbstractSPObject {
             addSQLType((UserDefinedSQLType) child, index);
         } else if (child instanceof DomainCategory) {
             addDomainCategory((DomainCategory) child, index);
-        } else if (child instanceof SPObjectSnapshot) {
+        } else if (child instanceof SPObjectSnapshot<?>) {
             addSPObjectSnapshot((SPObjectSnapshot<?>) child, index);
         } else if (child instanceof BusinessDefinition) {
             addBusinessDefinition((BusinessDefinition) child, index);
@@ -432,7 +437,7 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     protected void addSPObjectSnapshot(SPObjectSnapshot<?> child, int index) {
-        sqlTypeSnapshots.add(index, child);
+        spobjectSnapshots.add(index, child);
         child.setParent(this);
         fireChildAdded(SPObjectSnapshot.class, child, index);        
     }
@@ -443,8 +448,8 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     @NonProperty
-    protected List<SPObjectSnapshot<?>> getSqlTypeSnapshots() {
-        return Collections.unmodifiableList(sqlTypeSnapshots); 
+    protected List<SPObjectSnapshot<?>> getSPObjectSnapshots() {
+        return Collections.unmodifiableList(spobjectSnapshots); 
     }
     
     @NonProperty

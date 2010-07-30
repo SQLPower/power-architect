@@ -93,19 +93,29 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 
     private void addUpdateListener(UserDefinedSQLType columnProxyType) {
         UserDefinedSQLType upstreamSnapshotType = columnProxyType.getUpstreamType();
-        for (SPObjectSnapshot<?> snapshot : session.getWorkspace().getSqlTypeSnapshots()) {
+        
+        //find snapshot by matching snapshot object
+        for (SPObjectSnapshot<?> snapshot : session.getWorkspace().getSPObjectSnapshots()) {
             if (snapshot.getSPObject() == upstreamSnapshotType) {
+                //find system UDT by uuid
                 for (UserDefinedSQLType systemType : session.getSystemWorkspace().getSqlTypes()) {
                     if (systemType.getUUID().equals(snapshot.getOriginalUUID())) {
                         systemType.addSPListener(new SPObjectSnapshotUpdateListener(snapshot));
                         break;
                     }
                 }
+                //find system domain by uuid
                 for (DomainCategory category : session.getSystemWorkspace().getDomainCategories()) {
                     boolean typeFound = false;
                     for (UserDefinedSQLType systemType : category.getChildren(UserDefinedSQLType.class)) {
                         if (systemType.getUUID().equals(snapshot.getOriginalUUID())) {
                             systemType.addSPListener(new SPObjectSnapshotUpdateListener(snapshot));
+                            for (SPObjectSnapshot<?> categorySnapshot : session.getWorkspace().getSPObjectSnapshots()) {
+                                if (categorySnapshot.getOriginalUUID().equals(category.getUUID())) {
+                                    category.addSPListener(new SPObjectSnapshotUpdateListener(categorySnapshot));
+                                    break;
+                                }
+                            }
                             typeFound = true;
                             break;
                         }

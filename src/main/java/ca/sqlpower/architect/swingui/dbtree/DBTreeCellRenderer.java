@@ -164,7 +164,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
                 Graphics2D g = bufferedImage.createGraphics();
                 g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                g.drawImage(REFRESH_ICON.getImage(), 8, 8, 8, 8, new Color(0xffffffff, true), null);
+                g.drawImage(REFRESH_ICON.getImage(), 8, 8, 8, 8, new Color(0x00ffffff, true), null);
                 g.dispose();
                 
                 setIcon(ComposedIcon.getInstance(getIcon(), 

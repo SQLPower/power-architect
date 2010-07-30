@@ -241,7 +241,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         // When changing this, ensure you maintain the order specified by allowedChildTypes
         allChildren.addAll(getSqlTypes());
         allChildren.addAll(getDomainCategories());
-        allChildren.addAll(getSqlTypeSnapshots());
+        allChildren.addAll(getSPObjectSnapshots());
         allChildren.add(getRootObject());
         allChildren.add(olapRootObject);
         if (playPenContentPane != null) {
