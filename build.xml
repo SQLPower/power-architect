@@ -782,7 +782,10 @@
     		<fileset dir="${lib}">
     			<include name="*.jar"/>
     		</fileset>
-    		<fileset dir="${sqlpower.library.home}/lib">
+    		<fileset dir="${buildlib}">
+    			<include name="sqlpower_library.jar"/>
+    		</fileset>
+    		<fileset dir="${sqlpower.library.home}/lib/main">
     			<include name="*.jar"/>
     		</fileset>
     		<fileset dir="${build}" includes="architecthelp.jar" />
