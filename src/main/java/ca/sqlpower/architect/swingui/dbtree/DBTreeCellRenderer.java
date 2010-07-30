@@ -35,6 +35,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.SQLTypeTreeCellRenderer;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -176,6 +177,8 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
                 value == ((DBTreeModel) tree.getModel()).getSnapshotContainer()) {
             setText("Types");
             setIcon(null);
+        } else if (value instanceof SPObject) {
+            setText(((SPObject) value).getName());
         } else {
 			setIcon(null);
 		}
@@ -207,9 +210,9 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             }
         }
 	    
-	    if (value instanceof SQLObject || value == null) {
+	    if (value instanceof SPObject || value == null) {
 	        for (IconFilter filter : getIconFilterChain()) {
-	            setIcon(filter.filterIcon(getIcon(), (SQLObject) value));
+	            setIcon(filter.filterIcon(getIcon(), (SPObject) value));
 	        }
 	    }
 	    

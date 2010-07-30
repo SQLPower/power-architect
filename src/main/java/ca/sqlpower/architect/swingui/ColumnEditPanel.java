@@ -999,7 +999,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                         if (upstreamType.getUpstreamType() != null) {
                             //For domains
                             UserDefinedSQLType upUpStreamType = upstreamType.getUpstreamType();
-                            UserDefinedSQLTypeSnapshot upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isDomainSnapshot);
+                            boolean isUpstreamDomainSnapshot = upUpStreamType.getParent() instanceof DomainCategory;
+                            UserDefinedSQLTypeSnapshot upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isUpstreamDomainSnapshot);
                             session.getWorkspace().addChild(upstreamSnapshot, 0);
                             session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
                             snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);

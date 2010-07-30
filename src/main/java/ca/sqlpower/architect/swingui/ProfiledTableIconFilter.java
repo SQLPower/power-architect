@@ -24,7 +24,7 @@ import javax.swing.ImageIcon;
 
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.dbtree.IconFilter;
-import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -37,9 +37,9 @@ public class ProfiledTableIconFilter implements IconFilter {
     public static final ImageIcon PROFILED_DATABASE_ICON = SPSUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
     public static final ImageIcon PROFILED_TABLE_ICON = SPSUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE); //$NON-NLS-1$ //$NON-NLS-2$
 
-    public Icon filterIcon(Icon original, SQLObject node) {
+    public Icon filterIcon(Icon original, SPObject node) {
         if (node instanceof SQLTable) {
-            Object profileCount = node.getClientProperty(ProfileManager.class, ProfileManager.PROFILE_COUNT_PROPERTY);
+            Object profileCount = ((SQLTable) node).getClientProperty(ProfileManager.class, ProfileManager.PROFILE_COUNT_PROPERTY);
             if (profileCount != null && ((Integer) profileCount).intValue() > 0) {
                 return PROFILED_TABLE_ICON;
             }
