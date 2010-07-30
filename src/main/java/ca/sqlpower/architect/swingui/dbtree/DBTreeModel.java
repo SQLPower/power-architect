@@ -45,6 +45,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -216,7 +217,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                         positions, folderList.toArray());
                 fireTreeNodesInserted(evt);
             } else {
-                setupTreeForNode((SQLObject) e.getChild());
+                setupTreeForNode((SPObject) e.getChild());
             }
             
         }
@@ -335,7 +336,11 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
          *         {@link SPObject}.
          */
         private boolean isSPObjectRelevant(SPObject spObject) {
-            if (!SQLPowerUtils.getAncestorList(spObject).contains(root) && !spObject.equals(root)) {
+            if (spObject == getSnapshotContainer()) {
+                return true;
+            } else if (spObject instanceof SPObjectSnapshot<?> && spObject.getParent() == getSnapshotContainer())  {
+                return true;
+            } if (!SQLPowerUtils.getAncestorList(spObject).contains(root) && !spObject.equals(root)) {
                 return false;
             } else if (!showColumns && spObject instanceof SQLColumn) {
                 return false;
@@ -429,6 +434,12 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
     private final boolean showIndices;
 
     /**
+     * Contains all of the snapshots we want to display in the tree. If this is
+     * null no snapshots will be shown.
+     */
+    private final SPObject snapshotContainer;
+
+    /**
      * Creates a tree model with all of the SQLDatabase objects in the given
      * session's root object in its root list of databases, as well as all the
      * column, relationship, imported keys, and indices folders.
@@ -440,6 +451,24 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
      */
 	public DBTreeModel(SQLObjectRoot root, JTree tree) {
 		this(root, tree, true, true, true, true, true);
+	}
+	
+    /**
+     * Creates a new tree model with all the SQLDatabase objects with exclusion
+     * of specified {@link SQLObject}s.
+     * 
+     * @param root
+     *            The {@link SQLObjectRoot} object that contains all the
+     *            databases that should be displayed in the tree.
+     * @param tree
+     *            The {@link JTree} that uses this {@link DBTreeModel}.
+     * @param snapshotContainer
+     *            The object that contains {@link SPObjectSnapshot}s as children
+     *            that we want to display in the tree. If this is null no
+     *            snapshots will be displayed.
+     */
+	public DBTreeModel(SQLObjectRoot root, JTree tree, SPObject snapshotContainer) {
+	    this(root, tree, snapshotContainer, true, true, true, true, true);
 	}
 
     /**
@@ -463,7 +492,38 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
      *            true if the {@link SQLIndex} folder should be shown.
      */
 	public DBTreeModel(SQLObjectRoot root, JTree tree, boolean showPlayPenDatabase, boolean showColumns, boolean showRelationships, boolean showImportedKeys, boolean showIndices) {
+	    this(root, tree, null, showPlayPenDatabase, showColumns, showRelationships, showImportedKeys, showIndices);
+	}
+
+    /**
+     * Creates a new tree model with all the SQLDatabase objects with exclusion
+     * of specified {@link SQLObject}s.
+     * 
+     * @param root
+     *            The {@link SQLObjectRoot} object that contains all the
+     *            databases that should be displayed in the tree.
+     * @param tree
+     *            The {@link JTree} that uses this {@link DBTreeModel}.
+     * @param snapshotContainer
+     *            The object that contains {@link SPObjectSnapshot}s as children
+     *            that we want to display in the tree. If this is null no
+     *            snapshots will be displayed.
+     * @param showPlayPenDatabase
+     *            true if the playpen database should be shown.
+     * @param showColumns
+     *            true if the {@link SQLColumn} folder should be shown.
+     * @param showRelationships
+     *            true if the {@link SQLRelationship} folder should be shown.
+     * @param showImportedKeys
+     *            true if the {@link SQLImportedKey} folder should be shown.
+     * @param showIndices
+     *            true if the {@link SQLIndex} folder should be shown.
+     */
+	public DBTreeModel(SQLObjectRoot root, JTree tree, SPObject snapshotContainer, 
+	        boolean showPlayPenDatabase, boolean showColumns, boolean showRelationships, 
+	        boolean showImportedKeys, boolean showIndices) {
 	    this.root = root;
+        this.snapshotContainer = snapshotContainer;
 	    this.showPlayPenDatabase = showPlayPenDatabase;
 	    this.showColumns = showColumns;
 	    this.showRelationships = showRelationships;
@@ -474,7 +534,15 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	    SQLPowerUtils.listenToHierarchy(root, treeListener); 
 
 	    for (SPObject ancestor : SQLPowerUtils.getAncestorList(root)) {
+	        if (ancestor == snapshotContainer) continue;
 	        ancestor.addSPListener(treeListener);
+	    }
+	    
+	    if (snapshotContainer != null) {
+	        snapshotContainer.addSPListener(treeListener);
+	        for (SPObjectSnapshot<?> snapshot : snapshotContainer.getChildren(SPObjectSnapshot.class)) {
+	            SQLPowerUtils.listenToHierarchy(snapshot, treeListener);
+	        }
 	    }
 
 	    setupTreeForNode(root);
@@ -484,12 +552,18 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 * Recursively walks the tree doing any necessary setup for each node.
 	 * At current this just adds folders for {@link SQLTable} objects.
 	 */
-	private void setupTreeForNode(SQLObject node) {
+	private void setupTreeForNode(SPObject node) {
 	    if (node instanceof SQLTable) {
 	        createFolders((SQLTable) node);
 	    }
-	    for (SQLObject child : node.getChildrenWithoutPopulating()) {
-	        setupTreeForNode(child);
+	    if (node instanceof SQLObject) {
+	        for (SQLObject child : ((SQLObject) node).getChildrenWithoutPopulating()) {
+	            setupTreeForNode(child);
+	        }
+	    } else {
+	        for (SPObject child : node.getChildren()) {
+	            setupTreeForNode(child);
+	        }
 	    }
 	}
 
@@ -513,7 +587,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		if (!showPlayPenDatabase && parent instanceof SQLObjectRoot) {
 		    SQLObjectRoot root = (SQLObjectRoot) parent;
 		    List<? extends SQLObject> children = root.getChildren();
-		    for (int childIndex = 0, treeIndex = 0; childIndex < children.size(); childIndex++) {
+		    int treeIndex = 0;
+		    for (int childIndex = 0; childIndex < children.size(); childIndex++) {
 		        SQLObject child = children.get(childIndex);
 
 		        if (!(child instanceof SQLDatabase && 
@@ -524,6 +599,15 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		            treeIndex++;
 		        }
 		    }
+		    if (index == treeIndex && getSnapshotContainer() != null) {
+		        return getSnapshotContainer();
+		    }
+		} else if (parent instanceof SQLObjectRoot && 
+		        index == ((SQLObjectRoot) parent).getChildren().size()) {
+		    return getSnapshotContainer();
+		} else if (parent == getSnapshotContainer()) {
+		    SPObjectSnapshot<?> snapshot = getSnapshotContainer().getChildren(SPObjectSnapshot.class).get(index);
+		    return snapshot;
 		}
 		
 		SQLObject sqlParent = (SQLObject) parent;
@@ -552,10 +636,23 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                     size--;
                 }
             }
+            if (getSnapshotContainer() != null) {
+                size++;
+            }
+            return size;
+        } else if (parent instanceof SQLObjectRoot) {
+            SQLObjectRoot root = (SQLObjectRoot) parent;
+            int size = root.getChildren().size();
+            if (getSnapshotContainer() != null) {
+                size++;
+            }
+            return size;
+        } else if (parent == getSnapshotContainer()) {
+            int size = ((SPObject) parent).getChildren(SPObjectSnapshot.class).size();
             return size;
         }
 		
-		SQLObject sqlParent = (SQLObject) parent;
+		SPObject sqlParent = (SPObject) parent;
 		try {
             if (logger.isDebugEnabled()) logger.debug("returning "+sqlParent.getChildren().size()); //$NON-NLS-1$
 			return sqlParent.getChildren().size();
@@ -571,7 +668,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		} else if (parent instanceof SQLColumn) {
 		    return true;
 		}
-		return !((SQLObject) parent).allowsChildren();
+		return !((SPObject) parent).allowsChildren();
 	}
 	
 	public boolean isColumnsFolder(Object parent) {
@@ -593,7 +690,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             return foldersInTables.get((SQLTable) parent).indexOf(child);
         }
 		
-		int index = ((SQLObject) parent).getChildren(spChild.getClass()).indexOf(child);
+		int index = ((SPObject) parent).getChildren(spChild.getClass()).indexOf(child);
 		
 		if (!showPlayPenDatabase && parent instanceof SQLObjectRoot) {
             if (child instanceof SQLDatabase && ((SQLDatabase) child).isPlayPenDatabase()) {
@@ -611,6 +708,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                     }
                 }
                 index -= playPenDatabaseCount;
+            }
+            if (child == getSnapshotContainer()) {
+                index++;
             }
         }
 		
@@ -714,7 +814,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 *
 	 * @throws IllegalArgumentException if <code>node</code> is of class SQLRelationship.
 	 */
-	public SQLObject[] getPathToNode(SPObject node) {
+	public SPObject[] getPathToNode(SPObject node) {
 		List<SPObject> path = new LinkedList<SPObject>();
 		while (node != null && node != root) {
 		    if (path.size() > 0 && node instanceof SQLTable) {
@@ -726,10 +826,14 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		        }
 		    }
 			path.add(0, node);
-			node = node.getParent();
+			if (node == getSnapshotContainer()) {
+			    break;
+			} else {
+			    node = node.getParent();
+			}
 		}
 		path.add(0, root);
-		return (SQLObject[]) path.toArray(new SQLObject[path.size()]);
+		return (SPObject[]) path.toArray(new SPObject[path.size()]);
 	}
 
 	/**
@@ -740,8 +844,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
      * one path to the object. Otherwise the list will contain the path
      * to the primary key then the path to the foreign key.
 	 */
-	public List<SQLObject[]> getPathsToNode(SQLObject node) {
-	    List<SQLObject[]> nodePaths = new ArrayList<SQLObject[]>();
+	public List<SPObject[]> getPathsToNode(SQLObject node) {
+	    List<SPObject[]> nodePaths = new ArrayList<SPObject[]>();
 	    nodePaths.add(getPathToNode(node));
 	    return nodePaths;
 	}
@@ -799,5 +903,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 folderList.add(SQLIndexFolder);
             }
         }
+    }
+
+    public SPObject getSnapshotContainer() {
+        return snapshotContainer;
     }
 }

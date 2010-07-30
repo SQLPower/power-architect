@@ -144,7 +144,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	public DBTree(final ArchitectSwingSession session) {
         this.session = session;
-        treeModel = new DBTreeModel(session.getRootObject(), this);
+        treeModel = new DBTreeModel(session.getRootObject(), this, session.getWorkspace());
         setModel(treeModel);
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
@@ -954,6 +954,7 @@ public class DBTree extends JTree implements DragSourceListener {
             //type are selected.
             Map<Integer, List<SQLObject>> pathLengthsToSelectedObjectsMap = new HashMap<Integer, List<SQLObject>>();
             for (int i = 0; i < p.length; i++) {
+                if (!(p[i].getLastPathComponent() instanceof SQLObject)) continue;
                 if (pathLengthsToSelectedObjectsMap.get(p[i].getPathCount()) == null) {
                     pathLengthsToSelectedObjectsMap.put(p[i].getPathCount(), new ArrayList<SQLObject>());
                 }
