@@ -673,6 +673,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("scaleType");
 		propertiesToIgnore.add("platform");
 		propertiesToIgnore.add("type");
+		propertiesToIgnore.add("etlAuditable");
+		propertiesToIgnore.add("etlDefaultValue");
+		propertiesToIgnore.add("etlNotes");
+		propertiesToIgnore.add("etlTransformationLogic");
 		
 		propertiesToIgnore.add("childrenWithoutPopulating");
 		propertiesToIgnore.add("variableResolver");
