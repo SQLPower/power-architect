@@ -83,12 +83,20 @@ public class ServerProjectsManagerPanel {
                 String name = JOptionPane.showInputDialog(dialogOwner, "Please specify the name of your project", "", JOptionPane.QUESTION_MESSAGE);
                 
                 if (name != null) {
+                    DefaultListModel model = (DefaultListModel) projects.getModel();
+                    for (int i = 0; i < model.size(); i++) {
+                        if (((ProjectLocation) model.getElementAt(i)).getName().trim().equalsIgnoreCase(name.trim())) {
+                            JOptionPane.showMessageDialog(dialogOwner, "A project called \"" + name + "\" already exists. Please use a different name.", "Duplicate project name", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+
                     try {
                         ArchitectClientSideSession.createNewServerSession(getSelectedServerInfo(), name, session);
                     } catch (Exception ex) {
                         throw new RuntimeException("Unable to create new project", ex);
                     }
-                    
+
                     refreshInfoList();
                 }
             }
@@ -389,7 +397,7 @@ public class ServerProjectsManagerPanel {
                 List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo);
                 Collections.sort(projects, new Comparator<ProjectLocation>() {
                     public int compare(ProjectLocation proj1, ProjectLocation proj2) {
-                        return proj1.getName().toUpperCase().compareTo(proj2.getName().toUpperCase());
+                        return proj1.getName().compareToIgnoreCase(proj2.getName());
                     }
                 });
                 
