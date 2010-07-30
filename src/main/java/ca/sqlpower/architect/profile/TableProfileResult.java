@@ -300,5 +300,4 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         children.addAll(columnProfileResults);
         return children;
     }
-
 }

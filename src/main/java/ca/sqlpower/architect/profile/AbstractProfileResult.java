@@ -57,6 +57,7 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
     private final T profiledObject;
     private long createEndTime = -1L;
     private long createStartTime = -1L;
+    private String notes = "";
     private Exception ex;
     private ProfileSettings settings;
 
@@ -354,5 +355,15 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
         } else {
             throw new IllegalArgumentException("ProfileResult is not dependant on that.");
         }
+    }
+
+    @Mutator
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    @Accessor
+    public String getNotes() {
+        return notes;
     }
 }
