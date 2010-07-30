@@ -95,7 +95,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 for (DomainCategory category : session.getSystemWorkspace().getDomainCategories()) {
                     boolean typeFound = false;
                     for (UserDefinedSQLType systemType : category.getChildren(UserDefinedSQLType.class)) {
-                        if (systemType.getUUID().equals(upstreamSnapshotType.getUUID())) {
+                        if (systemType.getUUID().equals(snapshot.getOriginalUUID())) {
                             systemType.addSPListener(new SPObjectSnapshotUpdateListener(snapshot));
                             typeFound = true;
                             break;
