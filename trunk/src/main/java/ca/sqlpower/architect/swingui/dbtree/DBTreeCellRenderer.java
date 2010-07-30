@@ -202,6 +202,8 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
                 } else {
                     setForeground(Color.LIGHT_GRAY);
                 }
+            } else {
+                setForeground(getTextNonSelectionColor());
             }
         }
 	    
