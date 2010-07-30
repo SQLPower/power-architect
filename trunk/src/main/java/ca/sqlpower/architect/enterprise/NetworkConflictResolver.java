@@ -175,6 +175,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         }
         MonitorableImpl monitor = null;
         long startTimeMillis = System.currentTimeMillis();
+        long messageLength = messageBuffer.length();
         try {
             postingJSON.set(true);
             
@@ -237,8 +238,10 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     throw new RuntimeException("Could not update current revision" + e.getMessage());
                 }
                 long endTime = System.currentTimeMillis();
-                double processTimePerObj = (endTime - startTimeMillis) / messageBuffer.length();
-                currentWaitPerPersist = currentWaitPerPersist * 0.9 + processTimePerObj * 0.1;
+                if (messageLength != 0) {
+                    double processTimePerObj = (endTime - startTimeMillis) / messageLength;
+                    currentWaitPerPersist = currentWaitPerPersist * 0.9 + processTimePerObj * 0.1;
+                }
             } else {
                 // Did not successfully post json, we must update ourselves, and then try again if we can. 
                 if (!reflush) {
