@@ -359,7 +359,9 @@ public abstract class AbstractProfileResult<T extends SQLObject> extends Abstrac
 
     @Mutator
     public void setNotes(String notes) {
+        String oldVal = this.notes;
         this.notes = notes;
+        firePropertyChange("notes", oldVal, notes);
     }
 
     @Accessor
