@@ -67,4 +67,9 @@ public class DomainCategorySnapshot extends SystemSPObjectSnapshot<DomainCategor
     public DomainCategory getSPObject() {
         return spObject;
     }
+    
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

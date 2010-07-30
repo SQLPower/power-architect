@@ -76,7 +76,6 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
     public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
     public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
     public static final ImageIcon ERROR_BADGE = new ImageIcon(DBTreeCellRenderer.class.getResource("/icons/parts/noAccess.png"));
-    //XXX Wrong icon! for testing currently
     public static final ImageIcon REFRESH_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("/icons/arrow_refresh16.png"));
    
     private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
@@ -150,35 +149,31 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
                 tagColumn((col).getColumn());
             }
             setIcon(COLUMN_ICON);
-        } else if (value instanceof UserDefinedSQLTypeSnapshot && 
-                !((UserDefinedSQLTypeSnapshot) value).isDomainSnapshot()) {
+        } else if (value instanceof UserDefinedSQLTypeSnapshot) {
             UserDefinedSQLTypeSnapshot snapshot = (UserDefinedSQLTypeSnapshot) value;
             setText(snapshot.getSPObject().getName());
+            if (!((UserDefinedSQLTypeSnapshot) value).isDomainSnapshot()) {
+                setIcon(SQLTypeTreeCellRenderer.TYPE_ICON);
+            } else {
+                setIcon(SQLTypeTreeCellRenderer.DOMAIN_ICON);
+            }
             if (snapshot.isObsolete()) {
                 final BufferedImage bufferedImage = 
                     new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-
+                
                 Graphics2D g = bufferedImage.createGraphics();
                 g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                 g.drawImage(REFRESH_ICON.getImage(), 8, 8, 8, 8, new Color(0xffffffff, true), null);
                 g.dispose();
                 
-                setIcon(ComposedIcon.getInstance(SQLTypeTreeCellRenderer.TYPE_ICON, 
+                setIcon(ComposedIcon.getInstance(getIcon(), 
                         new ImageIcon(bufferedImage)));
-            } else {
-                setIcon(SQLTypeTreeCellRenderer.TYPE_ICON);
             }
-        } else if (value instanceof UserDefinedSQLTypeSnapshot && 
-                ((UserDefinedSQLTypeSnapshot) value).isDomainSnapshot()) {
-            setText(((UserDefinedSQLTypeSnapshot) value).getSPObject().getName());
-            setIcon(SQLTypeTreeCellRenderer.DOMAIN_ICON);
         } else if (tree.getModel() instanceof DBTreeModel && 
                 value == ((DBTreeModel) tree.getModel()).getSnapshotContainer()) {
             setText("Types");
             setIcon(null);
-        } else if (value instanceof SPObject) {
-            setText(((SPObject) value).getName());
         } else {
 			setIcon(null);
 		}
