@@ -69,12 +69,9 @@ import javax.swing.tree.TreeSelectionModel;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.enterprise.DomainCategory;
-import ca.sqlpower.architect.enterprise.DomainCategorySnapshot;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.object.AbstractPoolingSPListener;
-import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sqlobject.SQLColumn;
@@ -82,9 +79,8 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
-import ca.sqlpower.sqlobject.UserDefinedSQLType;
-import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelChangeUtil;
 import ca.sqlpower.swingui.PopupJTreeAction;
@@ -987,42 +983,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                 if (componentEnabledMap.get(colType).isSelected()) {
                     // Set upstream type on column
                     UserDefinedSQLType upstreamType = (UserDefinedSQLType) colType.getLastSelectedPathComponent();
-                    
-                    if (upstreamType != null && session.isEnterpriseSession() && 
-                            !((upstreamType.getParent().equals(session.getWorkspace())) || // not an already existing type snapshot 
-                              (upstreamType.getParent() instanceof DomainCategory && 
-                              upstreamType.getParent().getParent().equals(session.getWorkspace())))) // not an already existing domain snapshot
-                    { 
-                        int systemRevision =  session.getEnterpriseSession().getSystemSession().getCurrentRevisionNumber();
-                        boolean isDomainSnapshot = upstreamType.getParent() instanceof DomainCategory;
-                        UserDefinedSQLTypeSnapshot snapshot;
-                        if (upstreamType.getUpstreamType() != null) {
-                            //For domains
-                            UserDefinedSQLType upUpStreamType = upstreamType.getUpstreamType();
-                            boolean isUpstreamDomainSnapshot = upUpStreamType.getParent() instanceof DomainCategory;
-                            UserDefinedSQLTypeSnapshot upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isUpstreamDomainSnapshot);
-                            session.getWorkspace().addChild(upstreamSnapshot, 0);
-                            session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
-                            snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);
-                        } else {
-                            snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot);
-                        }
-                        session.getWorkspace().addChild(snapshot, 0);
-                    	column.getUserDefinedSQLType().setUpstreamType(snapshot.getSPObject());
-                    	if ((upstreamType.getParent() instanceof DomainCategory)) {
-                    	    DomainCategory parent = (DomainCategory) upstreamType.getParent();
-                    	    DomainCategorySnapshot domainSnapshot = 
-                    	        new DomainCategorySnapshot(parent, systemRevision);
-                    	    session.getWorkspace().addChild(domainSnapshot, 0);
-                    	    session.getWorkspace().addChild(domainSnapshot.getSPObject(), 0);
-                    	    domainSnapshot.getSPObject().addChild(snapshot.getSPObject(), 0);
-                    	} else {
-                    	    session.getWorkspace().addChild(snapshot.getSPObject(), 0);
-                    	}
-                    	
-                    } else {
-                    	column.getUserDefinedSQLType().setUpstreamType(upstreamType);
-                    }
+                	column.getUserDefinedSQLType().setUpstreamType(upstreamType);
                     
                     // Set scale
                     if (typeOverrideMap.get(colScale).isSelected()) {
@@ -1086,10 +1047,6 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                 }
             }
         } catch (SQLObjectException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (ObjectDependentException e) {
             throw new RuntimeException(e);
         } finally {
             compoundEditRoot.commit();

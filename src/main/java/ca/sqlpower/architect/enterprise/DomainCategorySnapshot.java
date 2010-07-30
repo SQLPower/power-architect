@@ -22,7 +22,6 @@ package ca.sqlpower.architect.enterprise;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SystemSPObjectSnapshot;
 import ca.sqlpower.object.annotation.Accessor;
@@ -42,8 +41,7 @@ public class DomainCategorySnapshot extends SystemSPObjectSnapshot<DomainCategor
     }
     
     public DomainCategorySnapshot(DomainCategory original,
-            int systemRevision) throws IllegalArgumentException,
-            ObjectDependentException {
+            int systemRevision) {
         super(original.getUUID(), systemRevision);
         setName(original.getName());
         spObject = new DomainCategory(original.getName());
