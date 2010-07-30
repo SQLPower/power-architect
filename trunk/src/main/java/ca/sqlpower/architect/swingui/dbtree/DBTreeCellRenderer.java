@@ -21,6 +21,9 @@ package ca.sqlpower.architect.swingui.dbtree;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +34,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.SQLTypeTreeCellRenderer;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -39,6 +43,7 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.ComposedIcon;
@@ -70,6 +75,8 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
     public static final ImageIcon UNIQUE_INDEX_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Index_unique16.png"));
     public static final ImageIcon COLUMN_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("icons/Column16.png"));
     public static final ImageIcon ERROR_BADGE = new ImageIcon(DBTreeCellRenderer.class.getResource("/icons/parts/noAccess.png"));
+    //XXX Wrong icon! for testing currently
+    public static final ImageIcon REFRESH_ICON = new ImageIcon(DBTreeCellRenderer.class.getResource("/icons/arrow_refresh16.png"));
    
     private final List<IconFilter> iconFilterChain = new ArrayList<IconFilter>();
     
@@ -142,6 +149,33 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
                 tagColumn((col).getColumn());
             }
             setIcon(COLUMN_ICON);
+        } else if (value instanceof UserDefinedSQLTypeSnapshot && 
+                !((UserDefinedSQLTypeSnapshot) value).isDomainSnapshot()) {
+            UserDefinedSQLTypeSnapshot snapshot = (UserDefinedSQLTypeSnapshot) value;
+            setText(snapshot.getSPObject().getName());
+            if (snapshot.isObsolete()) {
+                final BufferedImage bufferedImage = 
+                    new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+
+                Graphics2D g = bufferedImage.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g.drawImage(REFRESH_ICON.getImage(), 8, 8, 8, 8, new Color(0xffffffff, true), null);
+                g.dispose();
+                
+                setIcon(ComposedIcon.getInstance(SQLTypeTreeCellRenderer.TYPE_ICON, 
+                        new ImageIcon(bufferedImage)));
+            } else {
+                setIcon(SQLTypeTreeCellRenderer.TYPE_ICON);
+            }
+        } else if (value instanceof UserDefinedSQLTypeSnapshot && 
+                ((UserDefinedSQLTypeSnapshot) value).isDomainSnapshot()) {
+            setText(((UserDefinedSQLTypeSnapshot) value).getSPObject().getName());
+            setIcon(SQLTypeTreeCellRenderer.DOMAIN_ICON);
+        } else if (tree.getModel() instanceof DBTreeModel && 
+                value == ((DBTreeModel) tree.getModel()).getSnapshotContainer()) {
+            setText("Types");
+            setIcon(null);
         } else {
 			setIcon(null);
 		}
