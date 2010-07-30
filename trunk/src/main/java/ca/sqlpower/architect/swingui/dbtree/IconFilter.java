@@ -21,7 +21,7 @@ package ca.sqlpower.architect.swingui.dbtree;
 
 import javax.swing.Icon;
 
-import ca.sqlpower.sqlobject.SQLObject;
+import ca.sqlpower.object.SPObject;
 
 /**
  * This interface is a hook into the DBTreeCellRenderer that allows clients
@@ -50,6 +50,6 @@ public interface IconFilter {
      * @return The icon that should be used instead of original, or
      *         <code>null</code> if the tree node should have no icon at all.
      */
-    Icon filterIcon(Icon original, SQLObject node);
+    Icon filterIcon(Icon original, SPObject node);
     
 }
