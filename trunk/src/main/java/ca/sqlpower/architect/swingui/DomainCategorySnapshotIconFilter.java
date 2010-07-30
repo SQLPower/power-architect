@@ -19,12 +19,19 @@
 
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import ca.sqlpower.architect.enterprise.DomainCategorySnapshot;
+import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.IconFilter;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.swingui.ComposedIcon;
 
 public class DomainCategorySnapshotIconFilter implements IconFilter {
     
@@ -34,7 +41,22 @@ public class DomainCategorySnapshotIconFilter implements IconFilter {
     @Override
     public Icon filterIcon(Icon original, SPObject node) {
         if (node instanceof DomainCategorySnapshot) {
-            return DOMAIN_CATEGORY_ICON;
+            Icon icon = DOMAIN_CATEGORY_ICON;
+            
+            if (((DomainCategorySnapshot) node).isObsolete()) {
+                final BufferedImage bufferedImage = 
+                    new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+                
+                Graphics2D g = bufferedImage.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g.drawImage(DBTreeCellRenderer.REFRESH_ICON.getImage(), 8, 8, 8, 8, 
+                        new Color(0xffffffff, true), null);
+                g.dispose();
+                
+                icon = ComposedIcon.getInstance(icon, new ImageIcon(bufferedImage));
+            }
+            return icon;
         }
         return original;
     }

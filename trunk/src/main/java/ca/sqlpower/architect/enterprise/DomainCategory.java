@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.object.AbstractSPObject;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
@@ -92,5 +93,17 @@ public class DomainCategory extends AbstractSPObject {
             child.setParent(null);
         }
         return childRemoved;
+    }
+    
+    @Override
+    public void addSPListener(SPListener l) {
+        // TODO Auto-generated method stub
+        super.addSPListener(l);
+    }
+    
+    @Override
+    public void removeSPListener(SPListener l) {
+        // TODO Auto-generated method stub
+        super.removeSPListener(l);
     }
 }
