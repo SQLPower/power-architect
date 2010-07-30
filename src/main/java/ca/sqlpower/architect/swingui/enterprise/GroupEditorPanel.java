@@ -163,9 +163,11 @@ public class GroupEditorPanel implements DataEntryPanel {
         
         Grant globalGrant = null;
         for (Grant grant : baseGroup.getChildren(Grant.class)) {
-            if (grant.getType() != null && grant.getType().equals(ArchitectSwingProject.class.getName())) {
+            if (grant.isSystemLevel() && grant.getType() != null && 
+                    grant.getType().equals(ArchitectSwingProject.class.getName())) {
                 if (globalGrant != null) {
-                    throw new IllegalStateException("Multiple grants for Architect Project found");
+                    throw new IllegalStateException(
+                            "Multiple grants for system level workspace under the same group found.");
                 }
                 
                 globalGrant = grant;

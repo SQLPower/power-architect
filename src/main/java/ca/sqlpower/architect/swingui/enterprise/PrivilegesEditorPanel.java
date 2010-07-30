@@ -40,6 +40,10 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+/**
+ * This {@link DataEntryPanel} is used for modifying system level privileges on
+ * the server.
+ */
 public class PrivilegesEditorPanel implements DataEntryPanel {
     
     private Grant grant;
@@ -66,7 +70,30 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
     private final ArchitectSwingProject securityWorkspace;
     
     private boolean hasUnsavedChanges = false;
-    
+
+    /**
+     * Creates a new {@link PrivilegesEditorPanel}.
+     * 
+     * @param baseGrant
+     *            The {@link Grant} object which the privileges panel should
+     *            start off with.
+     * @param baseGroupOrUser
+     *            The {@link Group} or {@link User} object that the
+     *            {@link Grant} applies to.
+     * @param subject
+     *            The UUID of the object we want to grant access to. This can be
+     *            null if {@link #type} is specified.
+     * @param type
+     *            The fully qualified name of the class of object we want to
+     *            grant access to.
+     * @param username
+     *            The username of the person accessing this panel. Certain
+     *            functionality of the panel is disabled depending on what
+     *            privileges this user has.
+     * @param securityWorkspace
+     *            The {@link ArchitectSwingProject} that represents the security
+     *            workspace.
+     */
     public PrivilegesEditorPanel(Grant baseGrant, SPObject baseGroupOrUser, String subject, String type, String username, ArchitectSwingProject securityWorkspace) {
         this.securityWorkspace = securityWorkspace;
         this.grant = baseGrant;
@@ -202,6 +229,10 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
         }
     }
 
+    /**
+     * Disables the privilege {@link JCheckBox}es if the user accessing this
+     * panel is authorized to modify them.
+     */
     public void disableIfNecessary() {
         User user = null;
         List<Grant> grantsForUser = new ArrayList<Grant>();
