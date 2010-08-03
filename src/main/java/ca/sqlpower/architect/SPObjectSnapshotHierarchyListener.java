@@ -59,8 +59,8 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 			SQLColumn sqlColumn = (SQLColumn) e.getChild();
             if (sqlColumn.getUserDefinedSQLType() != null) {
                 sqlColumn.getUserDefinedSQLType().addSPListener(this);
-                addUpdateListener(sqlColumn.getUserDefinedSQLType());
                 createSPObjectSnapshot(sqlColumn.getUserDefinedSQLType(), sqlColumn.getUserDefinedSQLType().getUpstreamType());
+                addUpdateListener(sqlColumn.getUserDefinedSQLType());
             }
 		}
 	}
@@ -71,9 +71,11 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 			e.getChild().removeSPListener(this);
 			for (SQLColumn col : e.getChild().getChildren(SQLColumn.class)) {
 				col.getUserDefinedSQLType().removeSPListener(this);
+				cleanupSnapshot();
 			}
 		} else if (e.getChild() instanceof SQLColumn) {
 			((SQLColumn) e.getChild()).getUserDefinedSQLType().removeSPListener(this);
+			cleanupSnapshot();
 		}
 	}
 	
@@ -86,12 +88,35 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 		        createSPObjectSnapshot((UserDefinedSQLType) e.getSource(), (UserDefinedSQLType) e.getNewValue());
 		    }
 		    
-		    //XXX Need to remove the old listener
+		    cleanupSnapshot();
+		    
 			UserDefinedSQLType columnProxyType = (UserDefinedSQLType) e.getSource();
 			addUpdateListener(columnProxyType);
 		}
 	}
 
+    /**
+     * This method will remove the snapshot and the listener on the system's
+     * type if the snapshot is no longer in use.
+     */
+	private void cleanupSnapshot() {
+	    //find if the snapshot is being referenced by any of the columns in the workspace.
+	    //if it is not referenced remove it from the project
+	    //find its upstream type and remove its listener.
+	    //XXX Need to remove the old listener
+	}
+
+    /**
+     * Adds a listener to the correct system type based on the given type. The
+     * listener on the system type will be used to update the snapshot in this
+     * project when the system type changes.
+     * 
+     * @param columnProxyType
+     *            This type is a type that is a direct child of a column. The
+     *            type will have its upstreamType property pointing at a
+     *            snapshot in the workspace that we can find to locate its
+     *            actual system type.
+     */
     private void addUpdateListener(UserDefinedSQLType columnProxyType) {
         UserDefinedSQLType upstreamSnapshotType = columnProxyType.getUpstreamType();
 
