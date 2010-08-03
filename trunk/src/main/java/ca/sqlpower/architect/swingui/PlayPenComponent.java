@@ -27,6 +27,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
 import java.util.Collections;
@@ -43,6 +44,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
+import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.object.AbstractSPObject;
@@ -105,7 +107,9 @@ implements Selectable {
             return true;
         }
         
-        public boolean updateException(NetworkConflictResolver resolver, Throwable t) {return false;}
+        public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
+            return false;
+        }
 
         public void preUpdatePerformed(NetworkConflictResolver resolver) {
             //do nothing
@@ -667,6 +671,16 @@ implements Selectable {
                 commit();
             } else {
                 rollback("Update received while dragging");
+                
+                // We need to emulate a mouse released event on all the
+                // FloatingContainerPaneListeners since the following message
+                // dialog prompt interrupts the drag.
+                for (MouseMotionListener l : getPlayPen().getMouseMotionListeners()) {
+                    if (l instanceof FloatingContainerPaneListener) {
+                        ((FloatingContainerPaneListener) l).mouseReleased(null);
+                    }
+                }
+                
                 JOptionPane.showMessageDialog(getPlayPen(), "There was an update while you were dragging");
             }
         } else {
