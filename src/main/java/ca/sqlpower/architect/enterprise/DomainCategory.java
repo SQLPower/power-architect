@@ -23,8 +23,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import ca.sqlpower.object.AbstractSPObject;
-import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
@@ -44,6 +45,18 @@ public class DomainCategory extends AbstractSPObject {
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes =
         Collections.<Class<? extends SPObject>>singletonList(UserDefinedSQLType.class);
+
+    /**
+     * Compares two domain categories on their properties except their UUID and
+     * returns true if they all match. Does not look at children of the domain
+     * category.
+     */
+    public static boolean areEqual(@Nonnull DomainCategory cat1, @Nonnull DomainCategory cat2) {
+        if (cat1.getName() == null && cat2.getName() == null) return true;
+        if (cat1.getName() != null && cat1.getName().equals(cat2.getName())) return true;
+        
+        return false;
+    }
 
     /**
      * A {@link List} of {@link UserDefinedSQLType}s available under this category
@@ -95,15 +108,11 @@ public class DomainCategory extends AbstractSPObject {
         return childRemoved;
     }
     
-    @Override
-    public void addSPListener(SPListener l) {
-        // TODO Auto-generated method stub
-        super.addSPListener(l);
-    }
-    
-    @Override
-    public void removeSPListener(SPListener l) {
-        // TODO Auto-generated method stub
-        super.removeSPListener(l);
+    /**
+     * Calling this method will update all of the settable properties of
+     * this object with the same properties as those in matchMe.
+     */
+    public void updateToMatch(DomainCategory matchMe) {
+        setName(matchMe.getName());
     }
 }

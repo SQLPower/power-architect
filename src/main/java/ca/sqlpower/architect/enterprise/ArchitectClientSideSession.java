@@ -229,6 +229,16 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                             snapshot.setObsolete(true);
                         }
                     }
+                } else if (e.getChild() instanceof DomainCategorySnapshot) {
+                    DomainCategorySnapshot snapshot = (DomainCategorySnapshot) e.getChild();
+                    if (!snapshot.isObsolete()) {
+                        for (DomainCategory category : getSystemWorkspace().getDomainCategories()) {
+                            if (category.getUUID().equals(snapshot.getOriginalUUID()) && 
+                                    !DomainCategory.areEqual(snapshot.getSPObject(), category)) {
+                                snapshot.setObsolete(true);
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -1237,6 +1247,16 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 
             @Override
             public void run() {
+                if (snapshot.getSPObject() instanceof DomainCategory) {
+                    for (DomainCategory category : getSystemWorkspace().getDomainCategories()) {
+                        if (category.getUUID().equals(snapshot.getOriginalUUID())) {
+                            ((DomainCategory) snapshot.getSPObject()).updateToMatch(category);
+                            snapshot.setObsolete(false);
+                            return;
+                        }
+                    }
+                }
+                
                 if (!(snapshot.getSPObject() instanceof UserDefinedSQLType)) return;
                 UserDefinedSQLType snapshotType = (UserDefinedSQLType) snapshot.getSPObject();
                 UserDefinedSQLType systemType = findSystemTypeFromSnapshot(snapshot);

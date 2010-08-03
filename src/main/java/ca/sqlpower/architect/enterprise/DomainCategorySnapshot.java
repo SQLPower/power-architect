@@ -68,6 +68,6 @@ public class DomainCategorySnapshot extends SystemSPObjectSnapshot<DomainCategor
     
     @Override
     public String toString() {
-        return getName();
+        return getSPObject().getName();
     }
 }
