@@ -71,6 +71,8 @@ import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
+import ca.sqlpower.object.AbstractPoolingSPListener;
+import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -153,7 +155,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
 		super(context, name, new ArchitectSwingProject());
 		
-		getTargetDatabase().addSPListener(new SPObjectSnapshotHierarchyListener(this));
+		setupSnapshots();
 		
 		this.projectLocation = projectLocation;
 		this.isEnterpriseSession = true;
@@ -201,6 +203,36 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             throw new AssertionError("Exception encountered while verifying the server license:" + e.getMessage());
         }
 	}
+
+    /**
+     * Helper method for the constructor of a client side session.
+     * <p>
+     * This method will attach listeners and update snapshots as necessary on
+     * the project's load.
+     */
+    private void setupSnapshots() {
+        getTargetDatabase().addSPListener(new SPObjectSnapshotHierarchyListener(this));
+        
+        //This listener will update the obsolete flag on snapshots being added
+        //to the workspace to keep old snapshot's obsolete flag correct when
+        //they haven't been opened in some time but updates have occurred to the types.
+        //While this will also check new snapshots being added to the system doing
+        //the check doesn't hurt anything.
+        getWorkspace().addSPListener(new AbstractPoolingSPListener() {
+            @Override
+            public void childAddedImpl(SPChildEvent e) {
+                if (e.getChild() instanceof UserDefinedSQLTypeSnapshot) {
+                    UserDefinedSQLTypeSnapshot snapshot = (UserDefinedSQLTypeSnapshot) e.getChild();
+                    if (!snapshot.isObsolete()) {
+                        UserDefinedSQLType systemType = findSystemTypeFromSnapshot(snapshot);
+                        if (!UserDefinedSQLType.areEqual(snapshot.getSPObject(), systemType)) {
+                            snapshot.setObsolete(true);
+                        }
+                    }
+                }
+            }
+        });
+    }
 
 	// -
 	
