@@ -33,6 +33,7 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * Add this listener to a SQLDatabase to have its columns have correct snapshot listeners
@@ -93,40 +94,28 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 
     private void addUpdateListener(UserDefinedSQLType columnProxyType) {
         UserDefinedSQLType upstreamSnapshotType = columnProxyType.getUpstreamType();
-        
-        //find snapshot by matching snapshot object
-        for (SPObjectSnapshot<?> snapshot : session.getWorkspace().getSPObjectSnapshots()) {
-            if (snapshot.getSPObject() == upstreamSnapshotType) {
-                //find system UDT by uuid
-                for (UserDefinedSQLType systemType : session.getSystemWorkspace().getSqlTypes()) {
-                    if (systemType.getUUID().equals(snapshot.getOriginalUUID())) {
-                        systemType.addSPListener(new SPObjectSnapshotUpdateListener(snapshot));
-                        break;
-                    }
-                }
-                //find system domain by uuid
-                for (DomainCategory category : session.getSystemWorkspace().getDomainCategories()) {
-                    boolean typeFound = false;
-                    for (UserDefinedSQLType systemType : category.getChildren(UserDefinedSQLType.class)) {
-                        if (systemType.getUUID().equals(snapshot.getOriginalUUID())) {
-                            systemType.addSPListener(new SPObjectSnapshotUpdateListener(snapshot));
-                            for (SPObjectSnapshot<?> categorySnapshot : session.getWorkspace().getSPObjectSnapshots()) {
-                                if (categorySnapshot.getOriginalUUID().equals(category.getUUID())) {
-                                    category.addSPListener(new SPObjectSnapshotUpdateListener(categorySnapshot));
-                                    break;
-                                }
-                            }
-                            typeFound = true;
-                            break;
-                        }
-                    }
-                    if (typeFound) break;
-                }
+
+        SPObjectSnapshot<?> snapshot = null;
+        for (SPObjectSnapshot<?> workspaceSnapshot : session.getWorkspace().getSPObjectSnapshots()) {
+            if (workspaceSnapshot.getSPObject() == upstreamSnapshotType) {
+                snapshot = workspaceSnapshot;
                 break;
             }
         }
+        
+        UserDefinedSQLType systemType = session.findSystemTypeFromSnapshot(snapshot);
+        SQLPowerUtils.listenToHierarchy(systemType, new SPObjectSnapshotUpdateListener(snapshot));
+        if (systemType.getParent() instanceof DomainCategory) {
+            DomainCategory category = (DomainCategory) systemType.getParent();
+            for (SPObjectSnapshot<?> categorySnapshot : session.getWorkspace().getSPObjectSnapshots()) {
+                if (categorySnapshot.getOriginalUUID().equals(category.getUUID())) {
+                    category.addSPListener(new SPObjectSnapshotUpdateListener(categorySnapshot));
+                    break;
+                }
+            }
+        }
     }
-    
+
     private void createSPObjectSnapshot(UserDefinedSQLType typeProxy, UserDefinedSQLType upstreamType) {
         SPObject upstreamTypeParent = upstreamType.getParent();
 

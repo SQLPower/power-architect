@@ -39,6 +39,7 @@ import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -226,6 +227,12 @@ public class TestingArchitectSession implements ArchitectSession {
 
     @Override
     public ArchitectStatusInformation getStatusInformation() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Runnable createUpdateSnapshotRunnable(SPObjectSnapshot<?> snapshot) {
         // TODO Auto-generated method stub
         return null;
     }

@@ -26,6 +26,7 @@ import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.CompareDMSettings;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -191,5 +192,17 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * headless mode).
      */
 	public ArchitectStatusInformation getStatusInformation();
+	
+	/**
+     * Returns a runnable that will update the snapshot object in the given
+     * snapshot to be the same as the type the snapshot maps to in the system
+     * workspace.
+     * 
+     * @param snapshot
+     *            The snapshot to update. This currently only works for
+     *            snapshots of UserDefinedSQLTypes but will be extended to
+     *            others in the future.
+     */
+    public Runnable createUpdateSnapshotRunnable(final SPObjectSnapshot<?> snapshot);
 
 }
