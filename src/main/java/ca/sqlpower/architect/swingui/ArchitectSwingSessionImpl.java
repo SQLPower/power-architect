@@ -84,6 +84,7 @@ import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.Olap4jDataSource;
@@ -1289,6 +1290,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public ArchitectStatusBar getStatusInformation() {
         if (frame == null || frame.getStatusBar() == null) return null;
         return frame.getStatusBar();
+    }
+
+    @Override
+    public Runnable createUpdateSnapshotRunnable(SPObjectSnapshot<?> snapshot) {
+        return delegateSession.createUpdateSnapshotRunnable(snapshot);
     }
     
 }

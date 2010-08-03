@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
 
+import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
@@ -70,6 +71,7 @@ import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
@@ -1165,5 +1167,52 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     @Override
     public ArchitectSwingProject getWorkspace() {
         return (ArchitectSwingProject) super.getWorkspace();
+    }
+    
+    /**
+     * Finds the UDT that has the same uuid as the given snapshot's
+     * {@link SPObjectSnapshot#getOriginalUUID()} method. The snapshot given
+     * cannot be null. Returns null if no type is found.
+     */
+    public UserDefinedSQLType findSystemTypeFromSnapshot(@Nonnull SPObjectSnapshot<?> snapshot) {
+        for (UserDefinedSQLType systemType : getSystemWorkspace().getSqlTypes()) {
+            if (systemType.getUUID().equals(snapshot.getOriginalUUID())) {
+                return systemType;
+            }
+        }
+        for (DomainCategory category : getSystemWorkspace().getDomainCategories()) {
+            for (UserDefinedSQLType systemType : category.getChildren(UserDefinedSQLType.class)) {
+                if (systemType.getUUID().equals(snapshot.getOriginalUUID())) {
+                    return systemType;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns an action that will update the snapshot object in the given
+     * snapshot to be the same as the type the snapshot maps to in the system
+     * workspace.
+     * 
+     * @param snapshot
+     *            The snapshot to update. This currently only works for
+     *            snapshots of UserDefinedSQLTypes but will be extended to
+     *            others in the future.
+     */
+    public Runnable createUpdateSnapshotRunnable(final SPObjectSnapshot<?> snapshot) {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                if (!(snapshot.getSPObject() instanceof UserDefinedSQLType)) return;
+                UserDefinedSQLType snapshotType = (UserDefinedSQLType) snapshot.getSPObject();
+                UserDefinedSQLType systemType = findSystemTypeFromSnapshot(snapshot);
+                if (systemType == null) return;
+                
+                snapshotType.updateToMatch(systemType);
+                snapshot.setObsolete(false);
+            }
+        };
     }
 }

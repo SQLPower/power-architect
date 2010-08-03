@@ -31,6 +31,7 @@ import ca.sqlpower.architect.enterprise.UpstreamTypeUpdaterListener;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -42,9 +43,9 @@ import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.UserPrompter;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
-import ca.sqlpower.util.UserPrompterFactory;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -301,6 +302,17 @@ public class ArchitectSessionImpl implements ArchitectSession {
     
     public void setStatusInfo(ArchitectStatusInformation statusInfo) {
         this.statusInfo = statusInfo;
+    }
+    
+    public Runnable createUpdateSnapshotRunnable(final SPObjectSnapshot<?> snapshot) {
+        return new Runnable() {
+            
+            @Override
+            public void run() {
+                createUserPrompter("Cannot update a snapshot from this session", 
+                        UserPromptType.MESSAGE, UserPromptOptions.OK, UserPromptResponse.OK, null);
+            }
+        };
     }
 }
 

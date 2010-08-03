@@ -69,6 +69,7 @@ import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLCatalog;
@@ -542,7 +543,18 @@ public class DBTree extends JTree implements DragSourceListener {
 			} else {
 				mi.setEnabled(false);
 			}
-		} else if (p != null && !isTargetDatabaseNode(p)) { // clicked on DBCS item in DBTree
+		} else if (p != null && p.getLastPathComponent() instanceof SPObjectSnapshot<?>) {
+		    final SPObjectSnapshot<?> snapshot = (SPObjectSnapshot<?>) p.getLastPathComponent();
+		    newMenu.addSeparator();
+
+		    newMenu.add(new AbstractAction("Update to latest changes") {
+		        @Override
+		        public void actionPerformed(ActionEvent e) {
+		            session.createUpdateSnapshotRunnable(snapshot).run();
+		        }
+		    });
+		} else if (p != null && !isTargetDatabaseNode(p) && 
+		        p.getLastPathComponent() != treeModel.getSnapshotContainer()) { // clicked on DBCS item in DBTree
 			newMenu.addSeparator();
 			
 			newMenu.add(new RefreshAction(session));

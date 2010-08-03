@@ -443,7 +443,7 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     @NonProperty
-    protected List<UserDefinedSQLType> getSqlTypes() {
+    public List<UserDefinedSQLType> getSqlTypes() {
         return Collections.unmodifiableList(sqlTypes);
     }
     
@@ -453,7 +453,7 @@ public class ArchitectProject extends AbstractSPObject {
     }
     
     @NonProperty
-    protected List<DomainCategory> getDomainCategories() {
+    public List<DomainCategory> getDomainCategories() {
         return Collections.unmodifiableList(domainCategories); 
     }
     

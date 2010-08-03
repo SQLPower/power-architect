@@ -49,6 +49,7 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -539,6 +540,12 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     @Override
     public Saver getSaveBehaviour() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Runnable createUpdateSnapshotRunnable(SPObjectSnapshot<?> snapshot) {
         // TODO Auto-generated method stub
         return null;
     }
