@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.enterprise;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -34,6 +36,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -54,6 +57,7 @@ public class GroupEditorPanel implements DataEntryPanel {
 
     private static final ImageIcon RIGHT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-right.png"));
     private static final ImageIcon LEFT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-left.png"));
+    private static final ImageIcon USER_ICON = new ImageIcon(GroupEditorPanel.class.getResource("icons/user.png"));
     
     private final Group group;
     
@@ -151,13 +155,26 @@ public class GroupEditorPanel implements DataEntryPanel {
         nameTextField.setText(group.getName());
         nameTextField.getDocument().addDocumentListener(textFieldListener);
         
+        ListCellRenderer userListCellRenderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+                    boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setIcon(USER_ICON);
+                return this;
+            } 
+        };
+        
         availableUsersLabel = new JLabel("Available Users");
         availableUsersList = new JList(new DefaultListModel());
+        availableUsersList.setCellRenderer(userListCellRenderer);
         availableUsersScrollPane = new JScrollPane(availableUsersList);
         availableUsersScrollPane.setPreferredSize(prefScrollPaneDimension);
         
         currentUsersLabel = new JLabel("Current Users");
         currentUsersList = new JList(new DefaultListModel());
+        currentUsersList.setCellRenderer(userListCellRenderer);
+        
         currentUsersScrollPane = new JScrollPane(currentUsersList);
         currentUsersScrollPane.setPreferredSize(prefScrollPaneDimension);
         
