@@ -20,6 +20,8 @@
 package ca.sqlpower.architect;
 
 import java.beans.PropertyChangeEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.DomainCategory;
@@ -47,6 +49,15 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      */
     private final ArchitectClientSideSession session;
 
+    /**
+     * This map tracks all of the listeners that have been attached to system
+     * workspace types and domains to the snapshot that they were attached for.
+     * This lets us remove these listeners when the type or domain is being
+     * removed from the system.
+     */
+    private final Map<SPObjectSnapshot<?>, SPObjectSnapshotUpdateListener> listenerMap = 
+        new HashMap<SPObjectSnapshot<?>, SPObjectSnapshotUpdateListener>();
+
     public SPObjectSnapshotHierarchyListener(ArchitectClientSideSession session) {
         this.session = session;
     }
@@ -71,11 +82,16 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 			e.getChild().removeSPListener(this);
 			for (SQLColumn col : e.getChild().getChildren(SQLColumn.class)) {
 				col.getUserDefinedSQLType().removeSPListener(this);
-				cleanupSnapshot();
+				if (col.getUserDefinedSQLType().isMagicEnabled()) {
+				    cleanupSnapshot(col.getUserDefinedSQLType().getUpstreamType());
+				}
 			}
 		} else if (e.getChild() instanceof SQLColumn) {
-			((SQLColumn) e.getChild()).getUserDefinedSQLType().removeSPListener(this);
-			cleanupSnapshot();
+		    UserDefinedSQLType colType = ((SQLColumn) e.getChild()).getUserDefinedSQLType();
+			colType.removeSPListener(this);
+			if (colType.isMagicEnabled()) {
+			    cleanupSnapshot(colType.getUpstreamType());
+			}
 		}
 	}
 	
@@ -88,7 +104,9 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 		        createSPObjectSnapshot((UserDefinedSQLType) e.getSource(), (UserDefinedSQLType) e.getNewValue());
 		    }
 		    
-		    cleanupSnapshot();
+		    if (e.getOldValue() != null && ((UserDefinedSQLType) e.getSource()).isMagicEnabled()) {
+		        cleanupSnapshot((UserDefinedSQLType) e.getOldValue());
+		    }
 		    
 			UserDefinedSQLType columnProxyType = (UserDefinedSQLType) e.getSource();
 			addUpdateListener(columnProxyType);
@@ -97,13 +115,62 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 
     /**
      * This method will remove the snapshot and the listener on the system's
-     * type if the snapshot is no longer in use.
+     * type if the snapshot is no longer in use. Only call this method if magic
+     * is enabled.
+     * 
+     * @param typeRemoved
+     *            The snapshot type that is a child of the workspace that is/was
+     *            referenced by the column's type proxy that is being removed.
+     *            Either the column is being removed or the type is changing.
      */
-	private void cleanupSnapshot() {
-	    //find if the snapshot is being referenced by any of the columns in the workspace.
-	    //if it is not referenced remove it from the project
+	private void cleanupSnapshot(UserDefinedSQLType typeRemoved) {
+	    //The first type set will be from the system workspace and will not
+	    //have a snapshot, then the snapshot will replace the one set from the system.
+	    if (typeRemoved.getParent() == session.getSystemWorkspace() || 
+	            (typeRemoved.getParent() instanceof DomainCategory && 
+	                    typeRemoved.getParent().getParent() == session.getSystemWorkspace())) return;
+	    
+	    UserDefinedSQLTypeSnapshot udtSnapshot = null;
+	    for (SPObjectSnapshot<?> snapshot : session.getWorkspace().getSPObjectSnapshots()) {
+            if (snapshot.getSPObject().equals(typeRemoved)) {
+                udtSnapshot = (UserDefinedSQLTypeSnapshot) snapshot;
+                udtSnapshot.setSnapshotUseCount(udtSnapshot.getSnapshotUseCount() - 1);
+                if (udtSnapshot.getSnapshotUseCount() > 0) return;
+                break;
+            }
+	    }
+	    if (udtSnapshot == null) throw new NullPointerException("The type " + typeRemoved + 
+	            " is a snapshot type but does not have a snapshot object in the project.");
+	    
+	    //If we are here the snapshot is no longer in use.
+	    session.getWorkspace().removeSPObjectSnapshot(udtSnapshot);
+	    try {
+	        if (udtSnapshot.isDomainSnapshot()) {
+	            DomainCategory cat = (DomainCategory) udtSnapshot.getSPObject().getParent();
+	            cat.removeChild(udtSnapshot.getSPObject());
+	            //TODO decrement upstream type of the domain, remove if 0
+	            
+	            if (cat.getChildren().size() == 0) {
+	                for (SPObjectSnapshot<?> snapshot : session.getWorkspace().getSPObjectSnapshots()) {
+	                    if (snapshot.getSPObject().equals(cat)) {
+	                        session.getWorkspace().removeChild(snapshot);
+	                        session.getWorkspace().removeChild(cat);
+	                        break;
+	                    }
+	                }
+	            }
+	        } else {
+	            session.getWorkspace().removeChild(udtSnapshot.getSPObject());
+	        }
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+        }
+	    
 	    //find its upstream type and remove its listener.
-	    //XXX Need to remove the old listener
+	    UserDefinedSQLType systemType = session.findSystemTypeFromSnapshot(udtSnapshot);
+        SQLPowerUtils.unlistenToHierarchy(systemType, listenerMap.get(udtSnapshot));
+        
+	    //handle domain categories and domain's upstream type as well.
 	}
 
     /**
@@ -129,12 +196,16 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
         }
         
         UserDefinedSQLType systemType = session.findSystemTypeFromSnapshot(snapshot);
-        SQLPowerUtils.listenToHierarchy(systemType, new SPObjectSnapshotUpdateListener(snapshot));
+        SPObjectSnapshotUpdateListener udtSnapshotListener = new SPObjectSnapshotUpdateListener(snapshot);
+        SQLPowerUtils.listenToHierarchy(systemType, udtSnapshotListener);
+        listenerMap.put(snapshot, udtSnapshotListener);
         if (systemType.getParent() instanceof DomainCategory) {
             DomainCategory category = (DomainCategory) systemType.getParent();
             for (SPObjectSnapshot<?> categorySnapshot : session.getWorkspace().getSPObjectSnapshots()) {
                 if (categorySnapshot.getOriginalUUID().equals(category.getUUID())) {
-                    category.addSPListener(new SPObjectSnapshotUpdateListener(categorySnapshot));
+                    SPObjectSnapshotUpdateListener categorySnapshotListener = new SPObjectSnapshotUpdateListener(categorySnapshot);
+                    category.addSPListener(categorySnapshotListener);
+                    listenerMap.put(categorySnapshot, categorySnapshotListener);
                     break;
                 }
             }
@@ -159,6 +230,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 session.getWorkspace().addChild(upstreamSnapshot, 0);
                 session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
                 snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);
+                //TODO increment upstream type use count and check if one exists already instead of always creating a new one.
             } else {
                 snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot);
             }
@@ -174,6 +246,18 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 session.getWorkspace().addChild(snapshot.getSPObject(), 0);
             }
             typeProxy.setUpstreamType(snapshot.getSPObject());
+            snapshot.setSnapshotUseCount(1);
+        } else if (upstreamTypeParent != null && 
+                (upstreamTypeParent.equals(session.getWorkspace()) ||
+                        (upstreamTypeParent instanceof DomainCategory && 
+                                upstreamTypeParent.getParent().equals(session.getWorkspace())))) {
+            for (SPObjectSnapshot<?> snapshot : session.getWorkspace().getSPObjectSnapshots()) {
+                if (snapshot.getSPObject().equals(upstreamType)) {
+                    UserDefinedSQLTypeSnapshot udtSnapshot = (UserDefinedSQLTypeSnapshot) snapshot;
+                    udtSnapshot.setSnapshotUseCount(udtSnapshot.getSnapshotUseCount() + 1);
+                    return;
+                }
+            }
         }
     }
 }
