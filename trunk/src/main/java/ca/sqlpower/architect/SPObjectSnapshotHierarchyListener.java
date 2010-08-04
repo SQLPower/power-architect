@@ -71,7 +71,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             if (sqlColumn.getUserDefinedSQLType() != null) {
                 sqlColumn.getUserDefinedSQLType().addSPListener(this);
                 createSPObjectSnapshot(sqlColumn.getUserDefinedSQLType(), sqlColumn.getUserDefinedSQLType().getUpstreamType());
-                addUpdateListener(sqlColumn.getUserDefinedSQLType());
+                addUpdateListener(sqlColumn.getUserDefinedSQLType().getUpstreamType());
             }
 		}
 	}
@@ -109,7 +109,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 		    }
 		    
 			UserDefinedSQLType columnProxyType = (UserDefinedSQLType) e.getSource();
-			addUpdateListener(columnProxyType);
+			addUpdateListener(columnProxyType.getUpstreamType());
 		}
 	}
 
@@ -148,7 +148,6 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	        if (udtSnapshot.isDomainSnapshot()) {
 	            DomainCategory cat = (DomainCategory) udtSnapshot.getSPObject().getParent();
 	            cat.removeChild(udtSnapshot.getSPObject());
-	            //TODO decrement upstream type of the domain, remove if 0
 	            
 	            if (udtSnapshot.getSPObject().getUpstreamType().getUpstreamType() != null) 
 	                throw new IllegalStateException("We currently do not support having a domain " +
@@ -184,14 +183,10 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * listener on the system type will be used to update the snapshot in this
      * project when the system type changes.
      * 
-     * @param columnProxyType
-     *            This type is a type that is a direct child of a column. The
-     *            type will have its upstreamType property pointing at a
-     *            snapshot in the workspace that we can find to locate its
-     *            actual system type.
+     * @param columnSnapshotType
+     *            This type is a type that is a snapshot of a system type used in a column.
      */
-    private void addUpdateListener(UserDefinedSQLType columnProxyType) {
-        UserDefinedSQLType upstreamSnapshotType = columnProxyType.getUpstreamType();
+    private void addUpdateListener(UserDefinedSQLType upstreamSnapshotType) {
 
         SPObjectSnapshot<?> snapshot = null;
         for (SPObjectSnapshot<?> workspaceSnapshot : session.getWorkspace().getSPObjectSnapshots()) {
@@ -251,6 +246,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isUpstreamDomainSnapshot);
                     session.getWorkspace().addChild(upstreamSnapshot, 0);
                     session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
+                    addUpdateListener(upstreamSnapshot.getSPObject());
                 }
                 snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);
             } else {
