@@ -323,9 +323,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 					    public List<UserDefinedSQLType> getSQLTypes() {
 					        List<UserDefinedSQLType> types = new ArrayList<UserDefinedSQLType>();
 					        types.addAll(ArchitectClientSideSession.this.getSQLTypes());
-					        for (DomainCategory dc : ArchitectClientSideSession.this.getDomainCategories()) {
-					            types.addAll(dc.getChildren(UserDefinedSQLType.class));
-					        }
+					        types.addAll(ArchitectClientSideSession.this.getDomains());
 					        return types;
 					    }
 					    
@@ -1155,45 +1153,58 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     }
 
     /**
-     * Returns the {@link List} of {@link DomainCategory}s in this session's
-     * system workspace.
+     * Returns the {@link List} of {@link UserDefinedSQLType}s in this session
+     * that are children of a {@link DomainCategory}. Each domain in the system
+     * will be in the list once as either the domain that is in the system
+     * workspace or a snapshot of the domain that is in the current project. UDTs
+     * that are children of a category are defined as domains instead of types.
      */
     @Override
-    public List<DomainCategory> getDomainCategories() {
+    public List<UserDefinedSQLType> getDomains() {
         // The following was my attempt to merge the snapshot and system category lists together
         // without making it O(nm), but the code is a bit lengthier than I'd like, so perhaps
         // the added complexity may not be worth it?
-        List<DomainCategorySnapshot> categorySnapshots = 
-            new ArrayList<DomainCategorySnapshot>(getWorkspace().getChildren(DomainCategorySnapshot.class));
+        List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
+            new ArrayList<UserDefinedSQLTypeSnapshot>(getWorkspace().getChildren(UserDefinedSQLTypeSnapshot.class));
         List<DomainCategory> systemCategories = 
             new ArrayList<DomainCategory>(getSystemWorkspace().getChildren(DomainCategory.class));
+        List<UserDefinedSQLTypeSnapshot> domainSnapshots = new ArrayList<UserDefinedSQLTypeSnapshot>();
+        for (UserDefinedSQLTypeSnapshot udtSnapshot : typeSnapshots) {
+            if (udtSnapshot.isDomainSnapshot()) {
+                domainSnapshots.add(udtSnapshot);
+            }
+        }
+        List<UserDefinedSQLType> systemDomains = new ArrayList<UserDefinedSQLType>();
+        for (DomainCategory category : systemCategories) {
+            systemDomains.addAll(category.getChildren(UserDefinedSQLType.class));
+        }
         
         // If there are no snapshots, just return the system categories.
-        if (categorySnapshots.size() == 0) return Collections.unmodifiableList(systemCategories);
+        if (domainSnapshots.size() == 0) return Collections.unmodifiableList(systemDomains);
         
         // Sort both lists by the UUIDs of the system categories
-        Collections.sort(categorySnapshots, new Comparator<DomainCategorySnapshot>() {
-            public int compare(DomainCategorySnapshot o1, DomainCategorySnapshot o2) {
+        Collections.sort(domainSnapshots, new Comparator<UserDefinedSQLTypeSnapshot>() {
+            public int compare(UserDefinedSQLTypeSnapshot o1, UserDefinedSQLTypeSnapshot o2) {
                 return o1.getOriginalUUID().compareTo(o2.getOriginalUUID());
             }
         });
-        Collections.sort(systemCategories, new SPObjectUUIDComparator<DomainCategory>());
+        Collections.sort(systemDomains, new SPObjectUUIDComparator<UserDefinedSQLType>());
 
         // Now go through the list of system categories. If a snapshot category's
         // original UUID matches, then replace the system category with the snapshot.
-        Iterator<DomainCategorySnapshot> snapshotIterator = categorySnapshots.iterator();
-        DomainCategorySnapshot currentSnapshot = snapshotIterator.next();
+        Iterator<UserDefinedSQLTypeSnapshot> snapshotIterator = domainSnapshots.iterator();
+        UserDefinedSQLTypeSnapshot currentSnapshot = snapshotIterator.next();
         
-        for (int i = 0; i < systemCategories.size() ; i++) {
-            DomainCategory type = systemCategories.get(i);
+        for (int i = 0; i < systemDomains.size() ; i++) {
+            UserDefinedSQLType type = systemDomains.get(i);
             int compareTo = currentSnapshot.getOriginalUUID().compareTo(type.getUUID());
             if (compareTo <= 0) {
                 if (compareTo == 0) {
-                    systemCategories.set(i, currentSnapshot.getSPObject());
+                    systemDomains.set(i, currentSnapshot.getSPObject());
                 } else {
-                    systemCategories.add(i, currentSnapshot.getSPObject());
+                    systemDomains.add(i, currentSnapshot.getSPObject());
                 }
-                if (snapshotIterator.hasNext() && i != systemCategories.size() - 1) {
+                if (snapshotIterator.hasNext() && i != systemDomains.size() - 1) {
                     currentSnapshot = snapshotIterator.next();
                 } else {
                     break;
@@ -1204,10 +1215,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         // If we've gone through all the system types, then append the remaining snapshot categories
         while (snapshotIterator.hasNext()) {
             currentSnapshot = snapshotIterator.next();
-            systemCategories.add(currentSnapshot.getSPObject());
+            systemDomains.add(currentSnapshot.getSPObject());
         }
         
-        return Collections.unmodifiableList(systemCategories);
+        return Collections.unmodifiableList(systemDomains);
     }
 
     @Override

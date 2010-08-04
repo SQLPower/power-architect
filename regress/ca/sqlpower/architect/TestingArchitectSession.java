@@ -35,7 +35,6 @@ package ca.sqlpower.architect;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
@@ -212,7 +211,7 @@ public class TestingArchitectSession implements ArchitectSession {
         return defaultUPF.createListUserPrompter(question, responses, defaultResponse);
     }
 
-    public List<DomainCategory> getDomainCategories() {
+    public List<UserDefinedSQLType> getDomains() {
         // TODO Auto-generated method stub
         return null;
     }

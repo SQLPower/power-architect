@@ -22,7 +22,6 @@ package ca.sqlpower.architect;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.object.SPObjectSnapshot;
@@ -177,7 +176,7 @@ public class StubArchitectSession implements ArchitectSession {
         return null;
     }
     
-    public List<DomainCategory> getDomainCategories() {
+    public List<UserDefinedSQLType> getDomains() {
         // TODO Auto-generated method stub
         return null;
     }

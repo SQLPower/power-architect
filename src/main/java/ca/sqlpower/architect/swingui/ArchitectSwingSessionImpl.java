@@ -64,7 +64,6 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
@@ -1266,8 +1265,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return swinguiUserPrompterFactory.createListUserPrompter(question, responses, defaultResponse);
     }
 
-    public List<DomainCategory> getDomainCategories() {
-        return delegateSession.getDomainCategories();
+    public List<UserDefinedSQLType> getDomains() {
+        return delegateSession.getDomains();
     }
 
     public JScrollPane getPlayPenScrollPane() {

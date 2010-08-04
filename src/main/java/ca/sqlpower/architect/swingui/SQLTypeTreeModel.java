@@ -36,6 +36,9 @@ import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 /**
  * This {@link TreeModel} defines the hierarchy of {@link UserDefinedSQLType}s
  * and {@link DomainCategory}s under an {@link ArchitectProject}.
@@ -81,13 +84,24 @@ public class SQLTypeTreeModel implements TreeModel {
     private final List<UserDefinedSQLType> sqlTypes;
 
     /**
-     * The {@link List} of {@link DomainCategory}s reflective of the categories
-     * in the {@link ArchitectProject} when the constructor of this tree model
-     * is called. Categories are not directly retrieved from the
-     * {@link ArchitectProject} as it may have changed after creation of this
-     * model.
+     * The {@link List} of {@link DomainCategory} names reflective of the
+     * categories and domains in the {@link ArchitectProject} when the
+     * constructor of this tree model is called. The category names are mapped
+     * to a collection of the domains that are under them as the domains
+     * returned by the session could be a combination of actual system domains
+     * and snapshot domains in the project. In this case the domains are under
+     * different parents but should represent being under the same parent.
+     * <p>
+     * Domains are not directly retrieved from the {@link ArchitectProject} as
+     * it may have changed after creation of this model.
      */
-    private final List<DomainCategory> domainCategories;
+    private final Multimap<String, UserDefinedSQLType> domainCategoryMap = ArrayListMultimap.create();
+
+    /**
+     * The list of names of domain categories sorted to be in alphabetical order.
+     * All domain categories known to this tree model will be in this list.
+     */
+    private final ArrayList<String> domainCategoryNameList; 
 
     /**
      * Creates a new SQLTypeTreeModel.
@@ -100,20 +114,31 @@ public class SQLTypeTreeModel implements TreeModel {
     public SQLTypeTreeModel(ArchitectSession session) {
         root = session.getWorkspace();
         sqlTypes = new ArrayList<UserDefinedSQLType>(session.getSQLTypes());
-        domainCategories = new ArrayList<DomainCategory>(session.getDomainCategories());
+        Collections.sort(sqlTypes, typeComparator);
+        List<UserDefinedSQLType> domains = session.getDomains();
+        for (UserDefinedSQLType domain : domains) {
+            domainCategoryMap.put(domain.getParent().getName(), domain);
+        }
+        domainCategoryNameList = new ArrayList<String>(domainCategoryMap.keySet());
+        Collections.sort(domainCategoryNameList);
     }
     
-    public SPObject getChild(Object parent, int index) {
+    public Object getChild(Object parent, int index) {
         // If the parent is the delegate ArchitectProject, get the child at 
         // the specified index which should be of type UserDefinedSQLType 
         // or DomainCategory.
         if (root == parent) {
-            return getChildren().get(index);
+            if (index < domainCategoryNameList.size()) {
+                //Making a temporary domain category so the icon on the tree renderer is correct.
+                return new DomainCategory(domainCategoryNameList.get(index));
+            } else if (index < domainCategoryNameList.size() + sqlTypes.size()) {
+                return sqlTypes.get(index - domainCategoryNameList.size());
+            }
         
         // If the parent is DomainCategory, get the child at the specified 
         // index which should be of type UserDefinedSQLType.
         } else if (parent instanceof DomainCategory &&
-                domainCategories.contains(parent)) {
+                domainCategoryMap.keySet().contains(((DomainCategory) parent).getName())) {
             return getDomainTypes((DomainCategory) parent).get(index);
         }
         
@@ -122,24 +147,12 @@ public class SQLTypeTreeModel implements TreeModel {
 
     public int getChildCount(Object parent) {
         if (root == parent) {
-            return getChildren().size();
+            return domainCategoryNameList.size() + sqlTypes.size();
         } else if (parent instanceof DomainCategory && 
-                domainCategories.contains(parent)) {
+                domainCategoryMap.keySet().contains(((DomainCategory) parent).getName())) {
             return getDomainTypes((DomainCategory) parent).size();
         }
         return 0;
-    }
-
-    /**
-     * Returns the sorted {@link List} of {@link UserDefinedSQLType}s and
-     * {@link DomainCategory}s that are children of a given project.
-     */
-    private List<? extends SPObject> getChildren() {
-        List<SPObject> children = new ArrayList<SPObject>();
-        children.addAll(domainCategories);
-        children.addAll(sqlTypes);
-        Collections.sort(children, typeComparator);
-        return Collections.unmodifiableList(children);
     }
 
     /**
@@ -153,7 +166,7 @@ public class SQLTypeTreeModel implements TreeModel {
      */
     private List<UserDefinedSQLType> getDomainTypes(DomainCategory category) {
         List<UserDefinedSQLType> children = new ArrayList<UserDefinedSQLType>(
-                category.getChildren(UserDefinedSQLType.class));
+                domainCategoryMap.get(category.getName()));
         Collections.sort(children, typeComparator);
         return Collections.unmodifiableList(children);
     }
@@ -162,9 +175,13 @@ public class SQLTypeTreeModel implements TreeModel {
         if (parent == null || child == null) {
             return -1;
         } else if (root == parent) {
-            return getChildren().indexOf(child);
+            if (domainCategoryNameList.contains(child)) {
+                return domainCategoryNameList.indexOf(child);
+            } else if (sqlTypes.contains(child)) {
+                return domainCategoryNameList.size() + sqlTypes.indexOf(child);
+            }
         } else if (parent instanceof DomainCategory &&
-                domainCategories.contains(parent)) {
+                domainCategoryMap.keySet().contains(((DomainCategory) parent))) {
             if (child instanceof UserDefinedSQLType) {
                 return getDomainTypes((DomainCategory) parent).indexOf(child);
             }

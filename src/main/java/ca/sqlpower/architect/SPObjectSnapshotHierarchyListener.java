@@ -246,6 +246,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isUpstreamDomainSnapshot);
                     session.getWorkspace().addChild(upstreamSnapshot, 0);
                     session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
+                    upstreamSnapshot.setSnapshotUseCount(1);
                     addUpdateListener(upstreamSnapshot.getSPObject());
                 }
                 snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);
