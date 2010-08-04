@@ -150,6 +150,12 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	            cat.removeChild(udtSnapshot.getSPObject());
 	            //TODO decrement upstream type of the domain, remove if 0
 	            
+	            if (udtSnapshot.getSPObject().getUpstreamType().getUpstreamType() != null) 
+	                throw new IllegalStateException("We currently do not support having a domain " +
+	                		"reference an upstream type of a domain.");
+	            
+	            cleanupSnapshot(udtSnapshot.getSPObject().getUpstreamType());
+	            
 	            if (cat.getChildren().size() == 0) {
 	                for (SPObjectSnapshot<?> snapshot : session.getWorkspace().getSPObjectSnapshots()) {
 	                    if (snapshot.getSPObject().equals(cat)) {
@@ -226,11 +232,27 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 //For domains
                 UserDefinedSQLType upUpStreamType = upstreamType.getUpstreamType();
                 boolean isUpstreamDomainSnapshot = upUpStreamType.getParent() instanceof DomainCategory;
-                UserDefinedSQLTypeSnapshot upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isUpstreamDomainSnapshot);
-                session.getWorkspace().addChild(upstreamSnapshot, 0);
-                session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
+                
+                if (isUpstreamDomainSnapshot) throw new IllegalStateException(
+                        "We currently don't handle domains that have an upstream type of another domain.");
+                
+                UserDefinedSQLTypeSnapshot upstreamSnapshot = null;
+                boolean existingSnapshotFound = false;
+                for (SPObjectSnapshot<?> workspaceSnapshot : session.getWorkspace().getSPObjectSnapshots()) {
+                    if (workspaceSnapshot.getOriginalUUID().equals(upUpStreamType.getUUID()) && 
+                            workspaceSnapshot instanceof UserDefinedSQLTypeSnapshot) {
+                        upstreamSnapshot = (UserDefinedSQLTypeSnapshot) workspaceSnapshot;
+                        upstreamSnapshot.setSnapshotUseCount(upstreamSnapshot.getSnapshotUseCount() + 1);
+                        existingSnapshotFound = true;
+                        break;
+                    }
+                }
+                if (!existingSnapshotFound) {
+                    upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isUpstreamDomainSnapshot);
+                    session.getWorkspace().addChild(upstreamSnapshot, 0);
+                    session.getWorkspace().addChild(upstreamSnapshot.getSPObject(), 0);
+                }
                 snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);
-                //TODO increment upstream type use count and check if one exists already instead of always creating a new one.
             } else {
                 snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot);
             }
