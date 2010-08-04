@@ -54,6 +54,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
@@ -174,6 +175,8 @@ public class ArchitectFrame extends JFrame {
     private static final String CYCLE_TAB_ACTION = "ca.sqlpower.architect.swingui.CYCLE_TAB_ACTION";
 
     private static Logger logger = Logger.getLogger(ArchitectFrame.class);
+    
+    private static final ImageIcon GROUP_ICON = new ImageIcon(ArchitectFrame.class.getResource("enterprise/icons/group.png"));
 
     public static final double ZOOM_STEP = 0.25;
     
@@ -1012,7 +1015,11 @@ public class ArchitectFrame extends JFrame {
         
         securityMenu = new JMenu("Security");
         securityMenu.setEnabled(currentSession.isEnterpriseSession());
-        securityMenu.add(openSecurityManagerPanelAction);
+        
+        JMenuItem securityManagerMenuItem = new JMenuItem(openSecurityManagerPanelAction);
+        securityManagerMenuItem.setIcon(GROUP_ICON);
+        securityMenu.add(securityManagerMenuItem);
+        
         securityMenu.add(openProjectSecurityPanelAction);
         
         enterpriseMenu.add(securityMenu);
