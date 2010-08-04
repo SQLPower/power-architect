@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -33,6 +34,7 @@ import java.util.NoSuchElementException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -46,6 +48,7 @@ import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
@@ -64,6 +67,9 @@ import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class SecurityPanel {
+    
+    private static final ImageIcon USER_ICON = new ImageIcon(SecurityPanel.class.getResource("icons/user.png"));
+    private static final ImageIcon GROUP_ICON = new ImageIcon(SecurityPanel.class.getResource("icons/group.png"));
     
     private final Action closeAction;
     
@@ -218,6 +224,22 @@ public class SecurityPanel {
         
         tree = new JTree(rootNode);
         tree.addTreeSelectionListener(treeListener);
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        tree.setCellRenderer(new DefaultTreeCellRenderer() {
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+                Object userObject = ((DefaultMutableTreeNode) value).getUserObject();
+                if (userObject instanceof User) {
+                    setIcon(USER_ICON);
+                } else if (userObject instanceof Group) {
+                    setIcon(GROUP_ICON);
+                }
+                return this;
+            }
+        });
+        
+        
         treePane = new JScrollPane(tree);
         treePane.setPreferredSize(new Dimension(200, treePane.getPreferredSize().height));
         

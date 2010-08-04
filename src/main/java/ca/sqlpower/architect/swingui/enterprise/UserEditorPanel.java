@@ -19,6 +19,7 @@
 
 package ca.sqlpower.architect.swingui.enterprise;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -38,6 +40,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -61,6 +64,7 @@ public class UserEditorPanel implements DataEntryPanel{
     
     private static final ImageIcon RIGHT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-right.png"));
     private static final ImageIcon LEFT_ARROW = new ImageIcon(RefreshProjectAction.class.getResource("/icons/arrow-left.png"));
+    private static final ImageIcon GROUP_ICON = new ImageIcon(UserEditorPanel.class.getResource("icons/group.png"));
     
     private final ArchitectSwingProject securityWorkspace;
     private final User user;
@@ -232,13 +236,25 @@ public class UserEditorPanel implements DataEntryPanel{
         emailField.setText(user.getEmail());
         emailField.getDocument().addDocumentListener(textFieldListener);
         
+        ListCellRenderer groupListCellRenderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+                    boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setIcon(GROUP_ICON);
+                return this;
+            } 
+        };
+        
         availableGroupsLabel = new JLabel("Available Groups");
         availableGroupsList = new JList(new DefaultListModel());
+        availableGroupsList.setCellRenderer(groupListCellRenderer);
         availableGroupsScrollPane = new JScrollPane(availableGroupsList);
         availableGroupsScrollPane.setPreferredSize(prefScrollPaneDimension);
         
         currentGroupsLabel = new JLabel("Current Groups");
         currentGroupsList = new JList(new DefaultListModel());
+        currentGroupsList.setCellRenderer(groupListCellRenderer);
         currentGroupsScrollPane = new JScrollPane(currentGroupsList);
         currentGroupsScrollPane.setPreferredSize(prefScrollPaneDimension);
         
