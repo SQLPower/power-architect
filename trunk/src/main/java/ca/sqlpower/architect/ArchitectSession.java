@@ -22,7 +22,6 @@ import java.sql.Types;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.CompareDMSettings;
 import ca.sqlpower.architect.swingui.LiquibaseSettings;
@@ -141,10 +140,10 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
     public List<UserDefinedSQLType> getSQLTypes();
 
     /**
-     * Returns a list of {@link DomainCategory}s defined in this session. Only
+     * Returns a list of {@link UserDefinedSQLType}s defined in this session. Only
      * enterprise sessions should contain domains.
      */
-    public List<DomainCategory> getDomainCategories();
+    public List<UserDefinedSQLType> getDomains();
     
     /**
      * Searches the session for a {@link UserDefinedSQLType} with the given
