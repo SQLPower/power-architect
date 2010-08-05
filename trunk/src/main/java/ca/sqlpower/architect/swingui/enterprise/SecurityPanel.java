@@ -431,20 +431,19 @@ public class SecurityPanel {
                 object = null;
             }
             
-            Class objectClass = null;
+            Class<?> objectClass = null;
             if (object != null) {
                 objectClass = object.getClass();
             } else {
-                if (node.getUserObject().equals("Users")) {
+                if (node == usersNode) {
                     objectClass = User.class;
-                }
-                if (node.getUserObject().equals("Groups")) {
+                } else if (node == groupsNode) {
                     objectClass = Group.class;
                 }
             }
             
             
-            final JDialog d = SPSUtils.makeOwnedDialog(panel, "Security Manager");
+            final JDialog d = SPSUtils.makeOwnedDialog(dialog, "Security Manager");
             
             Action closeAction = new AbstractAction("Close") {
                 public void actionPerformed(ActionEvent e) {

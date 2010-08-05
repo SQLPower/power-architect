@@ -90,7 +90,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     private final Action closeAction;
     private final ArchitectSwingProject securityWorkspace;
     private final SPObject subject;
-    private final Class type;
+    private final Class<?> type;
     
     private final String username;
     
@@ -101,7 +101,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
     
     private final Dialog d;
     
-    public ProjectSecurityPanel(ArchitectSwingProject securityWorkspace, SPObject subject, Class type, String username, Dialog d, Action closeAction) {
+    public ProjectSecurityPanel(ArchitectSwingProject securityWorkspace, SPObject subject, Class<?> type, String username, Dialog d, Action closeAction) {
         this.securityWorkspace = securityWorkspace;
         this.subject = subject;
         this.type = type;
@@ -589,7 +589,7 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         }
     }
     
-    public static Action createShowAction(final ArchitectSwingProject securityWorkspace, final SPObject subject, final Class type,
+    public static Action createShowAction(final ArchitectSwingProject securityWorkspace, final SPObject subject, final Class<?> type,
             final String username, final JComponent panel) {
        return new AbstractAction("Manage Security Settings...") {
                 public void actionPerformed(ActionEvent e) {
