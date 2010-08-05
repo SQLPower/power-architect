@@ -1196,6 +1196,7 @@
 		<jarbundler dir="${staging.dir}"
            name="SQL Power Architect"
            version="${app.version}"
+		   bundleid="ca.sqlpower.architect"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
            jvmversion="1.6+"
@@ -1206,12 +1207,14 @@
 			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
 			<javafileset dir="${staging.dir}" includes="jdbc/*.ini"/>
 			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
+			<documenttype name="SQL Power Architect Project"
+							extensions="architect"/>
 		</jarbundler>
 
 		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
-		<replace file="${staging.dir}/SQL Power Architect.app/Contents/Info.plist"
+		<!--<replace file="${staging.dir}/SQL Power Architect.app/Contents/Info.plist"
 				 token="${basedir}/KICKME"
-				 value="$JAVAROOT" />
+				 value="$JAVAROOT" />-->
 	</target>
 
 	<target name="osx_jdbc_dist" depends="stage">
@@ -1222,6 +1225,7 @@
 		<jarbundler dir="${staging.dir}"
            name="SQL Power Architect JDBC"
            version="${app.version}.jdbc"
+		   bundleid="ca.sqlpower.architect"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
            jvmversion="1.6+"
@@ -1234,6 +1238,9 @@
 					in the manifest as well as various targets. -->
 			<javafileset dir="${staging.dir}" includes="jdbc/*.jar jdbc/*.ini"/>
 			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
+			<documenttype name="SQL Power Architect Project"
+				extensions="architect"
+				role="Editor"/>
 		</jarbundler>
 
 		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
