@@ -56,6 +56,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.SPObjectSnapshotHierarchyListener;
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
@@ -1095,9 +1096,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         // The following was my attempt to merge the snapshot and system types lists together
         // without making it O(mn), but the code is a bit lengthier than I'd like, so perhaps
         // the added complexity may not be worth it?
+        SnapshotCollection collection = getWorkspace().getSnapshotCollection();
+        
         List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
             new ArrayList<UserDefinedSQLTypeSnapshot>(
-                    getWorkspace().getChildren(UserDefinedSQLTypeSnapshot.class));
+                   collection.getChildren(UserDefinedSQLTypeSnapshot.class));
         List<UserDefinedSQLType> systemTypes = 
             new ArrayList<UserDefinedSQLType>(
                     getSystemWorkspace().getChildren(UserDefinedSQLType.class));
@@ -1164,8 +1167,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         // The following was my attempt to merge the snapshot and system category lists together
         // without making it O(nm), but the code is a bit lengthier than I'd like, so perhaps
         // the added complexity may not be worth it?
+        SnapshotCollection collection = getWorkspace().getSnapshotCollection();
+        
         List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
-            new ArrayList<UserDefinedSQLTypeSnapshot>(getWorkspace().getChildren(UserDefinedSQLTypeSnapshot.class));
+            new ArrayList<UserDefinedSQLTypeSnapshot>(collection.getChildren(UserDefinedSQLTypeSnapshot.class));
         List<DomainCategory> systemCategories = 
             new ArrayList<DomainCategory>(getSystemWorkspace().getChildren(DomainCategory.class));
         List<UserDefinedSQLTypeSnapshot> domainSnapshots = new ArrayList<UserDefinedSQLTypeSnapshot>();

@@ -29,6 +29,7 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
 import ca.sqlpower.sqlobject.undo.SQLObjectUndoManager;
+import ca.sqlpower.util.SQLPowerUtils;
 
 public class ArchitectUndoManager extends SQLObjectUndoManager implements NotifyingUndoManager {
 
@@ -51,6 +52,7 @@ public class ArchitectUndoManager extends SQLObjectUndoManager implements Notify
         final ArchitectSwingProject workspace = playPen.getSession().getWorkspace();
         playPen.getContentPane().addSPListener(eventAdapter);
         eventAdapter.attachToObject(playPen.getContentPane());
+        SQLPowerUtils.listenToHierarchy(workspace.getSnapshotCollection(), eventAdapter);
         workspace.addSPListener(new AbstractSPListener() {
 
             /**

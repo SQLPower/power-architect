@@ -29,6 +29,7 @@ import java.util.Map;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ProjectSettings;
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
@@ -44,14 +45,13 @@ import ca.sqlpower.object.MappedSPTree;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
-import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
-import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
@@ -78,7 +78,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
-                    DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class,
+                    DomainCategory.class, SnapshotCollection.class, SQLObjectRoot.class,
                     OLAPRootObject.class, PlayPenContentPane.class, ProfileManager.class, ProjectSettings.class,
                     CriticManager.class, KettleSettings.class, User.class, Group.class, 
                     BusinessDefinition.class, FormulaMetricCalculation.class)));
@@ -196,9 +196,10 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="olapRootObject") OLAPRootObject olapRootObject,
             @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="kettleSettings") KettleSettings kettleSettings,
             @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager,
-            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="criticManager") CriticManager criticManager
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="criticManager") CriticManager criticManager,
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="snapshotCollection") SnapshotCollection snapshotCollection
             ) throws SQLObjectException {
-        super(rootObject, profileManager);
+        super(rootObject, profileManager, snapshotCollection);
         this.olapRootObject = olapRootObject;
         olapRootObject.setParent(this);
         this.kettleSettings = kettleSettings;
@@ -241,7 +242,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         // When changing this, ensure you maintain the order specified by allowedChildTypes
         allChildren.addAll(getSqlTypes());
         allChildren.addAll(getDomainCategories());
-        allChildren.addAll(getSPObjectSnapshots());
+        allChildren.add(getSnapshotCollection());
         allChildren.add(getRootObject());
         allChildren.add(olapRootObject);
         if (playPenContentPane != null) {

@@ -197,7 +197,7 @@ public class DataMoverPanel {
         try {
             if (treeRoot == null) {
                 treeRoot = new SQLObjectRoot();
-                ArchitectProject treeProject = new ArchitectProject(treeRoot, null);
+                ArchitectProject treeProject = new ArchitectProject(treeRoot);
                 treeProject.setSession(session);
                 treeRoot.begin("Setting up database trees in data mover panel.");
             } else {
