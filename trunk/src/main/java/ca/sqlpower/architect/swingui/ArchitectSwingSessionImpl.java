@@ -521,20 +521,22 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         Action exitAction = frame.getExitAction();
         PreferencesAction prefAction = frame.getPrefAction();
         AboutAction aboutAction = frame.getAboutAction();
+        Action openProjectAction = frame.getOpenProjectAction();
 
         // Whether or not this is OS X, the three actions we're referencing must have been initialized by now.
         if (exitAction == null) throw new IllegalStateException("Exit action has not been initialized"); //$NON-NLS-1$
         if (prefAction == null) throw new IllegalStateException("Prefs action has not been initialized"); //$NON-NLS-1$
         if (aboutAction == null) throw new IllegalStateException("About action has not been initialized"); //$NON-NLS-1$
+        if (openProjectAction == null) throw new IllegalStateException("Open Project action has not been initialized"); //$NON-NLS-1$
 
         if (context.isMacOSX()) {
             try {
                 Class<?> osxAdapter = ArchitectSwingSessionImpl.class.getClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter"); //$NON-NLS-1$
 
-                // The main registration method.  Takes quitAction, prefsAction, aboutAction.
-                Class<?>[] defArgs = { Action.class, Action.class, Action.class };
+                // The main registration method.  Takes quitAction, prefsAction, aboutAction, openAction.
+                Class<?>[] defArgs = { Action.class, Action.class, Action.class, Action.class };
                 Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs); //$NON-NLS-1$
-                Object[] args = { exitAction, prefAction, aboutAction };
+                Object[] args = { exitAction, prefAction, aboutAction, openProjectAction };
                 registerMethod.invoke(osxAdapter, args);
 
                 // The enable prefs method.  Takes a boolean.

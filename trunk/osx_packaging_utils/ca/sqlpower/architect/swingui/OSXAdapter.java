@@ -77,12 +77,14 @@ public class OSXAdapter extends ApplicationAdapter {
     private final Action quitAction;
     private final Action prefsAction;
     private final Action aboutAction;
+    private final Action openAction;
     
     
-    private OSXAdapter (Action quitAction, Action prefsAction, Action aboutAction) {
+    private OSXAdapter (Action quitAction, Action prefsAction, Action aboutAction, Action openAction) {
         this.quitAction = quitAction;
         this.prefsAction = prefsAction;
         this.aboutAction = aboutAction;
+        this.openAction = openAction;
     }
     
     // implemented handler methods.  These are basically hooks into existing 
@@ -123,18 +125,21 @@ public class OSXAdapter extends ApplicationAdapter {
     
     @Override
     public void handleOpenFile(ApplicationEvent ae) {
-        throw new IllegalStateException("Drag'n'Drop files on the dock not supported yet.");
+        if (openAction != null) {
+            ae.setHandled(true);
+            openAction.actionPerformed(new ActionEvent(this, 0, "file:" + ae.getFilename()));
+        }
     }
     
     // The main entry-point for this functionality.  This is the only method
     // that needs to be called at runtime, and it can easily be done using
     // reflection (see MyApp.java) 
-    public static void registerMacOSXApplication(Action quitAction, Action prefsAction, Action aboutAction) {
+    public static void registerMacOSXApplication(Action quitAction, Action prefsAction, Action aboutAction, Action openAction) {
         if (theApplication == null) {
             theApplication = new com.apple.eawt.Application();
         }
         if (theAdapter == null) {
-            theAdapter = new OSXAdapter(quitAction, prefsAction, aboutAction);
+            theAdapter = new OSXAdapter(quitAction, prefsAction, aboutAction, openAction);
         }
         theApplication.addApplicationListener(theAdapter);
     }
