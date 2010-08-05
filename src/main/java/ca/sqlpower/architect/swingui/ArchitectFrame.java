@@ -866,7 +866,7 @@ public class ArchitectFrame extends JFrame {
     }
     
     public JMenuBar createNewMenuBar() { 
-        Action checkForUpdateAction = new CheckForUpdateAction(this);
+        checkForUpdateAction = new CheckForUpdateAction(this);
         Action exportCSVAction = new ExportCSVAction(this);
         Action mappingReportAction = new VisualMappingReportAction(this);
         Action kettleETL = new KettleJobAction(this);
@@ -1203,6 +1203,8 @@ public class ArchitectFrame extends JFrame {
    
     private JMenu enterpriseMenu;
 
+    private CheckForUpdateAction checkForUpdateAction;
+
     public JMenu getEnterpriseMenu() {
         return enterpriseMenu;
     }
@@ -1379,13 +1381,20 @@ public class ArchitectFrame extends JFrame {
                         sessions.add(context.createSession());
                     }
                     if (!headless) {
-                        ArchitectFrame frame = new ArchitectFrame(context, null);
+                        final ArchitectFrame frame = new ArchitectFrame(context, null);
                         frame.init(sessions.get(0));
                         for (int i = 1; i < sessions.size(); i++) {
                             frame.addSession(sessions.get(i));
                             frame.setCurrentSession(sessions.get(i));
                         }
                         frame.setCurrentSession(sessions.get(0));
+                        
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                frame.checkForUpdateAction.checkForUpdate(false);
+                            }
+                        });
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

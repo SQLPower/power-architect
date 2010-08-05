@@ -33,7 +33,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.util.BrowserUtil;
 
 /**
@@ -48,7 +47,6 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
     private static final String UPDATE_URL = "http://download.sqlpower.ca/architect/current.html"; //$NON-NLS-1$
 
-    private ArchitectSwingSession session;
     private String versionPropertyString;
 
     private HttpURLConnection urlc;
@@ -64,6 +62,10 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
      * message as appropriate.
      */
     public void actionPerformed(ActionEvent e) {
+        checkForUpdate(true);
+    }
+    
+    public void checkForUpdate(boolean verbose) {
         try {
             URL url = new URL(VERSION_FILE_URL);
             urlc = (HttpURLConnection) url.openConnection();
@@ -82,15 +84,15 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
             if (userVersion.compareTo(latestVersion) < 0) {
                 promptUpdate();
-            } else {
-                JOptionPane.showMessageDialog(session.getArchitectFrame(), 
+            } else if (verbose) {
+                JOptionPane.showMessageDialog(getSession().getArchitectFrame(), 
                         Messages.getString("CheckForUpdateAction.upToDate"), //$NON-NLS-1$
                         Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
                         JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (IOException ex) {
             logger.error("Fail to retrieve current version number!"); //$NON-NLS-1$
-            ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+            ASUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
                     Messages.getString("CheckForUpdateAction.failedToCheckForUpdate"), ex); //$NON-NLS-1$
         } finally {
             urlc.disconnect();
@@ -107,7 +109,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
      * Prompts the user for update and opens browser to current version if accepted.
      */
     private void promptUpdate() {
-        int response = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
+        int response = JOptionPane.showConfirmDialog(getSession().getArchitectFrame(),
                 Messages.getString("CheckForUpdateAction.newerVersionAvailable"), //$NON-NLS-1$
                 Messages.getString("CheckForUpdateAction.name"), //$NON-NLS-1$
                 JOptionPane.YES_NO_OPTION);
@@ -115,7 +117,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             try {
                 BrowserUtil.launch(UPDATE_URL);
             } catch (IOException e) {
-                ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                ASUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
                         Messages.getString("CheckForUpdateAction.failedToUpdate"), e); //$NON-NLS-1$
             }
         }
