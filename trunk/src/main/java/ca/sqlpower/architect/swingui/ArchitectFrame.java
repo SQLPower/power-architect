@@ -384,7 +384,7 @@ public class ArchitectFrame extends JFrame {
         }
     };
     
-    private Action openSecurityManagerPanelAction = new AbstractAction("Users & Groups...") {
+    private Action openSecurityManagerPanelAction = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             
             final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Security Manager");
@@ -1017,6 +1017,7 @@ public class ArchitectFrame extends JFrame {
         securityMenu.setEnabled(currentSession.isEnterpriseSession());
         
         JMenuItem securityManagerMenuItem = new JMenuItem(openSecurityManagerPanelAction);
+        securityManagerMenuItem.setText("Users & Groups...");
         securityManagerMenuItem.setIcon(GROUP_ICON);
         securityMenu.add(securityManagerMenuItem);
         

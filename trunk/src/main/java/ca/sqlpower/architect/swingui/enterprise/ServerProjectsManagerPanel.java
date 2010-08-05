@@ -50,6 +50,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 import ca.sqlpower.enterprise.client.SPServerInfo;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
@@ -66,16 +67,16 @@ public class ServerProjectsManagerPanel {
     
     private final JPanel panel;
     private final Action closeAction;
-    private JList projects;
-    private JList servers;
+    private final JList projects;
+    private final JList servers;
     
-    private Action refreshAction = new AbstractAction("Refresh") {
+    private final Action refreshAction = new AbstractAction("Refresh") {
         public void actionPerformed(ActionEvent e) {
             refreshInfoList();
         }
     };
     
-    private Action newAction = new AbstractAction("New...") {
+    private final Action newAction = new AbstractAction("New...") {
         public void actionPerformed(ActionEvent e) {
          
             if (getSelectedServerInfo() != null) {
@@ -103,7 +104,7 @@ public class ServerProjectsManagerPanel {
         }
     };
     
-    private Action openAction = new AbstractAction("Open") {
+    private final Action openAction = new AbstractAction("Open") {
         public void actionPerformed(ActionEvent e) {
             
             if (getSelectedServerInfo() != null) {
@@ -180,7 +181,7 @@ public class ServerProjectsManagerPanel {
     }; 
    
     
-    private Action deleteAction = new AbstractAction("Delete") {
+    private final Action deleteAction = new AbstractAction("Delete") {
         public void actionPerformed(ActionEvent e) {
          
             if (getSelectedServerInfo() != null) {
@@ -222,6 +223,27 @@ public class ServerProjectsManagerPanel {
             }      
         }
     };
+    
+    private final Action openSecurityManagerPanelAction = new AbstractAction("Security") {
+        public void actionPerformed(ActionEvent e) {
+            
+            final JDialog d = SPSUtils.makeOwnedDialog(dialogOwner, "Security Manager");
+            Action closeAction = new AbstractAction("Close") {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            };
+            
+            SecurityPanel spm = new SecurityPanel(getSelectedServerInfo(), closeAction, d, session);
+            d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            d.setContentPane(spm.getSplitPane());
+            
+            SPSUtils.makeJDialogCancellable(d, null);
+            d.pack();
+            d.setLocationRelativeTo(dialogOwner);
+            d.setVisible(true);
+        }
+    };
        
     private boolean connected = false;
     private SPServerInfo serverInfo = null;
@@ -261,6 +283,8 @@ public class ServerProjectsManagerPanel {
         JScrollPane projectsPane = new JScrollPane(projects);
         projectsPane.setPreferredSize(new Dimension(250, 300));
         
+        JButton securityButton = new JButton(openSecurityManagerPanelAction);
+        
         refreshInfoList();
         CellConstraints cc = new CellConstraints();    
         builder.add(new JLabel(serverInfo.getName() + "'s projects:"), cc.xyw(1, 1, 2));
@@ -269,6 +293,7 @@ public class ServerProjectsManagerPanel {
         
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
         buttonBarBuilder.append(new JButton(refreshAction));
+        buttonBarBuilder.append(securityButton);
         buttonBarBuilder.append(new JButton(newAction));
         buttonBarBuilder.append(new JButton(openAction));
         buttonBarBuilder.append(new JButton(deleteAction));
@@ -333,6 +358,8 @@ public class ServerProjectsManagerPanel {
         JScrollPane serverPane = new JScrollPane(servers);
         serverPane.setPreferredSize(new Dimension(250, 300));
         
+        JButton securityButton = new JButton(openSecurityManagerPanelAction);
+        
         refreshInfoList();
         CellConstraints cc = new CellConstraints();    
         builder.add(new JLabel("Servers:"), cc.xyw(1, 1, 2));
@@ -343,6 +370,7 @@ public class ServerProjectsManagerPanel {
         
         DefaultFormBuilder buttonBarBuilder = new DefaultFormBuilder(new FormLayout("pref"));      
         buttonBarBuilder.append(new JButton(refreshAction));
+        buttonBarBuilder.append(securityButton);
         buttonBarBuilder.append(new JButton(newAction));
         buttonBarBuilder.append(new JButton(openAction));
         buttonBarBuilder.append(new JButton(deleteAction));
@@ -364,6 +392,7 @@ public class ServerProjectsManagerPanel {
         // Update the status of buttons and lists .
         if (connected) {
             
+            openSecurityManagerPanelAction.setEnabled(true);
             newAction.setEnabled(true);
             
             if (projects.isSelectionEmpty()) {
@@ -376,6 +405,7 @@ public class ServerProjectsManagerPanel {
             
             projects.setEnabled(true);
         } else {
+            openSecurityManagerPanelAction.setEnabled(false);
             newAction.setEnabled(false);
             openAction.setEnabled(false);
             deleteAction.setEnabled(false);
