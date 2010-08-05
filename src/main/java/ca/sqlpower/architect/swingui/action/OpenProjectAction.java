@@ -103,17 +103,24 @@ public class OpenProjectAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
-        chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
-        int returnVal = chooser.showOpenDialog(frame);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File f = chooser.getSelectedFile();
-            try {
-                fileLoader.openAsynchronously(getSession().getContext().createSession(), f, getSession());
-            } catch (SQLObjectException ex) {
-                SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
-                        Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
+        File f;
+        if (!e.getActionCommand().startsWith("file:")) {
+            JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
+            chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
+            int returnVal = chooser.showOpenDialog(frame);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                f = chooser.getSelectedFile();
+            } else {
+                return;
             }
+        } else {
+            f = new File(e.getActionCommand().substring("file:".length()));
+        }
+        try {
+            fileLoader.openAsynchronously(getSession().getContext().createSession(), f, getSession());
+        } catch (SQLObjectException ex) {
+            SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
+                    Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
         }
     }
     

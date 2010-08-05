@@ -1526,6 +1526,10 @@ public class ArchitectFrame extends JFrame {
     public JMenuItem getEnterpriseLinkButton() {
         return enterpriseLinkButton;
     }
+    
+    public OpenProjectAction getOpenProjectAction() {
+        return openProjectAction;
+    }
 
     public Action getOpenServerManagerAction() {
         return openServerManagerAction;
