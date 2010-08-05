@@ -33,15 +33,14 @@ import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
-import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
-import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.object.annotation.Mutator;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -71,7 +70,7 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
-                    DomainCategory.class, SPObjectSnapshot.class, SQLObjectRoot.class, ProfileManager.class, 
+                    DomainCategory.class, SnapshotCollection.class, SQLObjectRoot.class, ProfileManager.class, 
                     ProjectSettings.class, User.class, Group.class, 
                     BusinessDefinition.class, FormulaMetricCalculation.class)));
     
@@ -87,11 +86,6 @@ public class ArchitectProject extends AbstractSPObject {
     private List<Group> groups = new ArrayList<Group>();
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
 
-    /**
-     * The list of all snapshots in our current system. This includes types,
-     * domains, and domain category snapshots.
-     */
-    private final List<SPObjectSnapshot<?>> spobjectSnapshots = new ArrayList<SPObjectSnapshot<?>>();
     private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
     
     // Metadata children
@@ -100,6 +94,11 @@ public class ArchitectProject extends AbstractSPObject {
     
     // Metadata property
     private String etlProcessDescription;
+    
+    /**
+     * A collection of all of the snapshots in this project.
+     */
+    private final SnapshotCollection snapshotCollection;
     
     /**
      * The current integrity watcher on the project.
@@ -116,10 +115,28 @@ public class ArchitectProject extends AbstractSPObject {
      * @throws SQLObjectException
      */
     public ArchitectProject() throws SQLObjectException {
-        this(new SQLObjectRoot(), null);
+        this(new SQLObjectRoot(), null, new SnapshotCollection());
         SQLDatabase targetDatabase = new SQLDatabase();
         targetDatabase.setPlayPenDatabase(true);
         rootObject.addChild(targetDatabase, 0);
+    }
+    
+    /**
+     * The init method for this project must be called immediately after this
+     * object is constructed.
+     * <p>
+     * This will rely on the target database being added from the persist calls
+     * that creates this project.
+     * <p>
+     * The profile manager will be set to null with this constructor so if one
+     * is needed it should be set at sometime in the future before use.
+     * 
+     * @param rootObject
+     *            The root object that holds all of the source databases for the
+     *            current project.
+     */
+    public ArchitectProject(SQLObjectRoot root) throws SQLObjectException {
+        this(root, null, new SnapshotCollection());
     }
 
     /**
@@ -132,22 +149,23 @@ public class ArchitectProject extends AbstractSPObject {
      * @param rootObject
      *            The root object that holds all of the source databases for the
      *            current project.
-     * @param olapRootObject
-     *            The root object of OLAP projects. All OLAP projects will be
-     *            contained under this node.
-     * @param kettleSettings
-     *            The settings to create Kettle jobs for this project.
      * @param profileManager
      *            The default profile manager for this project. This may be null
      *            if it is set later or the profile manager is not used.
+     * @param snapshotCollection
+     *            An object that will hold all of the snapshots and copied types
+     *            and domains for the current project.
      */
     @Constructor
     public ArchitectProject(
             @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
-            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager) 
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager,
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="snapshotCollection") SnapshotCollection snapshotCollection) 
             throws SQLObjectException {
         this.rootObject = rootObject;
         rootObject.setParent(this);
+        this.snapshotCollection = snapshotCollection;
+        snapshotCollection.setParent(this);
         projectSettings = new ProjectSettings();
         projectSettings.setParent(this);
         if (profileManager != null) {
@@ -258,8 +276,6 @@ public class ArchitectProject extends AbstractSPObject {
             return removeSQLType((UserDefinedSQLType) child);
         } else if (child instanceof DomainCategory) {
             return removeDomainCategory((DomainCategory) child);
-        } else if (child instanceof SPObjectSnapshot<?>) {
-            return removeSPObjectSnapshot((SPObjectSnapshot<?>) child);
         } else if (child instanceof BusinessDefinition) {
             return removeBusinessDefinition((BusinessDefinition) child);
         } else if (child instanceof FormulaMetricCalculation) {
@@ -303,16 +319,6 @@ public class ArchitectProject extends AbstractSPObject {
         boolean removed = domainCategories.remove(child);
         if (removed) {
             fireChildRemoved(DomainCategory.class, child, index);
-            child.setParent(null);
-        }
-        return removed;
-    }
-    
-    public boolean removeSPObjectSnapshot(SPObjectSnapshot<?> child) {
-        int index = spobjectSnapshots.indexOf(child);
-        boolean removed = spobjectSnapshots.remove(child);
-        if (removed) {
-            fireChildRemoved(SPObjectSnapshot.class, child, index);
             child.setParent(null);
         }
         return removed;
@@ -369,7 +375,7 @@ public class ArchitectProject extends AbstractSPObject {
         // When changing this, ensure you maintain the order specified by allowedChildTypes
         allChildren.addAll(sqlTypes);
         allChildren.addAll(domainCategories);
-        allChildren.addAll(spobjectSnapshots);
+        allChildren.add(snapshotCollection);
         allChildren.add(rootObject);
         if (profileManager != null) {
             allChildren.add(profileManager);
@@ -406,8 +412,6 @@ public class ArchitectProject extends AbstractSPObject {
             addSQLType((UserDefinedSQLType) child, index);
         } else if (child instanceof DomainCategory) {
             addDomainCategory((DomainCategory) child, index);
-        } else if (child instanceof SPObjectSnapshot<?>) {
-            addSPObjectSnapshot((SPObjectSnapshot<?>) child, index);
         } else if (child instanceof BusinessDefinition) {
             addBusinessDefinition((BusinessDefinition) child, index);
         } else if (child instanceof FormulaMetricCalculation) {
@@ -436,20 +440,9 @@ public class ArchitectProject extends AbstractSPObject {
         fireChildAdded(UserDefinedSQLType.class, sqlType, index);
     }
     
-    protected void addSPObjectSnapshot(SPObjectSnapshot<?> child, int index) {
-        spobjectSnapshots.add(index, child);
-        child.setParent(this);
-        fireChildAdded(SPObjectSnapshot.class, child, index);        
-    }
-    
     @NonProperty
     public List<UserDefinedSQLType> getSqlTypes() {
         return Collections.unmodifiableList(sqlTypes);
-    }
-    
-    @NonProperty
-    protected List<SPObjectSnapshot<?>> getSPObjectSnapshots() {
-        return Collections.unmodifiableList(spobjectSnapshots); 
     }
     
     @NonProperty
@@ -519,6 +512,10 @@ public class ArchitectProject extends AbstractSPObject {
         String oldDescription = this.etlProcessDescription;
         this.etlProcessDescription = etlProcessDescription;
         firePropertyChange("etlProcessDescription", oldDescription, etlProcessDescription);
+    }
+    
+    public SnapshotCollection getSnapshotCollection() {
+        return snapshotCollection;
     }
     
 }

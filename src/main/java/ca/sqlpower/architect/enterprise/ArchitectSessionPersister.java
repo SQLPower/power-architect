@@ -22,6 +22,7 @@ package ca.sqlpower.architect.enterprise;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
@@ -93,6 +94,14 @@ public class ArchitectSessionPersister extends SPSessionPersister {
         criticManager.setLoaded(true);
         
         architectProject.getCriticManager().clear();
+        
+        String snapshotCollectionUUID = (String) AbstractSPPersisterHelper.findPropertyAndRemove(
+                pso.getUUID(), "snapshotCollection", persistedProperties);
+        
+        PersistedSPObject snapshotCollectionSettings = AbstractSPPersisterHelper.findPersistedSPObject(
+                pso.getUUID(), SnapshotCollection.class.getName(), snapshotCollectionUUID, persistedObjects);
+        snapshotCollectionSettings.setLoaded(true);
+        architectProject.getSnapshotCollection().setUUID(snapshotCollectionUUID);
         
         List<PersistedSPObject> databases = new ArrayList<PersistedSPObject>();
         for (PersistedSPObject o : persistedObjects) {
