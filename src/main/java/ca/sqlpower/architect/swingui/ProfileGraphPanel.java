@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.beans.PropertyChangeEvent;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -29,6 +30,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 import org.apache.log4j.Logger;
 import org.jfree.chart.ChartFactory;
@@ -42,15 +45,19 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.util.TableOrder;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.table.FreqValueCountTableModel;
 import ca.sqlpower.architect.swingui.table.FreqValueTable;
+import ca.sqlpower.object.AbstractSPListener;
+import ca.sqlpower.object.SPListener;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.swingui.TimedDocumentListener;
 import ca.sqlpower.swingui.table.TableModelSortDecorator;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -59,24 +66,36 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 /**
- *  Creates and handles a specific display panel
- *
+ * Creates and handles a specific display panel
+ * 
  */
 public class ProfileGraphPanel {
     private JLabel rowCountDisplay;
+
     private JLabel title;
+
     private JLabel nullableLabel;
+
     private JLabel minValue;
+
     private JLabel maxValue;
+
     private JLabel avgValue;
+
     private JLabel nullCountLabel;
+
     private JLabel nullPercentLabel;
+
     private JLabel minLengthLabel;
+
     private JLabel uniqueCountLabel;
+
     private JLabel uniquePercentLabel;
+
     private JLabel maxLengthLabel;
 
     private FreqValueTable freqValueTable;
+
     private JScrollPane freqValueSp;
 
     /**
@@ -90,32 +109,44 @@ public class ProfileGraphPanel {
      * top N chart.
      */
     private final JPanel validResultsPanel;
-    
+
     /**
-     * The panel with the exception message and any hints on how to rectify the problem.
+     * The panel with the exception message and any hints on how to rectify the
+     * problem.
      */
     private final JPanel invalidResultsPanel;
-    
+
     /**
      * A label that fills up the whole invalid results panel.
      */
     private JLabel invalidResultsLabel;
-    
+
     private int rowCount;
+
     private ChartPanel chartPanel;
-    
+
     private static final Logger logger = Logger.getLogger(ProfileGraphPanel.class);
 
+    private JTextArea notesField;
+    
+    private TimedDocumentListener notesFieldListener;
+    
+    private SPListener notesListener;
+    
+    private final ProfilePanel profilePanel;
+
+    private ColumnProfileResult columnProfileResult;
 
     public ProfileGraphPanel(ProfilePanel panel, int rowCount) {
+        this.profilePanel = panel;
         this.rowCount = rowCount;
 
-        FormLayout displayLayout = new FormLayout(
-                "4dlu, default, 4dlu, 100dlu, 4dlu, fill:default:grow, 4dlu", // columns
+        FormLayout displayLayout = new FormLayout("4dlu, default, 4dlu, 100dlu, 4dlu, fill:default:grow, 4dlu", // columns
                 "4dlu, default, 6dlu"); // rows
         CellConstraints cc = new CellConstraints();
 
-        validResultsPanel = ProfileGraphPanel.logger.isDebugEnabled() ? new FormDebugPanel(displayLayout) : new JPanel(displayLayout);
+        validResultsPanel = ProfileGraphPanel.logger.isDebugEnabled() ? new FormDebugPanel(displayLayout) : new JPanel(
+                displayLayout);
         validResultsPanel.setBorder(BorderFactory.createEtchedBorder());
 
         Font bodyFont = validResultsPanel.getFont();
@@ -128,40 +159,62 @@ public class ProfileGraphPanel {
         pb.add(title, cc.xyw(2, 2, 5));
 
         int row = 4;
-        rowCountDisplay = makeInfoRow(pb, "RowCount", row); row += 2;
-        nullableLabel = makeInfoRow(pb, "Nullable", row); row += 2;
-        nullCountLabel = makeInfoRow(pb, "Null Count", row); row += 2;
-        nullPercentLabel = makeInfoRow(pb, "% Null Records", row); row += 2;
-        minLengthLabel = makeInfoRow(pb, "Minimum Length", row); row += 2;
-        maxLengthLabel = makeInfoRow(pb, "Maximum Length", row); row += 2;
-        uniqueCountLabel = makeInfoRow(pb,"Unique Values",row); row+=2;
-        uniquePercentLabel = makeInfoRow(pb,"% Unique", row); row +=2;
-        minValue = makeInfoRow(pb, "Minimum Value", row); row += 2;
-        maxValue = makeInfoRow(pb, "Maximum Value", row); row += 2;
-        avgValue = makeInfoRow(pb, "Average Value", row); row += 2;
-
+        rowCountDisplay = makeInfoRow(pb, "RowCount", row);
+        row += 2;
+        nullableLabel = makeInfoRow(pb, "Nullable", row);
+        row += 2;
+        nullCountLabel = makeInfoRow(pb, "Null Count", row);
+        row += 2;
+        nullPercentLabel = makeInfoRow(pb, "% Null Records", row);
+        row += 2;
+        minLengthLabel = makeInfoRow(pb, "Minimum Length", row);
+        row += 2;
+        maxLengthLabel = makeInfoRow(pb, "Maximum Length", row);
+        row += 2;
+        uniqueCountLabel = makeInfoRow(pb, "Unique Values", row);
+        row += 2;
+        uniquePercentLabel = makeInfoRow(pb, "% Unique", row);
+        row += 2;
+        minValue = makeInfoRow(pb, "Minimum Value", row);
+        row += 2;
+        maxValue = makeInfoRow(pb, "Maximum Value", row);
+        row += 2;
+        avgValue = makeInfoRow(pb, "Average Value", row);
+        row += 2;
 
         freqValueTable = new FreqValueTable(null);
         freqValueSp = new JScrollPane(freqValueTable);
 
         pb.appendRow("fill:10dlu:grow");
         pb.appendRow("fill:default:grow");
-        pb.add(freqValueSp, cc.xyw(2,row+1,3));
-
-
-
-
-        pb.appendRow("fill:4dlu:grow");
-        pb.appendRow("4dlu");
-
+        pb.add(freqValueSp, cc.xyw(2, row + 1, 3));
 
         // Now add something to represent the chart
-        JFreeChart createPieChart = ChartFactory.createPieChart("",new DefaultPieDataset(new DefaultKeyedValues()),false,false,false);
+        JFreeChart createPieChart = ChartFactory.createPieChart("", new DefaultPieDataset(new DefaultKeyedValues()),
+                false, false, false);
         chartPanel = new ChartPanel(createPieChart);
         chartPanel.setPreferredSize(new Dimension(300, 300));
-        
-        pb.add(chartPanel, cc.xywh(6, 4, 1, row-2));
 
+        if (panel.getProfileManager().getWorkspaceContainer() instanceof ArchitectSession &&
+                ((ArchitectSession) panel.getProfileManager().getWorkspaceContainer()).isEnterpriseSession()) {
+            pb.add(new JLabel("Column Profile Notes"), cc.xy(6, 2));
+            notesField = new JTextArea();
+            notesField.setLineWrap(true);
+            notesField.setWrapStyleWord(true);
+            JScrollPane notesScroll = new JScrollPane(notesField);
+            notesScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            notesScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            pb.add(notesScroll, cc.xywh(6, 4, 1, row - 4));
+
+            pb.appendRow("fill:4dlu:grow");
+            pb.appendRow("4dlu");
+
+            pb.add(chartPanel, cc.xy(6, row + 1));
+        } else {
+            pb.appendRow("fill:4dlu:grow");
+            pb.appendRow("4dlu");
+            pb.add(chartPanel, cc.xywh(6, 4, 1, row - 2));
+        }
         
         invalidResultsPanel = new JPanel(new BorderLayout());
         invalidResultsLabel = new JLabel("No error message yet");
@@ -175,7 +228,6 @@ public class ProfileGraphPanel {
         this.title.setText(title);
     }
 
-
     public JPanel getDisplayArea() {
         return displayArea;
     }
@@ -183,9 +235,11 @@ public class ProfileGraphPanel {
     /**
      * Switches the graph to show the value distribution for the given column.
      * 
-     * @param cr The profile result to display. Must not be null.
+     * @param cr
+     *            The profile result to display. Must not be null.
      */
-    public void displayProfile(ColumnProfileResult cr) {
+    public void displayProfile(final ColumnProfileResult cr) {
+        this.columnProfileResult = cr;
         displayArea.removeAll();
         if (cr.getException() != null) {
             displayInvalidProfile(cr);
@@ -194,10 +248,43 @@ public class ProfileGraphPanel {
             displayValidProfile(cr);
             displayArea.add(validResultsPanel);
         }
+        
+        if (notesField != null) {
+            if (notesFieldListener != null) {
+                notesField.getDocument().removeDocumentListener(notesFieldListener);
+                notesFieldListener.cancel();
+            }
+            columnProfileResult.removeSPListener(notesListener);
+            notesField.setText(cr.getNotes());
+            notesListener = new AbstractSPListener() {
+                @Override
+                public void propertyChanged(PropertyChangeEvent evt) {
+                    if ("notes".equals(evt.getPropertyName())) {
+                        if (!evt.getNewValue().equals(notesField.getText())) {
+                            notesField.setText((String) evt.getNewValue());
+                        }
+                    }
+                }
+            };
+            cr.addSPListener(notesListener);
+            notesFieldListener = new TimedDocumentListener(2500) {
+                @Override
+                public void textChanged() {
+                    profilePanel.getProfileManager().getRunnableDispatcher().runInForeground(new Runnable() {
+                        @Override
+                        public void run() {
+                            cr.setNotes(notesField.getText());
+                        }
+                    });
+                }
+            };
+            notesField.getDocument().addDocumentListener(notesFieldListener);
+        }
+        
         displayArea.revalidate();
         displayArea.repaint();
     }
-    
+
     /**
      * Subroutine of {@link #displayProfile(ColumnProfileResult)}.
      */
@@ -215,33 +302,26 @@ public class ProfileGraphPanel {
                 }
             }
         }
-        
+
         String advice = "";
         if (databaseType != null) {
-            advice =
-                "You may be able to rectify this situation by visiting the JDBC Drivers " +
-                "configuration panel for " + databaseType + " and modifying the set of profile " +
-                "functions to attempt for type " + profiledColumn.getTypeName() + ".";
+            advice = "You may be able to rectify this situation by visiting the JDBC Drivers " +
+                    "configuration panel for " + databaseType + " and modifying the set of profile " +
+                    "functions to attempt for type " + profiledColumn.getTypeName() + ".";
         }
-            
-        invalidResultsLabel.setText(
-                "<html>" +
-                " <table width=100% height=100%>" +
-                "  <tr>" +
-                "   <td>" +
-                "    <h2>Profiler was unable to create a profile for column <i>" + profiledColumn.getName() + "</i></h2>" +
-                "    <p>" + cr.getException() +
-                "    <p><p>" + advice +
-                "   </td>" +
-                "  </tr>" +
-                " </table>" +
-                "</html>");
+
+        invalidResultsLabel.setText("<html>" + " <table width=100% height=100%>" + "  <tr>" + "   <td>" +
+                "    <h2>Profiler was unable to create a profile for column <i>" + profiledColumn.getName() +
+                "</i></h2>" + "    <p>" + cr.getException() + "    <p><p>" + advice + "   </td>" + "  </tr>" +
+                " </table>" + "</html>");
+
+        notesField.setText(cr.getNotes());
     }
-    
+
     /**
      * Subroutine of {@link #displayProfile(ColumnProfileResult)}.
      */
-    private void displayValidProfile(ColumnProfileResult cr) {
+    private void displayValidProfile(final ColumnProfileResult cr) {
         TableProfileResult tr = (TableProfileResult) cr.getParent();
         rowCount = tr.getRowCount();
         rowCountDisplay.setText(Integer.toString(rowCount));
@@ -272,13 +352,16 @@ public class ProfileGraphPanel {
         if (o == null) {
             avgValue.setText("");
         } else if (o instanceof BigDecimal) {
-            double d = ((BigDecimal)o).doubleValue();
+            double d = ((BigDecimal) o).doubleValue();
             avgValue.setText(format(d));
         } else {
             ProfilePanel.logger.debug("Got avgValue of type: " + o.getClass().getName());
             avgValue.setText(cr.getAvgValue().toString());
         }
 
+        if (notesField != null) {
+            
+        }
 
         FreqValueCountTableModel freqValueCountTableModel = new FreqValueCountTableModel(cr);
         TableModelSortDecorator sortModel = new TableModelSortDecorator(freqValueCountTableModel);
@@ -287,36 +370,34 @@ public class ProfileGraphPanel {
         freqValueTable.initColumnSizes();
     }
 
-    public static JFreeChart createTopNChart(ColumnProfileResult cr, int rowCount){
+    public static JFreeChart createTopNChart(ColumnProfileResult cr, int rowCount) {
         JFreeChart chart;
         List<ColumnValueCount> valueCounts = cr.getValueCount();
         SQLColumn col = cr.getProfiledObject();
         DefaultCategoryDataset catDataset = new DefaultCategoryDataset();
 
-        
         long otherDataCount = rowCount;
-        for (ColumnValueCount vc: valueCounts){
-            catDataset.addValue(vc.getCount(),col.getName(),vc.getValue()==null ? "null" : vc.getValue().toString());
+        for (ColumnValueCount vc : valueCounts) {
+            catDataset
+                    .addValue(vc.getCount(), col.getName(), vc.getValue() == null ? "null" : vc.getValue().toString());
             otherDataCount -= vc.getCount();
         }
         int numberOfTopValues = catDataset.getColumnCount();
-        if (otherDataCount > 0){
-            catDataset.addValue(otherDataCount,col.getName(),"Other Values");
+        if (otherDataCount > 0) {
+            catDataset.addValue(otherDataCount, col.getName(), "Other Values");
         }
 
         String chartTitle;
-        if (numberOfTopValues == 10 ) {
-            chartTitle = "Top "+numberOfTopValues+" most common values";
+        if (numberOfTopValues == 10) {
+            chartTitle = "Top " + numberOfTopValues + " most common values";
         } else {
-            chartTitle = "All "+numberOfTopValues+" values";
+            chartTitle = "All " + numberOfTopValues + " values";
         }
 
-        chart = ChartFactory.createPieChart(
-                chartTitle,
-                new CategoryToPieDataset(catDataset,TableOrder.BY_ROW,0),
-                false,true,false);
+        chart = ChartFactory.createPieChart(chartTitle, new CategoryToPieDataset(catDataset, TableOrder.BY_ROW, 0),
+                false, true, false);
         if (chart.getPlot() instanceof PiePlot) {
-            ((PiePlot)chart.getPlot()).setLabelGenerator(new StandardPieSectionLabelGenerator("{0} [{1}]"));
+            ((PiePlot) chart.getPlot()).setLabelGenerator(new StandardPieSectionLabelGenerator("{0} [{1}]"));
         }
         return chart;
     }
@@ -324,7 +405,6 @@ public class ProfileGraphPanel {
     private String format(double d) {
         return String.format("%6.2f", d);
     }
-
 
     private JLabel makeInfoRow(PanelBuilder pb, String title, int row) {
         CellConstraints cc = new CellConstraints();
@@ -335,4 +415,11 @@ public class ProfileGraphPanel {
         pb.add(label, cc.xy(4, row));
         return label;
     }
+
+    public void close() {
+        if (notesFieldListener != null) {
+            notesFieldListener.cancel();
+        }
+    }
+    
 }

@@ -42,7 +42,6 @@ public class ProfileJTable extends JTable implements TableTextConverter {
 
     public ProfileJTable(TableModel model) {
         super(model);
-        
         TableColumnModel cm = getColumnModel();
         for (int col = 0; col < cm.getColumnCount(); col++) {
             TableColumn tc = cm.getColumn(col);
@@ -96,10 +95,15 @@ public class ProfileJTable extends JTable implements TableTextConverter {
         return m1.modelIndex(viewIndex);
     }
       
-    public String getTextForCell(int row, int col) {
+    public String getTextForCell(Object value) {
+        // TODO Need to get this to work, given a value and an appropriate column or class
         // note: this will only work because we know all the renderers are jlabels
-        JLabel renderer = (JLabel) getCellRenderer(row, col).getTableCellRendererComponent(this, getModel().getValueAt(row, getColumnModel().getColumn(col).getModelIndex()), false, false, row, col);
-        return renderer.getText();
+        if (value == null) {
+            return "null";
+        } else {
+            JLabel renderer = (JLabel) getDefaultRenderer(value.getClass()).getTableCellRendererComponent(this, value, false, false, 0, 0);
+            return renderer.getText();
+        }
     }
 
 

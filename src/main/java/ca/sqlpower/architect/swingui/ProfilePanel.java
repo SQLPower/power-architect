@@ -22,8 +22,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,7 +36,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -48,8 +45,8 @@ import javax.swing.event.TableModelListener;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 import ca.sqlpower.sqlobject.SQLColumn;
 
@@ -71,9 +68,10 @@ public class ProfilePanel extends JPanel {
     private JPanel controlsArea;
     private ProfileGraphPanel displayPanel;
     
+    private final ProfileManager pm;
+    
     private final JProgressBar progressBar = new JProgressBar();
     
-    private JTable viewTable;
     private JTabbedPane tabPane;
     private ProfileTableModel tableModel;
     private TableModelListener listener = new TableModelListener() {
@@ -82,8 +80,9 @@ public class ProfilePanel extends JPanel {
         }
     };
     
-    public ProfilePanel(ProfileTableModel profileTableModel) {
+    public ProfilePanel(ProfileTableModel profileTableModel, ProfileManager pm) {
         this.profileTableModel = profileTableModel;
+        this.pm = pm;
         displayPanel = new ProfileGraphPanel(this, 0);
         setup();
     }
@@ -110,6 +109,8 @@ public class ProfilePanel extends JPanel {
                     DateFormat df = DateFormat.getDateTimeInstance();
                     buf.append(df.format(new Date(tpr.getCreateStartTime())));
                     buf.append(")");
+                } else {
+                    buf.append("All");
                 }
                 return super.getListCellRendererComponent(list, buf.toString(), index, isSelected,
                 		cellHasFocus);
@@ -122,14 +123,19 @@ public class ProfilePanel extends JPanel {
              */
             public void actionPerformed(ActionEvent e) {
                 final TableProfileResult tpr = (TableProfileResult) tableSelector.getSelectedItem();
-                if (tpr == null) {
-                    return;
-                }
                 try {
                     List<SQLColumn> columns = new ArrayList<SQLColumn>();
-                    for (ColumnProfileResult cpr : tpr.getColumnProfileResults() ) {
+                    if (tpr == null) {
+                        for (TableProfileResult tableProfile : tableModel.getTableResultsToScan()) {
+                            for (ColumnProfileResult cpr : tableProfile.getColumnProfileResults()) {
+                                columns.add(cpr.getProfiledObject());
+                            }
+                        }
+                    } else {
+                        for (ColumnProfileResult cpr : tpr.getColumnProfileResults() ) {
                             SQLColumn column = cpr.getProfiledObject();
                             columns.add(column);
+                        }
                     }
                     
                     SQLColumn selectedColumn = null;
@@ -146,6 +152,7 @@ public class ProfilePanel extends JPanel {
                             columnSelector.setSelectedIndex(0);
                         }
                     }
+                    
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialogNoReport(ProfilePanel.this, "Error in profile", ex);
                 }
@@ -167,7 +174,7 @@ public class ProfilePanel extends JPanel {
                     logger.debug("Null selection in columnSelector.ListSelectionListener");
                     return;
                 }
-                for (ColumnProfileResult pr : tableModel.getResultList() ) {
+                for (final ColumnProfileResult pr : tableModel.getResultList() ) {
                     SQLColumn column = (SQLColumn) pr.getProfiledObject();
                     if (col == column) {
                         displayPanel.displayProfile((ColumnProfileResult) pr);
@@ -177,23 +184,6 @@ public class ProfilePanel extends JPanel {
             }           
         });
         
-        columnSelector.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    SQLColumn col = (SQLColumn)columnSelector.getSelectedValue();
-                    for ( int i=0; i<viewTable.getRowCount(); i++ ) {
-                        if ( col == viewTable.getValueAt(i,
-                                viewTable.convertColumnIndexToView( ProfileColumn.valueOf("COLUMN").ordinal()))) {
-                            viewTable.setRowSelectionInterval(i,i);
-                            break;
-                        }
-                    }
-                    tabPane.setSelectedIndex(0);
-                }                
-            }
-        });
-        
-
         PanelBuilder pb = new PanelBuilder(controlsLayout,controlsArea);
         pb.setDefaultDialogBorder();
 
@@ -216,12 +206,6 @@ public class ProfilePanel extends JPanel {
     }
     public void setTableSelector(JComboBox tableSelector) {
         this.tableSelector = tableSelector;
-    }
-    public JTable getViewTable() {
-        return viewTable;
-    }
-    public void setViewTable(JTable viewTable) {
-        this.viewTable = viewTable;
     }
     public JTabbedPane getTabPane() {
         return tabPane;
@@ -253,6 +237,7 @@ public class ProfilePanel extends JPanel {
             selectedResult = (TableProfileResult) tableSelector.getSelectedObjects()[0];
         }
         
+        tableResults.add(null);
         for (TableProfileResult pr : profileTableModel.getTableResultsToScan()) {
             tableResults.add(pr);
         }
@@ -266,6 +251,14 @@ public class ProfilePanel extends JPanel {
                 tableSelector.setSelectedIndex(0);
             }
         }
+    }
+
+    public ProfileManager getProfileManager() {
+        return pm;
+    }
+
+    public void close() {
+        displayPanel.close();
     }
 }
 
