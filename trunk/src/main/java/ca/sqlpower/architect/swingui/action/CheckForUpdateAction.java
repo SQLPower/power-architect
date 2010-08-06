@@ -92,12 +92,16 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             }
         } catch (IOException ex) {
             logger.error("Fail to retrieve current version number!"); //$NON-NLS-1$
-            ASUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
-                    Messages.getString("CheckForUpdateAction.failedToCheckForUpdate"), ex); //$NON-NLS-1$
+            if (verbose) {
+                ASUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
+                        Messages.getString("CheckForUpdateAction.failedToCheckForUpdate"), ex); //$NON-NLS-1$
+            }
         } finally {
             urlc.disconnect();
             try {
-                propertyInputStream.close();
+                if (propertyInputStream != null) {
+                    propertyInputStream.close();
+                }
             } catch (IOException ex2) {
                 logger.error("Exception while trying to close input stream."); //$NON-NLS-1$
                 throw new RuntimeException(ex2);
