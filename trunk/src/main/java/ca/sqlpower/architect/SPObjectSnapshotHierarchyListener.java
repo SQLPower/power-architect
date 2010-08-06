@@ -21,7 +21,10 @@ package ca.sqlpower.architect;
 
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.DomainCategory;
@@ -36,6 +39,7 @@ import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 
 /**
  * Add this listener to a SQLDatabase to have its columns have correct snapshot listeners
@@ -43,12 +47,38 @@ import ca.sqlpower.util.SQLPowerUtils;
  */
 public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 
+    private static final Logger logger = Logger.getLogger(SPObjectSnapshotHierarchyListener.class);
+    
     /**
      * This project holds all of the snapshots of the {@link UserDefinedSQLType}
      * objects.
      */
     private final ArchitectClientSideSession session;
 
+    /**
+     * How many levels of transactions the object
+     * being watched is in. Currently only being used
+     * if the TransactionEvent source is a UserDefinedSQLType
+     */
+    private int transactionCount = 0;
+    
+    /**
+     * A reference to a property change event kept during
+     * a transaction to change a UserDefinedSQLType's upstream
+     * type so that the event details can be used to create a
+     * new snapshot.
+     */
+    private PropertyChangeEvent upstreamTypeChangeEvent;
+    
+    /**
+     * True if this listener is in the middle of 
+     * setting a snapshot. False otherwise. Used
+     * to prevent an 'echo' event from causing
+     * extra commit() calls when setting the upstream
+     * type to use a snapshot.
+     */
+    private boolean settingSnapshot = false;
+    
     /**
      * This map tracks all of the listeners that have been attached to system
      * workspace types and domains to the snapshot that they were attached for.
@@ -65,14 +95,14 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	@Override
 	public void childAdded(SPChildEvent e) {
 		if (e.getChild() instanceof SQLTable) {
-			e.getChild().addSPListener(this);
+		    SQLTable table = (SQLTable) e.getChild();
+		    table.addSPListener(this);
+			for (SQLColumn sqlColumn : table.getChildren(SQLColumn.class)) {
+			    sqlColumn.getUserDefinedSQLType().addSPListener(this);
+			}
 		} else if (e.getChild() instanceof SQLColumn) {
 			SQLColumn sqlColumn = (SQLColumn) e.getChild();
-            if (sqlColumn.getUserDefinedSQLType() != null) {
-                sqlColumn.getUserDefinedSQLType().addSPListener(this);
-                createSPObjectSnapshot(sqlColumn.getUserDefinedSQLType(), sqlColumn.getUserDefinedSQLType().getUpstreamType());
-                addUpdateListener(sqlColumn.getUserDefinedSQLType().getUpstreamType());
-            }
+			sqlColumn.getUserDefinedSQLType().addSPListener(this);
 		}
 	}
 	
@@ -99,17 +129,14 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	public void propertyChanged(PropertyChangeEvent e) {
 		if (e.getSource() instanceof UserDefinedSQLType 
 				&& e.getPropertyName().equals("upstreamType")) {
-		    
-		    if (e.getNewValue() instanceof UserDefinedSQLType) {
-		        createSPObjectSnapshot((UserDefinedSQLType) e.getSource(), (UserDefinedSQLType) e.getNewValue());
+		    if (upstreamTypeChangeEvent == null && 
+		            !(e.getNewValue() instanceof UserDefinedSQLType && 
+		            ((UserDefinedSQLType)e.getNewValue()).getParent() == session.getWorkspace().getSnapshotCollection())) {
+		        logger.debug("Got a property change event for upstreamType!");
+		        upstreamTypeChangeEvent = e;
+		    } else {
+		        logger.debug("Got another upstreamType change event in the middle of another");
 		    }
-		    
-		    if (e.getOldValue() != null && ((UserDefinedSQLType) e.getSource()).isMagicEnabled()) {
-		        cleanupSnapshot((UserDefinedSQLType) e.getOldValue());
-		    }
-		    
-			UserDefinedSQLType columnProxyType = (UserDefinedSQLType) e.getSource();
-			addUpdateListener(columnProxyType.getUpstreamType());
 		}
 	}
 
@@ -232,11 +259,33 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
         
         SnapshotCollection collection = session.getWorkspace().getSnapshotCollection();
 
+        // Check if the upstream type is a system type by checking if it's not
+        // parented by this session's workspace.
         if (upstreamTypeParent != null && !upstreamTypeParent.equals(collection) &&
                 !(upstreamTypeParent instanceof DomainCategory && 
                     upstreamTypeParent.getParent().equals(collection))) {
+            
+            // Check if a snapshot for the upstreamType already exists. If so, just use that.
+            boolean snapshotExists = false;
+            List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
+                session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
+            for (UserDefinedSQLTypeSnapshot typeSnapshot : typeSnapshots) {
+                // If the snapshot is a domain snapshot, but the upstream type
+                // is not a domain, then move on to the next snapshot.
+                if (typeSnapshot.isDomainSnapshot() && 
+                        !(upstreamType.getParent() instanceof DomainCategory)) continue;
+                
+                if (upstreamType.getUUID().equals(typeSnapshot.getOriginalUUID())) {
+                    typeProxy.setUpstreamType(typeSnapshot.getSPObject());
+                    typeSnapshot.setSnapshotUseCount(typeSnapshot.getSnapshotUseCount() + 1);
+                    snapshotExists = true;
+                    break;
+                }
+            }
+            if (snapshotExists) return; // If snapshot already existed, then nothing else needs to be done
+            
+            // Otherwise, we have to create a new snapshot
             int systemRevision =  session.getSystemSession().getCurrentRevisionNumber();
-       
             boolean isDomainSnapshot = upstreamType.getParent() instanceof DomainCategory;
             UserDefinedSQLTypeSnapshot snapshot;
             if (upstreamType.getUpstreamType() != null) {
@@ -291,6 +340,52 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     UserDefinedSQLTypeSnapshot udtSnapshot = (UserDefinedSQLTypeSnapshot) snapshot;
                     udtSnapshot.setSnapshotUseCount(udtSnapshot.getSnapshotUseCount() + 1);
                     return;
+                }
+            }
+        }
+    }
+    
+    @Override
+    public void transactionStarted(TransactionEvent e) {
+        if (e.getSource() instanceof UserDefinedSQLType) {
+            UserDefinedSQLType udt = (UserDefinedSQLType) e.getSource();
+            transactionCount++;
+            logger.debug("Incremented transaction counter to " + transactionCount);
+            if (transactionCount == 1) {
+                udt.begin("setting upstream type (snapshot)");
+            }
+        }
+    }
+    
+   @Override
+    public void transactionEnded(TransactionEvent e) {
+        if (e.getSource() instanceof UserDefinedSQLType) {
+            UserDefinedSQLType udt = (UserDefinedSQLType) e.getSource();
+            
+            transactionCount--;
+            logger.debug("Decremented transaction counter to " + transactionCount);
+            if (transactionCount == 1) {
+                if (upstreamTypeChangeEvent != null) {
+                    UserDefinedSQLType newValue = (UserDefinedSQLType) upstreamTypeChangeEvent.getNewValue();
+                    UserDefinedSQLType source = (UserDefinedSQLType) upstreamTypeChangeEvent.getSource();
+                    UserDefinedSQLType oldValue = (UserDefinedSQLType) upstreamTypeChangeEvent.getOldValue();
+                    upstreamTypeChangeEvent = null;
+
+                    logger.debug("Replacing upstreamType with snapshot!");
+                    settingSnapshot = true;
+                    createSPObjectSnapshot(source, newValue);
+                    
+                    if (oldValue != null && source.isMagicEnabled()) {
+                        cleanupSnapshot(oldValue);
+                    }
+                    
+                    UserDefinedSQLType columnProxyType = source;
+                    addUpdateListener(columnProxyType.getUpstreamType());
+                }
+                if (!settingSnapshot) {
+                    udt.commit();
+                } else {
+                    settingSnapshot = false;
                 }
             }
         }
