@@ -22,6 +22,7 @@ package ca.sqlpower.architect.util;
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ProjectSettings;
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;
@@ -128,6 +129,10 @@ public class ArchitectNewValueMaker extends GenericNewValueMaker {
             ProfileManagerImpl profileManager = new ProfileManagerImpl();
             valueMakerProject.setProfileManager(profileManager);            
             return profileManager;
+        } else if (SnapshotCollection.class.isAssignableFrom(valueType)) {
+            SnapshotCollection collection = new SnapshotCollection();
+            root.addChild(collection, 0);
+            return collection;
         } else if (valueType == PlayPenContentPane.class) {
             PlayPenContentPane pane = new PlayPenContentPane(new SQLDatabase());
             ((ArchitectSwingProject) makeNewValue(ArchitectSwingProject.class, null, null)).setPlayPenContentPane(pane);            
