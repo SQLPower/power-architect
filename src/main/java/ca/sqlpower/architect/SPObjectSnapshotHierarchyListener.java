@@ -144,7 +144,8 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 				&& e.getPropertyName().equals("upstreamType")) {
 		    if (upstreamTypeChangeEvent == null && 
 		            !(e.getNewValue() instanceof UserDefinedSQLType && 
-		            ((UserDefinedSQLType)e.getNewValue()).getParent() == session.getWorkspace().getSnapshotCollection())) {
+		            ((UserDefinedSQLType)e.getNewValue()).getParent() == session.getWorkspace().getSnapshotCollection() &&
+		            settingSnapshot)) {
 		        logger.debug("Got a property change event for upstreamType!");
 		        upstreamTypeChangeEvent = e;
 		    } else {
