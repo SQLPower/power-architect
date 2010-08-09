@@ -335,7 +335,11 @@ public class SecurityPanel {
     }
     
     private Group createGroupFromPrompter() {
-        Object input = JOptionPane.showInputDialog(getPanel(), "Enter a name for the group.");
+        Object input = JOptionPane.showInputDialog(
+                getPanel(), 
+                "Enter a name for the group.", 
+                "Enter the name of the group.", 
+                JOptionPane.INFORMATION_MESSAGE);
         if (input != null && !input.equals("")) {
             return new Group((String) input);
         } else {
