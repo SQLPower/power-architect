@@ -103,6 +103,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 		} else if (e.getChild() instanceof SQLColumn) {
 			SQLColumn sqlColumn = (SQLColumn) e.getChild();
 			sqlColumn.getUserDefinedSQLType().addSPListener(this);
+			UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
 		}
 	}
 	
@@ -265,23 +266,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 !(upstreamTypeParent instanceof DomainCategory && 
                     upstreamTypeParent.getParent().equals(collection))) {
             
-            // Check if a snapshot for the upstreamType already exists. If so, just use that.
-            boolean snapshotExists = false;
-            List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
-                session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
-            for (UserDefinedSQLTypeSnapshot typeSnapshot : typeSnapshots) {
-                // If the snapshot is a domain snapshot, but the upstream type
-                // is not a domain, then move on to the next snapshot.
-                if (typeSnapshot.isDomainSnapshot() && 
-                        !(upstreamType.getParent() instanceof DomainCategory)) continue;
-                
-                if (upstreamType.getUUID().equals(typeSnapshot.getOriginalUUID())) {
-                    typeProxy.setUpstreamType(typeSnapshot.getSPObject());
-                    typeSnapshot.setSnapshotUseCount(typeSnapshot.getSnapshotUseCount() + 1);
-                    snapshotExists = true;
-                    break;
-                }
-            }
+            boolean snapshotExists = setUpstreamTypeToExistingSnapshot(typeProxy, upstreamType);
             if (snapshotExists) return; // If snapshot already existed, then nothing else needs to be done
             
             // Otherwise, we have to create a new snapshot
@@ -343,6 +328,36 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 }
             }
         }
+    }
+
+    /**
+     * If the upstreamType has an existing snapshot of it, then set the
+     * typeProxy's upstream type to the snapshot of that type instead of the
+     * original. This is to prevent multiple snapshots of a type to be created
+     * every time that type is used.
+     * 
+     * @return True if an existing snapshot for the given upstream type was
+     *         found Otherwise, return false.
+     */
+    private boolean setUpstreamTypeToExistingSnapshot(UserDefinedSQLType typeProxy, UserDefinedSQLType upstreamType) {
+        // Check if a snapshot for the upstreamType already exists. If so, just use that.
+        boolean snapshotExists = false;
+        List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
+            session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
+        for (UserDefinedSQLTypeSnapshot typeSnapshot : typeSnapshots) {
+            // If the snapshot is a domain snapshot, but the upstream type
+            // is not a domain, then move on to the next snapshot.
+            if (typeSnapshot.isDomainSnapshot() && 
+                    !(upstreamType.getParent() instanceof DomainCategory)) continue;
+            
+            if (upstreamType.getUUID().equals(typeSnapshot.getOriginalUUID())) {
+                typeProxy.setUpstreamType(typeSnapshot.getSPObject());
+                typeSnapshot.setSnapshotUseCount(typeSnapshot.getSnapshotUseCount() + 1);
+                snapshotExists = true;
+                break;
+            }
+        }
+        return snapshotExists;
     }
     
     @Override
