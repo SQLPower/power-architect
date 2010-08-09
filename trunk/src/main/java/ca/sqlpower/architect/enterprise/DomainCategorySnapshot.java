@@ -34,15 +34,13 @@ public class DomainCategorySnapshot extends SystemSPObjectSnapshot<DomainCategor
     @Constructor
     public DomainCategorySnapshot(
             @ConstructorParameter (propertyName = "spObject") DomainCategory spObject,
-            @ConstructorParameter (propertyName = "originalUUID") String originalUUID,
-            @ConstructorParameter (propertyName = "workspaceRevision") int systemRevision) {
-        super(originalUUID, systemRevision);
+            @ConstructorParameter (propertyName = "originalUUID") String originalUUID) {
+        super(originalUUID);
         this.spObject = spObject;
     }
     
-    public DomainCategorySnapshot(DomainCategory original,
-            int systemRevision) {
-        super(original.getUUID(), systemRevision);
+    public DomainCategorySnapshot(DomainCategory original) {
+        super(original.getUUID());
         setName(original.getName());
         spObject = new DomainCategory(original.getName());
     }

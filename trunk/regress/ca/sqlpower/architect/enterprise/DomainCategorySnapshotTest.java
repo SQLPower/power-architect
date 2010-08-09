@@ -38,7 +38,7 @@ public class DomainCategorySnapshotTest extends PersistedSPObjectTest {
         super.setUp();
         
         category = new DomainCategory("test");
-        categorySnapshot = new DomainCategorySnapshot(category, 0);
+        categorySnapshot = new DomainCategorySnapshot(category);
         
         getRootObject().addChild(category, 0);
         getRootObject().addChild(categorySnapshot, 0);
