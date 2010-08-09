@@ -38,8 +38,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
@@ -1242,20 +1242,15 @@ public class ArchitectFrame extends JFrame {
             }
         });
         sessions.add(session);
-        final StackedTab tab = stackedTabPane.addTab(session.getName(), new JScrollPane(session.getDBTree()), true);
-        tab.getTabComponent().addMouseListener(new MouseListener() {
-            public void mouseClicked(MouseEvent e) {
-            }
-            public void mouseEntered(MouseEvent e) {
-            }
-            public void mouseExited(MouseEvent e) {
-            }
+        final StackedTab tab = stackedTabPane.addTab(
+                session.getName(), 
+                new JScrollPane(SPSUtils.getBrandedTreePanel(session.getDBTree())), 
+                true);
+        tab.getTabComponent().addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 if (tab.isCloseable() && tab.closeButtonContains(e.getX(), e.getY())) {
                     sessionTabs.inverse().get(tab).close();
                 }
-            }
-            public void mouseReleased(MouseEvent e) {
             }
         });
         sessionTabs.put(session, tab);
