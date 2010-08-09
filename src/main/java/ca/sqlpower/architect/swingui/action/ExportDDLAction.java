@@ -117,7 +117,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                     JPanel mainPanel = new JPanel();
                     DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow"), mainPanel);
                     builder.setDefaultDialogBorder();
-                    JTextArea explanation = new JTextArea(GENDDL_WARNINGS_EXPLANATION, 5, 60);
+                    JTextArea explanation = new JTextArea(GENDDL_WARNINGS_EXPLANATION, 8, 60);
                     explanation.setLineWrap(true);
                     explanation.setWrapStyleWord(true);
                     explanation.setEditable(false);
