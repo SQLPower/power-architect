@@ -103,6 +103,19 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 		} else if (e.getChild() instanceof SQLColumn) {
 			SQLColumn sqlColumn = (SQLColumn) e.getChild();
 			sqlColumn.getUserDefinedSQLType().addSPListener(this);
+			UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
+			if (upstreamType != null) {
+			    List<UserDefinedSQLTypeSnapshot> udtSnapshots = 
+			        session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
+			    for (UserDefinedSQLTypeSnapshot snapshot: udtSnapshots) {
+			        if (upstreamType.equals(snapshot.getSPObject())) {
+			            if (listenerMap.get(snapshot) == null) {
+			                addUpdateListener(upstreamType);
+			            }
+			            break;
+			        }
+			    }
+			}
 		}
 	}
 	
