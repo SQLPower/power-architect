@@ -103,7 +103,6 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 		} else if (e.getChild() instanceof SQLColumn) {
 			SQLColumn sqlColumn = (SQLColumn) e.getChild();
 			sqlColumn.getUserDefinedSQLType().addSPListener(this);
-			UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
 		}
 	}
 	
