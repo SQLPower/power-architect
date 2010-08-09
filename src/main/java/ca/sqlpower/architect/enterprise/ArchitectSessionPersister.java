@@ -22,11 +22,6 @@ package ca.sqlpower.architect.enterprise;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.sqlpower.architect.SnapshotCollection;
-import ca.sqlpower.architect.ddl.critic.CriticManager;
-import ca.sqlpower.architect.etl.kettle.KettleSettings;
-import ca.sqlpower.architect.olap.OLAPRootObject;
-import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
@@ -35,7 +30,6 @@ import ca.sqlpower.dao.helper.AbstractSPPersisterHelper;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObjectRoot;
 
 /**
  * An architect specific persister.
@@ -53,7 +47,7 @@ public class ArchitectSessionPersister extends SPSessionPersister {
                 pso.getUUID(), "rootObject", persistedProperties);
         
         PersistedSPObject persistedRootObject = AbstractSPPersisterHelper.findPersistedSPObject(
-                pso.getUUID(), SQLObjectRoot.class.getName(), rootObjectUUID, persistedObjects);
+                pso.getUUID(), rootObjectUUID, persistedObjects);
         ArchitectSwingProject architectProject = (ArchitectSwingProject) root;
         architectProject.getRootObject().setUUID(rootObjectUUID);
         persistedRootObject.setLoaded(true);
@@ -64,7 +58,7 @@ public class ArchitectSessionPersister extends SPSessionPersister {
         //Null for system projects.
         if (profileManagerUUID != null) {
             PersistedSPObject persistedProfileManager = AbstractSPPersisterHelper.findPersistedSPObject(
-                    pso.getUUID(), ProfileManagerImpl.class.getName(), profileManagerUUID, persistedObjects);
+                    pso.getUUID(), profileManagerUUID, persistedObjects);
             architectProject.getProfileManager().setUUID(profileManagerUUID);
             persistedProfileManager.setLoaded(true);
         }
@@ -73,7 +67,7 @@ public class ArchitectSessionPersister extends SPSessionPersister {
                 pso.getUUID(), "olapRootObject", persistedProperties);
         
         PersistedSPObject persistedOlapRootObject = AbstractSPPersisterHelper.findPersistedSPObject(
-                pso.getUUID(), OLAPRootObject.class.getName(), olapRootObjectUUID, persistedObjects);
+                pso.getUUID(), olapRootObjectUUID, persistedObjects);
         architectProject.getOlapRootObject().setUUID(olapRootObjectUUID);
         persistedOlapRootObject.setLoaded(true);
         
@@ -81,7 +75,7 @@ public class ArchitectSessionPersister extends SPSessionPersister {
                 pso.getUUID(), "kettleSettings", persistedProperties);
         
         PersistedSPObject persistedKettleSettings = AbstractSPPersisterHelper.findPersistedSPObject(
-                pso.getUUID(), KettleSettings.class.getName(), kettleSettingsUUID, persistedObjects);
+                pso.getUUID(), kettleSettingsUUID, persistedObjects);
         persistedKettleSettings.setLoaded(true);
         architectProject.getKettleSettings().setUUID(kettleSettingsUUID);
         
@@ -89,7 +83,7 @@ public class ArchitectSessionPersister extends SPSessionPersister {
                 pso.getUUID(), "criticManager", persistedProperties);
         
         PersistedSPObject criticManager = AbstractSPPersisterHelper.findPersistedSPObject(
-                pso.getUUID(), CriticManager.class.getName(), criticManagerUUID, persistedObjects);
+                pso.getUUID(), criticManagerUUID, persistedObjects);
         architectProject.getCriticManager().setUUID(criticManagerUUID);
         criticManager.setLoaded(true);
         
@@ -99,7 +93,7 @@ public class ArchitectSessionPersister extends SPSessionPersister {
                 pso.getUUID(), "snapshotCollection", persistedProperties);
         
         PersistedSPObject snapshotCollectionSettings = AbstractSPPersisterHelper.findPersistedSPObject(
-                pso.getUUID(), SnapshotCollection.class.getName(), snapshotCollectionUUID, persistedObjects);
+                pso.getUUID(), snapshotCollectionUUID, persistedObjects);
         snapshotCollectionSettings.setLoaded(true);
         architectProject.getSnapshotCollection().setUUID(snapshotCollectionUUID);
         

@@ -92,9 +92,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(final Point p) throws SQLObjectException {
-            DataEntryPanel editPanel = null;
-
-            editPanel = new TableEditPanel(playpen.getSession(), tp.getModel()) {
+            TableEditPanel editPanel = new TableEditPanel(playpen.getSession(), tp.getModel()) {
                 @Override
                 public boolean applyChanges() {
                     String warnings = generateWarnings();
@@ -125,10 +123,10 @@ public class CreateTableAction extends AbstractArchitectAction {
                     }
                 }
             };
-            
-            ((TableEditPanel) editPanel).setNameText(tp.getModel().getName());
-            ((TableEditPanel) editPanel).setPhysicalNameText(tp.getModel().getPhysicalName());
-            ((TableEditPanel) editPanel).setPkNameText(tp.getModel().getName() + "_pk");
+
+            editPanel.setNameText(tp.getModel().getName());
+            editPanel.setPhysicalNameText(tp.getModel().getPhysicalName());
+            editPanel.setPkNameText(tp.getModel().getName() + "_pk");
             
             return editPanel;
         }

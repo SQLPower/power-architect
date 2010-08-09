@@ -104,6 +104,7 @@ import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.action.EditCriticSettingsAction;
+import ca.sqlpower.architect.swingui.action.EditLabelAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
 import ca.sqlpower.architect.swingui.action.EditSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditSelectedIndexAction;
@@ -483,6 +484,8 @@ public class ArchitectFrame extends JFrame {
 
     private JMenuItem saveAllProjectsMenu;
 
+    private EditLabelAction editLabelAction;
+
     /**
      * Sets up a new ArchitectFrame, which represents a window containing one or
      * more {@link ArchitectSwingSession}s. It will not become visible until
@@ -754,6 +757,7 @@ public class ArchitectFrame extends JFrame {
         editSelectedAction = new EditSelectedAction(this);
         insertColumnAction = new InsertColumnAction(this);
         insertIndexAction = new InsertIndexAction(this);
+        editLabelAction = new EditLabelAction(this);
         editTableAction = new EditTableAction(this);
         editIndexAction = new EditSelectedIndexAction(this);
         searchReplaceAction = new SearchReplaceAction(this);
@@ -1613,6 +1617,10 @@ public class ArchitectFrame extends JFrame {
     
     public ArchitectStatusBar getStatusBar() {
         return statusBar;
+    }
+
+    public EditLabelAction getEditLabelAction() {
+        return editLabelAction;
     }
 
     private class TabDropTargetListener implements DropTargetListener {

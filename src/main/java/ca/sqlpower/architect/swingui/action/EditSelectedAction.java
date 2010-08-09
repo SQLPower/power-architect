@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenLabel;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -54,6 +55,7 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
         boolean tablesSelected = false;
         boolean relationshipsSelected = false;
         boolean columnsSelected = false;
+        boolean labelsSelected = false;
         
         for (PlayPenComponent ppc : selection) {
             if (ppc instanceof TablePane) {
@@ -65,17 +67,21 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
                 }
             } else if (ppc instanceof Relationship) {
                 relationshipsSelected = true;
+            } else if (ppc instanceof PlayPenLabel) {
+                labelsSelected = true;
             }
         }
 
-        if (columnsSelected && !relationshipsSelected) {
+        if (columnsSelected && !relationshipsSelected && !labelsSelected) {
             // note: we expect tables to be selected too in this case, but we ignore that
             // and let the column selections take precedence
             frame.getEditColumnAction().actionPerformed(e);
-        } else if (tablesSelected && !relationshipsSelected) {
+        } else if (tablesSelected && !relationshipsSelected && !labelsSelected) {
             frame.getEditTableAction().actionPerformed(e);
-        } else if (relationshipsSelected && !tablesSelected) {
+        } else if (relationshipsSelected && !tablesSelected && !labelsSelected) {
             frame.getEditRelationshipAction().actionPerformed(e);
+        } else if (labelsSelected && !tablesSelected && !relationshipsSelected) {
+            frame.getEditLabelAction().actionPerformed(e);
         } else if (selection.size() > 0) {
             JOptionPane.showMessageDialog(frame, Messages.getString("EditSelectedAction.multipleItemsSelected")); //$NON-NLS-1$
         } else {
