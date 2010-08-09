@@ -28,7 +28,10 @@ import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectSnapshot;
+import ca.sqlpower.object.annotation.Accessor;
+import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 /**
@@ -125,11 +128,13 @@ public class SnapshotCollection extends AbstractSPObject {
         return false;
     }
 
+    @Transient @Accessor
     @Override
     public List<Class<? extends SPObject>> getAllowedChildTypes() {
         return allowedChildTypes;
     }
 
+    @NonProperty
     @Override
     public List<? extends SPObject> getChildren() {
         List<SPObject> children = new ArrayList<SPObject>();
@@ -139,6 +144,7 @@ public class SnapshotCollection extends AbstractSPObject {
         return Collections.unmodifiableList(children);
     }
 
+    @NonBound
     @Override
     public List<? extends SPObject> getDependencies() {
         return Collections.emptyList();
