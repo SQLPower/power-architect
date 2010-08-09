@@ -283,7 +283,6 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             if (snapshotExists) return; // If snapshot already existed, then nothing else needs to be done
             
             // Otherwise, we have to create a new snapshot
-            int systemRevision =  session.getSystemSession().getCurrentRevisionNumber();
             boolean isDomainSnapshot = upstreamType.getParent() instanceof DomainCategory;
             UserDefinedSQLTypeSnapshot snapshot;
             if (upstreamType.getUpstreamType() != null) {
@@ -306,21 +305,21 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     }
                 }
                 if (!existingSnapshotFound) {
-                    upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, systemRevision, isUpstreamDomainSnapshot);
+                    upstreamSnapshot = new UserDefinedSQLTypeSnapshot(upUpStreamType, isUpstreamDomainSnapshot);
                     collection.addChild(upstreamSnapshot, 0);
                     collection.addChild(upstreamSnapshot.getSPObject(), 0);
                     upstreamSnapshot.setSnapshotUseCount(1);
                     addUpdateListener(upstreamSnapshot.getSPObject());
                 }
-                snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot, upstreamSnapshot);
+                snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, isDomainSnapshot, upstreamSnapshot);
             } else {
-                snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, systemRevision, isDomainSnapshot);
+                snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, isDomainSnapshot);
             }
             collection.addChild(snapshot, 0);
             if ((upstreamType.getParent() instanceof DomainCategory)) {
                 DomainCategory parent = (DomainCategory) upstreamType.getParent();
                 DomainCategorySnapshot domainSnapshot = 
-                    new DomainCategorySnapshot(parent, systemRevision);
+                    new DomainCategorySnapshot(parent);
                 collection.addChild(domainSnapshot, 0);
                 collection.addChild(domainSnapshot.getSPObject(), 0);
                 domainSnapshot.getSPObject().addChild(snapshot.getSPObject(), 0);
