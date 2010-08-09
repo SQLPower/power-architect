@@ -513,7 +513,8 @@ public class ArchitectProject extends AbstractSPObject {
         this.etlProcessDescription = etlProcessDescription;
         firePropertyChange("etlProcessDescription", oldDescription, etlProcessDescription);
     }
-    
+
+    @NonProperty
     public SnapshotCollection getSnapshotCollection() {
         return snapshotCollection;
     }
