@@ -719,7 +719,7 @@ public class PlayPen extends JPanel
      * index of insertion for c in the child list.
      */
     protected void addImpl(PlayPenComponent c, Object constraints) {        
-        if (c instanceof Relationship || c instanceof UsageComponent) {
+        if (c instanceof Relationship || c instanceof UsageComponent || c instanceof PlayPenLabel) {
             contentPane.addChild(c, contentPane.getFirstDependentComponentIndex());
         } else if (c instanceof ContainerPane<?, ?>) {
             if (constraints instanceof Point) {
@@ -1109,6 +1109,10 @@ public class PlayPen extends JPanel
      */
     public void addTablePane(TablePane tp, Point point) {
         addImpl(tp, point);
+    }
+    
+    public void addLabel(PlayPenLabel label, Point point) {
+        addImpl(label, point);
     }
 
     /**

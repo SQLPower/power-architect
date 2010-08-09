@@ -109,8 +109,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
     	paint(g,tablePane);
     }
     
-    public void paint(Graphics g, PlayPenComponent c) {
-		TablePane tp = (TablePane) c;
+    public void paint(Graphics g, TablePane tp) {
 		try {
 			Graphics2D g2 = (Graphics2D) g;
 			Stroke oldStroke = g2.getStroke();
@@ -137,33 +136,33 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			}
 
 			//  We don't want to paint inside the insets or borders.
-			Insets insets = c.getInsets();
+			Insets insets = tp.getInsets();
 			
 			//builds a little buffer to reduce the clipping problem
 			//this only seams to work at a non-zoomed level. This could 
 			//use a little work (better fix)
 			g.setColor(Color.WHITE);
-			g.fillRect(0, 0, c.getWidth(), c.getHeight());
+			g.fillRect(0, 0, tp.getWidth(), tp.getHeight());
 			
 			g.translate(insets.left, insets.top);
 
-	        int width = c.getWidth() - insets.left - insets.right;
-			int height = c.getHeight() - insets.top - insets.bottom;
+	        int width = tp.getWidth() - insets.left - insets.right;
+			int height = tp.getHeight() - insets.top - insets.bottom;
 
-			Font font = c.getFont();
+			Font font = tp.getFont();
 			if (font == null) {
 			    // This happens when the table exists but has no visible ancestor.
 			    // Don't ask me why it's being asked to paint under those circumstances!
 				//logger.error("paint(): Null font in TablePane "+c);
 				return;
 			}
-			FontMetrics metrics = c.getFontMetrics(font);
+			FontMetrics metrics = tp.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			int ascent = metrics.getAscent();
 			int maxDescent = metrics.getMaxDescent();
 			int y = 0;
 			
-			g2.setColor(c.getPlayPen().getBackground());
+			g2.setColor(tp.getPlayPen().getBackground());
 			g2.fillRect(0, 0, width, height);
 			// no need to reset to foreground: next operation always changes the colour
 
@@ -175,9 +174,9 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			}
 			
 			if (tp.isRounded()) {
-			    g2.fillRoundRect(0, 0, c.getWidth(), fontHeight, ARC_LENGTH, ARC_LENGTH);
+			    g2.fillRoundRect(0, 0, tp.getWidth(), fontHeight, ARC_LENGTH, ARC_LENGTH);
 			} else {
-			    g2.fillRect(0, 0, c.getWidth(), fontHeight);
+			    g2.fillRect(0, 0, tp.getWidth(), fontHeight);
 			}
 			
 			g2.setColor(tp.getForegroundColor());
