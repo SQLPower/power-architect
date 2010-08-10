@@ -267,13 +267,14 @@ public class ProfileGraphPanel {
                 }
             };
             cr.addSPListener(notesListener);
-            notesFieldListener = new TimedDocumentListener(2500) {
+            notesFieldListener = new TimedDocumentListener(cr.getProfiledObject().getName(), 2500) {
                 @Override
                 public void textChanged() {
+                    final String notesText = notesField.getText();
                     profilePanel.getProfileManager().getRunnableDispatcher().runInForeground(new Runnable() {
                         @Override
                         public void run() {
-                            cr.setNotes(notesField.getText());
+                            cr.setNotes(notesText);
                         }
                     });
                 }
