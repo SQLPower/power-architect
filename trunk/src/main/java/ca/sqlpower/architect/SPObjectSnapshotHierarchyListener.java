@@ -69,7 +69,20 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * type so that the event details can be used to create a
      * new snapshot.
      */
-    private Map<UserDefinedSQLType, PropertyChangeEvent> upstreamTypeChangeEventMap = new HashMap<UserDefinedSQLType, PropertyChangeEvent>();;
+    private Map<UserDefinedSQLType, PropertyChangeEvent> upstreamTypeChangeEventMap = new HashMap<UserDefinedSQLType, PropertyChangeEvent>();
+
+    /**
+     * Each type that needs to be cleaned up is mapped to a count of how many
+     * times the clean up method should be called on it.
+     * <p>
+     * XXX This is a stop-gap for being able to move a column as a remove and
+     * add since the column will be pointing at the snapshot and not a system
+     * type. In the future we need to have the snapshot object override
+     * {@link UserDefinedSQLType} so it is the same object. That change will 
+     * also simplify the model.
+     */
+    private final Map<UserDefinedSQLType, Integer> typesToCleanup = 
+        new HashMap<UserDefinedSQLType, Integer>();
     
     /**
      * True if this listener is in the middle of 
@@ -135,14 +148,24 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 			for (SQLColumn col : e.getChild().getChildren(SQLColumn.class)) {
 				col.getUserDefinedSQLType().removeSPListener(this);
 				if (col.getUserDefinedSQLType().isMagicEnabled()) {
-				    cleanupSnapshot(col.getUserDefinedSQLType().getUpstreamType());
+				    UserDefinedSQLType snapshotType = col.getUserDefinedSQLType().getUpstreamType();
+				    Integer cleanupCount = typesToCleanup.get(snapshotType);
+				    if (cleanupCount == null) {
+				        cleanupCount = 0;
+				    }
+				    typesToCleanup.put(snapshotType, cleanupCount + 1);
 				}
 			}
 		} else if (e.getChild() instanceof SQLColumn) {
 		    UserDefinedSQLType colType = ((SQLColumn) e.getChild()).getUserDefinedSQLType();
 			colType.removeSPListener(this);
 			if (colType.isMagicEnabled()) {
-			    cleanupSnapshot(colType.getUpstreamType());
+                UserDefinedSQLType snapshotType = colType.getUpstreamType();
+                Integer cleanupCount = typesToCleanup.get(snapshotType);
+                if (cleanupCount == null) {
+                    cleanupCount = 0;
+                }
+                typesToCleanup.put(snapshotType, cleanupCount + 1);
 			}
 		}
 	}
@@ -385,19 +408,16 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             logger.debug("Ignoring begin");
             return;
         }
-        if (e.getSource() instanceof UserDefinedSQLType) {
-            logger.debug("Processing begin (\"" + e.getMessage() + "\")");
-            UserDefinedSQLType udt = (UserDefinedSQLType) e.getSource();
-            transactionCount++;
-            logger.debug("Incremented transaction counter to " + transactionCount);
-            if (transactionCount == 1) {
-                logger.debug("Firing snapshot begin");
-                try {
-                    settingSnapshot = true;
-                    udt.begin("setting upstream type (snapshot)");
-                } finally {
-                    settingSnapshot = false;
-                }
+        logger.debug("Processing begin (\"" + e.getMessage() + "\")");
+        transactionCount++;
+        logger.debug("Incremented transaction counter to " + transactionCount);
+        if (transactionCount == 1) {
+            logger.debug("Firing snapshot begin");
+            try {
+                settingSnapshot = true;
+                ((SPObject) e.getSource()).begin("setting upstream type (snapshot)");
+            } finally {
+                settingSnapshot = false;
             }
         }
     }
@@ -408,37 +428,40 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             logger.debug("Ignoring commit");
             return;
         }
-        if (e.getSource() instanceof UserDefinedSQLType) {
-            logger.debug("Processing commit (\"" + e.getMessage() + "\")");
-            UserDefinedSQLType udt = (UserDefinedSQLType) e.getSource();
+        logger.debug("Processing commit (\"" + e.getMessage() + "\")");
 
-            transactionCount--;
-            logger.debug("Decremented transaction counter to " + transactionCount);
-            if (transactionCount == 0) {
-                try {
-                    settingSnapshot = true;
-                    for (Entry<UserDefinedSQLType, PropertyChangeEvent> entry : upstreamTypeChangeEventMap.entrySet()) {
-                        UserDefinedSQLType newValue = (UserDefinedSQLType) entry.getValue().getNewValue();
-                        UserDefinedSQLType source = (UserDefinedSQLType) entry.getKey();
-                        UserDefinedSQLType oldValue = (UserDefinedSQLType) entry.getValue().getOldValue();
+        transactionCount--;
+        logger.debug("Decremented transaction counter to " + transactionCount);
+        if (transactionCount == 0) {
+            try {
+                settingSnapshot = true;
+                for (Entry<UserDefinedSQLType, PropertyChangeEvent> entry : upstreamTypeChangeEventMap.entrySet()) {
+                    UserDefinedSQLType newValue = (UserDefinedSQLType) entry.getValue().getNewValue();
+                    UserDefinedSQLType source = (UserDefinedSQLType) entry.getKey();
+                    UserDefinedSQLType oldValue = (UserDefinedSQLType) entry.getValue().getOldValue();
 
-                        logger.debug("Replacing upstreamType with snapshot!");
-                        createSPObjectSnapshot(source, newValue);
+                    logger.debug("Replacing upstreamType with snapshot!");
+                    createSPObjectSnapshot(source, newValue);
 
-                        if (oldValue != null && source.isMagicEnabled()) {
-                            cleanupSnapshot(oldValue);
-                        }
-
-                        UserDefinedSQLType columnProxyType = source;
-                        addUpdateListener(columnProxyType.getUpstreamType());
+                    if (oldValue != null && source.isMagicEnabled()) {
+                        cleanupSnapshot(oldValue);
                     }
-                    upstreamTypeChangeEventMap.clear();
-                    udt.commit("snapshot commit");
-                    logger.debug("Firing snapshot commit");
-                } finally {
-                    settingSnapshot = false;
+
+                    UserDefinedSQLType columnProxyType = source;
+                    addUpdateListener(columnProxyType.getUpstreamType());
+                }
+                upstreamTypeChangeEventMap.clear();
+                ((SPObject) e.getSource()).commit("snapshot commit");
+                logger.debug("Firing snapshot commit");
+            } finally {
+                settingSnapshot = false;
+            }
+            for (Map.Entry<UserDefinedSQLType, Integer> entry : typesToCleanup.entrySet()) {
+                for (int i = 0; i < entry.getValue(); i++) {
+                    cleanupSnapshot(entry.getKey());
                 }
             }
+            typesToCleanup.clear();
         }
     }
 }
