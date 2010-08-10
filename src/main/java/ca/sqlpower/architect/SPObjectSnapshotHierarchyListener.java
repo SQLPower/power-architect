@@ -93,31 +93,39 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
     }
 
 	@Override
-	public void childAdded(SPChildEvent e) {
-		if (e.getChild() instanceof SQLTable) {
-		    SQLTable table = (SQLTable) e.getChild();
-		    table.addSPListener(this);
-			for (SQLColumn sqlColumn : table.getChildren(SQLColumn.class)) {
-			    sqlColumn.getUserDefinedSQLType().addSPListener(this);
-			}
-		} else if (e.getChild() instanceof SQLColumn) {
-			SQLColumn sqlColumn = (SQLColumn) e.getChild();
-			sqlColumn.getUserDefinedSQLType().addSPListener(this);
-			UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
-			if (upstreamType != null) {
-			    List<UserDefinedSQLTypeSnapshot> udtSnapshots = 
-			        session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
-			    for (UserDefinedSQLTypeSnapshot snapshot: udtSnapshots) {
-			        if (upstreamType.equals(snapshot.getSPObject())) {
-			            if (listenerMap.get(snapshot) == null) {
-			                addUpdateListener(upstreamType);
-			            }
-			            break;
-			        }
-			    }
-			}
-		}
-	}
+    public void childAdded(SPChildEvent e) {
+        if (e.getChild() instanceof SQLTable) {
+            SQLTable table = (SQLTable) e.getChild();
+            table.addSPListener(this);
+            for (SQLColumn sqlColumn : table.getChildren(SQLColumn.class)) {
+                sqlColumn.getUserDefinedSQLType().addSPListener(this);
+            }
+        } else if (e.getChild() instanceof SQLColumn) {
+            SQLColumn sqlColumn = (SQLColumn) e.getChild();
+            UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
+            if (upstreamType != null) {
+                List<UserDefinedSQLTypeSnapshot> udtSnapshots = 
+                    session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
+                boolean isSnapshot = false;
+                for (UserDefinedSQLTypeSnapshot snapshot: udtSnapshots) {
+                    if (upstreamType.equals(snapshot.getSPObject())) {
+                        isSnapshot = true;
+                        snapshot.setSnapshotUseCount(snapshot.getSnapshotUseCount() + 1);
+                        if (listenerMap.get(snapshot) == null) {
+                            addUpdateListener(upstreamType);
+                        }
+                        break;
+                    }
+                }
+                if (!isSnapshot) {
+                    UserDefinedSQLType columnProxyType = sqlColumn.getUserDefinedSQLType();
+                    createSPObjectSnapshot(columnProxyType, upstreamType);
+                    addUpdateListener(columnProxyType.getUpstreamType());
+                }
+            }
+            sqlColumn.getUserDefinedSQLType().addSPListener(this);
+        }
+    }
 	
 	@Override
 	public void childRemoved(SPChildEvent e) {
