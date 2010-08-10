@@ -1953,7 +1953,13 @@ public class PlayPen extends JPanel
 	}
 	
 	public List<DraggablePlayPenComponent> getSelectedDraggableComponents() {
-	    return Collections.unmodifiableList(contentPane.getChildren(DraggablePlayPenComponent.class));
+	    ArrayList <DraggablePlayPenComponent> selected = new ArrayList<DraggablePlayPenComponent>();
+        for (DraggablePlayPenComponent tp : contentPane.getChildren(DraggablePlayPenComponent.class)) {
+            if (tp.isSelected()) {
+                selected.add(tp);
+            }
+        }
+        return Collections.unmodifiableList(selected);
 	}
 
 	/**
