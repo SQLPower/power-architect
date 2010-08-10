@@ -23,6 +23,7 @@ import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -68,7 +69,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * type so that the event details can be used to create a
      * new snapshot.
      */
-    private PropertyChangeEvent upstreamTypeChangeEvent;
+    private Map<UserDefinedSQLType, PropertyChangeEvent> upstreamTypeChangeEventMap = new HashMap<UserDefinedSQLType, PropertyChangeEvent>();;
     
     /**
      * True if this listener is in the middle of 
@@ -150,15 +151,13 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	public void propertyChanged(PropertyChangeEvent e) {
 		if (e.getSource() instanceof UserDefinedSQLType 
 				&& e.getPropertyName().equals("upstreamType")) {
-		    if (upstreamTypeChangeEvent == null && 
-		            !(e.getNewValue() instanceof UserDefinedSQLType && 
-		            ((UserDefinedSQLType)e.getNewValue()).getParent() == session.getWorkspace().getSnapshotCollection() &&
-		            settingSnapshot)) {
-		        logger.debug("Got a property change event for upstreamType!");
-		        upstreamTypeChangeEvent = e;
+		    Object oldValue;
+		    if (upstreamTypeChangeEventMap.containsKey(e.getSource())) {
+		        oldValue = upstreamTypeChangeEventMap.get(e.getSource()).getOldValue();
 		    } else {
-		        logger.debug("Got another upstreamType change event in the middle of another");
+		        oldValue = e.getOldValue();
 		    }
+		    upstreamTypeChangeEventMap.put((UserDefinedSQLType) e.getSource(), new PropertyChangeEvent(e.getSource(), e.getPropertyName(), oldValue, e.getNewValue()));
 		}
 	}
 
@@ -382,44 +381,61 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
     
     @Override
     public void transactionStarted(TransactionEvent e) {
+        if (settingSnapshot) {
+            logger.debug("Ignoring begin");
+            return;
+        }
         if (e.getSource() instanceof UserDefinedSQLType) {
+            logger.debug("Processing begin (\"" + e.getMessage() + "\")");
             UserDefinedSQLType udt = (UserDefinedSQLType) e.getSource();
             transactionCount++;
             logger.debug("Incremented transaction counter to " + transactionCount);
             if (transactionCount == 1) {
-                udt.begin("setting upstream type (snapshot)");
+                logger.debug("Firing snapshot begin");
+                try {
+                    settingSnapshot = true;
+                    udt.begin("setting upstream type (snapshot)");
+                } finally {
+                    settingSnapshot = false;
+                }
             }
         }
     }
     
-   @Override
+    @Override
     public void transactionEnded(TransactionEvent e) {
+        if (settingSnapshot) {
+            logger.debug("Ignoring commit");
+            return;
+        }
         if (e.getSource() instanceof UserDefinedSQLType) {
+            logger.debug("Processing commit (\"" + e.getMessage() + "\")");
             UserDefinedSQLType udt = (UserDefinedSQLType) e.getSource();
-            
+
             transactionCount--;
             logger.debug("Decremented transaction counter to " + transactionCount);
-            if (transactionCount == 1) {
-                if (upstreamTypeChangeEvent != null) {
-                    UserDefinedSQLType newValue = (UserDefinedSQLType) upstreamTypeChangeEvent.getNewValue();
-                    UserDefinedSQLType source = (UserDefinedSQLType) upstreamTypeChangeEvent.getSource();
-                    UserDefinedSQLType oldValue = (UserDefinedSQLType) upstreamTypeChangeEvent.getOldValue();
-                    upstreamTypeChangeEvent = null;
-
-                    logger.debug("Replacing upstreamType with snapshot!");
+            if (transactionCount == 0) {
+                try {
                     settingSnapshot = true;
-                    createSPObjectSnapshot(source, newValue);
-                    
-                    if (oldValue != null && source.isMagicEnabled()) {
-                        cleanupSnapshot(oldValue);
+                    for (Entry<UserDefinedSQLType, PropertyChangeEvent> entry : upstreamTypeChangeEventMap.entrySet()) {
+                        UserDefinedSQLType newValue = (UserDefinedSQLType) entry.getValue().getNewValue();
+                        UserDefinedSQLType source = (UserDefinedSQLType) entry.getKey();
+                        UserDefinedSQLType oldValue = (UserDefinedSQLType) entry.getValue().getOldValue();
+
+                        logger.debug("Replacing upstreamType with snapshot!");
+                        createSPObjectSnapshot(source, newValue);
+
+                        if (oldValue != null && source.isMagicEnabled()) {
+                            cleanupSnapshot(oldValue);
+                        }
+
+                        UserDefinedSQLType columnProxyType = source;
+                        addUpdateListener(columnProxyType.getUpstreamType());
                     }
-                    
-                    UserDefinedSQLType columnProxyType = source;
-                    addUpdateListener(columnProxyType.getUpstreamType());
-                }
-                if (!settingSnapshot) {
-                    udt.commit();
-                } else {
+                    upstreamTypeChangeEventMap.clear();
+                    udt.commit("snapshot commit");
+                    logger.debug("Firing snapshot commit");
+                } finally {
                     settingSnapshot = false;
                 }
             }
