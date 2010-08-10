@@ -26,6 +26,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -45,7 +46,7 @@ import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.swingui.ColourScheme;
 
-public class PlayPenLabel extends PlayPenComponent {
+public class PlayPenLabel extends DraggablePlayPenComponent {
 
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
         Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
@@ -180,6 +181,10 @@ public class PlayPenLabel extends PlayPenComponent {
                     setSelected(true, SelectionEvent.SINGLE_SELECT);
                 }
             }
+        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
+            setupDrag(p);
+        } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
+            setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
         }
     }
 

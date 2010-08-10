@@ -42,12 +42,10 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.layout.LayoutNode;
-import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
@@ -65,7 +63,7 @@ import ca.sqlpower.swingui.SPSUtils;
  * @param <C> Class of the an item.
  */
 public abstract class ContainerPane<T, C>
-extends PlayPenComponent
+extends DraggablePlayPenComponent
 implements DragSourceListener, LayoutNode {
     
     /**
@@ -231,28 +229,7 @@ implements DragSourceListener, LayoutNode {
             }
 
             if (clickItem == ITEM_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
-                Iterator<ContainerPane<?, ?> > it = pp.getSelectedContainers().iterator();
-                logger.debug("event point: " + p); //$NON-NLS-1$
-                logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
-                pp.setDraggingContainerPanes(true);
-                startedDragging();
-
-                while (it.hasNext()) {
-                    // create FloatingContainerPaneListener for each selected item
-                    ContainerPane<?, ?> cp = (ContainerPane<?, ?> )it.next();
-                    logger.debug("(" + cp.getModel() + ") zoomed selected containerPane's point: " + cp.getLocationOnScreen()); //$NON-NLS-1$ //$NON-NLS-2$
-                    logger.debug("(" + cp.getModel() + ") unzoomed selected containerPane's point: " + pp.unzoomPoint(cp.getLocationOnScreen())); //$NON-NLS-1$ //$NON-NLS-2$
-                    /* the floating ContainerPane listener expects zoomed handles which are relative to
-                               the location of the ContainerPane column which was clicked on.  */
-                    Point clickedItem = getLocationOnScreen();
-                    Point otherContainer = cp.getLocationOnScreen();
-                    logger.debug("(" + cp.getModel() + ") translation x=" //$NON-NLS-1$ //$NON-NLS-2$
-                            + (otherContainer.getX() - clickedItem.getX()) + ",y=" //$NON-NLS-1$
-                            + (otherContainer.getY() - clickedItem.getY()));
-                    Point handle = pp.zoomPoint(new Point(p));
-                    handle.translate((int)(clickedItem.getX() - otherContainer.getX()), (int) (clickedItem.getY() - otherContainer.getY()));
-                    new FloatingContainerPaneListener(pp, cp, handle);
-                }
+                setupDrag(p);
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
@@ -287,16 +264,6 @@ implements DragSourceListener, LayoutNode {
             Relationship r = (Relationship) it.next();
             r.setSelected(false,SelectionEvent.SINGLE_SELECT);
         }
-    }
-
-    @Transient @Accessor
-    public Point getLocationOnScreen() {
-        Point p = new Point();
-        PlayPen pp = getPlayPen();
-        getLocation(p);
-        pp.zoomPoint(p);
-        SwingUtilities.convertPointToScreen(p, pp);
-        return p;
     }
 
     /**
@@ -654,5 +621,5 @@ implements DragSourceListener, LayoutNode {
     public String getNodeName() {
         return getName();
     }
-
+    
 }

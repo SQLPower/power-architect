@@ -38,6 +38,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
@@ -757,6 +758,17 @@ implements Selectable {
     @Transient @Accessor
     public Point getPointForModelObject(@Nonnull Object modelObject) {
         return getUI().getPointForModelObject(modelObject);
+    }
+    
+    @Transient
+    @Accessor
+    public Point getLocationOnScreen() {
+        Point p = new Point();
+        PlayPen pp = getPlayPen();
+        getLocation(p);
+        pp.zoomPoint(p);
+        SwingUtilities.convertPointToScreen(p, pp);
+        return p;
     }
 
 }
