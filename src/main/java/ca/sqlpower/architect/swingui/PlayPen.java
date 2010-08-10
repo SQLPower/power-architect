@@ -1951,6 +1951,10 @@ public class PlayPen extends JPanel
 		}
 		return Collections.unmodifiableList(selected);
 	}
+	
+	public List<DraggablePlayPenComponent> getSelectedDraggableComponents() {
+	    return Collections.unmodifiableList(contentPane.getChildren(DraggablePlayPenComponent.class));
+	}
 
 	/**
 	 * Returns a read-only view of the set of selected relationships in the PlayPen.
@@ -2587,7 +2591,7 @@ public class PlayPen extends JPanel
 	    private Insets scrollUnits = new Insets(AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET);
 	    
 		private PlayPen pp;
-		private ContainerPane<?, ?> cp;
+		private PlayPenComponent ppc;
 		private Point handle;
 		private Point p;
 
@@ -2595,7 +2599,7 @@ public class PlayPen extends JPanel
          * Creates a new mouse event handler that tracks mouse motion and moves
          * a container pane around on the play pen accordingly.
          * 
-         * @param cp
+         * @param ppc
          *            The container pane that's going to be moved
          * @param handle
          *            The position relative to the container pane's top left
@@ -2613,21 +2617,21 @@ public class PlayPen extends JPanel
          *            table" type actions, and should be set to false for
          *            dragging existing objects.
          */
-		public FloatingContainerPaneListener(PlayPen pp, ContainerPane<?, ?> cp, Point handle) {
+		public FloatingContainerPaneListener(PlayPen pp, PlayPenComponent ppc, Point handle) {
 			this.pp = pp;
 			Point pointerLocation = MouseInfo.getPointerInfo().getLocation();
 			SwingUtilities.convertPointFromScreen(pointerLocation,pp);
 			logger.debug("Adding floating container pane at:"+ pointerLocation); //$NON-NLS-1$
 			p = new Point(pointerLocation.x - handle.x, pointerLocation.y - handle.y);
 
-			this.cp = cp;
+			this.ppc = ppc;
 			this.handle = handle;
 
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
 
 			pp.cursorManager.tableDragStarted();
-			pp.startCompoundEdit("Move " + cp.getName()); //$NON-NLS-1$
+			pp.startCompoundEdit("Move " + ppc.getName()); //$NON-NLS-1$
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -2637,7 +2641,7 @@ public class PlayPen extends JPanel
 		public void mouseDragged(MouseEvent e) {
 			pp.zoomPoint(e.getPoint());
 			p.setLocation(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
-			pp.setChildPosition(cp, p);
+			pp.setChildPosition(ppc, p);
 			JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp);
 	        if(viewport==null || pp.getSelectedItems().size() < 1) 
 	            return; 
@@ -2651,7 +2655,7 @@ public class PlayPen extends JPanel
 	        int viewWidth = viewport.getWidth(); 
 	        
 	        // performs scrolling
-	        Rectangle bounds = pp.zoomRect(cp.getBounds());
+	        Rectangle bounds = pp.zoomRect(ppc.getBounds());
             if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up
                 view.y = bounds.y - scrollUnits.top;
 	        } if ((viewPos.y + viewHeight - p.y - bounds.height) < scrollUnits.bottom) { // scroll down 
@@ -2664,8 +2668,8 @@ public class PlayPen extends JPanel
 	        logger.debug(viewport.getViewPosition());
 	        pp.scrollRectToVisible(view);
 	        // Necessary to stop tables from flashing.
-	        if (cp != null) {
-	            cp.repaint();
+	        if (ppc != null) {
+	            ppc.repaint();
 	        }
 		}
 
@@ -2688,7 +2692,7 @@ public class PlayPen extends JPanel
 				pp.normalize();
 				pp.revalidate();
 			} finally {
-			    pp.endCompoundEdit("Ending move for table "+cp.getName()); //$NON-NLS-1$
+			    pp.endCompoundEdit("Ending move for table "+ppc.getName()); //$NON-NLS-1$
 			}
 		}
 	}

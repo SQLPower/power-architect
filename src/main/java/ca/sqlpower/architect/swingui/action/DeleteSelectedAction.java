@@ -36,12 +36,14 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ContainerPane;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenLabel;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.object.ObjectDependentException;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.LockedColumnException;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -89,14 +91,15 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             return;
         }
         
-        List<SQLObject> deleteItems = retrieveDeletableItems();
+        List<SPObject> deleteItems = retrieveDeletableItems();
 
         int tCount = 0;
         int rCount = 0;
         int cCount = 0;
         int iCount = 0;
+        int lCount = 0;
 
-        for (SQLObject item : deleteItems) {
+        for (SPObject item : deleteItems) {
             if (item instanceof SQLColumn) {
                 cCount++;
             } else if (item instanceof SQLTable) {
@@ -105,6 +108,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                 rCount++;
             } else if (item instanceof SQLIndex) {
                 iCount++;
+            } else if (item instanceof PlayPenLabel) {
+                lCount++;
             } else {
                 logger.warn("Unexpected type for deletable item: " + item.getClass());
             }
@@ -114,7 +119,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             int decision = JOptionPane.showConfirmDialog(frame,
                     Messages.getString("DeleteSelectedAction.multipleDeleteConfirmation", //$NON-NLS-1$
                             String.valueOf(tCount), String.valueOf(cCount),
-                            String.valueOf(rCount), String.valueOf(iCount)),
+                            String.valueOf(rCount), String.valueOf(iCount),
+                            String.valueOf(lCount)),
                             Messages.getString("DeleteSelectedAction.multipleDeleteDialogTitle"), //$NON-NLS-1$
                             JOptionPane.YES_NO_OPTION);
             if (decision != JOptionPane.YES_OPTION ) {
@@ -138,11 +144,13 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
 //                ppc.setSelected(false,SelectionEvent.SINGLE_SELECT);
 //            }
             
-            for (SQLObject o : deleteItems) {
+            for (SPObject o : deleteItems) {
                 try {
                     if (o instanceof SQLIndex) {
                         SQLIndex index = (SQLIndex) o;
                         o.getParent().removeChild(o);
+                    } else if (o instanceof PlayPenLabel) {
+                        getPlaypen().getContentPane().removeChild(o);
                     } else {
                         //Side effect of removing a relationship's parent table is to remove the relationship
                         //causing this to fail if the relationship is removed immediately after.
@@ -179,17 +187,18 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
     }
 
     /**
-     * Extracts the list of items we should try to delete from the DBTree's
-     * selection list.
-     * Package private for testing.
+     * Extracts the list of items we should try to delete from the PlayPen's
+     * selection list. Package private for testing.
      */
-    List<SQLObject> retrieveDeletableItems() {
+    List<SPObject> retrieveDeletableItems() {
         List<PlayPenComponent> selection = getPlaypen().getSelectedItems();
-        List<SQLObject> deleteItems = new ArrayList<SQLObject>(selection.size());
+        List<SPObject> deleteItems = new ArrayList<SPObject>(selection.size());
         for (PlayPenComponent ppc : selection) {
             if (ppc instanceof TablePane) {
                 TablePane tp = (TablePane) ppc;
                 deleteItems.addAll(tp.getSelectedItems());
+            } else if (ppc instanceof PlayPenLabel) {
+                deleteItems.add(ppc);
             }
             Object model = ppc.getModel();
             if (model instanceof SQLObject) {
@@ -199,8 +208,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
         
         Set<SQLTable> tablesWithSelectedColumns = new HashSet<SQLTable>();
         
-        for (ListIterator<SQLObject> it = deleteItems.listIterator(); it.hasNext(); ) {
-            SQLObject item = it.next();
+        for (ListIterator<SPObject> it = deleteItems.listIterator(); it.hasNext(); ) {
+            SPObject item = it.next();
             if (item instanceof SQLColumn) {
                 tablesWithSelectedColumns.add(((SQLColumn) item).getParent());
             } else if (item instanceof SQLTable) {
@@ -208,6 +217,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             } else if (item instanceof SQLRelationship) {
                 // ok
             } else if (item instanceof SQLIndex) {
+                // ok
+            } else if (item instanceof PlayPenLabel) {
                 // ok
             } else {
                 // The business model is not fancy enough to properly cope with
@@ -257,13 +268,13 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
      */
     private void setupAction() {
         String description;
-        List<SQLObject> deletableItems = retrieveDeletableItems();
+        List<SPObject> deletableItems = retrieveDeletableItems();
         if (deletableItems.size() == 0) {
             setEnabled(false);
             description = Messages.getString("DeleteSelectedAction.deleteSelected"); //$NON-NLS-1$
         } else if (deletableItems.size() == 1) {
             setEnabled(true);
-            SQLObject item = deletableItems.get(0);
+            SPObject item = deletableItems.get(0);
             String name = item.getName();
             description = Messages.getString("DeleteSelectedAction.deleteItem", name); //$NON-NLS-1$
         } else {

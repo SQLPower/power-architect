@@ -29,8 +29,8 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
@@ -146,7 +146,7 @@ public class TestDeleteSelectedAction extends TestCase {
 	    tp.setSelected(true, SelectionEvent.SINGLE_SELECT);
 	    tp2.setSelected(true, SelectionEvent.SINGLE_SELECT);
 	    assertEquals(2, session.getDBTree().getSelectionPaths().length);
-	    List<SQLObject> list = deleteAction.retrieveDeletableItems();
+	    List<SPObject> list = deleteAction.retrieveDeletableItems();
 	    assertEquals(2, list.size());
 	    System.out.println(list);
 	    assertTrue(list.contains(tp.getModel()));
