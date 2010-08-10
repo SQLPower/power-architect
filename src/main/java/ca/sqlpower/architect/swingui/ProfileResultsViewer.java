@@ -415,13 +415,14 @@ public class ProfileResultsViewer {
                                     }
                                 };
                                 tpr.addSPListener(tableNotesListener);
-                                tableNotesFieldListener = new TimedDocumentListener(2500) {
+                                tableNotesFieldListener = new TimedDocumentListener(tpr.getProfiledObject().getName(), 2500) {
                                     @Override
                                     public void textChanged() {
+                                        final String notesText = notesField.getText();
                                         profileManager.getRunnableDispatcher().runInForeground(new Runnable() {
                                             public void run() {
-                                                if (!tpr.getNotes().equals(notesField.getText())) {
-                                                    tpr.setNotes(notesField.getText());
+                                                if (!tpr.getNotes().equals(notesText)) {
+                                                    tpr.setNotes(notesText);
                                                 }
                                             }
                                         });
@@ -431,8 +432,11 @@ public class ProfileResultsViewer {
                             } else {
                                 notesField.setEnabled(false);
                                 notesField.setText("Select a Table");
+                                tableNotesFieldListener = null;
                             }
-                            notesField.getDocument().addDocumentListener(tableNotesFieldListener);
+                            if (tableNotesFieldListener != null) {
+                                notesField.getDocument().addDocumentListener(tableNotesFieldListener);
+                            }
                         }
                     }
                 });
