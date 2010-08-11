@@ -340,6 +340,11 @@ public class ArchitectFrame extends JFrame {
                 public void actionPerformed(ActionEvent e) {
                     String msg = "Unable to connect to server";
                     try {
+                        // Clears the cookie store before testing the connection
+                        // in case an existing valid connection has already been
+                        // established.
+                        ArchitectClientSideSession.getCookieStore().clear();
+                        
                         List<ProjectLocation> l = 
                             ArchitectClientSideSession.getWorkspaceNames(
                                 findPanel((JButton) e.getSource()).getServerInfo());
@@ -1009,7 +1014,9 @@ public class ArchitectFrame extends JFrame {
 
         // Enterprise stuff ...
         enterpriseMenu = new JMenu("Enterprise");
-        enterpriseLinkButton = enterpriseMenu.add(enterpriseLinkAction);
+        enterpriseLinkButton = new JMenuItem(enterpriseLinkAction);
+        enterpriseLinkButton.setText("Get Enterprise...");
+        enterpriseMenu.add(enterpriseLinkButton);
         enterpriseMenu.add(openServerManagerAction);
         openServerManagerAction.setEnabled(false);
         enterpriseMenu.add(openProjectManagerAction);
