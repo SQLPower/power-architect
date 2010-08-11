@@ -42,6 +42,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowStateListener;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -575,6 +576,21 @@ public class ArchitectFrame extends JFrame {
         });
         
         nonModalUserPrompterFactory = new NonModalSwingUIUserPrompterFactory(this);
+        
+        // Need to clear the cookies in case multiple frames within the same
+        // context are working on the same server project under different users.
+        addWindowFocusListener(new WindowFocusListener() {
+            
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                // No operation.
+            }
+            
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                ArchitectClientSideSession.getCookieStore().clear();
+            }
+        });
     }
 
     /**
