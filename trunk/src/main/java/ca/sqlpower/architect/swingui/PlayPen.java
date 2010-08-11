@@ -2638,6 +2638,7 @@ public class PlayPen extends JPanel
 
 			pp.cursorManager.tableDragStarted();
 			pp.startCompoundEdit("Move " + ppc.getName()); //$NON-NLS-1$
+			pp.getContentPane().begin("Move " + ppc.getName());
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -2699,6 +2700,7 @@ public class PlayPen extends JPanel
 				pp.revalidate();
 			} finally {
 			    pp.endCompoundEdit("Ending move for table "+ppc.getName()); //$NON-NLS-1$
+			    pp.getContentPane().commit("Ending move for table "+ppc.getName());
 			}
 		}
 	}
