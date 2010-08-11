@@ -261,6 +261,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      *            This type is a type that is a snapshot of a system type used in a column.
      */
     private void addUpdateListener(UserDefinedSQLType upstreamSnapshotType) {
+        if (upstreamSnapshotType == null) return; // Happens on undo.
         
         SnapshotCollection collection = session.getWorkspace().getSnapshotCollection();
         
