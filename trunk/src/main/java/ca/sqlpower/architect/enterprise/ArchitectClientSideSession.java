@@ -73,6 +73,7 @@ import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.AbstractPoolingSPListener;
+import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.SPObjectUUIDComparator;
@@ -91,6 +92,7 @@ import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
+import ca.sqlpower.util.TransactionEvent;
 import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
@@ -223,7 +225,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         //they haven't been opened in some time but updates have occurred to the types.
         //While this will also check new snapshots being added to the system doing
         //the check doesn't hurt anything.
-        getWorkspace().addSPListener(new AbstractPoolingSPListener() {
+        final AbstractPoolingSPListener obsolescenceListener = new AbstractPoolingSPListener(false) {
             @Override
             public void childAddedImpl(SPChildEvent e) {
                 if (e.getChild() instanceof UserDefinedSQLTypeSnapshot) {
@@ -245,6 +247,21 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                         }
                     }
                 }
+            }
+        };
+        getWorkspace().getSnapshotCollection().addSPListener(obsolescenceListener);
+        getWorkspace().addSPListener(new AbstractSPListener() {
+            @Override
+            public void transactionStarted(TransactionEvent e) {
+                obsolescenceListener.transactionStarted(TransactionEvent.createStartTransactionEvent(getWorkspace().getSnapshotCollection(), "Simulated begin: " + e.getMessage()));
+            }
+            @Override
+            public void transactionEnded(TransactionEvent e) {
+                obsolescenceListener.transactionEnded(TransactionEvent.createEndTransactionEvent(getWorkspace().getSnapshotCollection(), "Simulated commit: " + e.getMessage()));
+            }
+            @Override
+            public void transactionRollback(TransactionEvent e) {
+                obsolescenceListener.transactionRollback(TransactionEvent.createRollbackTransactionEvent(getWorkspace().getSnapshotCollection(), "Simulated rollback: " + e.getMessage()));
             }
         });
     }
