@@ -927,11 +927,13 @@ public class DBTree extends JTree implements DragSourceListener {
         getActionMap().put(KEY_LEFT, new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 TreePath selection = getSelectionPath();
-                if (isExpanded(selection) && treeModel.getChildCount(selection.getLastPathComponent()) != 0) {
-                    setExpandedState(selection, false);
-                } else {
-                    if (selection.getPathCount() != 2) {
-                        setSelectionPath(selection.getParentPath());
+                if (selection != null) {
+                    if (isExpanded(selection) && treeModel.getChildCount(selection.getLastPathComponent()) != 0) {
+                        setExpandedState(selection, false);
+                    } else {
+                        if (selection.getPathCount() != 2) {
+                            setSelectionPath(selection.getParentPath());
+                        }
                     }
                 }
             }
@@ -940,8 +942,10 @@ public class DBTree extends JTree implements DragSourceListener {
         getActionMap().put(KEY_RIGHT, new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 TreePath selection = getSelectionPath();
-                if (!(treeModel.isLeaf(selection.getLastPathComponent()) || isExpanded(selection))) {
-                    setExpandedState(selection, true);
+                if (selection != null) {
+                    if (!(treeModel.isLeaf(selection.getLastPathComponent()) || isExpanded(selection))) {
+                        setExpandedState(selection, true);
+                    }
                 }
             }
         });
