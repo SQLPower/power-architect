@@ -363,7 +363,7 @@ public class GroupEditorPanel implements DataEntryPanel {
         
         for (Group g : securityWorkspace.getChildren(Group.class)) {
             for (GroupMember gm : g.getChildren(GroupMember.class)) {
-                if (gm.getUser().getUUID().equals(user.getUsername())) {
+                if (gm.getUser().getUUID().equals(user.getUUID())) {
                     for (Grant gr : g.getChildren(Grant.class)) {
                         grantsForUser.add(gr);
                     }
@@ -374,8 +374,8 @@ public class GroupEditorPanel implements DataEntryPanel {
         boolean disableModifyGroup = true;
         
         for (Grant g : grantsForUser) {
-            if ((g.getSubject() != null && g.getSubject().equals(group.getUUID())) 
-                    || (g.getType() != null && g.getType().equals(Group.class.getName()))) {
+            if ((!g.isSystemLevel() && g.getSubject().equals(group.getUUID())) 
+                    || (g.isSystemLevel() && g.getType().equals(Group.class.getName()))) {
                 if (g.isModifyPrivilege()) {
                     disableModifyGroup = false;
                 }

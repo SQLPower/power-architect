@@ -262,8 +262,8 @@ public class PrivilegesEditorPanel implements DataEntryPanel {
         boolean disable = true;
         
         for (Grant g : grantsForUser) {
-            if ((g.getSubject() != null && g.getSubject().equals(subject)) 
-                    || (g.getType() != null && g.getType().equals(type))) {
+            if ((!g.isSystemLevel() && g.getSubject().equals(subject)) 
+                    || (g.isSystemLevel() && g.getType().equals(type))) {
                 if (g.isGrantPrivilege()) {
                     disable = false;
                 }
