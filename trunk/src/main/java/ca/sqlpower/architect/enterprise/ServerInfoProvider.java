@@ -26,8 +26,9 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -43,11 +44,15 @@ import org.json.JSONObject;
 
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.ServerProperties;
+import ca.sqlpower.util.BrowserUtil;
+import ca.sqlpower.util.HTMLUserPrompter;
+import ca.sqlpower.util.UserPrompter.UserPromptOptions;
+import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.Version;
 
 public abstract class ServerInfoProvider {
 	
-	public static final String defaultWatermarkMessage = "This version of SQL Power Architect is for EVALUATION PURPOSES ONLY. To obtain a full Production License, please visit www.sqlpower.ca/architect-e";
+	public static final String defaultWatermarkMessage = "<html>This version of SQL Power Architect is for EVALUATION PURPOSES ONLY. To obtain a full Production License, please visit <a href=\"http://www.sqlpower.ca/architect-e\">www.sqlpower.ca/architect-e</a></html>";
 	
 	private static Map<String,Version> version = new HashMap<String, Version>();
 	
@@ -146,11 +151,28 @@ public abstract class ServerInfoProvider {
 			if (!licensedServer) {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						JOptionPane.showMessageDialog(
-								null, 
-								watermarkMessage, 
-								"SQL Power Architect Server License",
-								JOptionPane.WARNING_MESSAGE);						
+					    HyperlinkListener hyperlinkListener = new HyperlinkListener() {
+                            @Override
+                            public void hyperlinkUpdate(HyperlinkEvent e) {
+                                try {
+                                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                                        if (e.getURL() != null) {
+                                            BrowserUtil.launch(e.getURL().toString());
+                                        }
+                                    }
+                                } catch (IOException ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                            }
+                        };
+					    HTMLUserPrompter htmlPrompter = new HTMLUserPrompter(
+					            UserPromptOptions.OK, 
+					            UserPromptResponse.OK, 
+					            null, 
+					            watermarkMessage,
+					            hyperlinkListener,
+					            "OK");
+					    htmlPrompter.promptUser("");
 					}
 				});
 			}
