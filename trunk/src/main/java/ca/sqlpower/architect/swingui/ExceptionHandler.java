@@ -49,7 +49,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
     /**
      * The session that this exception was caused in.
      */
-    private ArchitectSwingSessionContext context;
+    protected final ArchitectSwingSessionContext context;
     
     /**
      * The exception handler is used for handling uncaught exceptions.

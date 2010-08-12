@@ -163,17 +163,18 @@ public class SecurityPanel {
                         user.addGrant(new Grant(category, true, true, true, true, true));
                         securityWorkspace.addChild(category, securityWorkspace.getChildren(DomainCategory.class).size());
                         securityWorkspace.commit();
-                        
-                        refreshTree();
-                        Enumeration<DefaultMutableTreeNode> userNodes = usersNode.children();
-                        while (userNodes.hasMoreElements()) {
-                            DefaultMutableTreeNode dmtn = userNodes.nextElement();
-                            if (((User) dmtn.getUserObject()).getUUID().equals(user.getUUID())) {
-                                tree.setSelectionPath(new TreePath(dmtn.getPath()));
-                            }
-                        }
                     } catch (Exception ex) {
+                        securityWorkspace.rollback(ex.getMessage());
                         throw new RuntimeException(ex);
+                    }
+                        
+                    refreshTree();
+                    Enumeration<DefaultMutableTreeNode> userNodes = usersNode.children();
+                    while (userNodes.hasMoreElements()) {
+                        DefaultMutableTreeNode dmtn = userNodes.nextElement();
+                        if (((User) dmtn.getUserObject()).getUUID().equals(user.getUUID())) {
+                            tree.setSelectionPath(new TreePath(dmtn.getPath()));
+                        }
                     }
                 }
             }
