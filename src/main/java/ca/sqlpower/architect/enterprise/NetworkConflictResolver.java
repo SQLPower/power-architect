@@ -43,6 +43,7 @@ import org.springframework.security.AccessDeniedException;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.dao.FriendlyRuntimeSPPersistenceException;
 import ca.sqlpower.dao.MessageSender;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
@@ -260,17 +261,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 //push the persist forward again.
                 if (!response.isSuccessful() && response.getStatusCode() == 412) {
                     logger.info("Friendly error occurred, " + response);
-                    if (upf != null) {
-                        upf.createUserPrompter(
-                                response.getBody(), 
-                                UserPromptType.MESSAGE, 
-                                UserPromptOptions.OK, 
-                                UserPromptResponse.OK, 
-                                "OK", "OK").promptUser("");
-                    } else {
-                        logger.warn("Missing a prompt session! Message was " + response);
-                    }
-                    return;
+                    throw new FriendlyRuntimeSPPersistenceException(response.getBody());
                 }
                 
                 String json;
