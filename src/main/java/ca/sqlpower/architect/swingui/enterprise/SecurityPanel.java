@@ -479,6 +479,11 @@ public class SecurityPanel {
             if (promptForUnsavedChanges()) {
                 if (promptForDelete(obj)) {
                     try {
+                        if (obj instanceof User) {
+                            for (Group group : securityWorkspace.getChildren(Group.class)) {
+                                group.removeUser((User) obj);
+                            }
+                        }
                         securityWorkspace.removeChild(obj);
                     } catch (Exception ex) {
                         throw new RuntimeException("Unable to delete: ", ex);
