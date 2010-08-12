@@ -218,8 +218,8 @@ public class ProjectSecurityPanel implements DataEntryPanel{
         
         boolean disable = true;
         for (Grant g : grantsForUser) {
-            if ((g.getSubject() != null && subject != null && g.getSubject().equals(subject.getUUID())) 
-                    || (g.getType() != null && g.getType().equals(type.getName()))) {
+            if ((!g.isSystemLevel() && subject != null && g.getSubject().equals(subject.getUUID())) 
+                    || (g.isSystemLevel() && g.getType().equals(type.getName()))) {
                 if (g.isGrantPrivilege()) {
                     disable = false;
                 }
@@ -320,11 +320,11 @@ public class ProjectSecurityPanel implements DataEntryPanel{
             
             for (SPObject object : securityWorkspace.getChildren(groupOrUserClass)) {
                 for (Grant grant : object.getChildren(Grant.class)) {
-                    if (grant.getType() != null && grant.getType().equals(type.getName())) {
+                    if (grant.isSystemLevel() && grant.getType().equals(type.getName())) {
                         globalGrants.put(object, grant);
                     }
                     if (subject != null) {
-                        if (grant.getSubject() != null && grant.getSubject().equals(subject.getUUID())) {
+                        if (!grant.isSystemLevel() && grant.getSubject().equals(subject.getUUID())) {
                             specificGrants.put(object, grant);
                         }
                     }

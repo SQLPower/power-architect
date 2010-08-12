@@ -463,7 +463,7 @@ public class UserEditorPanel implements DataEntryPanel{
         
         for (Group g : securityWorkspace.getChildren(Group.class)) {
             for (GroupMember gm : g.getChildren(GroupMember.class)) {
-                if (gm.getUser().getUUID().equals(creatingUser.getUsername())) {
+                if (gm.getUser().getUUID().equals(creatingUser.getUUID())) {
                     for (Grant gr : g.getChildren(Grant.class)) {
                         grantsForUser.add(gr);
                     }
@@ -479,14 +479,14 @@ public class UserEditorPanel implements DataEntryPanel{
         }
         
         for (Grant g : grantsForUser) {
-            if ((g.getSubject() != null && g.getSubject().equals(user.getUUID())) 
-                    || (g.getType() != null && g.getType().equals(User.class.getName()))) {
+            if ((!g.isSystemLevel() && g.getSubject().equals(user.getUUID())) 
+                    || (g.isSystemLevel() && g.getType().equals(User.class.getName()))) {
                 if (g.isModifyPrivilege()) {
                     disableModifyUser = false;
                 }
             }
             
-            if (g.getType() != null && g.getType().equals(Group.class.getName())) {
+            if (g.isSystemLevel() && g.getType().equals(Group.class.getName())) {
                 if (g.isModifyPrivilege()) {
                     disableModifyGroups = false;
                 }
