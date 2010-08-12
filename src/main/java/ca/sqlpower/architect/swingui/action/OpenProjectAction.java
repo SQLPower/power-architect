@@ -104,7 +104,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         File f;
-        if (!e.getActionCommand().startsWith("file:")) {
+        if (e.getActionCommand() == null || !e.getActionCommand().startsWith("file:")) {
             JFileChooser chooser = new JFileChooser(getSession().getRecentMenu().getMostRecentFile());
             chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
             int returnVal = chooser.showOpenDialog(frame);
