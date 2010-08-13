@@ -67,6 +67,10 @@ public class UserEditorPanel implements DataEntryPanel{
     private static final ImageIcon GROUP_ICON = new ImageIcon(UserEditorPanel.class.getResource("icons/group.png"));
     
     private final ArchitectSwingProject securityWorkspace;
+    
+    /**
+     * The User being modifed by this panel
+     */
     private final User user;
     
     private final JPanel panel;
@@ -88,6 +92,9 @@ public class UserEditorPanel implements DataEntryPanel{
     private final JLabel availableGroupsLabel;
     private final JScrollPane availableGroupsScrollPane;
     
+    /**
+     * The name of the current user.
+     */
     private final String username;
     
     private final PrivilegesEditorPanel privilegesEditorPanel;
@@ -162,11 +169,13 @@ public class UserEditorPanel implements DataEntryPanel{
             CellConstraints cc = new CellConstraints();
             DefaultFormBuilder dialogBuilder = new DefaultFormBuilder(new FormLayout(
                     "pref:grow", "pref, pref, pref, pref, pref, pref, pref"));
-            dialogBuilder.add(new JLabel("Enter your old password"), cc.xy(1, 1));
-            dialogBuilder.add(oldPasswordField, cc.xy(1, 2));
-            dialogBuilder.add(new JLabel("Enter your new password"), cc.xy(1, 3));
+            if (user.getName().equals(username)) {
+                dialogBuilder.add(new JLabel("Enter your old password"), cc.xy(1, 1));
+                dialogBuilder.add(oldPasswordField, cc.xy(1, 2));
+            }
+            dialogBuilder.add(new JLabel("Enter new password"), cc.xy(1, 3));
             dialogBuilder.add(newPasswordField, cc.xy(1, 4));
-            dialogBuilder.add(new JLabel("Confirm your password"), cc.xy(1, 5));
+            dialogBuilder.add(new JLabel("Confirm new password"), cc.xy(1, 5));
             dialogBuilder.add(newPasswordFiled2, cc.xy(1, 6));
             
             ButtonBarBuilder2 bbb = ButtonBarBuilder2.createLeftToRightBuilder();
