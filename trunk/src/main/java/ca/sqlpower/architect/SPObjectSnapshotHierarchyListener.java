@@ -145,7 +145,8 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                         (upstreamType.getParent() instanceof DomainCategory &&
                          upstreamType.getParent().getParent() instanceof SnapshotCollection &&
                         !upstreamType.getParent().getParent().equals(session.getWorkspace().getSnapshotCollection())))) {
-                    isSnapshot = reassignType(sqlColumn);
+                    reassignType(sqlColumn);
+                    isSnapshot = true;
                 }
                 
                 // If it's not a snapshot, then set the type to a snapshot
@@ -494,9 +495,11 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * @return True if the type was successfully reassigned to an existing or
      *         new snapshot type. Return false if otherwise.
      */
-    private boolean reassignType(SQLColumn column) {
+    private void reassignType(SQLColumn column) {
         UserDefinedSQLType upstreamType = column.getUserDefinedSQLType().getUpstreamType();
         SPObject upstreamTypeParent = upstreamType.getParent();
+        
+        UserDefinedSQLTypeSnapshot sourceSnapshot = null;
         
         String originalUUID = null;
         if (upstreamTypeParent == null) {
@@ -507,6 +510,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             for (UserDefinedSQLTypeSnapshot snapshot : snapshots) {
                 if (upstreamType.equals(snapshot.getSPObject())) {
                     originalUUID = snapshot.getOriginalUUID();
+                    sourceSnapshot = snapshot;
                 }
             }
         } else if (upstreamTypeParent instanceof DomainCategory) {
@@ -515,6 +519,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             for (UserDefinedSQLTypeSnapshot snapshot : snapshots) {
                 if (upstreamType.equals(snapshot.getSPObject())) {
                     originalUUID = snapshot.getOriginalUUID();
+                    sourceSnapshot = snapshot;
                 }
             }
         }
@@ -524,18 +529,26 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     + upstreamType.getUUID() +"'");
         }
         
-        // TODO: This only works if an existing snapshot for the same original
-        // type exists. Will need to cover the situation where a snapshot must be
-        // created.
         for (UserDefinedSQLTypeSnapshot snapshot : 
             session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class)) {
             if (snapshot.getOriginalUUID().equals(originalUUID)) {
                 column.getUserDefinedSQLType().setUpstreamType(snapshot.getSPObject());
                 snapshot.setSnapshotUseCount(snapshot.getSnapshotUseCount() + 1);
-                return true;
+                return;
             }
         }
         
-        return false;
+        // TODO: This only works for lone types. Will need to add support for domains and
+        // other types that inherit.
+        UserDefinedSQLType newType = new UserDefinedSQLType();
+        UserDefinedSQLType.copyProperties(newType, upstreamType);
+        UserDefinedSQLTypeSnapshot newSnapshot = 
+            new UserDefinedSQLTypeSnapshot(newType, originalUUID, 
+                    sourceSnapshot == null ? false : sourceSnapshot.isDomainSnapshot());
+        newSnapshot.setName(newType.getName());
+        session.getWorkspace().getSnapshotCollection().addSPObjectSnapshot(newSnapshot, 0);
+        session.getWorkspace().getSnapshotCollection().addUDTSnapshot(newType, 0);
+        column.getUserDefinedSQLType().setUpstreamType(newType);
+        newSnapshot.setSnapshotUseCount(newSnapshot.getSnapshotUseCount() + 1);
     }
 }
