@@ -236,7 +236,7 @@ public class ServerProjectsManagerPanel {
             
             SecurityPanel spm = new SecurityPanel(getSelectedServerInfo(), closeAction, d, session);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            d.setContentPane(spm.getSplitPane());
+            d.setContentPane(spm.getPanel());
             
             SPSUtils.makeJDialogCancellable(d, null);
             d.pack();

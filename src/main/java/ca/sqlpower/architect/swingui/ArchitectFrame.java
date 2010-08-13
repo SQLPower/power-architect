@@ -404,7 +404,7 @@ public class ArchitectFrame extends JFrame {
             ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) currentSession).getDelegateSession()).getSystemSession().getUpdater().setUserPrompterFactory(nonModalUserPrompterFactory);
             SecurityPanel spm = new SecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) currentSession).getDelegateSession()).getProjectLocation().getServiceInfo(), closeAction, d, currentSession);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            d.setContentPane(spm.getSplitPane());
+            d.setContentPane(spm.getPanel());
             
             SPSUtils.makeJDialogCancellable(d, null);
             d.pack();

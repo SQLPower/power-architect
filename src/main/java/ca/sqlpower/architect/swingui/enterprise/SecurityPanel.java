@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -57,6 +58,8 @@ import org.apache.commons.codec.binary.Hex;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.DomainCategory;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
+import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
@@ -66,6 +69,13 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.layout.FormLayout;
+
+/**
+ * Shows the users and groups in the system workspace and allows them to be
+ * edited as well as adding and removing groups and users.
+ */
 public class SecurityPanel {
     
     private static final ImageIcon USER_ICON = new ImageIcon(SecurityPanel.class.getResource("icons/user.png"));
@@ -77,8 +87,17 @@ public class SecurityPanel {
     private final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Security");
     private final DefaultMutableTreeNode usersNode = new DefaultMutableTreeNode("Users");
     private final DefaultMutableTreeNode groupsNode = new DefaultMutableTreeNode("Groups");
-    
+
+    /**
+     * The main panel of this window and can be added to a dialog or other panel
+     * to let the user modify the security settings.
+     */
     private final JPanel panel;
+
+    /**
+     * Holds a tree of editable objects on the left and the editor for the
+     * currently selected item on the right.
+     */
     private final JSplitPane splitpane;
     
     private final JPanel rightSidePanel;
@@ -206,8 +225,58 @@ public class SecurityPanel {
     
     public SecurityPanel(SPServerInfo serverInfo, Action closeAction, Dialog d, ArchitectSession session) {
         this.closeAction = closeAction;
-        this.securityWorkspace = ArchitectClientSideSession.getSecuritySessions()
-                .get(serverInfo.getServerAddress()).getWorkspace();
+        
+        splitpane = new JSplitPane();
+        panel = new JPanel();
+        
+        ArchitectClientSideSession clientSideSession = ArchitectClientSideSession.getSecuritySessions()
+                .get(serverInfo.getServerAddress());
+        
+        //Displaying an indeterminate progress bar in place of the split pane
+        //until the security session has loaded fully.
+        if (clientSideSession.getUpdater().getRevision() <= 0) {
+            JLabel messageLabel = new JLabel("Opening");
+            JProgressBar progressBar = new JProgressBar();
+            progressBar.setIndeterminate(true);
+            
+            DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
+            builder.setDefaultDialogBorder();
+            builder.append(messageLabel, 3);
+            builder.nextLine();
+            builder.append(progressBar, 3);
+            
+            UpdateListener l = new UpdateListener() {
+                
+                @Override
+                public void workspaceDeleted() {
+                    //do nothing
+                }
+                
+                @Override
+                public boolean updatePerformed(NetworkConflictResolver resolver) {
+                    panel.removeAll();
+                    panel.add(splitpane);
+                    dialog.pack();
+                    refreshTree();
+                    return true;
+                }
+                
+                @Override
+                public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
+                    //do nothing, the error will be handled elsewhere
+                    return true;
+                }
+                
+                @Override
+                public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                    //do nothing
+                }
+            };
+            
+            clientSideSession.getUpdater().addListener(l);
+            panel.add(builder.getPanel());
+        }
+        this.securityWorkspace = clientSideSession.getWorkspace();
         this.username = serverInfo.getUsername();
         this.dialog = d;
         this.session = session;
@@ -246,12 +315,13 @@ public class SecurityPanel {
         
         tree.addMouseListener(popupListener);
 
-        splitpane = new JSplitPane();
         splitpane.setRightComponent(rightSidePanel);
         splitpane.setLeftComponent(treePane);
         
-        panel = new JPanel();
-        panel.add(splitpane);
+        if (clientSideSession.getUpdater().getRevision() > 0) {
+            panel.removeAll();
+            panel.add(splitpane);
+        }
         
         refreshTree();
         
@@ -394,10 +464,6 @@ public class SecurityPanel {
         }
         
         return false;
-    }
-    
-    public JSplitPane getSplitPane() {
-        return splitpane;
     }
     
     public JPanel getPanel() {
