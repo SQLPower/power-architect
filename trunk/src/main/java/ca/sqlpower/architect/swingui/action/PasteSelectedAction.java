@@ -23,8 +23,6 @@ import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
@@ -43,18 +41,6 @@ public class PasteSelectedAction extends AbstractArchitectAction {
         super(frame, Messages.getString("PasteSelectedAction.name"), Messages.getString("PasteSelectedAction.description"));
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-        final FocusListener focusListener = new FocusListener() {
-        
-            public void focusLost(FocusEvent e) {
-                PasteSelectedAction.this.setEnabled(false);
-            }
-        
-            public void focusGained(FocusEvent e) {
-                PasteSelectedAction.this.setEnabled(true);
-            }
-        };
-        frame.addPlayPenFocusListener(focusListener);
-        
     }
 
     public void actionPerformed(ActionEvent e) {
