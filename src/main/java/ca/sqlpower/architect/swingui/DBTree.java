@@ -208,7 +208,10 @@ public class DBTree extends JTree implements DragSourceListener {
 		TreeModel m = getModel();
 		int dbCount = m.getChildCount(m.getRoot());
 		for (int i = 0; i < dbCount; i++) {
-			databases.add((SQLDatabase) m.getChild(m.getRoot(), i));
+			Object child = m.getChild(m.getRoot(), i);
+			if (child instanceof SQLDatabase) {
+			    databases.add((SQLDatabase) child);
+			}
 		}
 		return databases;
 	}
