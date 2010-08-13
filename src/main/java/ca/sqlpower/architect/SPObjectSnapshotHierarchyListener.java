@@ -112,6 +112,10 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             SQLTable table = (SQLTable) e.getChild();
             table.addSPListener(this);
             for (SQLColumn sqlColumn : table.getChildren(SQLColumn.class)) {
+                UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
+                if (upstreamType != null) {
+                    reassignType(sqlColumn);
+                }
                 sqlColumn.getUserDefinedSQLType().addSPListener(this);
             }
         } else if (e.getChild() instanceof SQLColumn) {
@@ -306,7 +310,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 
         // Check if the upstream type is a system type by checking if it's not
         // parented by this session's workspace.
-        if (upstreamTypeParent != null && !upstreamTypeParent.equals(collection) &&
+           if (upstreamTypeParent != null && !upstreamTypeParent.equals(collection) &&
                 !(upstreamTypeParent instanceof DomainCategory && 
                     upstreamTypeParent.getParent().equals(collection))) {
             
@@ -314,7 +318,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             if (snapshotExists) return; // If snapshot already existed, then nothing else needs to be done
             
             // Otherwise, we have to create a new snapshot
-            boolean isDomainSnapshot = upstreamType.getParent() instanceof DomainCategory;
+            boolean isDomainSnapshot = upstreamTypeParent instanceof DomainCategory;
             UserDefinedSQLTypeSnapshot snapshot;
             if (upstreamType.getUpstreamType() != null) {
                 //For domains
@@ -463,6 +467,55 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 }
             }
             typesToCleanup.clear();
+        }
+    }
+
+    /**
+     * When copying columns from one server project to another, or local project
+     * to a server project, those columns will usually be referring to
+     * UserDefinedSQLTypeSnapshots that are not accessible by the target
+     * project. So we have to reassign a different snapshot, either
+     * pre-existing, or a new one, depending on the situation.
+     */
+    private void reassignType(SQLColumn column) {
+        UserDefinedSQLType upstreamType = column.getUserDefinedSQLType().getUpstreamType();
+        SPObject upstreamTypeParent = upstreamType.getParent();
+        
+        String originalUUID = null;
+        if (upstreamTypeParent == null) {
+            originalUUID = upstreamType.getUUID();
+        } else if (upstreamTypeParent instanceof SnapshotCollection) {
+            List<UserDefinedSQLTypeSnapshot> snapshots = 
+                upstreamTypeParent.getChildren(UserDefinedSQLTypeSnapshot.class);
+            for (UserDefinedSQLTypeSnapshot snapshot : snapshots) {
+                if (upstreamType.equals(snapshot.getSPObject())) {
+                    originalUUID = snapshot.getOriginalUUID();
+                }
+            }
+        } else if (upstreamTypeParent instanceof DomainCategory) {
+            List<UserDefinedSQLTypeSnapshot> snapshots = 
+                upstreamTypeParent.getParent().getChildren(UserDefinedSQLTypeSnapshot.class);
+            for (UserDefinedSQLTypeSnapshot snapshot : snapshots) {
+                if (upstreamType.equals(snapshot.getSPObject())) {
+                    originalUUID = snapshot.getOriginalUUID();
+                }
+            }
+        }
+        
+        if (originalUUID == null) {
+            throw new IllegalStateException("Could not find the UUID of the original type of snapshot '" 
+                    + upstreamType.getUUID() +"'");
+        }
+        
+        // TODO: This only works if an existing snapshot for the same original
+        // type exists. Will need to cover the situation where a snapshot must be
+        // created.
+        for (UserDefinedSQLTypeSnapshot snapshot : 
+            session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class)) {
+            if (snapshot.getOriginalUUID().equals(originalUUID)) {
+                column.getUserDefinedSQLType().setUpstreamType(snapshot.getSPObject());
+                snapshot.setSnapshotUseCount(snapshot.getSnapshotUseCount() + 1);
+            }
         }
     }
 }
