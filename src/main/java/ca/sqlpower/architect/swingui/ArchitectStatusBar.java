@@ -27,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
@@ -197,6 +198,7 @@ public class ArchitectStatusBar implements ArchitectStatusInformation {
     /**
      * The existing progress bars in this status bar.
      */
+    @GuardedBy("this")
     private final List<ArchitectStatusProgressBar> progressBars = 
         new ArrayList<ArchitectStatusProgressBar>();
     
@@ -210,9 +212,11 @@ public class ArchitectStatusBar implements ArchitectStatusInformation {
     }
 
     @Override
-    public synchronized MonitorableImpl createProgressMonitor() {
+    public MonitorableImpl createProgressMonitor() {
         ArchitectStatusProgressBar newBar = new ArchitectStatusProgressBar();
-        progressBars.add(newBar);
+        synchronized(this) {
+            progressBars.add(newBar);
+        }
         resizeProgressBars();
         return newBar;
     }
@@ -220,8 +224,10 @@ public class ArchitectStatusBar implements ArchitectStatusInformation {
     /**
      * Call to clear a progress bar off of the status bar.
      */
-    private synchronized void removeProgressBar(ArchitectStatusProgressBar bar) {
-        progressBars.remove(bar);
+    private void removeProgressBar(ArchitectStatusProgressBar bar) {
+        synchronized(this) {
+            progressBars.remove(bar);
+        }
         resizeProgressBars();
     }
     
@@ -229,13 +235,15 @@ public class ArchitectStatusBar implements ArchitectStatusInformation {
         Graphics g = progressBarPanel.getGraphics();
         g.setColor(progressBarPanel.getBackground());
         g.fillRect(0, 0, progressBarPanel.getWidth(), progressBarPanel.getHeight());
-        if (progressBars.isEmpty())  return;
-        int newWidth = progressBarPanel.getWidth() / progressBars.size();
-        int x = 0;
-        for (ArchitectStatusProgressBar bar : progressBars) {
-            bar.setX(x);
-            bar.setWidth(newWidth);
-            x += newWidth;
+        synchronized(this) {
+            if (progressBars.isEmpty())  return;
+            int newWidth = progressBarPanel.getWidth() / progressBars.size();
+            int x = 0;
+            for (ArchitectStatusProgressBar bar : progressBars) {
+                bar.setX(x);
+                bar.setWidth(newWidth);
+                x += newWidth;
+            }
         }
     }
     
