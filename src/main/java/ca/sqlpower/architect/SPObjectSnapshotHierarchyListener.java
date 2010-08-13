@@ -122,6 +122,8 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             SQLColumn sqlColumn = (SQLColumn) e.getChild();
             UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
             if (upstreamType != null) {
+                
+                // check if the upstream type is exactly an existing snapshot
                 List<UserDefinedSQLTypeSnapshot> udtSnapshots = 
                     session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
                 boolean isSnapshot = false;
@@ -135,6 +137,18 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                         break;
                     }
                 }
+                
+                // Check if the type refers to a snapshot in another server project, or is from a local project (null parent)
+                if (!isSnapshot && (upstreamType.getParent() == null || 
+                        (upstreamType.getParent() instanceof SnapshotCollection &&
+                                !upstreamType.getParent().equals(session.getWorkspace().getSnapshotCollection())) ||
+                        (upstreamType.getParent() instanceof DomainCategory &&
+                         upstreamType.getParent().getParent() instanceof SnapshotCollection &&
+                        !upstreamType.getParent().getParent().equals(session.getWorkspace().getSnapshotCollection())))) {
+                    isSnapshot = reassignType(sqlColumn);
+                }
+                
+                // If it's not a snapshot, then set the type to a snapshot
                 if (!isSnapshot) {
                     UserDefinedSQLType columnProxyType = sqlColumn.getUserDefinedSQLType();
                     createSPObjectSnapshot(columnProxyType, upstreamType);
@@ -476,8 +490,11 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * UserDefinedSQLTypeSnapshots that are not accessible by the target
      * project. So we have to reassign a different snapshot, either
      * pre-existing, or a new one, depending on the situation.
+     * 
+     * @return True if the type was successfully reassigned to an existing or
+     *         new snapshot type. Return false if otherwise.
      */
-    private void reassignType(SQLColumn column) {
+    private boolean reassignType(SQLColumn column) {
         UserDefinedSQLType upstreamType = column.getUserDefinedSQLType().getUpstreamType();
         SPObject upstreamTypeParent = upstreamType.getParent();
         
@@ -515,7 +532,10 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             if (snapshot.getOriginalUUID().equals(originalUUID)) {
                 column.getUserDefinedSQLType().setUpstreamType(snapshot.getSPObject());
                 snapshot.setSnapshotUseCount(snapshot.getSnapshotUseCount() + 1);
+                return true;
             }
         }
+        
+        return false;
     }
 }
