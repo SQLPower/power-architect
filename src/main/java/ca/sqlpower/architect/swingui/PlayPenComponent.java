@@ -102,9 +102,6 @@ implements Selectable {
      */
     private final UpdateListener updateWhileMovingListener = new UpdateListener() {       
         public boolean updatePerformed(NetworkConflictResolver resolver) {
-            if (isBeingDragged) {
-                doneDragging(false);
-            }
             return true;
         }
         
@@ -113,7 +110,9 @@ implements Selectable {
         }
 
         public void preUpdatePerformed(NetworkConflictResolver resolver) {
-            //do nothing
+            if (isBeingDragged) {
+                doneDragging(false);
+            }
         }
         
         public void workspaceDeleted() {
@@ -650,7 +649,8 @@ implements Selectable {
             if (getPlayPen().getSession().isEnterpriseSession()) {
                 getPlayPen().getSession().getEnterpriseSession().getUpdater().addListener(updateWhileMovingListener);
             }
-            begin("Dragging " + this);
+            getParent().begin("Dragging " + this);
+            getPlayPen().startCompoundEdit("Dragging " + this);
         } else {
             throw new IllegalStateException("Component is already in the middle of a drag");
         }
@@ -669,16 +669,18 @@ implements Selectable {
         if (isBeingDragged) {
             isBeingDragged = false;
             if (ok) {
-                commit();
+                getPlayPen().endCompoundEdit("Done dragging " + this);
+                getParent().commit("Done dragging " + this);
             } else {
-                rollback("Update received while dragging");
+                getPlayPen().endCompoundEdit("Update received while dragging.");
+                getParent().rollback("Update received while dragging");
                 
-                // We need to emulate a mouse released event on all the
-                // FloatingContainerPaneListeners since the following message
-                // dialog prompt interrupts the drag.
+                // We need to cleanup all of the FloatingContainerPaneListeners
+                // on the PlayPen because we no longer want to keep track
+                // of dragging.
                 for (MouseMotionListener l : getPlayPen().getMouseMotionListeners()) {
                     if (l instanceof FloatingContainerPaneListener) {
-                        ((FloatingContainerPaneListener) l).mouseReleased(null);
+                        ((FloatingContainerPaneListener) l).cleanup();
                     }
                 }
                 
