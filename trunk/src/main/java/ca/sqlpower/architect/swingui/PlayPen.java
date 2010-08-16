@@ -2637,8 +2637,6 @@ public class PlayPen extends JPanel
 			pp.addMouseListener(this); // the click that ends this operation
 
 			pp.cursorManager.tableDragStarted();
-			pp.startCompoundEdit("Move " + ppc.getName()); //$NON-NLS-1$
-			pp.getContentPane().begin("Move " + ppc.getName());
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -2685,23 +2683,17 @@ public class PlayPen extends JPanel
 		 */
 		public void mouseReleased(MouseEvent e) {
 			cleanup();
+			// normalize changes to table panes are part
+			// of this compound edit, refer to bug 1592.
+			pp.normalize();
+			pp.revalidate();
 		}
 
 		protected void cleanup() {
-			try {
-	            pp.cursorManager.placeModeFinished();
-	            pp.cursorManager.tableDragFinished();
-	            pp.removeMouseMotionListener(this);
-	            pp.removeMouseListener(this);
-	            
-	            // normalize changes to table panes are part
-	            // of this compound edit, refer to bug 1592.
-				pp.normalize();
-				pp.revalidate();
-			} finally {
-			    pp.endCompoundEdit("Ending move for table "+ppc.getName()); //$NON-NLS-1$
-			    pp.getContentPane().commit("Ending move for table "+ppc.getName());
-			}
+		    pp.cursorManager.placeModeFinished();
+		    pp.cursorManager.tableDragFinished();
+		    pp.removeMouseMotionListener(this);
+		    pp.removeMouseListener(this);
 		}
 	}
 

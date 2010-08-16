@@ -264,8 +264,8 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     throw new FriendlyRuntimeSPPersistenceException(response.getBody());
                 }
                 
-                String json;
-                int newRev;
+                final String json;
+                final int newRev;
                 try {
                     JSONObject jsonObject = new JSONObject(response.getBody());
                     json = jsonObject.getString("data");
@@ -276,34 +276,41 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 // Try to create inboundPersistedLists for comparison with the outbound. These will be used
                 // for special case collision detection.
                 fillInboundPersistedLists(json);
-                // Try to apply update
-                decodeMessage(json, newRev);
-                // We need an additional step here for checking for special case conflicts
-                List<ConflictMessage> conflicts = detectConflicts();
-                if (conflicts.size() == 0) {
-                    // Try to return the persisted objects to their state pre-update.
-                    try {
-                        SPSessionPersister.redoForSession(session.getWorkspace(), 
-                                new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
-                                outboundPropertiesToChange, 
-                                new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
-                        // We want to re-send our changes, but only if we were able to restore them
-                        flush(true);
-                    } catch (Exception ex) {
-                        throw new RuntimeException("Reflush failed on rollforward", ex);
+                
+                session.runInForeground(new Runnable() {
+                    
+                    @Override
+                    public void run() {
+                        // Try to apply update
+                        decodeMessage(json, newRev);
+                        // We need an additional step here for checking for special case conflicts
+                        List<ConflictMessage> conflicts = detectConflicts();
+                        if (conflicts.size() == 0) {
+                            // Try to return the persisted objects to their state pre-update.
+                            try {
+                                SPSessionPersister.redoForSession(session.getWorkspace(), 
+                                        new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
+                                        outboundPropertiesToChange, 
+                                        new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
+                                // We want to re-send our changes, but only if we were able to restore them
+                                flush(true);
+                            } catch (Exception ex) {
+                                throw new RuntimeException("Reflush failed on rollforward", ex);
+                            }
+                        } else {
+                            String message = "";
+                            message += "Your changes have been discarded due to a conflict between you and another user: \n";
+                            for (int i = 0; i < MAX_CONFLICTS_TO_DISPLAY && i < conflicts.size(); i++) {
+                                message += conflicts.get(i).getMessage() + "\n";
+                            }
+                            session.createUserPrompter(message, 
+                                    UserPromptType.MESSAGE, 
+                                    UserPromptOptions.OK, 
+                                    UserPromptResponse.OK, 
+                                    "OK", "OK").promptUser("");
+                        }
                     }
-                } else {
-                    String message = "";
-                    message += "Your changes have been discarded due to a conflict between you and another user: \n";
-                    for (int i = 0; i < MAX_CONFLICTS_TO_DISPLAY && i < conflicts.size(); i++) {
-                        message += conflicts.get(i).getMessage() + "\n";
-                    }
-                    session.createUserPrompter(message, 
-                            UserPromptType.MESSAGE, 
-                            UserPromptOptions.OK, 
-                            UserPromptResponse.OK, 
-                            "OK", "OK").promptUser("");
-                }
+                });
             }
         } finally {
             if (monitor != null) {
