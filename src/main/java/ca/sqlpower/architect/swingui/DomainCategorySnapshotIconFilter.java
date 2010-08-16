@@ -43,7 +43,10 @@ public class DomainCategorySnapshotIconFilter implements IconFilter {
         if (node instanceof DomainCategorySnapshot) {
             Icon icon = DOMAIN_CATEGORY_ICON;
             
-            if (((DomainCategorySnapshot) node).isObsolete()) {
+            if (((DomainCategorySnapshot) node).isDeleted()) {
+                icon = ComposedIcon.getInstance(icon, 
+                        DBTreeCellRenderer.ERROR_BADGE);
+            } else if (((DomainCategorySnapshot) node).isObsolete()) {
                 final BufferedImage bufferedImage = 
                     new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
                 

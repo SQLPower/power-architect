@@ -75,6 +75,7 @@ import ca.sqlpower.enterprise.client.User;
 import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -150,6 +151,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	 * Used to store sessions which hold nothing but security info.
 	 */
 	public static Map<String, ArchitectClientSideSession> securitySessions;
+    private AbstractPoolingSPListener deletionListener;
     static {
         securitySessions = new HashMap<String, ArchitectClientSideSession>();
     }
@@ -158,10 +160,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
 		super(context, name, new ArchitectSwingProject());
 		
-		setupSnapshots();
-		
 		this.projectLocation = projectLocation;
 		this.isEnterpriseSession = true;
+		
+		setupSnapshots();
 		
 		String ddlgClass = prefs.get(this.projectLocation.getUUID() + ".ddlg", null);
 		if (ddlgClass != null) {
@@ -230,22 +232,28 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             public void childAddedImpl(SPChildEvent e) {
                 if (e.getChild() instanceof UserDefinedSQLTypeSnapshot) {
                     UserDefinedSQLTypeSnapshot snapshot = (UserDefinedSQLTypeSnapshot) e.getChild();
-                    if (!snapshot.isObsolete()) {
-                        UserDefinedSQLType systemType = findSystemTypeFromSnapshot(snapshot);
+                    UserDefinedSQLType systemType = findSystemTypeFromSnapshot(snapshot);
+                    if (systemType == null) {
+                        snapshot.setDeleted(true);
+                    } else { 
                         if (!UserDefinedSQLType.areEqual(snapshot.getSPObject(), systemType)) {
                             snapshot.setObsolete(true);
                         }
+                        snapshot.setDeleted(false);
                     }
                 } else if (e.getChild() instanceof DomainCategorySnapshot) {
                     DomainCategorySnapshot snapshot = (DomainCategorySnapshot) e.getChild();
-                    if (!snapshot.isObsolete()) {
-                        for (DomainCategory category : getSystemWorkspace().getDomainCategories()) {
-                            if (category.getUUID().equals(snapshot.getOriginalUUID()) && 
-                                    !DomainCategory.areEqual(snapshot.getSPObject(), category)) {
+                    boolean deleted = true;
+                    for (DomainCategory category : getSystemWorkspace().getDomainCategories()) {
+                        if (category.getUUID().equals(snapshot.getOriginalUUID())) {
+                            deleted = false;
+                            if (!DomainCategory.areEqual(snapshot.getSPObject(), category)) {
                                 snapshot.setObsolete(true);
+                                deleted = true;
                             }
                         }
                     }
+                    snapshot.setDeleted(deleted);
                 }
             }
         };
@@ -264,10 +272,51 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 obsolescenceListener.transactionRollback(TransactionEvent.createRollbackTransactionEvent(getWorkspace().getSnapshotCollection(), "Simulated rollback: " + e.getMessage()));
             }
         });
+        
+        // If this returns null, it means the system session hasn't been
+        // initialized yet. This means we are the system session, and attaching
+        // the listener is unnecessary.
+        if (getSystemSession() != null) {
+            deletionListener = new AbstractPoolingSPListener() {
+                @Override
+                protected void childAddedImpl(SPChildEvent e) {
+                    if (e.getChild() instanceof DomainCategory) {
+                        e.getChild().addSPListener(deletionListener);
+                    } else {
+                        for (SPObjectSnapshot<SPObject> snapshot : getWorkspace().getSnapshotCollection().getChildren(SPObjectSnapshot.class)) {
+                            if (snapshot.getOriginalUUID().equals(e.getChild().getUUID())) {
+                                snapshot.setDeleted(false);
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                protected void childRemovedImpl(SPChildEvent e) {
+                    if (e.getChild() instanceof DomainCategory) {
+                        e.getChild().removeSPListener(deletionListener);
+                    } else {
+                        for (SPObjectSnapshot<SPObject> snapshot : getWorkspace().getSnapshotCollection().getChildren(SPObjectSnapshot.class)) {
+                            if (snapshot.getOriginalUUID().equals(e.getChild().getUUID())) {
+                                snapshot.setDeleted(true);
+                            }
+                        }
+                    }
+                }
+            };
+
+            getSystemWorkspace().addSPListener(deletionListener);
+            for (DomainCategory cat : getSystemWorkspace().getChildren(DomainCategory.class)) {
+                cat.addSPListener(deletionListener);
+            }
+        }
     }
 
 	// -
-	
+    /**
+     * Map of server addresses to system workspaces. Use
+     * {@link SPServerInfo#getServerAddress()} as the key.
+     */
 	public static Map<String, ArchitectClientSideSession> getSecuritySessions() {
         return securitySessions;
     }
@@ -306,6 +355,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         if (dataSourceCollection != null) {
             dataSourceCollectionUpdater.detach(dataSourceCollection);
+        }
+        
+        getSystemWorkspace().removeSPListener(deletionListener);
+        for (DomainCategory cat : getSystemWorkspace().getChildren(DomainCategory.class)) {
+            cat.removeSPListener(deletionListener);
         }
         
         return super.close();

@@ -157,10 +157,14 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             } else {
                 setIcon(SQLTypeTreeCellRenderer.DOMAIN_ICON);
             }
-            if (snapshot.isObsolete()) {
+            if (snapshot.isDeleted()) {
+                setIcon(ComposedIcon.getInstance(getIcon(), 
+                        ERROR_BADGE));
+            } else if (snapshot.isObsolete()) {
                 final BufferedImage bufferedImage = 
                     new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
                 
+                //TODO this should be done statically
                 Graphics2D g = bufferedImage.createGraphics();
                 g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);

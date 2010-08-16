@@ -989,7 +989,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         } catch (AccessDeniedException ade) {
             throw ade;
         } catch (Exception ex) {
-            throw new RuntimeException("Unable to post json to server: \n"+ ex.getMessage());
+            throw new RuntimeException("Unable to post json to server", ex);
         }
     }
     

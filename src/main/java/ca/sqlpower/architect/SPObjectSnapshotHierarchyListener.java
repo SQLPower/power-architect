@@ -299,17 +299,19 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             }
 
             UserDefinedSQLType systemType = session.findSystemTypeFromSnapshot(snapshot);
-            SPObjectSnapshotUpdateListener udtSnapshotListener = new SPObjectSnapshotUpdateListener(snapshot);
-            SQLPowerUtils.listenToHierarchy(systemType, udtSnapshotListener);
-            listenerMap.put(snapshot, udtSnapshotListener);
-            if (systemType.getParent() instanceof DomainCategory) {
-                DomainCategory category = (DomainCategory) systemType.getParent();
-                for (SPObjectSnapshot<?> categorySnapshot : collection.getSPObjectSnapshots()) {
-                    if (categorySnapshot.getOriginalUUID().equals(category.getUUID())) {
-                        SPObjectSnapshotUpdateListener categorySnapshotListener = new SPObjectSnapshotUpdateListener(categorySnapshot);
-                        category.addSPListener(categorySnapshotListener);
-                        listenerMap.put(categorySnapshot, categorySnapshotListener);
-                        break;
+            if (systemType != null) {
+                SPObjectSnapshotUpdateListener udtSnapshotListener = new SPObjectSnapshotUpdateListener(snapshot);
+                SQLPowerUtils.listenToHierarchy(systemType, udtSnapshotListener);
+                listenerMap.put(snapshot, udtSnapshotListener);
+                if (systemType.getParent() instanceof DomainCategory) {
+                    DomainCategory category = (DomainCategory) systemType.getParent();
+                    for (SPObjectSnapshot<?> categorySnapshot : collection.getSPObjectSnapshots()) {
+                        if (categorySnapshot.getOriginalUUID().equals(category.getUUID())) {
+                            SPObjectSnapshotUpdateListener categorySnapshotListener = new SPObjectSnapshotUpdateListener(categorySnapshot);
+                            category.addSPListener(categorySnapshotListener);
+                            listenerMap.put(categorySnapshot, categorySnapshotListener);
+                            break;
+                        }
                     }
                 }
             }
