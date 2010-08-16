@@ -52,7 +52,7 @@ public class EditLabelAction extends AbstractArchitectAction {
 
         @Override
         public FontSelector getFontSelector() {
-            return new FontSelector(getPlaypen().getFont(), new String[]{getPlaypen().getFont().getName()}, null);
+            return null;
         }
 
         @Override
