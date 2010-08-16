@@ -500,8 +500,10 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
         SPObject upstreamTypeParent = upstreamType.getParent();
         
         UserDefinedSQLTypeSnapshot sourceSnapshot = null;
+        DomainCategorySnapshot sourceCategorySnapshot = null;
         
         String originalUUID = null;
+        String originalCategoryUUID = null;
         if (upstreamTypeParent == null) {
             originalUUID = upstreamType.getUUID();
         } else if (upstreamTypeParent instanceof SnapshotCollection) {
@@ -511,16 +513,21 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 if (upstreamType.equals(snapshot.getSPObject())) {
                     originalUUID = snapshot.getOriginalUUID();
                     sourceSnapshot = snapshot;
+                    break;
                 }
             }
         } else if (upstreamTypeParent instanceof DomainCategory) {
-            List<UserDefinedSQLTypeSnapshot> snapshots = 
-                upstreamTypeParent.getParent().getChildren(UserDefinedSQLTypeSnapshot.class);
-            for (UserDefinedSQLTypeSnapshot snapshot : snapshots) {
+            List<SPObjectSnapshot> snapshots = 
+                upstreamTypeParent.getParent().getChildren(SPObjectSnapshot.class);
+            for (SPObjectSnapshot snapshot : snapshots) {
                 if (upstreamType.equals(snapshot.getSPObject())) {
                     originalUUID = snapshot.getOriginalUUID();
-                    sourceSnapshot = snapshot;
+                    sourceSnapshot = (UserDefinedSQLTypeSnapshot) snapshot;
+                } else if (upstreamTypeParent.equals(snapshot.getSPObject())) {
+                    originalCategoryUUID = upstreamTypeParent.getUUID();
+                    sourceCategorySnapshot = (DomainCategorySnapshot) snapshot;
                 }
+                if (sourceSnapshot != null && sourceCategorySnapshot != null) break;
             }
         }
         
@@ -538,16 +545,48 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
             }
         }
         
-        // TODO: This only works for lone types. Will need to add support for domains and
-        // other types that inherit.
+        SnapshotCollection snapshotCollection = session.getWorkspace().getSnapshotCollection();
+        
+        DomainCategory newCategory = null;
+        // If upstreamType is a domain, we need to copy the domain category snapshot as well
+        if (upstreamType.getParent() instanceof DomainCategory) {
+            DomainCategory upstreamCategory = (DomainCategory) upstreamType.getParent();
+            newCategory = new DomainCategory(upstreamCategory.getName());
+            
+            DomainCategorySnapshot categorySnapshot = new DomainCategorySnapshot(newCategory, originalUUID);
+            categorySnapshot.setName(sourceCategorySnapshot.getName());
+            
+            snapshotCollection.addSPObjectSnapshot(categorySnapshot, 0);
+            snapshotCollection.addCategorySnapshot(newCategory, 0);
+        }
+        
+        // If the upstreamType inherits from another type, then we need to make a copy of that as well
+//        UserDefinedSQLType newUpUpstreamType = null;
+//        if (upstreamType.getUpstreamType() != null) {
+//            newUpUpstreamType = new UserDefinedSQLType();
+//            UserDefinedSQLType.copyProperties(newUpUpstreamType, upstreamType.getUpstreamType());
+//            UserDefinedSQLTypeSnapshot newSnapshot = 
+//                new UserDefinedSQLTypeSnapshot(newUpUpstreamType, originalUUID, true);
+//            newSnapshot.setName(upstreamType.getUpstreamType().getName());
+//            snapshotCollection.addSPObjectSnapshot(newSnapshot, 0);
+//            snapshotCollection.addUDTSnapshot(newUpUpstreamType, 0);
+//            newSnapshot.setSnapshotUseCount(newSnapshot.getSnapshotUseCount() + 1);
+//        }
+        
         UserDefinedSQLType newType = new UserDefinedSQLType();
         UserDefinedSQLType.copyProperties(newType, upstreamType);
-        UserDefinedSQLTypeSnapshot newSnapshot = 
-            new UserDefinedSQLTypeSnapshot(newType, originalUUID, 
-                    sourceSnapshot == null ? false : sourceSnapshot.isDomainSnapshot());
-        newSnapshot.setName(newType.getName());
-        session.getWorkspace().getSnapshotCollection().addSPObjectSnapshot(newSnapshot, 0);
-        session.getWorkspace().getSnapshotCollection().addUDTSnapshot(newType, 0);
+//        if (newUpUpstreamType != null) {
+//            newType.setUpstreamType(newUpUpstreamType);
+//        }
+        UserDefinedSQLTypeSnapshot newSnapshot = new UserDefinedSQLTypeSnapshot(newType, originalUUID, 
+                sourceSnapshot == null ? false : sourceSnapshot.isDomainSnapshot());
+        newSnapshot.setName(sourceSnapshot.getName());
+        snapshotCollection.addSPObjectSnapshot(newSnapshot, 0);
+        if (newCategory != null) {
+            newCategory.addChild(newType, 0);
+        } else {
+            snapshotCollection.addUDTSnapshot(newType, 0);
+        }
         column.getUserDefinedSQLType().setUpstreamType(newType);
         newSnapshot.setSnapshotUseCount(newSnapshot.getSnapshotUseCount() + 1);
     }
