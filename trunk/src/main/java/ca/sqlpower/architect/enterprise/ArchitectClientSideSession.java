@@ -50,6 +50,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.olap4j.metadata.Datatype;
 import org.springframework.security.AccessDeniedException;
 
 import ca.sqlpower.architect.ArchitectSession;
@@ -631,9 +632,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
      *            A user prompter to display message and error information to
      *            the user as necessary.
      */
-	public static void updateUserPassword(ArchitectClientSideSession session, String username, 
+	public void updateUserPassword(User user, 
 	        String oldPassword, String newPassword, UserPrompterFactory upf) {
-	    SPServerInfo serviceInfo = session.getProjectLocation().getServiceInfo();
+	    SPServerInfo serviceInfo = getProjectLocation().getServiceInfo();
         
         HttpClient client = ArchitectClientSideSession.createHttpClient(serviceInfo);
         
@@ -645,21 +646,60 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         }
         
         try {
-            JSONObject json = new JSONObject();
-            json.put("username", username);
-            json.put("oldPassword", new String(Hex.encodeHex(digester.digest(oldPassword.getBytes()))));
-            json.put("newPassword", new String(Hex.encodeHex(digester.digest(newPassword.getBytes()))));
+            JSONObject begin = new JSONObject();
+            begin.put("uuid", JSONObject.NULL);
+            begin.put("method", "begin");
             
+            JSONObject persist = new JSONObject();
+            persist.put("uuid", user.getUUID());
+            persist.put("propertyName", "password");
+            persist.put("type", Datatype.STRING.toString());
+            if (oldPassword == null) {
+                persist.put("method", "persistProperty");
+            } else {
+                persist.put("method", "changeProperty");
+                persist.put("oldValue", new String(Hex.encodeHex(digester.digest(oldPassword.getBytes()))));
+            }
+            persist.put("newValue", new String(Hex.encodeHex(digester.digest(newPassword.getBytes()))));
+            
+            JSONObject commit = new JSONObject();
+            commit.put("uuid", JSONObject.NULL);
+            commit.put("method", "commit");
+            
+            JSONArray transaction = new JSONArray();
+            transaction.put(begin);
+            transaction.put(persist);
+            transaction.put(commit);
+
             URI serverURI = new URI("http", null, 
                     serviceInfo.getServerAddress(), 
                     serviceInfo.getPort(),
-                    serviceInfo.getPath() + "/" + REST_TAG + "/project/system/change_password", 
-                    null, null);
+                    serviceInfo.getPath() + 
+                    "/" + ArchitectClientSideSession.REST_TAG + "/project/system", 
+                    "currentRevision=" + getCurrentRevisionNumber(), null);
             HttpPost postRequest = new HttpPost(serverURI);
-            postRequest.setEntity(new StringEntity(json.toString())); 
+            postRequest.setEntity(new StringEntity(transaction.toString())); 
             postRequest.setHeader("Content-Type", "application/json");
             HttpUriRequest request = postRequest;
-            client.execute(request, new JSONResponseHandler());
+            JSONMessage result = client.execute(request, new JSONResponseHandler());
+            if (result.getStatusCode() != 200) {
+                logger.warn("Failed password change");
+                if (result.getStatusCode() == 412) {
+                    upf.createUserPrompter("The password you have entered is incorrect.", 
+                            UserPromptType.MESSAGE, 
+                            UserPromptOptions.OK, 
+                            UserPromptResponse.OK, 
+                            "OK", "OK").promptUser("");
+                } else {
+                    upf.createUserPrompter(
+                            "Could not change the password due to the following: " + 
+                            result.getBody() + " See logs for more details.", 
+                            UserPromptType.MESSAGE, 
+                            UserPromptOptions.OK, 
+                            UserPromptResponse.OK, 
+                            "OK", "OK").promptUser("");
+                }
+            }
         } catch (AccessDeniedException ex) {
             logger.warn("Failed password change", ex);
             upf.createUserPrompter("The password you have entered is incorrect.", 
