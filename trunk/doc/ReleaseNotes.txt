@@ -1,5 +1,19 @@
 SQL Power Architect Release Notes
 
+1.0.0
+  Validation:
+    * There is now a critic manager window that allows users to specify what validations apply
+      to their project.
+    * On forward engineer the validator will check if the data model follows the desired
+      restrictions and provide error messages with suggested fixes where applicable.
+      
+  UI:
+    * Users can now open multiple projects in one window. The new projects will appear
+      in different tabs.
+  
+  Bug Fixes:
+    * Adding a data source that is invalid will no longer display numerous error messages.
+
 0.9.16
   Updates:
     * Updated the SQL Server driver. Users can now connect to SQL Server 2008 (Requires Java 6 and up).
