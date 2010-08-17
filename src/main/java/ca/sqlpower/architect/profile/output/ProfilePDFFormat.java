@@ -172,7 +172,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                 }
             });
 
-        document.add(new Paragraph("Power*Architect Profiling Report"));
+        document.add(new Paragraph("SQL Power Architect Profiling Report"));
         document.add(new Paragraph("Generated "+new java.util.Date()
                                    +" by "+System.getProperty("user.name")));
 
