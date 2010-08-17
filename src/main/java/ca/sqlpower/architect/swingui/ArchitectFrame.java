@@ -79,7 +79,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
@@ -413,19 +412,24 @@ public class ArchitectFrame extends JFrame {
         }
     };
     
-    private Action openProjectSecurityPanelAction = new AbstractAction("Project Settings...") {
+    private Action openProjectSecurityPanelAction = new AbstractAction("Project Security Settings...") {
         public void actionPerformed(ActionEvent e) {
             
-            final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Security Manager");
+            final JDialog d = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Project Security Settings");
             Action closeAction = new AbstractAction("Close") {
                 public void actionPerformed(ActionEvent e) {
                     d.dispose();
                 }
             };
-            
+
+            // XXX: Blech!!! This code complete ignores any sort of
+            // encapsulation and is highly dependent on the currentSession field
+            // being the exactly the ArchitectSwingSessionImpl implementation. It's a
+            // reasonable guess, but it creates a dependency on that particular
+            // implementation.
             ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) currentSession).getDelegateSession()).getSystemSession().getUpdater().setUserPrompterFactory(nonModalUserPrompterFactory);
             ProjectSecurityPanel spm = new ProjectSecurityPanel(((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) currentSession).getDelegateSession()).getSystemWorkspace(), 
-                    currentSession.getWorkspace(), ArchitectProject.class, ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) currentSession).getDelegateSession()).getProjectLocation().getServiceInfo().getUsername(), d, closeAction);
+                    currentSession.getWorkspace(), ArchitectSwingProject.class, ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) currentSession).getDelegateSession()).getProjectLocation().getServiceInfo().getUsername(), d, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getPanel());
             
