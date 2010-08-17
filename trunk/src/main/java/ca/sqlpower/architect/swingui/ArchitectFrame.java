@@ -1411,12 +1411,12 @@ public class ArchitectFrame extends JFrame {
                         }
                         frame.setCurrentSession(sessions.get(0));
                         
-                        SwingUtilities.invokeLater(new Runnable() {
+                        new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 frame.checkForUpdateAction.checkForUpdate(false);
                             }
-                        });
+                        }).start();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
