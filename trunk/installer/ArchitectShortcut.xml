@@ -1,18 +1,18 @@
 <shortcuts>
 	<programGroup defaultName="SQL Power Suite"
 		location="applications"/>
-	<shortcut name="Power Architect" target="$INSTALL_PATH/architect.exe"
+	<shortcut name="SQL Power Architect" target="$INSTALL_PATH/architect.exe"
 		programGroup="yes"
 		commandLine=""
 		workingDirectory="$INSTALL_PATH"
-		description="Power Architect Modeling Tool"
+		description="SQL Power Architect Modeling Tool"
 		iconFile="$INSTALL_PATH/architect.ico" desktop="yes" 
 		startMenu="yes">
 	</shortcut>
 	
-	<shortcut name="Uninstall Power Architect" target="$INSTALL_PATH/uninstaller/uninstaller.exe"
+	<shortcut name="Uninstall SQL Power Architect" target="$INSTALL_PATH/uninstaller/uninstaller.exe"
 		programGroup="yes"
-		description="Remove the Power Architect Modeling Tool"
+		description="Remove the SQL Power Architect Modeling Tool"
 		iconFile="$INSTALL_PATH/uninstall.ico" desktop="no" >
 	</shortcut>
 </shortcuts>
