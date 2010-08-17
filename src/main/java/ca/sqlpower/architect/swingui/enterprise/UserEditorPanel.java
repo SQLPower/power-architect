@@ -183,15 +183,11 @@ public class UserEditorPanel implements DataEntryPanel{
             bbb.addButton(new JButton(new AbstractAction("OK") {
                 public void actionPerformed(ActionEvent e) {
                     if (newPasswordField.getText().equals(newPasswordFiled2.getText())) {
-                        String oldPassword;
-                        if (user.getName().equals(username)) {
-                            oldPassword = oldPasswordField.getText();
-                        } else {
-                            oldPassword = null;
-                        }
+                        String username = user.getUsername();
+                        String oldPassword = oldPasswordField.getText();
                         String newPassword = newPasswordField.getText();
                         ArchitectClientSideSession clientSession = ((ArchitectClientSideSession) securityWorkspace.getSession());
-                        clientSession.updateUserPassword(user, oldPassword, newPassword, session);
+                        ArchitectClientSideSession.updateUserPassword(clientSession, username, oldPassword, newPassword, session);
                         dialog.dispose();
                     } else {
                         JOptionPane.showMessageDialog(getPanel(), "The passwords you entered were not the same");

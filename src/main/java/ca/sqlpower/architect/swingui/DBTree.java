@@ -228,7 +228,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		boolean found = false;
 		while (it.hasNext() && found == false) {
 			SPDataSource dbcs = it.next().getDataSource();
-			if (dbcs != null && dbcs.equals(spec)) {
+			if (dbcs.equals(spec)) {
 				found = true;
 			}
 		}
