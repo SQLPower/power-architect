@@ -992,10 +992,15 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         	
             HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
             try {
-                HttpPost request = new HttpPost(jdbcDataSourceURI(ds));
-                request.setEntity(new UrlEncodedFormEntity(properties));
-				httpClient.execute(request, responseHandler);
-            } catch (Exception ex) {
+                URI jdbcDataSourceURI = jdbcDataSourceURI(ds);
+                try {
+                    HttpPost request = new HttpPost(jdbcDataSourceURI);
+                    request.setEntity(new UrlEncodedFormEntity(properties));
+                    httpClient.execute(request, responseHandler);
+                } catch (IOException ex) {
+                    throw new RuntimeException("Server request failed at " + jdbcDataSourceURI, ex);
+                }
+            } catch (URISyntaxException ex) {
                 throw new RuntimeException(ex);
             } finally {
                 httpClient.getConnectionManager().shutdown();
