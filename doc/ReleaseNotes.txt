@@ -1,4 +1,8 @@
-SQL Power Architect Release Notes
+SQL Power Architect Community Edition Release Notes
+
+1.0.1
+  Bug Fixes:
+    * Fixed bugs where data types and domain categories could not be deleted.
 
 1.0.0
   Validation:
