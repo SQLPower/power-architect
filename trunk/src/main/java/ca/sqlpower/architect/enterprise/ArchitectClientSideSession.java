@@ -2,8 +2,10 @@ package ca.sqlpower.architect.enterprise;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -576,7 +578,40 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     		httpClient.getConnectionManager().shutdown();
     	}
     }
-	
+    
+    public static ProjectLocation uploadProject(SPServerInfo serviceInfo, String name, InputStream project, ArchitectSession session) 
+    throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SQLPowerUtils.copyStream(project, out);
+        String data = out.toString();
+        
+        HttpClient httpClient = createHttpClient(serviceInfo);
+        try {
+            List<NameValuePair> properties = new ArrayList<NameValuePair>();
+            properties.add(new BasicNameValuePair("name", name));
+            properties.add(new BasicNameValuePair("file", data));
+            properties.add(new BasicNameValuePair("randomUUID", "true"));
+            
+            HttpPost request = new HttpPost(getServerURI(serviceInfo, "/" + REST_TAG + "/jcr", "name=" + name));
+            request.setEntity(new UrlEncodedFormEntity(properties));
+            JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
+            JSONObject response = new JSONObject(message.getBody());
+            return new ProjectLocation(
+                    response.getString("uuid"),
+                    response.getString("name"),
+                    serviceInfo);
+        } catch (AccessDeniedException e) {
+            session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
+                       UserPromptType.MESSAGE, 
+                       UserPromptOptions.OK, 
+                       UserPromptResponse.OK, 
+                       "OK", "OK").promptUser("");
+            return null;
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+    
 	public int revertServerWorkspace(int revisionNo) throws IOException, URISyntaxException, JSONException {
 	    return revertServerWorkspace(projectLocation, revisionNo);
 	}
