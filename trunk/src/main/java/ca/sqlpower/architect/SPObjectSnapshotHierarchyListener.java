@@ -152,7 +152,9 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                 // If it's not a snapshot, then set the type to a snapshot
                 if (!isSnapshot) {
                     UserDefinedSQLType columnProxyType = sqlColumn.getUserDefinedSQLType();
-                    createSPObjectSnapshot(columnProxyType, upstreamType);
+                    createSPObjectSnapshot(columnProxyType, upstreamType, 
+                            session.getWorkspace().getSnapshotCollection(),
+                            this);
                     addUpdateListener(columnProxyType.getUpstreamType());
                 }
             }
@@ -318,20 +320,42 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
         }
     }
 
-    private void createSPObjectSnapshot(UserDefinedSQLType typeProxy, UserDefinedSQLType upstreamType) {
+    /**
+     * This method will create a snapshot of the upstream type and any other
+     * system types needed. Then the proxy will have its upstream type point at
+     * the snapshot and the snapshot will point to the upstream type completing
+     * the creation of the snapshot.
+     * 
+     * @param typeProxy
+     *            The type that should point its upstream type to the new
+     *            snapshot instead of the actual type.
+     * @param upstreamType
+     *            The system type that we want to create a snapshot of.
+     * @param collection
+     *            The collection of snapshots that the new snapshot(s) will be
+     *            added to.
+     * @param updateListener
+     *            If not null this update listener will attach necessary
+     *            listeners to the upstream type as needed to keep the snapshot
+     *            correct in terms of the upstream type. If null no listeners
+     *            will be added. XXX This is part of a quick fix to make the
+     *            import of old projects work. It would be better to have this
+     *            in a nicer fashion
+     */
+    public static void createSPObjectSnapshot(UserDefinedSQLType typeProxy, 
+            UserDefinedSQLType upstreamType, SnapshotCollection collection,
+            SPObjectSnapshotHierarchyListener updateListener) {
         if (!typeProxy.isMagicEnabled()) return;
         
         SPObject upstreamTypeParent = upstreamType.getParent();
         
-        SnapshotCollection collection = session.getWorkspace().getSnapshotCollection();
-
         // Check if the upstream type is a system type by checking if it's not
         // parented by this session's workspace.
            if (upstreamTypeParent != null && !upstreamTypeParent.equals(collection) &&
                 !(upstreamTypeParent instanceof DomainCategory && 
                     upstreamTypeParent.getParent().equals(collection))) {
             
-            boolean snapshotExists = setUpstreamTypeToExistingSnapshot(typeProxy, upstreamType);
+            boolean snapshotExists = setUpstreamTypeToExistingSnapshot(typeProxy, upstreamType, collection);
             if (snapshotExists) return; // If snapshot already existed, then nothing else needs to be done
             
             // Otherwise, we have to create a new snapshot
@@ -361,7 +385,9 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     collection.addChild(upstreamSnapshot, 0);
                     collection.addChild(upstreamSnapshot.getSPObject(), 0);
                     upstreamSnapshot.setSnapshotUseCount(1);
-                    addUpdateListener(upstreamSnapshot.getSPObject());
+                    if (updateListener != null) {
+                        updateListener.addUpdateListener(upstreamSnapshot.getSPObject());
+                    }
                 }
                 snapshot = new UserDefinedSQLTypeSnapshot(upstreamType, isDomainSnapshot, upstreamSnapshot);
             } else {
@@ -403,11 +429,12 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * @return True if an existing snapshot for the given upstream type was
      *         found Otherwise, return false.
      */
-    private boolean setUpstreamTypeToExistingSnapshot(UserDefinedSQLType typeProxy, UserDefinedSQLType upstreamType) {
+    private static boolean setUpstreamTypeToExistingSnapshot(UserDefinedSQLType typeProxy, 
+            UserDefinedSQLType upstreamType, SnapshotCollection collection) {
         // Check if a snapshot for the upstreamType already exists. If so, just use that.
         boolean snapshotExists = false;
         List<UserDefinedSQLTypeSnapshot> typeSnapshots = 
-            session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLTypeSnapshot.class);
+            collection.getChildren(UserDefinedSQLTypeSnapshot.class);
         for (UserDefinedSQLTypeSnapshot typeSnapshot : typeSnapshots) {
             // If the snapshot is a domain snapshot, but the upstream type
             // is not a domain, then move on to the next snapshot.
@@ -463,7 +490,8 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     UserDefinedSQLType oldValue = (UserDefinedSQLType) entry.getValue().getOldValue();
 
                     logger.debug("Replacing upstreamType with snapshot!");
-                    createSPObjectSnapshot(source, newValue);
+                    createSPObjectSnapshot(source, newValue, 
+                            session.getWorkspace().getSnapshotCollection(), this);
 
                     if (oldValue != null && source.isMagicEnabled()) {
                         cleanupSnapshot(oldValue);
