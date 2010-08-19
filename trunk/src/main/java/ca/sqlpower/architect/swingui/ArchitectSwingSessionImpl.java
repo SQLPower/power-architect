@@ -567,7 +567,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * @return True if the project can be closed; false if the project should remain open.
      */
     protected boolean promptForUnsavedModifications() {
-        if (getProjectLoader().isModified()) {
+        if (getProjectLoader().isModified() && frame != null) {
             int response = JOptionPane.showOptionDialog(frame,
                     Messages.getString("ArchitectSwingSessionImpl.projectHasUnsavedChanges"), Messages.getString("ArchitectSwingSessionImpl.unsavedChangesDialogTitle"), //$NON-NLS-1$ //$NON-NLS-2$
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
@@ -659,9 +659,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             // Only prompt to save if it is not an enterprise session
             if (getProjectLoader().isSaveInProgress()) {
                 // project save is in progress, don't allow exit
-                JOptionPane.showMessageDialog(frame,
-                        Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving"), //$NON-NLS-1$
-                        Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSavingDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
+                if (frame != null) {
+                    JOptionPane.showMessageDialog(frame,
+                            Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSaving"), //$NON-NLS-1$
+                            Messages.getString("ArchitectSwingSessionImpl.cannotExitWhileSavingDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
+                }
                 return false;
             }
             
