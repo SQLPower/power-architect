@@ -842,6 +842,16 @@ public class ProjectLoader {
             if (pkColumnId != null) {
                 cmap.setPkColumn((SQLColumn) sqlObjectLoadIdMap.get(pkColumnId));
             }
+            
+            String fkTableId = attributes.getValue("fk-table");
+            if (fkTableId != null) {
+                cmap.setFkTable((SQLTable) sqlObjectLoadIdMap.get(fkTableId));
+            }
+
+            String fkColName = attributes.getValue("fk-col-name");
+            if (fkColName != null) {
+                cmap.setFkColName(fkColName);
+            }
 
             return cmap;
         }
