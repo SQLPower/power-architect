@@ -341,7 +341,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
                 try {
-                    OpenProjectAction.getFileLoader().openAsynchronously(getContext().createSession(), f, ArchitectSwingSessionImpl.this);
+                    OpenProjectAction.getFileLoader().open(getContext().createSession(), f, ArchitectSwingSessionImpl.this, true);
                 } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }

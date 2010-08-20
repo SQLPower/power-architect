@@ -51,7 +51,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(OpenProjectAction.class);
     
     public static interface FileLoader {
-        public void openAsynchronously(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession);
+        public void open(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession, boolean separateThread);
+        public void open(ArchitectSwingSession newSession, InputStream in, ArchitectSwingSession openingSession, boolean separateThread);
     }
 
     /**
@@ -76,15 +77,32 @@ public class OpenProjectAction extends AbstractArchitectAction {
      *            called once the project is finished loading.
      */
     private static FileLoader fileLoader = new FileLoader() {
-        public void openAsynchronously(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession) {
+        public void open(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession, boolean separateThread) {
             LoadFileWorker worker;
             try {
                 worker = new LoadFileWorker(f, newSession, openingSession);
-                new Thread(worker).start();
+                if (separateThread) {
+                    new Thread(worker).start();
+                } else {
+                    worker.run();
+                }
             } catch (Exception e1) {
                 ASUtils.showExceptionDialogNoReport(Messages.getString("OpenProjectAction.errorLoadingFile"), e1); //$NON-NLS-1$
             }
-
+        }
+        
+        public void open(ArchitectSwingSession newSession, InputStream in, ArchitectSwingSession openingSession, boolean separateThread) {
+            LoadFileWorker worker;
+            try {
+                worker = new LoadFileWorker(in, newSession, openingSession);
+                if (separateThread) {
+                    new Thread(worker).start();
+                } else {
+                    worker.run();
+                }
+            } catch (Exception e1) {
+                ASUtils.showExceptionDialogNoReport(Messages.getString("OpenProjectAction.errorLoadingFile"), e1); //$NON-NLS-1$
+            }
         }
     };
     
@@ -117,7 +135,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
             f = new File(e.getActionCommand().substring("file:".length()));
         }
         try {
-            fileLoader.openAsynchronously(getSession().getContext().createSession(), f, getSession());
+            fileLoader.open(getSession().getContext().createSession(), f, getSession(), true);
         } catch (SQLObjectException ex) {
             SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
                     Messages.getString("OpenProjectAction.failedToOpenProjectFile"), ex); //$NON-NLS-1$
@@ -182,6 +200,18 @@ public class OpenProjectAction extends AbstractArchitectAction {
             in = new BufferedInputStream(new ProgressMonitorInputStream(openingSession.getArchitectFrame(),
                     Messages.getString("OpenProjectAction.reading") + file.getName(), new FileInputStream(file))); //$NON-NLS-1$
         }
+        
+        public LoadFileWorker(InputStream in, ArchitectSwingSession newSession, ArchitectSwingSession openingSession) {
+            super(newSession);
+            this.context = newSession.getContext();
+            file = null;
+            this.recent = newSession.getRecentMenu();
+            this.openingSession = openingSession;
+
+            this.session = newSession;
+            
+            this.in = in;
+        }
 
         @Override
         public void doStuff() throws Exception {
@@ -212,9 +242,13 @@ public class OpenProjectAction extends AbstractArchitectAction {
                     session.close();
                 }
             } else {
-                recent.putRecentFileName(file.getAbsolutePath());
-                openingSession.getArchitectFrame().addSession(session);
-                openingSession.getArchitectFrame().setCurrentSession(session);
+                if (file != null) {
+                    recent.putRecentFileName(file.getAbsolutePath());
+                }
+                if (openingSession != null) {
+                    openingSession.getArchitectFrame().addSession(session);
+                    openingSession.getArchitectFrame().setCurrentSession(session);
+                }
                 ((DBTreeModel) session.getDBTree().getModel()).refreshTreeStructure();
             }
 

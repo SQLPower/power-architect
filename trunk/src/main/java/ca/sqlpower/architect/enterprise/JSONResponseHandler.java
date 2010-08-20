@@ -63,10 +63,7 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
     }
     
     public JSONMessage handleResponse(String json, int status) {
-        if (status == 500) {
-            logger.error("Internal server error: " + json);
-            throw new RuntimeException("Internal Server Error. See logs for more details.");
-        } else if (status == 404) {
+        if (status == 404) {
             throw new RuntimeException("Server resource is not available.");
         }
         
@@ -101,7 +98,7 @@ public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
                 }
             }
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Server returned status " + status + "\n" + json, ex);
         }
     }
 }

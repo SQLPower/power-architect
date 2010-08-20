@@ -27,7 +27,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -234,7 +233,7 @@ public class ServerProjectsManagerPanel {
                         return;
                     }
                     try {
-                        ArchitectClientSideSession.uploadProject(getSelectedServerInfo(), nameField.getText(), new FileInputStream(f), session);
+                        ArchitectClientSideSession.uploadProject(getSelectedServerInfo(), nameField.getText(), f, session);
                         dialog.dispose();
                         refreshInfoList();
                     } catch (Exception ex) {
