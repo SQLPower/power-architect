@@ -1,10 +1,5 @@
 SQL Power Architect Community Edition Release Notes
 
-1.0.1
-  Bug Fixes:
-    * Reverse engineering individual tables no longer retrieves all the tables
-      from the schema.
-
 1.0.0
   Validation:
     * There is now a critic manager window that allows users to specify what validations apply
