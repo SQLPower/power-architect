@@ -39,8 +39,6 @@ import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
-import ca.sqlpower.sqlobject.SQLObjectException;
-import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.table.CleanupTableModel;
@@ -163,8 +161,12 @@ public class ProfileTableModel extends AbstractTableModel implements CleanupTabl
                 DDLGenerator gddl = DDLUtils.createDDLGenerator(col.getParent().getParentDatabase().getDataSource());
                 return gddl.columnType(col);
             } catch (Exception e) {
-                throw new SQLObjectRuntimeException(new SQLObjectException(
-                        "Unable to get DDL information.  Do we have a valid data source?", e));
+                // This exception, while a good idea in theory, makes the profile window unusable.
+                // See bug 3029 for how to really fix this.
+                //
+//                throw new SQLObjectRuntimeException(new SQLObjectException(
+//                        "Unable to get DDL information.  Do we have a valid data source?", e));
+                return "Unable to obtain DDL information";
             }
         case NULL_COUNT:
             return columnProfile.getNullCount();
