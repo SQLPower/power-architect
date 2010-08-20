@@ -1481,8 +1481,6 @@ public class SwingUIProjectLoader extends ProjectLoader {
             type = "column-mapping"; //$NON-NLS-1$
             propNames.put("pk-column-ref", sqlObjectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn())); //$NON-NLS-1$
             propNames.put("fk-column-ref", sqlObjectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn())); //$NON-NLS-1$
-            propNames.put("fk-col-name", ((SQLRelationship.ColumnMapping) o).getFkColName()); //$NON-NLS-1$
-            propNames.put("fk-table", sqlObjectSaveIdMap.get(((SQLRelationship.ColumnMapping) o).getFkTable())); //$NON-NLS-1$
         } else if (o instanceof SQLIndex) {
             id = "IDX"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
             type = "index"; //$NON-NLS-1$
