@@ -73,7 +73,6 @@ import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AddDataSourceAction;
 import ca.sqlpower.architect.swingui.action.NewDataSourceAction;
-import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
@@ -341,7 +340,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
                 try {
-                    OpenProjectAction.getFileLoader().open(getContext().createSession(), f, ArchitectSwingSessionImpl.this, true);
+                    frame.getOpenProjectAction().getFileLoader().open(getContext().createSession(), f, ArchitectSwingSessionImpl.this, true);
                 } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }

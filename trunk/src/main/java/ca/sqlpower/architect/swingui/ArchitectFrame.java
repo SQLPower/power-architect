@@ -912,7 +912,7 @@ public class ArchitectFrame extends JFrame {
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
                 try {
-                    OpenProjectAction.getFileLoader().open(context.createSession(), f, currentSession, false);
+                    openProjectAction.getFileLoader().open(context.createSession(), f, currentSession, false);
                 } catch (SQLObjectException ex) {
                     SPSUtils.showExceptionDialogNoReport(ArchitectFrame.this, Messages.getString("ArchitectSwingSessionImpl.openProjectFileFailed"), ex); //$NON-NLS-1$
                 }

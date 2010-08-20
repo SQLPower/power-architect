@@ -76,7 +76,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
      *            and unmodified project) then openingSession.close() will be
      *            called once the project is finished loading.
      */
-    private static FileLoader fileLoader = new FileLoader() {
+    private FileLoader fileLoader = new FileLoader() {
         public void open(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession, boolean separateThread) {
             LoadFileWorker worker;
             try {
@@ -106,11 +106,11 @@ public class OpenProjectAction extends AbstractArchitectAction {
         }
     };
     
-    public static void setFileLoader(FileLoader loader) {
+    public void setFileLoader(FileLoader loader) {
         fileLoader = loader;
     }
     
-    public static FileLoader getFileLoader() {
+    public FileLoader getFileLoader() {
         return fileLoader;
     }
 
