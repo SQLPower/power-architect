@@ -2,10 +2,8 @@ package ca.sqlpower.architect.enterprise;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -41,6 +39,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -579,21 +581,18 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     	}
     }
     
-    public static ProjectLocation uploadProject(SPServerInfo serviceInfo, String name, InputStream project, ArchitectSession session) 
+    public static ProjectLocation uploadProject(SPServerInfo serviceInfo, String name, File project, ArchitectSession session) 
     throws URISyntaxException, ClientProtocolException, IOException, JSONException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLPowerUtils.copyStream(project, out);
-        String data = out.toString();
-        
         HttpClient httpClient = createHttpClient(serviceInfo);
         try {
-            List<NameValuePair> properties = new ArrayList<NameValuePair>();
-            properties.add(new BasicNameValuePair("name", name));
-            properties.add(new BasicNameValuePair("file", data));
-            properties.add(new BasicNameValuePair("randomUUID", "true"));
+            MultipartEntity entity = new MultipartEntity();
+            ContentBody fileBody = new FileBody(project);
+            ContentBody nameBody = new StringBody(name);
+            entity.addPart("file", fileBody);
+            entity.addPart("name", nameBody);
             
             HttpPost request = new HttpPost(getServerURI(serviceInfo, "/" + REST_TAG + "/jcr", "name=" + name));
-            request.setEntity(new UrlEncodedFormEntity(properties));
+            request.setEntity(entity);
             JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
             JSONObject response = new JSONObject(message.getBody());
             return new ProjectLocation(
