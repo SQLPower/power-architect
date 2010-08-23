@@ -436,20 +436,19 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
     private void decodeMessage(String jsonArray, int newRevision) {
         try {
             if (currentRevision < newRevision) {
-                for (UpdateListener listener : updateListeners) {
+                List<UpdateListener> updateListenersCopy = new ArrayList<UpdateListener>(updateListeners);
+                for (UpdateListener listener : updateListenersCopy) {
                     listener.preUpdatePerformed(NetworkConflictResolver.this);
                 }
                 // Now we can apply the update ...
                 jsonDecoder.decode(jsonArray);
                 currentRevision = newRevision;
                 
-                List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
-                for (UpdateListener listener : updateListeners) {
+                for (UpdateListener listener : updateListenersCopy) {
                     if (listener.updatePerformed(this)) {
-                        listenersToRemove.add(listener);
+                        updateListeners.remove(listener);
                     }
                 }
-                updateListeners.removeAll(listenersToRemove);
             } 
         } catch (Exception e) {
             throw new RuntimeException("Failed to decode the message from the server.", e);

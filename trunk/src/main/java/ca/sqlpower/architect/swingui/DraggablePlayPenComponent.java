@@ -20,7 +20,9 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -57,6 +59,7 @@ public abstract class DraggablePlayPenComponent extends PlayPenComponent {
         logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
         pp.setDraggingContainerPanes(true);
         startedDragging();
+        Map<DraggablePlayPenComponent, Point> ppcToHandleMap = new HashMap<DraggablePlayPenComponent, Point>();
 
         while (it.hasNext()) {
             // create FloatingContainerPaneListener for each selected item
@@ -72,8 +75,10 @@ public abstract class DraggablePlayPenComponent extends PlayPenComponent {
                     + (otherContainer.getY() - clickedItem.getY()));
             Point handle = pp.zoomPoint(new Point(p));
             handle.translate((int)(clickedItem.getX() - otherContainer.getX()), (int) (clickedItem.getY() - otherContainer.getY()));
-            new FloatingContainerPaneListener(pp, ppc, handle);
+            
+            ppcToHandleMap.put(ppc, handle);
         }
+        new FloatingContainerPaneListener(pp, ppcToHandleMap);
     }
     
 }

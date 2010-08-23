@@ -650,7 +650,6 @@ implements Selectable {
                 getPlayPen().getSession().getEnterpriseSession().getUpdater().addListener(updateWhileMovingListener);
             }
             getParent().begin("Dragging " + this);
-            getPlayPen().startCompoundEdit("Dragging " + this);
         } else {
             throw new IllegalStateException("Component is already in the middle of a drag");
         }
@@ -669,7 +668,6 @@ implements Selectable {
         if (isBeingDragged) {
             isBeingDragged = false;
             if (ok) {
-                getPlayPen().endCompoundEdit("Done dragging " + this);
                 getParent().commit("Done dragging " + this);
             } else {
                 // We need to cleanup all of the FloatingContainerPaneListeners
@@ -678,12 +676,9 @@ implements Selectable {
                 for (MouseMotionListener l : getPlayPen().getMouseMotionListeners()) {
                     if (l instanceof FloatingContainerPaneListener) {
                         ((FloatingContainerPaneListener) l).cleanup();
-                        getPlayPen().endCompoundEdit("Update received while dragging.");
-                        getParent().rollback("Update received while dragging.");
                     }
                 }
                 
-                getPlayPen().endCompoundEdit("Update received while dragging.");
                 getParent().rollback("Update received while dragging");
                 
                 JOptionPane.showMessageDialog(getPlayPen(), "There was an update while you were dragging");

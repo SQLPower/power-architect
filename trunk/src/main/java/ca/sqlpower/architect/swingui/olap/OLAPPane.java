@@ -32,9 +32,11 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JComponent;
@@ -45,17 +47,18 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.layout.LayoutEdge;
+import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
-import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ContainerPane;
+import ca.sqlpower.architect.swingui.DraggablePlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
+import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.PlayPenCoordinate;
-import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
-import ca.sqlpower.architect.swingui.PlayPen.MouseModeType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.object.annotation.Accessor;
@@ -286,6 +289,7 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                 logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p))); //$NON-NLS-1$
                 pp.setDraggingContainerPanes(true);
                 startedDragging();
+                Map<DraggablePlayPenComponent, Point> ppcToHandleMap = new HashMap<DraggablePlayPenComponent, Point>();
 
                 while (it.hasNext()) {
                     // create FloatingContainerPaneListener for each selected item
@@ -301,8 +305,10 @@ public abstract class OLAPPane<T extends OLAPObject, C extends OLAPObject> exten
                             + (otherContainer.getY() - clickedItem.getY()));
                     Point handle = pp.zoomPoint(new Point(p));
                     handle.translate((int)(clickedItem.getX() - otherContainer.getX()), (int) (clickedItem.getY() - otherContainer.getY()));
-                    new FloatingContainerPaneListener(pp, cp, handle);
+                    
+                    ppcToHandleMap.put(cp, handle);
                 }
+                new FloatingContainerPaneListener(pp, ppcToHandleMap);
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             logger.debug("Mouse moved/dragged to " + evt.getPoint());
