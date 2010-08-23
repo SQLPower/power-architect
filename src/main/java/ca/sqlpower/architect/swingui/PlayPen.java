@@ -2635,6 +2635,9 @@ public class PlayPen extends JPanel
 
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
+			
+            pp.getContentPane().begin("Dragging " + this);
+            pp.startCompoundEdit("Dragging " + this);
 
 			pp.cursorManager.tableDragStarted();
 		}
@@ -2687,6 +2690,9 @@ public class PlayPen extends JPanel
 			// of this compound edit, refer to bug 1592.
 			pp.normalize();
 			pp.revalidate();
+			
+			pp.endCompoundEdit("Done moving " + ppc);
+            pp.getContentPane().commit("Done moving " + ppc);
 		}
 
 		protected void cleanup() {
