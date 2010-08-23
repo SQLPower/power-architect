@@ -61,12 +61,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -2466,12 +2468,6 @@ public class PlayPen extends JPanel
 		   	
 		    draggingContainerPanes = false;
             selectionInProgress = false;
-            
-            for (PlayPenComponent ppc : contentPane.getChildren()) {
-                if (ppc.isBeingDragged()) {
-                    ppc.doneDragging();
-                }
-             }
 
 			if (rubberBand != null && evt.getButton() == MouseEvent.BUTTON1) {
 			    Rectangle dirtyRegion = rubberBand;
@@ -2597,9 +2593,8 @@ public class PlayPen extends JPanel
 	    private Insets scrollUnits = new Insets(AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET, AUTO_SCROLL_INSET);
 	    
 		private PlayPen pp;
-		private PlayPenComponent ppc;
-		private Point handle;
-		private Point p;
+		private Map<DraggablePlayPenComponent, Point> ppcToHandleMap = new HashMap<DraggablePlayPenComponent, Point>();
+		private Map<DraggablePlayPenComponent, Point> ppcToPointMap = new HashMap<DraggablePlayPenComponent, Point>();
 
 		/**
          * Creates a new mouse event handler that tracks mouse motion and moves
@@ -2623,21 +2618,24 @@ public class PlayPen extends JPanel
          *            table" type actions, and should be set to false for
          *            dragging existing objects.
          */
-		public FloatingContainerPaneListener(PlayPen pp, PlayPenComponent ppc, Point handle) {
+		public FloatingContainerPaneListener(PlayPen pp, Map<DraggablePlayPenComponent, Point> ppcToHandleMap) {
 			this.pp = pp;
 			Point pointerLocation = MouseInfo.getPointerInfo().getLocation();
 			SwingUtilities.convertPointFromScreen(pointerLocation,pp);
 			logger.debug("Adding floating container pane at:"+ pointerLocation); //$NON-NLS-1$
-			p = new Point(pointerLocation.x - handle.x, pointerLocation.y - handle.y);
-
-			this.ppc = ppc;
-			this.handle = handle;
+			
+			this.ppcToHandleMap = new HashMap<DraggablePlayPenComponent, Point>(ppcToHandleMap);
+			
+			for (Entry<DraggablePlayPenComponent, Point> entry : ppcToHandleMap.entrySet()) {
+			    DraggablePlayPenComponent ppc = entry.getKey();
+			    Point handle = entry.getValue();
+			    Point point = new Point(pointerLocation.x - handle.x, pointerLocation.y - handle.y);
+			    
+			    ppcToPointMap.put(ppc, point);
+			}
 
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
-			
-            pp.getContentPane().begin("Dragging " + this);
-            pp.startCompoundEdit("Dragging " + this);
 
 			pp.cursorManager.tableDragStarted();
 		}
@@ -2647,38 +2645,44 @@ public class PlayPen extends JPanel
 		}
 
 		public void mouseDragged(MouseEvent e) {
-			pp.zoomPoint(e.getPoint());
-			p.setLocation(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
-			pp.setChildPosition(ppc, p);
-			JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp);
-	        if(viewport==null || pp.getSelectedItems().size() < 1) 
-	            return; 
-	        
-	        // Theoretically should re-validate after each scroll. But that would 
-	        // cause the selected component to fall off the border.
-	        pp.revalidate();
-	        Point viewPos = viewport.getViewPosition(); 
-	        Rectangle view = viewport.getViewRect();
-	        int viewHeight = viewport.getHeight(); 
-	        int viewWidth = viewport.getWidth(); 
-	        
-	        // performs scrolling
-	        Rectangle bounds = pp.zoomRect(ppc.getBounds());
-            if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up
-                view.y = bounds.y - scrollUnits.top;
-	        } if ((viewPos.y + viewHeight - p.y - bounds.height) < scrollUnits.bottom) { // scroll down 
-	            view.y = bounds.y + bounds.height - viewHeight + scrollUnits.bottom;
-	        } if ((p.x - viewPos.x) < scrollUnits.left && viewPos.x > 0) { // scroll left 
-	            view.x = bounds.x - scrollUnits.left;
-	        } if ((viewPos.x + viewWidth - p.x - bounds.width) < scrollUnits.right) { // scroll right 
-	            view.x = bounds.x + bounds.width - viewWidth + scrollUnits.right;
-	        }
-	        logger.debug(viewport.getViewPosition());
-	        pp.scrollRectToVisible(view);
-	        // Necessary to stop tables from flashing.
-	        if (ppc != null) {
-	            ppc.repaint();
-	        }
+		    for (Entry<DraggablePlayPenComponent, Point> entry : ppcToHandleMap.entrySet()) {
+		        DraggablePlayPenComponent ppc = entry.getKey();
+		        Point handle = entry.getValue();
+		        Point p = ppcToPointMap.get(ppc);
+		        
+		        pp.zoomPoint(e.getPoint());
+		        p.setLocation(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
+		        pp.setChildPosition(ppc, p);
+		        JViewport viewport = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, pp);
+		        if(viewport==null || pp.getSelectedItems().size() < 1) 
+		            return; 
+
+		        // Theoretically should re-validate after each scroll. But that would 
+		        // cause the selected component to fall off the border.
+		        pp.revalidate();
+		        Point viewPos = viewport.getViewPosition(); 
+		        Rectangle view = viewport.getViewRect();
+		        int viewHeight = viewport.getHeight(); 
+		        int viewWidth = viewport.getWidth(); 
+
+		        // performs scrolling
+		        Rectangle bounds = pp.zoomRect(ppc.getBounds());
+		        if ((p.y - viewPos.y) < scrollUnits.top && viewPos.y > 0) { // scroll up
+		            view.y = bounds.y - scrollUnits.top;
+		        } if ((viewPos.y + viewHeight - p.y - bounds.height) < scrollUnits.bottom) { // scroll down 
+		            view.y = bounds.y + bounds.height - viewHeight + scrollUnits.bottom;
+		        } if ((p.x - viewPos.x) < scrollUnits.left && viewPos.x > 0) { // scroll left 
+		            view.x = bounds.x - scrollUnits.left;
+		        } if ((viewPos.x + viewWidth - p.x - bounds.width) < scrollUnits.right) { // scroll right 
+		            view.x = bounds.x + bounds.width - viewWidth + scrollUnits.right;
+		        }
+		        logger.debug(viewport.getViewPosition());
+		        pp.scrollRectToVisible(view);
+		        // Necessary to stop tables from flashing.
+		        if (ppc != null) {
+		            ppc.repaint();
+		        }
+		    }
 		}
 
 		/**
@@ -2691,8 +2695,11 @@ public class PlayPen extends JPanel
 			pp.normalize();
 			pp.revalidate();
 			
-			pp.endCompoundEdit("Done moving " + ppc);
-            pp.getContentPane().commit("Done moving " + ppc);
+			for (DraggablePlayPenComponent ppc : ppcToHandleMap.keySet()) {
+			    if (ppc.isBeingDragged()) {
+			        ppc.doneDragging();
+			    }
+			}
 		}
 
 		protected void cleanup() {
