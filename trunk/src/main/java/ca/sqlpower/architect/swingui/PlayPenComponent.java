@@ -672,17 +672,19 @@ implements Selectable {
                 getPlayPen().endCompoundEdit("Done dragging " + this);
                 getParent().commit("Done dragging " + this);
             } else {
-                getPlayPen().endCompoundEdit("Update received while dragging.");
-                getParent().rollback("Update received while dragging");
-                
                 // We need to cleanup all of the FloatingContainerPaneListeners
                 // on the PlayPen because we no longer want to keep track
                 // of dragging.
                 for (MouseMotionListener l : getPlayPen().getMouseMotionListeners()) {
                     if (l instanceof FloatingContainerPaneListener) {
                         ((FloatingContainerPaneListener) l).cleanup();
+                        getPlayPen().endCompoundEdit("Update received while dragging.");
+                        getParent().rollback("Update received while dragging.");
                     }
                 }
+                
+                getPlayPen().endCompoundEdit("Update received while dragging.");
+                getParent().rollback("Update received while dragging");
                 
                 JOptionPane.showMessageDialog(getPlayPen(), "There was an update while you were dragging");
             }
