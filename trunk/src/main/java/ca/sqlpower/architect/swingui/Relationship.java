@@ -510,7 +510,6 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 			this.movingPk = movePk;
 			this.startingPk = new Point(r.getPkConnectionPoint().x, r.getPkConnectionPoint().y);
 			this.startingFk = new Point(r.getFkConnectionPoint().x, r.getFkConnectionPoint().y);
-			r.getPlayPen().startCompoundEdit("Dragging relationship");
 			r.startedDragging();
 			r.getPlayPen().addMouseMotionListener(this);
 			r.getPlayPen().addMouseListener(this);
@@ -568,10 +567,10 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		 * instance's creator saved a reference).
 		 */
 		public void mouseReleased(MouseEvent e) {
-		    r.getPlayPen().endCompoundEdit("Done dragging relationship");
 			r.getPlayPen().removeMouseMotionListener(this);
 			r.getPlayPen().removeMouseListener(this);
 			r.getPlayPen().setCursor(null);
+			r.doneDragging();
 		}
 	}
 
