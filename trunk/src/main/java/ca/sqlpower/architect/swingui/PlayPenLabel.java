@@ -30,8 +30,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,16 +39,15 @@ import ca.sqlpower.object.SPLabel;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
-import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
 import ca.sqlpower.swingui.ColourScheme;
 
 public class PlayPenLabel extends DraggablePlayPenComponent {
 
     public static final List<Class<? extends SPObject>> allowedChildTypes = 
-        Collections.unmodifiableList(new ArrayList<Class<? extends SPObject>>(
-                Arrays.asList(SPLabel.class)));
+        Collections.<Class<? extends SPObject>>singletonList(SPLabel.class);
     
     private final class LabelUI implements PlayPenComponentUI {
         
