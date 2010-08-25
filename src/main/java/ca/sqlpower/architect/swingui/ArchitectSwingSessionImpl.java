@@ -272,7 +272,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
      * method.
      */
-    private final DataSourceDialogFactory dsDialogFactory = new DataSourceDialogFactory() {
+    private static final DataSourceDialogFactory dsDialogFactory = new DataSourceDialogFactory() {
 
         public JDialog showDialog(Window parentWindow, JDBCDataSource dataSource, Runnable onAccept) {
             return ASUtils.showDbcsDialog(parentWindow, dataSource, onAccept);

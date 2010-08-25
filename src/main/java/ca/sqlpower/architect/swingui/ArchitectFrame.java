@@ -1388,6 +1388,8 @@ public class ArchitectFrame extends JFrame {
                     // unless you like being attacked by screaming monkeys, that is.
                     ArchitectSwingSessionContext context = ASUtils.getContext();
                     
+                    Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(context));
+                    
                     boolean headless = false;
                     final List<ArchitectSwingSession> sessions = new ArrayList<ArchitectSwingSession>();
                     if (args.length > 0) {

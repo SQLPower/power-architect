@@ -60,7 +60,6 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
      *            here.
      */
     public ExceptionHandler (ArchitectSwingSessionContext context) {
-        super();
         this.context = context;
     }
     

@@ -162,8 +162,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         System.setProperty("awt.dnd.drag.threshold","10"); //$NON-NLS-1$ //$NON-NLS-2$
         logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold")); //$NON-NLS-1$ //$NON-NLS-2$
 
-        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
-
         // sets the icon so exception dialogs handled by SPSUtils instead
         // of ASUtils can still have the correct icon
         SPSUtils.setMasterIcon(new ImageIcon(ASUtils.getFrameIconImage()));
