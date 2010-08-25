@@ -31,8 +31,8 @@ public class NewDataSourceAction extends AbstractAction {
         final JDBCDataSource dataSource = new JDBCDataSource(plDotIni);
         Runnable onAccept = new Runnable() {
             public void run() {
-                session.getDBTree().addSourceConnection(dataSource);
                 plDotIni.addDataSource(dataSource);
+                session.getDBTree().addSourceConnection(dataSource);
             }
         };
         dataSource.setDisplayName(Messages.getString("DBTree.newConnectionName")); //$NON-NLS-1$

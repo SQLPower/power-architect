@@ -369,13 +369,17 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         return super.close();
     }
-	
+
 	@Override
 	public DataSourceCollection<JDBCDataSource> getDataSources() {
-		if (dataSourceCollection != null) {
-			return dataSourceCollection;
-		}
-		
+	    if (dataSourceCollection != null) {
+            return dataSourceCollection;
+        } else {
+            return getDataSourcesFromServer();
+        }
+	}
+	
+	private DataSourceCollection<JDBCDataSource> getDataSourcesFromServer() {
 		ResponseHandler<DataSourceCollection<JDBCDataSource>> plIniHandler = 
             new ResponseHandler<DataSourceCollection<JDBCDataSource>>() {
             public DataSourceCollection<JDBCDataSource> handleResponse(HttpResponse response)
@@ -412,6 +416,33 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 					        ArchitectSwingProject systemWorkspace = ArchitectClientSideSession.this.getSystemWorkspace();
                             systemWorkspace.addChild(newType, systemWorkspace.getChildren(UserDefinedSQLType.class).size());
                             return newType;
+					    }
+					    
+					    public SPDataSource getDataSource(String name) {
+					        SPDataSource ds = super.getDataSource(name);
+					        if (ds == null) {
+					            mergeNewDataSources();
+					            return super.getDataSource(name);
+					        } else {
+					            return ds;
+					        }
+					    }
+					    
+					    public <C extends SPDataSource> C getDataSource(String name, java.lang.Class<C> classType) {
+					        C ds = super.getDataSource(name, classType);
+                            if (ds == null) {
+                                mergeNewDataSources();
+                                return super.getDataSource(name, classType);
+                            } else {
+                                return ds;
+                            }
+					    }
+					    
+					    private void mergeNewDataSources() {
+					        DataSourceCollection<JDBCDataSource> dsc = getDataSourcesFromServer();
+                            for (SPDataSource merge : dsc.getConnections()) {
+                                mergeDataSource(merge);
+                            }
 					    }
 					};
                     plIni.read(response.getEntity().getContent());
