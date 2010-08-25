@@ -167,6 +167,12 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
         pp.unzoomPoint(p);
         p.translate(-getX(), -getY());
         if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
+            if (evt.getClickCount() == 1 && evt.getButton() == MouseEvent.BUTTON1) {
+               if (!evt.isControlDown()) {
+                   pp.selectNone();
+               }
+            }
+            
             if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
                 if (evt.getClickCount() == 2) { // double click
                     if (isSelected()) {
@@ -182,6 +188,10 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
             if (isSelected()){
                 componentPreviouslySelected = true;
             } else {
+                if (!evt.isControlDown()) {
+                    pp.selectNone();
+                }
+                
                 componentPreviouslySelected = false;
                 setSelected(true, SelectionEvent.SINGLE_SELECT);
             }
