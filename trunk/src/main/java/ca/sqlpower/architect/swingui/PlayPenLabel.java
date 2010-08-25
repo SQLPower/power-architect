@@ -181,8 +181,17 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
                     setSelected(true, SelectionEvent.SINGLE_SELECT);
                 }
             }
-        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
-            setupDrag(p);
+        } else if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
+            if (isSelected()){
+                componentPreviouslySelected = true;
+            } else {
+                componentPreviouslySelected = false;
+                setSelected(true, SelectionEvent.SINGLE_SELECT);
+            }
+            
+            if (!pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
+                setupDrag(p);
+            }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
             setSelected(pp.rubberBand.intersects(getBounds(new Rectangle())),SelectionEvent.SINGLE_SELECT);
         }

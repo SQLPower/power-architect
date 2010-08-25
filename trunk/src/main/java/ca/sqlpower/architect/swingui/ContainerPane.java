@@ -139,7 +139,7 @@ implements DragSourceListener, LayoutNode {
     @Override
     public void handleMouseEvent(MouseEvent evt) {
         PlayPen pp = getPlayPen();
-        
+
         Point p = evt.getPoint();
         pp.unzoomPoint(p);
         p.translate(-getX(), -getY());
@@ -155,9 +155,9 @@ implements DragSourceListener, LayoutNode {
                         deselectItem(selectedItemIndex);
                         fireSelectionEvent(new SelectionEvent(this, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
                     } else {
-                    selectNone();
-                    selectItem(selectedItemIndex);
-                    fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+                        selectNone();
+                        selectItem(selectedItemIndex);
+                        fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
                     }
                 } else if (isSelected() && componentPreviouslySelected) {
                     setSelected(false, SelectionEvent.SINGLE_SELECT);
@@ -188,7 +188,7 @@ implements DragSourceListener, LayoutNode {
                     //This is since dragging columns within the same table does
                     // not update the previouslySelectedItem
                     if (isItemSelected(previousSelectedItem)) {    
-                    previousSelectedIndex = getItems().indexOf(previousSelectedItem);
+                        previousSelectedIndex = getItems().indexOf(previousSelectedItem);
                     } else {
                         previousSelectedIndex = getSelectedItemIndex();
                     }
@@ -200,26 +200,26 @@ implements DragSourceListener, LayoutNode {
                         }
                         pp.setMouseMode(MouseModeType.SELECT_ITEM);
                     } else if (((evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0) && getSelectedItems().size() > 0 &&
-                        previousSelectedIndex > ITEM_INDEX_TITLE) {
-                    int start = Math.min(previousSelectedIndex, clickItem);
-                    int end = Math.max(previousSelectedIndex, clickItem);
-                    logger.debug("Start: " +start+ " , End: " +end+ " , Total size: " +getItems().size());
-                    for (int i = 0; i < getItems().size(); i++) {
-                        if (i > start && i < end ) {
-                            selectItem(i);
-                            fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+                            previousSelectedIndex > ITEM_INDEX_TITLE) {
+                        int start = Math.min(previousSelectedIndex, clickItem);
+                        int end = Math.max(previousSelectedIndex, clickItem);
+                        logger.debug("Start: " +start+ " , End: " +end+ " , Total size: " +getItems().size());
+                        for (int i = 0; i < getItems().size(); i++) {
+                            if (i > start && i < end ) {
+                                selectItem(i);
+                                fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+                            }
                         }
                     }
-                }
-                
-                if (isItemSelected(clickItem)) {
-                   componentPreviouslySelected = true;
-                } else {
-                    selectItem(clickItem);
-                    fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
-                    repaint();
-                    previousSelectedItem = getItems().get(clickItem);
-                }
+
+                    if (isItemSelected(clickItem)) {
+                        componentPreviouslySelected = true;
+                    } else {
+                        selectItem(clickItem);
+                        fireSelectionEvent(new SelectionEvent(this, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
+                        repaint();
+                        previousSelectedItem = getItems().get(clickItem);
+                    }
                 }
                 if (isSelected()&& clickItem == ITEM_INDEX_TITLE){
                     componentPreviouslySelected = true;
