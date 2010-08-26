@@ -39,6 +39,7 @@ import org.apache.http.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.security.AccessDeniedException;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
@@ -49,18 +50,18 @@ import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
 import ca.sqlpower.dao.RemovedObjectEntry;
 import ca.sqlpower.dao.SPPersistenceException;
+import ca.sqlpower.dao.SPPersister.DataType;
 import ca.sqlpower.dao.SPPersisterListener;
 import ca.sqlpower.dao.SPSessionPersister;
-import ca.sqlpower.dao.SPPersister.DataType;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.util.SQLPowerUtils;
-import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 import com.enterprisedt.util.debug.Logger;
@@ -281,7 +282,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     @Override
                     public void run() {
                         // Try to apply update
-                        decodeMessage(json, newRev);
+                        decodeMessage(new JSONTokener(json), newRev);
                         // We need an additional step here for checking for special case conflicts
                         List<ConflictMessage> conflicts = detectConflicts();
                         if (conflicts.size() == 0) {
@@ -368,12 +369,15 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                    // The updater may have been interrupted/closed/deleted while waiting for an update.
                    if (this.isInterrupted() || cancelled) break;
                    
-                   final JSONObject json = new JSONObject(message.getBody());
+                   JSONObject json = new JSONObject(message.getBody());
+                   final JSONTokener tokener = new JSONTokener(json.getString("data"));
+                   final int currentRevision = json.getInt("currentRevision");
+                   
                    session.runInForeground(new Runnable() {
                        public void run() {
                            try {
                                if (!postingJSON.get()) {
-                                   decodeMessage(json.getString("data"), json.getInt("currentRevision"));
+                                   decodeMessage(tokener, currentRevision);
                                }
                            } catch (AccessDeniedException e) {
                                interrupt();
@@ -425,15 +429,17 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         
         inboundHttpClient.getConnectionManager().shutdown();
     }
-    
+
     /**
      * Exists for code reuse.
      * 
-     * @param jsonArray
+     * @param tokener
+     *            {@link JSONTokener} that tokenizes multiple persister calls.
      * @param newRevision
+     *            The new revision number.
      * @throws SPPersistenceException
      */
-    private void decodeMessage(String jsonArray, int newRevision) {
+    private void decodeMessage(JSONTokener tokener, int newRevision) {
         try {
             if (currentRevision < newRevision) {
                 List<UpdateListener> updateListenersCopy = new ArrayList<UpdateListener>(updateListeners);
@@ -441,7 +447,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     listener.preUpdatePerformed(NetworkConflictResolver.this);
                 }
                 // Now we can apply the update ...
-                jsonDecoder.decode(jsonArray);
+                jsonDecoder.decode(tokener);
                 currentRevision = newRevision;
                 
                 for (UpdateListener listener : updateListenersCopy) {
