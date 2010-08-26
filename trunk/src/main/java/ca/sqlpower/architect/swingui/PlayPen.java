@@ -28,6 +28,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -463,12 +464,6 @@ public class PlayPen extends JPanel
 	}       
     
 	/**
-	 * Links this PlayPen with an instance of PlayPenDropListener so
-	 * users can drop stuff on the playpen.
-	 */
-	protected DropTarget dt;
-	
-	/**
 	 * The factory responsible for setting up popup menu contents for this playpen.
 	 */
 	private PopupMenuFactory popupFactory;
@@ -578,9 +573,6 @@ public class PlayPen extends JPanel
      */
     private boolean paintingEnabled = true;
 
-	private TablePaneDragGestureListener dgl;
-	private DragSource ds;
-
 	private boolean normalizing;
 
     /**
@@ -639,7 +631,13 @@ public class PlayPen extends JPanel
 		contentPane.setPlayPen(this);
 		this.setName("Play Pen"); //$NON-NLS-1$
 		this.setMinimumSize(new Dimension(1,1));
-		dt = new DropTarget(this, new PlayPenDropListener());
+		if (!GraphicsEnvironment.isHeadless()) {
+		    //XXX See http://trillian.sqlpower.ca/bugzilla/show_bug.cgi?id=3036
+		    new DropTarget(this, new PlayPenDropListener());
+		    new DragSource().createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, new TablePaneDragGestureListener());
+		    logger.debug("DragGestureRecognizer motion threshold: " + 
+		            this.getToolkit().getDesktopProperty("DnD.gestureMotionThreshold")); //$NON-NLS-1$ //$NON-NLS-2$
+		}
 		bringToFrontAction = new BringToFrontAction(this);
 		sendToBackAction = new SendToBackAction(this);
 		ppMouseListener = new PPMouseListener();
@@ -647,11 +645,6 @@ public class PlayPen extends JPanel
 		this.addMouseMotionListener(ppMouseListener);
 		
 		cursorManager = new CursorManager(this);
-		dgl = new TablePaneDragGestureListener();
-		ds = new DragSource();
-		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
-		logger.debug("DragGestureRecognizer motion threshold: " + 
-		        this.getToolkit().getDesktopProperty("DnD.gestureMotionThreshold")); //$NON-NLS-1$ //$NON-NLS-2$
 		fontRenderContext = null;
 	}
 
