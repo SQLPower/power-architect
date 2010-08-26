@@ -166,7 +166,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         // of ASUtils can still have the correct icon
         SPSUtils.setMasterIcon(new ImageIcon(ASUtils.getFrameIconImage()));
         
-        logger.debug("toolkit has system clipboard " + Toolkit.getDefaultToolkit().getSystemClipboard());
         clipboard.setContents(dummyTransferable, this);
         
     }

@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Cursor;
+import java.awt.GraphicsEnvironment;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
@@ -97,7 +98,6 @@ public class DBTree extends JTree implements DragSourceListener {
 	// actionCommand identifier for actions shared by DBTree
 	public static final String ACTION_COMMAND_SRC_DBTREE = "DBTree";
 	
-	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu dbcsMenu;
 	protected JDBCDataSourcePanel spDataSourcePanel;
@@ -154,9 +154,11 @@ public class DBTree extends JTree implements DragSourceListener {
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
-		ds = new DragSource();
-		ds.createDefaultDragGestureRecognizer
-			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
+		if (!GraphicsEnvironment.isHeadless()) {
+		    //XXX See http://trillian.sqlpower.ca/bugzilla/show_bug.cgi?id=3036
+		    new DragSource().createDefaultDragGestureRecognizer
+		        (this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
+		}
 
         setConnAsTargetDB = new SetConnAsTargetDB(null);
 		newDBCSAction = new NewDataSourceAction(session);
