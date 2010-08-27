@@ -19,7 +19,6 @@
 
 package ca.sqlpower.architect.swingui;
 
-import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,10 +39,7 @@ import ca.sqlpower.architect.olap.OLAPSession;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.User;
-import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.MappedSPTree;
-import ca.sqlpower.object.SPChildEvent;
-import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
@@ -52,11 +48,11 @@ import ca.sqlpower.object.annotation.NonBound;
 import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.object.annotation.ConstructorParameter.ParameterType;
-import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.util.RunnableDispatcher;
+import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.WorkspaceContainer;
 
 /**
@@ -83,71 +79,6 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
                     CriticManager.class, KettleSettings.class, User.class, Group.class, 
                     BusinessDefinition.class, FormulaMetricCalculation.class)));
     
-    /**
-     * A hash map mapping all the descendants of this project.
-     * It must be kept up to date by listening to all its descendant nodes
-     * for child added and child removed events.
-     */
-    private final HashMap<String, SPObject> projectMap;
-    
-    /**
-     * The listener used to keep the projectMap up to date.
-     */
-    private final SPListener projectMapListener = new AbstractSPListener() {
-        public void childAdded(SPChildEvent e) {
-            populateTreeMap(e.getChild());            
-        }      
-
-        public void childRemoved(SPChildEvent e) {           
-            unpopulateTreeMap(e.getChild());                  
-        }
-        
-        public void propertyChanged(PropertyChangeEvent e) {
-            if (e.getPropertyName().toUpperCase().equals("UUID")) {
-                projectMap.put((String) e.getNewValue(), projectMap.remove(e.getOldValue()));
-            }
-        }
-        
-        private void populateTreeMap(SPObject addedChild) {
-            if (projectMap.put(addedChild.getUUID(), addedChild) != null) {
-                throw new IllegalStateException("Object added under project with same UUID! Adding " + addedChild);
-            }
-            addedChild.addSPListener(this);
-            //Be careful here. If calling getChildren adds children to the object this
-            //listener will get called twice, once because the listener is now on the parent
-            //and again for the loop.
-            if (addedChild instanceof SQLObject) {
-                for (SPObject o : ((SQLObject) addedChild).getChildrenWithoutPopulating()) {
-                    populateTreeMap(o);
-                }
-            } else {
-                for (SPObject o : addedChild.getChildren()) {
-                    populateTreeMap(o);
-                }
-            }
-        }
-        
-        private void unpopulateTreeMap(SPObject removedChild) {
-            if (projectMap.remove(removedChild.getUUID()) != removedChild) {
-                throw new IllegalStateException("Inconsistent project map: " +
-                        "removed child's entry in map was either null, or different object.");
-            }
-            removedChild.removeSPListener(this);
-            
-            //Removing a listener should not cause a SQLObject to populate but we need to
-            //remove the listener from all descendants and clear the map .
-            if (removedChild instanceof SQLObject) {
-                for (SPObject o : ((SQLObject) removedChild).getChildrenWithoutPopulating()) {
-                    unpopulateTreeMap(o);
-                }
-            } else {
-                for (SPObject o : removedChild.getChildren()) {
-                    unpopulateTreeMap(o);
-                }
-            }
-        }
-    };
-
     private PlayPenContentPane playPenContentPane;
     
     /**
@@ -180,10 +111,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         kettleSettings.setParent(this);
         
         setName("Architect Project");
-        projectMap = new HashMap<String, SPObject>();
         criticManager = new CriticManager();
         criticManager.setParent(this);
-        projectMapListener.childAdded(new SPChildEvent(this, null, this, 0, null));
     }
     
     /**
@@ -208,8 +137,6 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
         criticManager.setParent(this);
         
         setName("Architect Project");
-        projectMap = new HashMap<String, SPObject>();
-        projectMapListener.childAdded(new SPChildEvent(this, null, this, 0, null));
     }
     
     @Override
@@ -367,7 +294,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     
     @NonBound
     public SPObject getObjectInTree(String uuid) {
-        return projectMap.get(uuid);
+        return SQLPowerUtils.findByUuid(this, uuid, SPObject.class);
     }
     
     /**
@@ -377,7 +304,7 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
      */
     @NonBound
     public <T extends SPObject> T getObjectInTree(String uuid, Class<T> expectedType) {
-        return expectedType.cast(getObjectInTree(uuid));
+        return SQLPowerUtils.findByUuid(this, uuid, expectedType);
     }
     
     @NonProperty
