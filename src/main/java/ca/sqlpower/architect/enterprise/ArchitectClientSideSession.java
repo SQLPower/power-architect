@@ -372,11 +372,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 
 	@Override
 	public DataSourceCollection<JDBCDataSource> getDataSources() {
-	    if (dataSourceCollection != null) {
-            return dataSourceCollection;
-        } else {
-            return getDataSourcesFromServer();
+	    if (dataSourceCollection == null) {
+            dataSourceCollection = getDataSourcesFromServer();
+            dataSourceCollectionUpdater.attach(dataSourceCollection);
         }
+	    return dataSourceCollection;
 	}
 	
 	private DataSourceCollection<JDBCDataSource> getDataSourcesFromServer() {
@@ -455,8 +455,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             }
         };
         
+        DataSourceCollection<JDBCDataSource> dsc;
         try {
-            dataSourceCollection = executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), 
+            dsc = executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), 
                     "/" + REST_TAG + "/data-sources/", plIniHandler);
         } catch (AccessDeniedException e) {
             throw e;
@@ -464,9 +465,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             throw new RuntimeException(ex);
         }
         
-        dataSourceCollectionUpdater.attach(dataSourceCollection);
-        
-        return dataSourceCollection;
+        return dsc;
 	}
 	
 	public void startUpdaterThread() {
