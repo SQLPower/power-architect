@@ -30,6 +30,7 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * {@link UserDefinedSQLType}s can be organized into categories. For example,
@@ -52,10 +53,7 @@ public class DomainCategory extends AbstractSPObject {
      * category.
      */
     public static boolean areEqual(@Nonnull DomainCategory cat1, @Nonnull DomainCategory cat2) {
-        if (cat1.getName() == null && cat2.getName() == null) return true;
-        if (cat1.getName() != null && cat1.getName().equals(cat2.getName())) return true;
-        
-        return false;
+        return SQLPowerUtils.areEqual(cat1.getName(), cat2.getName());
     }
 
     /**
@@ -114,5 +112,10 @@ public class DomainCategory extends AbstractSPObject {
      */
     public void updateToMatch(DomainCategory matchMe) {
         setName(matchMe.getName());
+    }
+    
+    @Override
+    public String toString() {
+        return getName();
     }
 }
