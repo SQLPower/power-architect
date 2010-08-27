@@ -371,13 +371,13 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                    
                    JSONObject json = new JSONObject(message.getBody());
                    final JSONTokener tokener = new JSONTokener(json.getString("data"));
-                   final int currentRevision = json.getInt("currentRevision");
+                   final int jsonRevision = json.getInt("currentRevision");
                    
                    session.runInForeground(new Runnable() {
                        public void run() {
                            try {
                                if (!postingJSON.get()) {
-                                   decodeMessage(tokener, currentRevision);
+                                   decodeMessage(tokener, jsonRevision);
                                }
                            } catch (AccessDeniedException e) {
                                interrupt();
