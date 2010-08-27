@@ -185,7 +185,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
             if (session.getStatusInformation() != null) {
                 monitor = session.getStatusInformation().createProgressMonitor();
                 monitor.setJobSize(messageBuffer.length() + 2);
-                monitor.setMessage("Writing " + messageBuffer.length() + " changes to the server.");
+                monitor.setMessage("Saving");
                 monitor.setProgress(0);
                 final MonitorableImpl finalMonitor = monitor;
                 new Thread(new Runnable() {
@@ -199,7 +199,6 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                             }
                             if (finalMonitor.isCancelled() || finalMonitor.isFinished()) break;
                             finalMonitor.incrementProgress();
-                            finalMonitor.setMessage("Saving");
                         }
                         finalMonitor.setMessage("Completing server update.");
                     }
@@ -252,7 +251,10 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 }
                 // Try to rollback our changes
                 try {
-                    session.getWorkspace().rollback("Hello this is a rollback");
+                    SPSessionPersister.undoForSession(session.getWorkspace(), 
+                            new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
+                            outboundPropertiesToChange, 
+                            new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
                 } catch (Exception e) {
                     throw new RuntimeException("Reflush failed on rollback", e);
                 }
@@ -276,41 +278,35 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 // Try to create inboundPersistedLists for comparison with the outbound. These will be used
                 // for special case collision detection.
                 fillInboundPersistedLists(json);
-                
-                session.runInForeground(new Runnable() {
-                    
-                    @Override
-                    public void run() {
-                        // Try to apply update
-                        decodeMessage(new JSONTokener(json), newRev);
-                        // We need an additional step here for checking for special case conflicts
-                        List<ConflictMessage> conflicts = detectConflicts();
-                        if (conflicts.size() == 0) {
-                            // Try to return the persisted objects to their state pre-update.
-                            try {
-                                SPSessionPersister.redoForSession(session.getWorkspace(), 
-                                        new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
-                                        outboundPropertiesToChange, 
-                                        new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
-                                // We want to re-send our changes, but only if we were able to restore them
-                                flush(true);
-                            } catch (Exception ex) {
-                                throw new RuntimeException("Reflush failed on rollforward", ex);
-                            }
-                        } else {
-                            String message = "";
-                            message += "Your changes have been discarded due to a conflict between you and another user: \n";
-                            for (int i = 0; i < MAX_CONFLICTS_TO_DISPLAY && i < conflicts.size(); i++) {
-                                message += conflicts.get(i).getMessage() + "\n";
-                            }
-                            session.createUserPrompter(message, 
-                                    UserPromptType.MESSAGE, 
-                                    UserPromptOptions.OK, 
-                                    UserPromptResponse.OK, 
-                                    "OK", "OK").promptUser("");
-                        }
+
+                // Try to apply update
+                decodeMessage(new JSONTokener(json), newRev);
+                // We need an additional step here for checking for special case conflicts
+                List<ConflictMessage> conflicts = detectConflicts();
+                if (conflicts.size() == 0) {
+                    // Try to return the persisted objects to their state pre-update.
+                    try {
+                        SPSessionPersister.redoForSession(session.getWorkspace(), 
+                                new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
+                                outboundPropertiesToChange, 
+                                new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
+                        // We want to re-send our changes, but only if we were able to restore them
+                        flush(true);
+                    } catch (Exception ex) {
+                        throw new RuntimeException("Reflush failed on rollforward", ex);
                     }
-                });
+                } else {
+                    String message = "";
+                    message += "Your changes have been discarded due to a conflict between you and another user: \n";
+                    for (int i = 0; i < MAX_CONFLICTS_TO_DISPLAY && i < conflicts.size(); i++) {
+                        message += conflicts.get(i).getMessage() + "\n";
+                    }
+                    session.createUserPrompter(message, 
+                            UserPromptType.MESSAGE, 
+                            UserPromptOptions.OK, 
+                            UserPromptResponse.OK, 
+                            "OK", "OK").promptUser("");
+                }
             }
         } finally {
             if (monitor != null) {
@@ -443,7 +439,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         try {
             if (currentRevision < newRevision) {
                 List<UpdateListener> updateListenersCopy = new ArrayList<UpdateListener>(updateListeners);
-                for (UpdateListener listener : updateListenersCopy) {
+                for (UpdateListener listener : updateListeners) {
                     listener.preUpdatePerformed(NetworkConflictResolver.this);
                 }
                 // Now we can apply the update ...
@@ -860,7 +856,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                 return (String) p.getNewValue();
             }
         }
-        throw new IllegalArgumentException("Given persisted object has no corresponding name property!");
+        throw new IllegalArgumentException("Persisted Object with UUID " + o.getUUID() + " has no name property");
     }
 
     /**
