@@ -662,7 +662,7 @@ public class ArchitectFrame extends JFrame {
                     Rectangle bounds = new Rectangle(getBounds());
                     bounds.translate(20, 20);
                     ArchitectFrame newFrame = new ArchitectFrame(context, bounds);
-                    newFrame.init(newSession);
+                    newFrame.init(newSession, false);
                     if ((e.getModifiers() & ActionEvent.ALT_MASK) != 0) {
                         JMenuBar mb = newFrame.menuBar;
                         for (int i = 0; i < mb.getMenuCount(); i++) {
