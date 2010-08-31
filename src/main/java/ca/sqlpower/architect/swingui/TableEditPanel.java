@@ -58,12 +58,26 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel {
 	private JCheckBox rounded;
 	private JCheckBox dashed;
 	
-	private final TablePane tablePane;
+	private TablePane tablePane;
 	
 	final HashMap<String, PropertyChangeEvent> propertyConflicts = new HashMap<String, PropertyChangeEvent>();
 	
 	final HashMap<String, JComponent> propertyFields = new HashMap<String, JComponent>();
 
+    /**
+     * A constructor that uses the given table pane to set parameters on instead
+     * of looking one up in the play pen.
+     * 
+     * @param session
+     *            The session the table and table pane belong to or will belong
+     *            to.
+     * @param tp
+     *            The table which has a model that this panel will edit.
+     */
+	public TableEditPanel(ArchitectSwingSession session, TablePane tp) {
+	    this(session, tp.getModel());
+	    tablePane = tp;
+	}
 	
 	public TableEditPanel(ArchitectSwingSession session, SQLTable t) {
 		this.panel = new JPanel(new FormLayout());

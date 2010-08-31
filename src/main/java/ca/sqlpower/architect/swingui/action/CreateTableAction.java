@@ -92,7 +92,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 
         @Override
         public DataEntryPanel place(final Point p) throws SQLObjectException {
-            TableEditPanel editPanel = new TableEditPanel(playpen.getSession(), tp.getModel()) {
+            TableEditPanel editPanel = new TableEditPanel(playpen.getSession(), tp) {
                 @Override
                 public boolean applyChanges() {
                     String warnings = generateWarnings();
