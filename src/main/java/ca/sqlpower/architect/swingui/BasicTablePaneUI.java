@@ -179,7 +179,13 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			    g2.fillRect(0, 0, tp.getWidth(), fontHeight);
 			}
 			
-			g2.setColor(tp.getForegroundColor());
+			// also darken title text if table is selected
+			if (tp.selected){
+			    g2.setColor(tp.getForegroundColor().darker());
+			} else {
+			    g2.setColor(tp.getForegroundColor());
+			}
+			
 
 			// print table name
 			g2.drawString(getTitleString(tablePane), 0, y += ascent);
