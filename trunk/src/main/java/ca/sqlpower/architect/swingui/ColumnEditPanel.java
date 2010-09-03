@@ -623,7 +623,6 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     // Changing sequence name doesn't make sense in multi-edit
                     // because sequence names have to be unique
                     SQLColumn column = columns.iterator().next();
-                    colAutoIncSequenceName.setText(column.getAutoIncrementSequenceName());
                     if (column.getPhysicalName() != null && !column.getPhysicalName().trim().equals("")) {
                         discoverSequenceNamePattern(column.getPhysicalName());
                     } else {
@@ -865,9 +864,19 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private void discoverSequenceNamePattern(String colName) {
         String seqName = colAutoIncSequenceName.getText();
         int prefixEnd = seqName.indexOf(colName);
-        if (prefixEnd >= 0 && colName.length() > 0) {
+
+        String tableName = null;
+        if (columns.get(0).getParent() != null) {
+            tableName = columns.get(0).getParent().getPhysicalName();
+        }
+        
+        if ((prefixEnd != -1 && seqName.substring
+                (prefixEnd + colName.length()).indexOf(colName) == -1)) {
             seqNamePrefix = seqName.substring(0, prefixEnd);
             seqNameSuffix = seqName.substring(prefixEnd + colName.length());
+        } else if (seqName.equals(tableName + "_" + colName + "_seq")) {
+            seqNamePrefix = tableName + "_";
+            seqNameSuffix = "_seq";
         } else {
             seqNamePrefix = null;
             seqNameSuffix = null;
@@ -1044,6 +1053,11 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                 
                 if (componentEnabledMap.get(colAutoIncSequenceName).isSelected()) {
                     column.setAutoIncrementSequenceName(colAutoIncSequenceName.getText());
+                    
+                    if (colAutoIncSequenceName.getText().equals("")) {
+                        column.setAutoIncrementSequenceName(
+                                column.makeAutoIncrementSequenceName());
+                    }
                 }
             }
         } catch (SQLObjectException e) {
