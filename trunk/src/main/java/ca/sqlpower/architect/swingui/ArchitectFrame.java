@@ -301,34 +301,29 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
-            final SPServerInfoManagerPanel sim = new SPServerInfoManagerPanel(context.getServerManager(),
-                    ArchitectFrame.this, closeAction);
+            final SPServerInfoManagerPanel sim = new SPServerInfoManagerPanel(context.getServerManager(), ArchitectFrame.this, closeAction);
             sim.setLoginAction(new AbstractAction("Login") {
                 public void actionPerformed(ActionEvent e) {
                     SPServerInfo si = sim.getSelectedServer();
                     if (si != null) {
                         
-                        boolean accessible = true;
-                        
-                        if (accessible) {
-                            final JDialog dialog = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Projects");
-                            Action closeAction = new AbstractAction("Close") {
-                                public void actionPerformed(ActionEvent e) {
-                                    dialog.dispose();
-                                }
-                            };
-                            
-                            ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, currentSession, context,
-                                    ArchitectFrame.this, closeAction);
-                            if (spm.isConnected()) {
-                                dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                                dialog.setContentPane(spm.getPanel());
-                                
-                                SPSUtils.makeJDialogCancellable(dialog, null);
-                                dialog.pack();
-                                dialog.setLocationRelativeTo(ArchitectFrame.this);
-                                dialog.setVisible(true);
+                        final JDialog dialog = SPSUtils.makeOwnedDialog(ArchitectFrame.this, "Projects");
+                        Action closeAction = new AbstractAction("Close") {
+                            public void actionPerformed(ActionEvent e) {
+                                dialog.dispose();
                             }
+                        };
+                        
+                        ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, currentSession, context,
+                                ArchitectFrame.this, closeAction);
+                        if (spm.isConnected()) {
+                            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                            dialog.setContentPane(spm.getPanel());
+                            
+                            SPSUtils.makeJDialogCancellable(dialog, null);
+                            dialog.pack();
+                            dialog.setLocationRelativeTo(ArchitectFrame.this);
+                            dialog.setVisible(true);
                         }
                     } else {
                         JOptionPane.showMessageDialog(ArchitectFrame.this, "Please select a server", "", JOptionPane.INFORMATION_MESSAGE);
@@ -662,7 +657,7 @@ public class ArchitectFrame extends JFrame {
                     Rectangle bounds = new Rectangle(getBounds());
                     bounds.translate(20, 20);
                     ArchitectFrame newFrame = new ArchitectFrame(context, bounds);
-                    newFrame.init(newSession, false);
+                    newFrame.init(newSession);
                     if ((e.getModifiers() & ActionEvent.ALT_MASK) != 0) {
                         JMenuBar mb = newFrame.menuBar;
                         for (int i = 0; i < mb.getMenuCount(); i++) {

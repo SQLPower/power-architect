@@ -42,6 +42,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.security.AccessDeniedException;
 
+//import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.dao.FriendlyRuntimeSPPersistenceException;
@@ -57,6 +58,7 @@ import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+//import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -145,6 +147,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         this.session = session;
         
         contextRelativePath = "/" + ArchitectClientSideSession.REST_TAG + "/project/" + projectLocation.getUUID();
+        
     }
     
     public void setUserPrompterFactory(UserPrompterFactory promptSession) {

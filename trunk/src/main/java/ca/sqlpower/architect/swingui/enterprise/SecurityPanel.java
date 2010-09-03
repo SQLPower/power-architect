@@ -176,7 +176,7 @@ public class SecurityPanel {
                 User user = createUserFromPrompter();
                 if (user != null) {
                     try {
-                        securityWorkspace.begin("");
+                        securityWorkspace.begin("Creating a new user");
                         securityWorkspace.addChild(user, securityWorkspace.getChildren(User.class).size());
                         DomainCategory category = new DomainCategory(user.getName() + "'s Domains");
                         user.addGrant(new Grant(category, true, true, true, true, true));
