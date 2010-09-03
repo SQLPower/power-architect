@@ -532,6 +532,7 @@ public class ServerProjectsManagerPanel {
                     }
                 });
                 
+                model.clear();
                 for (ProjectLocation pl : projects) {
                     model.addElement(pl);
                 }

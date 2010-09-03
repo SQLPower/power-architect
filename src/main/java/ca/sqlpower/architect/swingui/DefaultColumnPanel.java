@@ -223,7 +223,7 @@ public class DefaultColumnPanel extends JPanel implements ActionListener, DataEn
         if (colType.getSelectedItem() != null) {
             SQLColumn.setDefaultType(((SQLType)colType.getSelectedItem()).getType());
         } else {
-            SQLColumn.setDefaultType(Types.INTEGER);
+            SQLColumn.setDefaultType(Types.VARCHAR);
         }
         SQLColumn.setDefaultPrec((Integer)colPrec.getValue());
         SQLColumn.setDefaultScale((Integer)colScale.getValue());
