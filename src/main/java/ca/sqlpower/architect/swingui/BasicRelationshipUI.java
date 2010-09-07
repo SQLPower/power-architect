@@ -1545,8 +1545,19 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
 	}
 	
 	public Point getPointForModelObject(Object modelObject) {
+	    // Combine the two halves of the bitmask.
+	    final int sidesUsed = relationship.getOrientation() / (PARENT_MASK + 1) +
+	        relationship.getOrientation() % (PARENT_MASK + 1);
 	    Dimension preferredSize = getPreferredSize();
-	    return new Point(relationship.getLocation().x + (preferredSize.width / 2), 
-	            relationship.getLocation().y + (preferredSize.height / 2));
+	    if (sidesUsed == PARENT_FACES_TOP + PARENT_FACES_BOTTOM ||
+	            sidesUsed == PARENT_FACES_LEFT + PARENT_FACES_RIGHT) {
+	        // Zero or two bends: center on the relationship line.
+	        return new Point(relationship.getLocation().x + (preferredSize.width /2) + 8, 
+                relationship.getLocation().y + (preferredSize.height /2) - 4);
+	    } else {
+	        // One bend: choose corner positions based on the bitmask.
+	        return new Point(relationship.getLocation().x + (sidesUsed%2 == 1 ? preferredSize.width-25 : 44),
+	                relationship.getLocation().y + (sidesUsed >= PARENT_FACES_TOP ? 24 : preferredSize.height-32));
+	    }
 	}
 }
