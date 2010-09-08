@@ -102,7 +102,31 @@ public class ServerProjectsManagerPanel {
                     }
 
                     try {
+                        ArchitectFrame frame = session.getArchitectFrame();
+                        
+                        JLabel messageLabel = new JLabel("Creating New Project");
+                        JProgressBar progressBar = new JProgressBar();
+                        progressBar.setIndeterminate(true);
+                        
+                        final JDialog dialog = new JDialog(frame, "Creating New Project");
+                        
+                        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
+                        builder.setDefaultDialogBorder();
+                        builder.append(messageLabel, 3);
+                        builder.nextLine();
+                        builder.append(progressBar, 3);
+                        dialog.add(builder.getPanel());
+                        
+                        dialog.setSize(new Dimension(300,90));
+                        dialog.setLocation(frame.getX() + (frame.getWidth() - dialog.getWidth())/2, 
+                                           frame.getY() + (frame.getHeight() - dialog.getHeight())/2);
+                        dialog.setAlwaysOnTop(true);
+                        dialog.setVisible(true);
+                        
                         ArchitectClientSideSession.createNewServerSession(getSelectedServerInfo(), name, session);
+ 
+                        dialog.dispose();
+                        
                     } catch (Exception ex) {
                         throw new RuntimeException("Unable to create new project", ex);
                     }
