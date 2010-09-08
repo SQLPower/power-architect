@@ -33,7 +33,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
-import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;

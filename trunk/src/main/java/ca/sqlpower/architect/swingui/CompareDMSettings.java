@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.LiquibaseSettings;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 
 public class CompareDMSettings {

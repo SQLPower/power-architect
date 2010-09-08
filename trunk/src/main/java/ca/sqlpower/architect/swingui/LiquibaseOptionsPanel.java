@@ -28,6 +28,7 @@ import javax.swing.SpinnerNumberModel;
 
 import net.miginfocom.swing.MigLayout;
 import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
+import ca.sqlpower.architect.ddl.LiquibaseSettings;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
