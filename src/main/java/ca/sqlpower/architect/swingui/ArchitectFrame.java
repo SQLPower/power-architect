@@ -625,6 +625,7 @@ public class ArchitectFrame extends JFrame {
         currentSession = session;
         
         UserSettings sprefs = context.getUserSettings().getSwingSettings();
+        DefaultColumnUserSettings.setColumnDefaults();
         int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         
         // Create actions

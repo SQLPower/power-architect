@@ -19,11 +19,18 @@
 
 package ca.sqlpower.architect.swingui;
 
+import java.util.prefs.Preferences;
+
 import ca.sqlpower.architect.AbstractUserSetting;
+import ca.sqlpower.architect.ArchitectSessionContextImpl;
+import ca.sqlpower.sqlobject.SQLColumn;
+import java.sql.Types;
 
 public class DefaultColumnUserSettings extends AbstractUserSetting {
     
     // ----------PROPERTY LIST KEYS-------------
+    
+    private static final Preferences prefs = Preferences.userNodeForPackage(ArchitectSessionContextImpl.class);
     
     public static final String DEFAULT_COLUMN_NAME = "DefaultColumnUserSettings.DEFAULT_COLUMN_NAME";
     
@@ -48,5 +55,17 @@ public class DefaultColumnUserSettings extends AbstractUserSetting {
     public DefaultColumnUserSettings() {
         super();
     }
-
+    
+    public static void setColumnDefaults()
+    {
+        SQLColumn.setDefaultName(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_NAME, "New Column"));
+        SQLColumn.setDefaultType(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_TYPE, Types.VARCHAR));
+        SQLColumn.setDefaultPrec(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_PREC, 10));
+        SQLColumn.setDefaultScale(prefs.getInt(DefaultColumnUserSettings.DEFAULT_COLUMN_SCALE, 0));
+        SQLColumn.setDefaultInPK(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_INPK, false));
+        SQLColumn.setDefaultNullable(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_NULLABLE, false));
+        SQLColumn.setDefaultAutoInc(prefs.getBoolean(DefaultColumnUserSettings.DEFAULT_COLUMN_AUTOINC, false));
+        SQLColumn.setDefaultRemarks(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_REMARKS, ""));
+        SQLColumn.setDefaultForDefaultValue(prefs.get(DefaultColumnUserSettings.DEFAULT_COLUMN_DEFAULT_VALUE, ""));
+    }
 }
