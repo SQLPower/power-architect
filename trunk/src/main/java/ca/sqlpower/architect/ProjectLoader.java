@@ -44,7 +44,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -153,16 +152,6 @@ public class ProjectLoader {
      * This holds mappings from SQLObject instance to String ID used in saving.
      */
     protected Map<SQLObject, String> sqlObjectSaveIdMap;
-
-    /**
-     * This map maps String ID codes to OLAPObject instances used in loading.
-     */
-    protected Map<String, OLAPObject> olapObjectLoadIdMap;
-
-    /**
-     * This holds mappings from OLAPObject instance to String ID used in saving.
-     */
-    protected Map<OLAPObject, String> olapObjectSaveIdMap;
 
     /**
      * This map maps String ID codes to DBCS instances used in loading.

@@ -124,6 +124,16 @@ public class SwingUIProjectLoader extends ProjectLoader {
     private static final String RELATIONSHIP_STYLE_DIRECT = "direct"; //$NON-NLS-1$
 
     private static final Logger logger = Logger.getLogger(SwingUIProjectLoader.class);
+
+    /**
+     * This map maps String ID codes to OLAPObject instances used in loading.
+     */
+    protected Map<String, OLAPObject> olapObjectLoadIdMap;
+
+    /**
+     * This holds mappings from OLAPObject instance to String ID used in saving.
+     */
+    protected Map<OLAPObject, String> olapObjectSaveIdMap;
     
     /**
      * This holds mappings from OLAPPane instance to String ID used in saving.
