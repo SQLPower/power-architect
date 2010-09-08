@@ -24,9 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
-import ca.sqlpower.architect.enterprise.FormulaMetricCalculation;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.User;
@@ -71,8 +69,7 @@ public class ArchitectProject extends AbstractSPObject {
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
                     DomainCategory.class, SnapshotCollection.class, SQLObjectRoot.class, ProfileManager.class, 
-                    ProjectSettings.class, User.class, Group.class, 
-                    BusinessDefinition.class, FormulaMetricCalculation.class)));
+                    ProjectSettings.class, User.class, Group.class)));
     
     /**
      * There is a 1:1 ratio between the session and the project.
@@ -88,9 +85,6 @@ public class ArchitectProject extends AbstractSPObject {
 
     private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
     
-    // Metadata children
-    private final List<BusinessDefinition> businessDefinitions = new ArrayList<BusinessDefinition>();
-    private final List<FormulaMetricCalculation> formulas = new ArrayList<FormulaMetricCalculation>();
     
     // Metadata property
     private String etlProcessDescription;
@@ -276,10 +270,6 @@ public class ArchitectProject extends AbstractSPObject {
             return removeSQLType((UserDefinedSQLType) child);
         } else if (child instanceof DomainCategory) {
             return removeDomainCategory((DomainCategory) child);
-        } else if (child instanceof BusinessDefinition) {
-            return removeBusinessDefinition((BusinessDefinition) child);
-        } else if (child instanceof FormulaMetricCalculation) {
-            return removeFormulaMetricCalculation((FormulaMetricCalculation) child);
         }
         return false;
     }
@@ -324,26 +314,6 @@ public class ArchitectProject extends AbstractSPObject {
         return removed;
     }
     
-    public boolean removeBusinessDefinition(BusinessDefinition child) {
-        int index = businessDefinitions.indexOf(child);
-        boolean removed = businessDefinitions.remove(child);
-        if (removed) {
-            fireChildRemoved(BusinessDefinition.class, child, index);
-            child.setParent(null);
-        }
-        return removed;
-    }
-    
-    public boolean removeFormulaMetricCalculation(FormulaMetricCalculation child) {
-        int index = formulas.indexOf(child);
-        boolean removed = formulas.remove(child);
-        if (removed) {
-            fireChildRemoved(FormulaMetricCalculation.class, child, index);
-            child.setParent(null);
-        }
-        return removed;
-    }
-    
     @Transient @Accessor
     public ArchitectSession getSession() throws SessionNotFoundException {
         if (session != null) {
@@ -383,8 +353,6 @@ public class ArchitectProject extends AbstractSPObject {
         allChildren.add(projectSettings);
         allChildren.addAll(users);
         allChildren.addAll(groups);
-        allChildren.addAll(businessDefinitions);
-        allChildren.addAll(formulas);
         return Collections.unmodifiableList(allChildren);
     }
     
@@ -412,27 +380,13 @@ public class ArchitectProject extends AbstractSPObject {
             addSQLType((UserDefinedSQLType) child, index);
         } else if (child instanceof DomainCategory) {
             addDomainCategory((DomainCategory) child, index);
-        } else if (child instanceof BusinessDefinition) {
-            addBusinessDefinition((BusinessDefinition) child, index);
-        } else if (child instanceof FormulaMetricCalculation) {
-            addFormulaMetricCalculation((FormulaMetricCalculation) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
         }
     }
     
-    public void addBusinessDefinition(BusinessDefinition businessDefinition, int index) {
-        businessDefinitions.add(index, businessDefinition);
-        businessDefinition.setParent(this);
-        fireChildAdded(BusinessDefinition.class, businessDefinition, index);
-    }
-
-    public void addFormulaMetricCalculation(FormulaMetricCalculation formula, int index) {
-        formulas.add(index, formula);
-        formula.setParent(this);
-        fireChildAdded(FormulaMetricCalculation.class, formula, index);
-    }
+    
 
     public void addSQLType(UserDefinedSQLType sqlType, int index) {
         sqlTypes.add(index, sqlType);
@@ -448,16 +402,6 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<DomainCategory> getDomainCategories() {
         return Collections.unmodifiableList(domainCategories); 
-    }
-    
-    @NonProperty
-    protected List<BusinessDefinition> getBusinessDefinitions() {
-        return Collections.unmodifiableList(businessDefinitions);
-    }
-    
-    @NonProperty
-    protected List<FormulaMetricCalculation> getFormulas() {
-        return Collections.unmodifiableList(formulas);
     }
     
     public void addUser(User user, int index) {
