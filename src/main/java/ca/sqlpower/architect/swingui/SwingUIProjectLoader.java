@@ -51,6 +51,7 @@ import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.UnclosableInputStream;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.LiquibaseSettings;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.CriticGrouping;
 import ca.sqlpower.architect.ddl.critic.CriticManager;

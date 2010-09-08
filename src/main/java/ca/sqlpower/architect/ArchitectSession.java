@@ -22,8 +22,8 @@ import java.sql.Types;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.LiquibaseSettings;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.swingui.LiquibaseSettings;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
