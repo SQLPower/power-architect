@@ -65,10 +65,7 @@ public class ArchitectCoreDependencyTest extends TestCase {
                     if (javaFile.getName().equals("CoreUserSettings.java") && 
                             line.equals("import ca.sqlpower.architect.swingui.QFAUserSettings;")) continue;
                     
-
-                    assertFalse("File " + javaFile + " contains swing components! " + line, 
-                            line.trim().startsWith("import") &&  
-                            line.contains("ca.sqlpower.architect.swingui"));
+                    invalidImports(javaFile, line);
                     if (line.startsWith("public class")) break;
                     System.out.println(line);
                 } finally {
@@ -97,9 +94,7 @@ public class ArchitectCoreDependencyTest extends TestCase {
             String line = reader.readLine();
             while (line != null) {
                 try {
-                    assertFalse("File " + javaFile + " contains swing components! " + line, 
-                            line.trim().startsWith("import") &&  
-                            line.contains("ca.sqlpower.architect.swingui"));
+                    invalidImports(javaFile, line);
                     if (line.startsWith("public class")) break;
                     System.out.println(line);
                 } finally {
@@ -134,10 +129,7 @@ public class ArchitectCoreDependencyTest extends TestCase {
                     if (javaFile.getName().equals("ObjectPropertyModificationDDLComponent.java") && 
                             line.equals("import ca.sqlpower.architect.swingui.Messages;")) continue;
                     
-                    assertFalse("File " + javaFile + " contains swing components! " + line, 
-                            line.trim().startsWith("import") &&  
-                            line.contains("ca.sqlpower.architect.swingui"));
-                    if (line.startsWith("public class")) break;
+                    invalidImports(javaFile, line);
                     System.out.println(line);
                 } finally {
                     line = reader.readLine();
@@ -165,9 +157,7 @@ public class ArchitectCoreDependencyTest extends TestCase {
             String line = reader.readLine();
             while (line != null) {
                 try {
-                    assertFalse("File " + javaFile + " contains swing components! " + line, 
-                            line.trim().startsWith("import") &&  
-                            line.contains("ca.sqlpower.architect.swingui"));
+                    invalidImports(javaFile, line);
                     if (line.startsWith("public class")) break;
                     System.out.println(line);
                 } finally {
@@ -176,5 +166,22 @@ public class ArchitectCoreDependencyTest extends TestCase {
             }
         }
     }
-    
+
+    /**
+     * This tests for all imports in the architect library that should not be in there.
+     * @param javaFile the java file containing the error
+     * @param line the line of the error
+     */
+    private void invalidImports(File javaFile, String line)
+    {
+        if((line.trim().startsWith("import") && (line.contains("ca.sqlpower.architect.swingui")))) {
+            System.out.println("File " + javaFile + " contains swing components! \n\t" + line);
+        }
+        if((line.trim().startsWith("import") && (line.contains("ca.sqlpower.architect.enterprise")))) {
+            System.out.println("File " + javaFile + " contains enterprise components! \n\t" + line);
+        }
+        if((line.trim().startsWith("import") && (line.contains("ca.sqlpower.architect.olap")))) {
+            System.out.println("File " + javaFile + " contains olap components! \n\t" + line);
+        }
+    }
 }
