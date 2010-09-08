@@ -32,11 +32,12 @@ import java.util.concurrent.Future;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectProject;
-import ca.sqlpower.architect.enterprise.ArchitectPersisterSuperConverter;
-import ca.sqlpower.architect.enterprise.ArchitectSessionPersister;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+import ca.sqlpower.dao.PersistedSPObject;
 import ca.sqlpower.dao.SPPersisterListener;
+import ca.sqlpower.dao.SPSessionPersister;
+import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
@@ -251,10 +252,15 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
                     DataSourceCollection<SPDataSource> dsCollection = new PlDotIni();
                     
                     SPObject root = actualTPR.getWorkspaceContainer().getWorkspace();
-                    ArchitectPersisterSuperConverter converter = 
-                        new ArchitectPersisterSuperConverter(dsCollection, root);
-                    ArchitectSessionPersister persister = 
-                        new ArchitectSessionPersister("Profiling persister", root, converter);
+                    SessionPersisterSuperConverter converter = 
+                        new SessionPersisterSuperConverter(dsCollection, root);
+                    SPSessionPersister persister = 
+                        new SPSessionPersister("Profiling persister", root, converter) {
+                            @Override
+                            protected void refreshRootNode(PersistedSPObject pso) {
+                                //do nothing, this is not needed for the profiling update.
+                            }
+                    };
                     persister.setWorkspaceContainer(actualTPR.getWorkspaceContainer());
                     SPPersisterListener eventCreator = new SPPersisterListener(persister, converter);
                     eventCreator.persistObject(tpr, 
