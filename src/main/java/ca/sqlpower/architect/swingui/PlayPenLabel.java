@@ -91,7 +91,7 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
             if (isSelected()) {
                 g2.setColor(ColourScheme.SQLPOWER_ORANGE);
             } else {
-                g2.setColor(Color.BLACK);
+                g2.setColor(label.getBorderColour());
             }
             g2.drawRect(0, 0, getWidth(), getHeight());
             g2.translate(insets.left, insets.top);
@@ -101,6 +101,12 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
             g2.setFont(getPlayPen().getFont());
             FontMetrics fm = g2.getFontMetrics();
             int textHeight = fm.getHeight() * textToRender.length;
+            
+            if (label.getForegroundColour() == null) {
+                g2.setColor(Color.BLACK);
+            } else {
+                g2.setColor(label.getForegroundColour());
+            }
             
             double y = label.getVerticalAlignment().calculateStartY(getHeight(), textHeight, fm);
             for (String text : textToRender) {
@@ -223,5 +229,7 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
     public SPLabel getLabel() {
         return label;
     }
+    
+    
 
 }
