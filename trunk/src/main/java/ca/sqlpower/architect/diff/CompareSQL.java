@@ -30,7 +30,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.enterprise.ArchitectPersisterSuperConverter;
 import ca.sqlpower.dao.PersisterUtils;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.diff.DiffChunk;
@@ -805,7 +804,7 @@ public class CompareSQL implements Monitorable {
 	    
 
 	    try {
-	        SessionPersisterSuperConverter converter = new ArchitectPersisterSuperConverter(null, sourceObject);
+	        SessionPersisterSuperConverter converter = new SessionPersisterSuperConverter(null, sourceObject);
 	        Map<String, Object> sourceProperties = PersisterUtils.getInterestingProperties(sourceObject, converter);
 	        converter = new SessionPersisterSuperConverter(null, targetObject);
 	        Map<String, Object> targetProperties = PersisterUtils.getInterestingProperties(targetObject, converter);
