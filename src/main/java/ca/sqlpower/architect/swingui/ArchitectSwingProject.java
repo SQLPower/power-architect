@@ -88,6 +88,10 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     
     private final List<PlayPenContentPane> olapContentPaneList = new ArrayList<PlayPenContentPane>();
     
+    // Metadata children
+    private final List<BusinessDefinition> businessDefinitions = new ArrayList<BusinessDefinition>();
+    private final List<FormulaMetricCalculation> formulas = new ArrayList<FormulaMetricCalculation>();
+    
     /**
      * The OLAP content panes (one for each OLAPSession)
      */
@@ -143,6 +147,10 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     protected boolean removeChildImpl(SPObject child) {
         if (child instanceof PlayPenContentPane) {
             return removeOLAPContentPane((PlayPenContentPane) child);
+        }else if (child instanceof BusinessDefinition) {
+            return removeBusinessDefinition((BusinessDefinition) child);
+        } else if (child instanceof FormulaMetricCalculation) {
+            return removeFormulaMetricCalculation((FormulaMetricCalculation) child);
         } else {
             return super.removeChildImpl(child);
         }
@@ -215,6 +223,10 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             } else {
                 addOLAPContentPane(pane);
             }
+        } else if (child instanceof BusinessDefinition) {
+            addBusinessDefinition((BusinessDefinition) child, index);
+        } else if (child instanceof FormulaMetricCalculation) {
+            addFormulaMetricCalculation((FormulaMetricCalculation) child, index);
         } else {
             super.addChildImpl(child, index);
         }
@@ -310,5 +322,47 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     @NonProperty
     public CriticManager getCriticManager() {
         return criticManager;
+    }
+
+    @NonProperty
+    protected List<BusinessDefinition> getBusinessDefinitions() {
+        return Collections.unmodifiableList(businessDefinitions);
+    }
+    
+    @NonProperty
+    protected List<FormulaMetricCalculation> getFormulas() {
+        return Collections.unmodifiableList(formulas);
+    }
+    
+    public void addBusinessDefinition(BusinessDefinition businessDefinition, int index) {
+        businessDefinitions.add(index, businessDefinition);
+        businessDefinition.setParent(this);
+        fireChildAdded(BusinessDefinition.class, businessDefinition, index);
+    }
+
+    public void addFormulaMetricCalculation(FormulaMetricCalculation formula, int index) {
+        formulas.add(index, formula);
+        formula.setParent(this);
+        fireChildAdded(FormulaMetricCalculation.class, formula, index);
+    }
+    
+    public boolean removeBusinessDefinition(BusinessDefinition child) {
+        int index = businessDefinitions.indexOf(child);
+        boolean removed = businessDefinitions.remove(child);
+        if (removed) {
+            fireChildRemoved(BusinessDefinition.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    public boolean removeFormulaMetricCalculation(FormulaMetricCalculation child) {
+        int index = formulas.indexOf(child);
+        boolean removed = formulas.remove(child);
+        if (removed) {
+            fireChildRemoved(FormulaMetricCalculation.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
     }
 }
