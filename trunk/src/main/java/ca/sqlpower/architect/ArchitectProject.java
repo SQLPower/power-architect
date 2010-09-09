@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.User;
@@ -68,7 +67,7 @@ public class ArchitectProject extends AbstractSPObject {
     @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
-                    DomainCategory.class, SnapshotCollection.class, SQLObjectRoot.class, ProfileManager.class, 
+                    SQLObjectRoot.class, ProfileManager.class, 
                     ProjectSettings.class, User.class, Group.class)));
     
     /**
@@ -82,17 +81,10 @@ public class ArchitectProject extends AbstractSPObject {
     private List<User> users = new ArrayList<User>();
     private List<Group> groups = new ArrayList<Group>();
     private final List<UserDefinedSQLType> sqlTypes = new ArrayList<UserDefinedSQLType>();
-
-    private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
     
     
     // Metadata property
     private String etlProcessDescription;
-    
-    /**
-     * A collection of all of the snapshots in this project.
-     */
-    private final SnapshotCollection snapshotCollection;
     
     /**
      * The current integrity watcher on the project.
@@ -109,7 +101,7 @@ public class ArchitectProject extends AbstractSPObject {
      * @throws SQLObjectException
      */
     public ArchitectProject() throws SQLObjectException {
-        this(new SQLObjectRoot(), null, new SnapshotCollection());
+        this(new SQLObjectRoot(), null);
         SQLDatabase targetDatabase = new SQLDatabase();
         targetDatabase.setPlayPenDatabase(true);
         rootObject.addChild(targetDatabase, 0);
@@ -130,7 +122,7 @@ public class ArchitectProject extends AbstractSPObject {
      *            current project.
      */
     public ArchitectProject(SQLObjectRoot root) throws SQLObjectException {
-        this(root, null, new SnapshotCollection());
+        this(root, null);
     }
 
     /**
@@ -153,13 +145,10 @@ public class ArchitectProject extends AbstractSPObject {
     @Constructor
     public ArchitectProject(
             @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="rootObject") SQLObjectRoot rootObject,
-            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager,
-            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="snapshotCollection") SnapshotCollection snapshotCollection) 
+            @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="profileManager") ProfileManager profileManager) 
             throws SQLObjectException {
         this.rootObject = rootObject;
         rootObject.setParent(this);
-        this.snapshotCollection = snapshotCollection;
-        snapshotCollection.setParent(this);
         projectSettings = new ProjectSettings();
         projectSettings.setParent(this);
         if (profileManager != null) {
@@ -268,8 +257,6 @@ public class ArchitectProject extends AbstractSPObject {
             return removeGroup((Group) child);
         } else if (child instanceof UserDefinedSQLType) {
             return removeSQLType((UserDefinedSQLType) child);
-        } else if (child instanceof DomainCategory) {
-            return removeDomainCategory((DomainCategory) child);
         }
         return false;
     }
@@ -299,16 +286,6 @@ public class ArchitectProject extends AbstractSPObject {
         boolean removed = sqlTypes.remove(child);
         if (removed) {
             fireChildRemoved(UserDefinedSQLType.class, child, index);
-            child.setParent(null);
-        }
-        return removed;
-    }
-    
-    public boolean removeDomainCategory(DomainCategory child) {
-        int index = domainCategories.indexOf(child);
-        boolean removed = domainCategories.remove(child);
-        if (removed) {
-            fireChildRemoved(DomainCategory.class, child, index);
             child.setParent(null);
         }
         return removed;
@@ -344,8 +321,6 @@ public class ArchitectProject extends AbstractSPObject {
         List<SPObject> allChildren = new ArrayList<SPObject>();
         // When changing this, ensure you maintain the order specified by allowedChildTypes
         allChildren.addAll(sqlTypes);
-        allChildren.addAll(domainCategories);
-        allChildren.add(snapshotCollection);
         allChildren.add(rootObject);
         if (profileManager != null) {
             allChildren.add(profileManager);
@@ -378,8 +353,6 @@ public class ArchitectProject extends AbstractSPObject {
             addGroup((Group) child, index);
         } else if (child instanceof UserDefinedSQLType) {
             addSQLType((UserDefinedSQLType) child, index);
-        } else if (child instanceof DomainCategory) {
-            addDomainCategory((DomainCategory) child, index);
         } else {
             throw new IllegalArgumentException("Cannot add child of type " + 
                     child.getClass() + " to the project once it has been created.");
@@ -397,11 +370,6 @@ public class ArchitectProject extends AbstractSPObject {
     @NonProperty
     public List<UserDefinedSQLType> getSqlTypes() {
         return Collections.unmodifiableList(sqlTypes);
-    }
-    
-    @NonProperty
-    public List<DomainCategory> getDomainCategories() {
-        return Collections.unmodifiableList(domainCategories); 
     }
     
     public void addUser(User user, int index) {
@@ -440,12 +408,6 @@ public class ArchitectProject extends AbstractSPObject {
         return projectSettings;
     }
     
-    public void addDomainCategory(DomainCategory domainCategory, int index) {
-        domainCategories.add(index, domainCategory);
-        domainCategory.setParent(this);
-        fireChildAdded(DomainCategory.class, domainCategory, index);
-    }
-    
     @Accessor(isInteresting=true)
     public String getEtlProcessDescription() {
         return etlProcessDescription;
@@ -456,11 +418,6 @@ public class ArchitectProject extends AbstractSPObject {
         String oldDescription = this.etlProcessDescription;
         this.etlProcessDescription = etlProcessDescription;
         firePropertyChange("etlProcessDescription", oldDescription, etlProcessDescription);
-    }
-
-    @NonProperty
-    public SnapshotCollection getSnapshotCollection() {
-        return snapshotCollection;
     }
     
 }
