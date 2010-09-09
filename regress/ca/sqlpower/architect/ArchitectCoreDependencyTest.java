@@ -23,6 +23,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -36,11 +38,37 @@ import junit.framework.TestCase;
  */
 public class ArchitectCoreDependencyTest extends TestCase {
 
+    private List<TestBeans> tests;
+    
+    /**
+     * This class holds any failed test info. It allows us to find all the errors in an area before 
+     * the assert and so we can fix them all at once.
+     */
+    private class TestBeans {
+        private final String wrongComponent;
+        private final String fileName;
+        private final String line;
+        public TestBeans(String wrongComponent, String fileName, String line) {
+            this.wrongComponent = wrongComponent;
+            this.fileName = fileName;
+            this.line = line;
+        }
+        public String getWrongComponent() {
+            return wrongComponent;
+        }
+        public String getFileName() {
+            return fileName;
+        }
+        public String getLine() {
+            return line;
+        }
+    }
     /**
      * This test will fail if any .java file in the architect core directory
      * imports a swing class.
      */
     public void testCoreDependencies() throws Exception {
+        tests = new ArrayList<TestBeans>();
         File testingDirectory = new File("src/main/java/ca/sqlpower/architect");
         File[] javaFiles = testingDirectory.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
@@ -50,7 +78,6 @@ public class ArchitectCoreDependencyTest extends TestCase {
         });
         
         for (File javaFile : javaFiles) {
-            System.out.println(javaFile);
             BufferedReader reader = new BufferedReader(new FileReader(javaFile));
             String line = reader.readLine();
             while (line != null) {
@@ -65,13 +92,21 @@ public class ArchitectCoreDependencyTest extends TestCase {
                     if (javaFile.getName().equals("CoreUserSettings.java") && 
                             line.equals("import ca.sqlpower.architect.swingui.QFAUserSettings;")) continue;
                     
-                    invalidImports(javaFile, line);
+                    TestBeans t = invalidImports(javaFile, line);
+                    if(t != null) tests.add(t);
                     if (line.startsWith("public class")) break;
-                    System.out.println(line);
                 } finally {
                     line = reader.readLine();
                 }
             }
+            if(!tests.isEmpty()) {
+                System.out.println("CORE TESTS");
+                for(TestBeans t : tests) {
+                    System.out.println("File " + t.getFileName() + " contains " +
+                            t.getWrongComponent() + " components!\n" + t.getLine());
+                }
+            }
+            assertTrue("You have bad imports :O",tests.isEmpty());
         }
     }
     
@@ -80,6 +115,7 @@ public class ArchitectCoreDependencyTest extends TestCase {
      * imports a swing class.
      */
     public void testProfileDependencies() throws Exception {
+        tests = new ArrayList<TestBeans>();
         File testingDirectory = new File("src/main/java/ca/sqlpower/architect/profile");
         File[] javaFiles = testingDirectory.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
@@ -89,18 +125,25 @@ public class ArchitectCoreDependencyTest extends TestCase {
         });
         
         for (File javaFile : javaFiles) {
-            System.out.println(javaFile);
             BufferedReader reader = new BufferedReader(new FileReader(javaFile));
             String line = reader.readLine();
             while (line != null) {
                 try {
-                    invalidImports(javaFile, line);
+                    TestBeans t = invalidImports(javaFile, line);
+                    if (t != null) tests.add(t);
                     if (line.startsWith("public class")) break;
-                    System.out.println(line);
                 } finally {
                     line = reader.readLine();
                 }
             }
+            if(!tests.isEmpty()) {
+                System.out.println("PROFILE TESTS");
+                for(TestBeans t : tests) {
+                    System.out.println("File " + t.getFileName() + " contains " +
+                            t.getWrongComponent() + " components!\n" + t.getLine());
+                }
+            }
+            assertTrue(tests.isEmpty());
         }
     }
     
@@ -109,6 +152,7 @@ public class ArchitectCoreDependencyTest extends TestCase {
      * imports a swing class.
      */
     public void testDDLDependencies() throws Exception {
+        tests = new ArrayList<TestBeans>();
         File testingDirectory = new File("src/main/java/ca/sqlpower/architect/ddl");
         File[] javaFiles = testingDirectory.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
@@ -118,7 +162,6 @@ public class ArchitectCoreDependencyTest extends TestCase {
         });
         
         for (File javaFile : javaFiles) {
-            System.out.println(javaFile);
             BufferedReader reader = new BufferedReader(new FileReader(javaFile));
             String line = reader.readLine();
             while (line != null) {
@@ -129,12 +172,20 @@ public class ArchitectCoreDependencyTest extends TestCase {
                     if (javaFile.getName().equals("ObjectPropertyModificationDDLComponent.java") && 
                             line.equals("import ca.sqlpower.architect.swingui.Messages;")) continue;
                     
-                    invalidImports(javaFile, line);
-                    System.out.println(line);
+                    TestBeans t = invalidImports(javaFile, line);
+                    if (t != null) tests.add(t);
                 } finally {
                     line = reader.readLine();
                 }
             }
+            if(!tests.isEmpty()) {
+                System.out.println("DDL TESTS");
+                for(TestBeans t : tests) {
+                    System.out.println("File " + t.getFileName() + " contains " +
+                            t.getWrongComponent() + " components!\n" + t.getLine());
+                }
+            }
+            assertTrue(tests.isEmpty());
         }
     }
 
@@ -143,6 +194,7 @@ public class ArchitectCoreDependencyTest extends TestCase {
      * imports a swing class.
      */
     public void testDiffDependencies() throws Exception {
+        tests = new ArrayList<TestBeans>();
         File testingDirectory = new File("src/main/java/ca/sqlpower/architect/diff");
         File[] javaFiles = testingDirectory.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
@@ -152,36 +204,45 @@ public class ArchitectCoreDependencyTest extends TestCase {
         });
         
         for (File javaFile : javaFiles) {
-            System.out.println(javaFile);
             BufferedReader reader = new BufferedReader(new FileReader(javaFile));
             String line = reader.readLine();
             while (line != null) {
                 try {
-                    invalidImports(javaFile, line);
+                    TestBeans t = invalidImports(javaFile, line);
+                    if (t != null) tests.add(t);
                     if (line.startsWith("public class")) break;
-                    System.out.println(line);
                 } finally {
                     line = reader.readLine();
                 }
             }
+            if(!tests.isEmpty()) {
+                System.out.println("DIFF TESTS");
+                for(TestBeans t : tests) {
+                    System.out.println("File " + t.getFileName() + " contains " +
+                            t.getWrongComponent() + " components!\n" + t.getLine());
+                }
+            }
+            assertTrue(tests.isEmpty());
         }
     }
 
     /**
-     * This tests for all imports in the architect library that should not be in there.
+     * This tests for all imports in the architect library that should not be in there,
+     * and if there is a problem, we add the returned testBeans to a list of errors.
      * @param javaFile the java file containing the error
      * @param line the line of the error
      */
-    private void invalidImports(File javaFile, String line)
+    private TestBeans invalidImports(File javaFile, String line)
     {
         if((line.trim().startsWith("import") && (line.contains("ca.sqlpower.architect.swingui")))) {
-            System.out.println("File " + javaFile + " contains swing components! \n\t" + line);
+            return new TestBeans("swing", javaFile.getName(), line);
         }
         if((line.trim().startsWith("import") && (line.contains("ca.sqlpower.architect.enterprise")))) {
-            System.out.println("File " + javaFile + " contains enterprise components! \n\t" + line);
+            return new TestBeans("enterprise", javaFile.getName(), line);
         }
         if((line.trim().startsWith("import") && (line.contains("ca.sqlpower.architect.olap")))) {
-            System.out.println("File " + javaFile + " contains olap components! \n\t" + line);
+            return new TestBeans("olap", javaFile.getName(), line);
         }
+        return null;
     }
 }
