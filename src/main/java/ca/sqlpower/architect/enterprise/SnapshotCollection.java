@@ -17,14 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect;
+package ca.sqlpower.architect.enterprise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectSnapshot;
@@ -173,14 +172,14 @@ public class SnapshotCollection extends AbstractSPObject {
         return removed;
     }
     
-    protected void addSPObjectSnapshot(SPObjectSnapshot<?> child, int index) {
+    public void addSPObjectSnapshot(SPObjectSnapshot<?> child, int index) {
         spobjectSnapshots.add(index, child);
         child.setParent(this);
         fireChildAdded(SPObjectSnapshot.class, child, index);        
     }
     
     @NonProperty
-    protected List<SPObjectSnapshot<?>> getSPObjectSnapshots() {
+    public List<SPObjectSnapshot<?>> getSPObjectSnapshots() {
         return Collections.unmodifiableList(spobjectSnapshots); 
     }
 }

@@ -28,11 +28,11 @@ import java.util.Map;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ProjectSettings;
-import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.enterprise.FormulaMetricCalculation;
+import ca.sqlpower.architect.enterprise.SnapshotCollection;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -91,6 +91,13 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     // Metadata children
     private final List<BusinessDefinition> businessDefinitions = new ArrayList<BusinessDefinition>();
     private final List<FormulaMetricCalculation> formulas = new ArrayList<FormulaMetricCalculation>();
+
+    private final List<DomainCategory> domainCategories = new ArrayList<DomainCategory>();
+    
+    /**
+     * A collection of all of the snapshots in this project.
+     */
+    private final SnapshotCollection snapshotCollection;
     
     /**
      * The OLAP content panes (one for each OLAPSession)
@@ -109,6 +116,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
     public ArchitectSwingProject() throws SQLObjectException {
         //must call super with no args to create the target database as required.
         super();
+        this.snapshotCollection = new SnapshotCollection();
+        snapshotCollection.setParent(this);
         this.olapRootObject = new OLAPRootObject();
         olapRootObject.setParent(this);
         this.kettleSettings = new KettleSettings();
@@ -132,7 +141,9 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="criticManager") CriticManager criticManager,
             @ConstructorParameter(parameterType=ParameterType.CHILD, propertyName="snapshotCollection") SnapshotCollection snapshotCollection
             ) throws SQLObjectException {
-        super(rootObject, profileManager, snapshotCollection);
+        super(rootObject, profileManager);
+        this.snapshotCollection = new SnapshotCollection();
+        snapshotCollection.setParent(this);
         this.olapRootObject = olapRootObject;
         olapRootObject.setParent(this);
         this.kettleSettings = kettleSettings;
@@ -151,6 +162,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             return removeBusinessDefinition((BusinessDefinition) child);
         } else if (child instanceof FormulaMetricCalculation) {
             return removeFormulaMetricCalculation((FormulaMetricCalculation) child);
+        } else if (child instanceof DomainCategory) {
+            return removeDomainCategory((DomainCategory) child);
         } else {
             return super.removeChildImpl(child);
         }
@@ -227,6 +240,8 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             addBusinessDefinition((BusinessDefinition) child, index);
         } else if (child instanceof FormulaMetricCalculation) {
             addFormulaMetricCalculation((FormulaMetricCalculation) child, index);
+        } else if (child instanceof DomainCategory) {
+            addDomainCategory((DomainCategory) child, index);
         } else {
             super.addChildImpl(child, index);
         }
@@ -364,5 +379,31 @@ public class ArchitectSwingProject extends ArchitectProject implements MappedSPT
             child.setParent(null);
         }
         return removed;
+    }
+    
+    public boolean removeDomainCategory(DomainCategory child) {
+        int index = domainCategories.indexOf(child);
+        boolean removed = domainCategories.remove(child);
+        if (removed) {
+            fireChildRemoved(DomainCategory.class, child, index);
+            child.setParent(null);
+        }
+        return removed;
+    }
+    
+    @NonProperty
+    public List<DomainCategory> getDomainCategories() {
+        return Collections.unmodifiableList(domainCategories); 
+    }
+    
+    public void addDomainCategory(DomainCategory domainCategory, int index) {
+        domainCategories.add(index, domainCategory);
+        domainCategory.setParent(this);
+        fireChildAdded(DomainCategory.class, domainCategory, index);
+    }
+
+    @NonProperty
+    public SnapshotCollection getSnapshotCollection() {
+        return snapshotCollection;
     }
 }

@@ -22,7 +22,7 @@ package ca.sqlpower.architect.util;
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ProjectSettings;
-import ca.sqlpower.architect.SnapshotCollection;
+import ca.sqlpower.architect.enterprise.SnapshotCollection;
 import ca.sqlpower.architect.ProjectSettings.ColumnVisibility;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings.Severity;

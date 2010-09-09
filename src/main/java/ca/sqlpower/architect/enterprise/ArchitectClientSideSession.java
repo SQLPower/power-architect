@@ -60,8 +60,6 @@ import org.springframework.security.AccessDeniedException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionImpl;
-import ca.sqlpower.architect.SPObjectSnapshotHierarchyListener;
-import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;

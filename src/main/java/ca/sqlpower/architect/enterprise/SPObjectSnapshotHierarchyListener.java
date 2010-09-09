@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect;
+package ca.sqlpower.architect.enterprise;
 
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
@@ -27,9 +27,6 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.architect.enterprise.DomainCategory;
-import ca.sqlpower.architect.enterprise.DomainCategorySnapshot;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPObject;
