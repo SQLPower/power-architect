@@ -28,11 +28,11 @@ import java.util.Map;
 
 import ca.sqlpower.architect.ArchitectProject;
 import ca.sqlpower.architect.ProjectSettings;
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.enterprise.BusinessDefinition;
 import ca.sqlpower.architect.enterprise.DomainCategory;
 import ca.sqlpower.architect.enterprise.FormulaMetricCalculation;
-import ca.sqlpower.architect.enterprise.SnapshotCollection;
 import ca.sqlpower.architect.etl.kettle.KettleSettings;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;

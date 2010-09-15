@@ -515,10 +515,12 @@
     </target>
 
 	<!-- This target is used to make an architect library jar to embed
-	in other applications -->
+	in other applications. The DomainCategory.class is there to satisfy a dependency
+	in SnapshotCollection.class -->
 	<target name="library.jar" depends="compile">
 		<jar jarfile="dist/architect-core-${app.version}.jar" basedir="${build}"
 			includes="ca/sqlpower/architect/*.class,
+			            ca/sqlpower/architect/enterprise/DomainCategory.class,
 						ca/sqlpower/architect/ddl/*.class,
 						ca/sqlpower/architect/diff/*.class,
 						ca/sqlpower/architect/profile/**/*.class,
