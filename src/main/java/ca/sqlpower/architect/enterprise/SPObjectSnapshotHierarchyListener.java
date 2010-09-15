@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPObject;

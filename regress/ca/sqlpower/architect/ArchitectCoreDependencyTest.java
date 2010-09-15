@@ -91,6 +91,8 @@ public class ArchitectCoreDependencyTest extends TestCase {
                             line.equals("import ca.sqlpower.architect.swingui.ArchitectSwingUserSettings;")) continue;
                     if (javaFile.getName().equals("CoreUserSettings.java") && 
                             line.equals("import ca.sqlpower.architect.swingui.QFAUserSettings;")) continue;
+                    if (javaFile.getName().equals("SnapshotCollection.java") && 
+                            line.equals("import ca.sqlpower.architect.enterprise.DomainCategory;")) continue;
                     
                     TestBeans t = invalidImports(javaFile, line);
                     if(t != null) tests.add(t);

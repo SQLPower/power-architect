@@ -42,9 +42,11 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -662,11 +664,21 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	}
 
 	public boolean isLeaf(Object parent) {
-		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren()); //$NON-NLS-1$ //$NON-NLS-2$
+		if (logger.isDebugEnabled()) {
+		    if (parent instanceof AbstractSPObject) {
+		        logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((AbstractSPObject) parent).allowsChildren()); //$NON-NLS-1$ //$NON-NLS-2$
+		    }
+		    else {
+		        logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren()); //$NON-NLS-1$ //$NON-NLS-2$
+		    }
+		}
 		if (parent instanceof FolderNode) {
 		    return false;
 		} else if (parent instanceof SQLColumn) {
 		    return true;
+		}
+		if (parent instanceof SnapshotCollection) {
+		   return true; 
 		}
 		return !((SPObject) parent).allowsChildren();
 	}

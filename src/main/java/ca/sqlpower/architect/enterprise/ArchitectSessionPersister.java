@@ -22,6 +22,8 @@ package ca.sqlpower.architect.enterprise;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
@@ -36,6 +38,8 @@ import ca.sqlpower.sqlobject.SQLDatabase;
  */
 public class ArchitectSessionPersister extends SPSessionPersister {
 
+    Logger logger = Logger.getLogger(ArchitectSessionPersister.class);
+    
     public ArchitectSessionPersister(String name, SPObject root, SessionPersisterSuperConverter converter) {
         super(name, root, converter);
     }

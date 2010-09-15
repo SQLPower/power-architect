@@ -19,6 +19,8 @@
 
 package ca.sqlpower.architect.enterprise;
 
+import java.util.List;
+
 import ca.sqlpower.dao.session.SPObjectConverter;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
@@ -52,8 +54,9 @@ public class ArchitectPersisterSuperConverter extends SessionPersisterSuperConve
         } else if (SPObject.class.isAssignableFrom(type)) {
             SPObject foundObject = spObjectConverter.convertToComplexType((String) o);
             if (foundObject == null && dsCollection != null) {
-                for (UserDefinedSQLType sqlType : dsCollection.getSQLTypes()) {
-                    if (sqlType.getUUID().equals((String) o)) {
+                List<UserDefinedSQLType> listOfSqlTypes = dsCollection.getSQLTypes();
+                for (UserDefinedSQLType sqlType : listOfSqlTypes) {
+                    if (sqlType != null && sqlType.getUUID().equals((String) o)) {
                         return sqlType;
                     }
                 }
