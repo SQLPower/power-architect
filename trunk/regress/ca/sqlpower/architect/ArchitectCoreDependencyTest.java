@@ -91,6 +91,8 @@ public class ArchitectCoreDependencyTest extends TestCase {
                             line.equals("import ca.sqlpower.architect.swingui.ArchitectSwingUserSettings;")) continue;
                     if (javaFile.getName().equals("CoreUserSettings.java") && 
                             line.equals("import ca.sqlpower.architect.swingui.QFAUserSettings;")) continue;
+                    //This has been added because SnapshotCollection.java imports DomainCategory which is in the enterprise folder.
+                    //This shouldn't be in here, but removing it is quite a pain and so it is a special case.
                     if (javaFile.getName().equals("SnapshotCollection.java") && 
                             line.equals("import ca.sqlpower.architect.enterprise.DomainCategory;")) continue;
                     
