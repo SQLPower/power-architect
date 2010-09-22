@@ -559,17 +559,24 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			        } else if (col.getParent().getParentDatabase() == getModel().getParentDatabase()) {
 			            // moving column within playpen
 
-			            InsertionPointWatcher<SQLTable> ipWatcher =
-			                new InsertionPointWatcher<SQLTable>(getModel(), insertionPoint, SQLColumn.class);
-			            col.getParent().removeColumn(col);
-			            ipWatcher.dispose();
-
-			            if (logger.isDebugEnabled()) {
-			                logger.debug("Moving column '"+col.getName() //$NON-NLS-1$
-			                        +"' to table '"+getModel().getName() //$NON-NLS-1$
-			                        +"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
-			            }
-			            getModel().addColumn(col, newColumnsInPk, ipWatcher.getInsertionPoint());
+    			        try {
+    			            getModel().begin("Moving column " + col.getName() + " to table " + getName());
+    			            InsertionPointWatcher<SQLTable> ipWatcher =
+    			                new InsertionPointWatcher<SQLTable>(getModel(), insertionPoint, SQLColumn.class);
+    			            col.getParent().removeColumn(col);
+    			            ipWatcher.dispose();
+    
+    			            if (logger.isDebugEnabled()) {
+    			                logger.debug("Moving column '"+col.getName() //$NON-NLS-1$
+    			                        +"' to table '"+getModel().getName() //$NON-NLS-1$
+    			                        +"' at position "+ipWatcher.getInsertionPoint()); //$NON-NLS-1$
+    			            }
+    			            getModel().addColumn(col, newColumnsInPk, ipWatcher.getInsertionPoint());
+    			            getModel().commit();
+    			        } catch (RuntimeException e) {
+    			            getModel().rollback(e.getMessage());
+    			            throw e;
+    			        }
 			            // You need to disable the normalization otherwise it goes around
 			            // the property change events and causes undo to fail when dragging
 			            // into the primary key of a table
