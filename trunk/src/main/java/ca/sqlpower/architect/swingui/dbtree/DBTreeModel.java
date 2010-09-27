@@ -21,7 +21,6 @@ package ca.sqlpower.architect.swingui.dbtree;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,6 +41,7 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
@@ -56,6 +56,7 @@ import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
+import ca.sqlpower.swingui.FolderNode;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
 
@@ -66,117 +67,47 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(DBTreeModel.class);
 
-	/**
-	 * A visual node for the tree that groups children of the table together.
-	 */
-	private static class FolderNode extends SQLObject {
+	
+	
+	private static class ArchitectFolder extends FolderNode {
+	    private final Class<? extends SQLObject> containingSQLObjectChildType;
 	    
-	    private final SQLTable parentTable;
-        private final Class<? extends SQLObject> containingChildType;
-        private final Callable<Boolean> isPopulatedRunnable;
-
-        /**
-         * @param parentTable
-         *            The SQLTable that this folder is to appear under
-         * @param containingChildType
-         *            The type of child of the SQLTable this folder is to
-         *            contain. Must be a valid type of child in the table.
-         */
-	    public FolderNode(SQLTable parentTable, Class<? extends SQLObject> containingChildType,
+	    public ArchitectFolder(SPObject parentTable, Class<? extends SQLObject> containingChildType,
 	            Callable<Boolean> isPopulatedRunnable) {
-	        this.parentTable = parentTable;
-	        if (!parentTable.getAllowedChildTypes().contains(containingChildType)) 
-	            throw new IllegalArgumentException(containingChildType + " is not a valid child type of " + parentTable);
-            this.containingChildType = containingChildType;
-            this.isPopulatedRunnable = isPopulatedRunnable;
+	        super(parentTable, containingChildType, isPopulatedRunnable);
+	        containingSQLObjectChildType = containingChildType;
 	    }
 	    
-	    public List<? extends SQLObject> getChildren() {
-	        return parentTable.getChildren(containingChildType);
-	    }
-	    
-	    public Class<? extends SPObject> getContainingChildType() {
-            return containingChildType;
-        }
-	    
-	    @Override
-	    public SQLObject getParent() {
-	        return parentTable;
-	    }
-
-        @Override
-        public List<? extends SQLObject> getChildrenWithoutPopulating() {
-            return parentTable.getChildrenWithoutPopulating(containingChildType);
-        }
-
-        @Override
-        public String getShortDisplayName() {
-            
-            if (containingChildType.isAssignableFrom(SQLColumn.class)) {
-                return "Columns folder for " + parentTable.getName();
-            }
-            
-            if (containingChildType.isAssignableFrom(SQLIndex.class)) {
-                return "Indices folder for " + parentTable.getName();
-            }
-            
-            if (containingChildType.isAssignableFrom(SQLRelationship.class)) {
-                return "Exported keys folder for " + parentTable.getName();
-            }
-            
-            if (containingChildType.isAssignableFrom(SQLRelationship.SQLImportedKey.class)) {
-                return "Imported keys folder for " + parentTable.getName();
-            }
-            
-            return containingChildType.getSimpleName() + "s folder for " + parentTable.getName();
-        }
-        
-        @Override
-        public String toString() {
-            return getShortDisplayName();
-        }
-
-        @Override
-        protected void populateImpl() throws SQLObjectException {
-            //do nothing
-        }
-
-        @Override
-        protected boolean removeChildImpl(SPObject child) {
-            throw new IllegalStateException("Cannot remove children from a folder, " +
-            		"remove them from the table the folder is contained by.");
-        }
-
-        public List<Class<? extends SPObject>> getAllowedChildTypes() {
-            return Collections.<Class<? extends SPObject>>singletonList(containingChildType);
-        }
-
-        public List<? extends SPObject> getDependencies() {
-            return Collections.emptyList();
-        }
-
-        public void removeDependency(SPObject dependency) {
-            //do nothing
-        }
-        
-        @Override
-        public boolean isPopulated() {
-            try {
-                return isPopulatedRunnable.call().booleanValue();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        
-        @Override
-        public Throwable getChildrenInaccessibleReason(Class<? extends SQLObject> childType) {
+	    public Throwable getChildrenInaccessibleReason(Class<? extends SQLObject> childType) {
             if (childType == containingChildType || childType == SQLObject.class) {
-                return parentTable.getChildrenInaccessibleReason(containingChildType);
+                return ((SQLTable)parentTable).getChildrenInaccessibleReason(containingSQLObjectChildType);
             } else {
                 return null;
             }
-        }
+	    }
 	    
+	    @Override
+	    public String getShortDisplayName() {
+	        
+	        if (containingChildType.isAssignableFrom(SQLColumn.class)) {
+	            return "Columns folder for " + parentTable.getName();
+	        }
+	        
+	        if (containingChildType.isAssignableFrom(SQLIndex.class)) {
+	            return "Indices folder for " + parentTable.getName();
+	        }
+	        
+	        if (containingChildType.isAssignableFrom(SQLRelationship.class)) {
+	            return "Exported keys folder for " + parentTable.getName();
+	        }
+	        
+	        if (containingChildType.isAssignableFrom(SQLRelationship.SQLImportedKey.class)) {
+	            return "Imported keys folder for " + parentTable.getName();
+	        }
+	        
+	        return containingChildType.getSimpleName() + "s folder for " + parentTable.getName();
+	    }
+   
 	}
 	
 	/**
@@ -209,7 +140,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             if (e.getChild() instanceof SQLTable && foldersInTables.get(e.getChild()) == null) {
                 SQLTable table = (SQLTable) e.getChild();
                 createFolders(table);
-                List<FolderNode> folderList = foldersInTables.get(table);
+                List<ArchitectFolder> folderList = foldersInTables.get(table);
                 int[] positions = new int[folderList.size()];
                 for (int i = 0; i < folderList.size(); i++) {
                     positions[i] = i;
@@ -288,7 +219,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             SPObject parent = change.getSource();
             SPObject child = change.getChild();
             if (parent instanceof SQLTable) {
-                for (FolderNode folder : foldersInTables.get(parent)) {
+                for (ArchitectFolder folder : foldersInTables.get(parent)) {
                     if (folder.getContainingChildType().isAssignableFrom(child.getClass())) {
                         parent = folder;
                         break;
@@ -386,8 +317,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	 * and is mapped to folders that contains the children of the table broken into their
 	 * types.
 	 */
-	protected final Map<SQLTable, List<FolderNode>> foldersInTables = 
-	    new HashMap<SQLTable, List<FolderNode>>();
+	protected final Map<SQLTable, List<ArchitectFolder>> foldersInTables = 
+	    new HashMap<SQLTable, List<ArchitectFolder>>();
 
     /**
      * A listener that should be added to any JTree, that is not a DBTree, using
@@ -576,8 +507,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	public Object getChild(Object parent, int index) {
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChild("+parent+","+index+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		
-		if (parent instanceof FolderNode) {
-		    return ((FolderNode) parent).getChildren().get(index);
+		if (parent instanceof ArchitectFolder) {
+		    return ((ArchitectFolder) parent).getChildren().get(index);
 		} else if (parent instanceof SQLTable) {
 		    return foldersInTables.get((SQLTable) parent).get(index);
 		}
@@ -623,8 +554,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	public int getChildCount(Object parent) {
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChildCount("+parent+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		
-		if (parent instanceof FolderNode) {
-		    return ((FolderNode) parent).getChildren().size();
+		if (parent instanceof ArchitectFolder) {
+		    return ((ArchitectFolder) parent).getChildren().size();
         } else if (parent instanceof SQLTable) {
             return foldersInTables.get((SQLTable) parent).size();
         } else if (parent instanceof SQLColumn) {
@@ -671,16 +602,19 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		        logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren()); //$NON-NLS-1$ //$NON-NLS-2$
 		    }
 		}
-		if (parent instanceof FolderNode) {
+		if (parent instanceof ArchitectFolder) {
 		    return false;
 		} else if (parent instanceof SQLColumn) {
 		    return true;
+		}
+		if (parent instanceof SnapshotCollection) {
+		   return true; 
 		}
 		return !((SPObject) parent).allowsChildren();
 	}
 	
 	public boolean isColumnsFolder(Object parent) {
-	    return parent instanceof FolderNode && ((FolderNode) parent).allowsChildType(SQLColumn.class);
+	    return parent instanceof ArchitectFolder && ((ArchitectFolder) parent).allowsChildType(SQLColumn.class);
 	}
 
 	public void valueForPathChanged(TreePath path, Object newValue) {
@@ -691,8 +625,8 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	    SPObject spChild = (SPObject) child;
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren(spChild.getClass()).indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		
-		if (parent instanceof FolderNode) {
-            return ((FolderNode) parent).getChildren(spChild.getClass()).indexOf(child);
+		if (parent instanceof ArchitectFolder) {
+            return ((ArchitectFolder) parent).getChildren(spChild.getClass()).indexOf(child);
         } else if (parent instanceof SQLTable) {
             if (foldersInTables.get((SQLTable) parent) == null) return -1;
             return foldersInTables.get((SQLTable) parent).indexOf(child);
@@ -826,7 +760,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		List<SPObject> path = new LinkedList<SPObject>();
 		while (node != null && node != root) {
 		    if (path.size() > 0 && node instanceof SQLTable) {
-		        for (FolderNode folder : foldersInTables.get(node)) {
+		        for (ArchitectFolder folder : foldersInTables.get(node)) {
 		            if (folder.getContainingChildType().isAssignableFrom(path.get(0).getClass())) {
 		                path.add(0, folder);
 		                break;
@@ -876,10 +810,10 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
      */
     private void createFolders(final SQLTable table) {
         if (foldersInTables.get(table) == null) {
-            List<FolderNode> folderList = new ArrayList<FolderNode>();
+            List<ArchitectFolder> folderList = new ArrayList<ArchitectFolder>();
             foldersInTables.put(table, folderList);
             if (showColumns) {
-                FolderNode SQLColumnFolder = new FolderNode(table, SQLColumn.class, new Callable<Boolean>() {
+                ArchitectFolder SQLColumnFolder = new ArchitectFolder(table, SQLColumn.class, new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         return table.isColumnsPopulated();
                     }
@@ -887,7 +821,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 folderList.add(SQLColumnFolder);
             }
             if (showRelationships) {
-                FolderNode SQLRelationshipFolder = new FolderNode(table, SQLRelationship.class, new Callable<Boolean>() {
+                ArchitectFolder SQLRelationshipFolder = new ArchitectFolder(table, SQLRelationship.class, new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         return table.isExportedKeysPopulated();
                     }
@@ -895,7 +829,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 folderList.add(SQLRelationshipFolder);
             }
             if (showImportedKeys) {
-                FolderNode SQLImportedKeys = new FolderNode(table, SQLImportedKey.class, new Callable<Boolean>() {
+                ArchitectFolder SQLImportedKeys = new ArchitectFolder(table, SQLImportedKey.class, new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         return table.isImportedKeysPopulated();
                     }
@@ -903,7 +837,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                 folderList.add(SQLImportedKeys);
             }
             if (showIndices) {
-                FolderNode SQLIndexFolder = new FolderNode(table, SQLIndex.class, new Callable<Boolean>() {
+                ArchitectFolder SQLIndexFolder = new ArchitectFolder(table, SQLIndex.class, new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         return table.isIndicesPopulated();
                     }
