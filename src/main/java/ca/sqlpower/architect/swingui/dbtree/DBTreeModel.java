@@ -47,6 +47,7 @@ import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectSnapshot;
+import ca.sqlpower.object.annotation.NonProperty;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -54,8 +55,8 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.FolderNode;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
@@ -71,11 +72,13 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	
 	private static class ArchitectFolder extends FolderNode {
 	    private final Class<? extends SQLObject> containingSQLObjectChildType;
+	    protected final Callable<Boolean> isPopulatedRunnable;
 	    
 	    public ArchitectFolder(SPObject parentTable, Class<? extends SQLObject> containingChildType,
 	            Callable<Boolean> isPopulatedRunnable) {
-	        super(parentTable, containingChildType, isPopulatedRunnable);
+	        super(parentTable, containingChildType);
 	        containingSQLObjectChildType = containingChildType;
+	        this.isPopulatedRunnable = isPopulatedRunnable;
 	    }
 	    
 	    public Throwable getChildrenInaccessibleReason(Class<? extends SQLObject> childType) {
@@ -107,7 +110,23 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 	        
 	        return containingChildType.getSimpleName() + "s folder for " + parentTable.getName();
 	    }
-   
+
+	    public boolean isPopulated() {
+	        try {
+	            return isPopulatedRunnable.call().booleanValue();
+	        } catch (Exception e) {
+	            throw new RuntimeException(e);
+	        }
+	    } 
+
+	    @NonProperty
+	    public List<? extends SPObject> getChildrenWithoutPopulating() {
+	        if (parentTable instanceof SQLTable) {
+	            return ((SQLTable) parentTable).getChildrenWithoutPopulating(containingChildType);
+	        } else {
+	            return getChildren();
+	        }
+	    }
 	}
 	
 	/**
