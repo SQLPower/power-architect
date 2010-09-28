@@ -1,9 +1,0 @@
-for file in lib/*.jar; do
- echo -n ${file}:
-done
-
-for file in /p/jonathan/jdbc/*.jar; do
- echo -n ${file}:
-done
-
-echo "build:/usr/local/jars/xerces.jar"
