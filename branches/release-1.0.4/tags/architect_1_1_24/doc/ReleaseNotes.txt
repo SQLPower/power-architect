@@ -1,0 +1,15 @@
+Architect Version 1.1.23 Release Notes 	
+
+*Added in a new function: Profiling
+	-Displays the distrobution of a column's data in a pie chart 
+	-Displays useful profiling information such as maximum and minimum values of a column
+	-Shows the most frequent n values within the column (the number of results to display is configurable 		within project settings)
+	-Ability to sort the information by column attribute 
+	-Easy to use search function to narrow down results 
+	-Save profiling data in csv, pdf or html formats 
+*Rectify "Save" filename handling: the file suffix is used in preference to the selected File Selection Filter. 
+*Fixed the "Locked Column throwing silent exceptions" bug.  When moving a imported column to another table, it did *not show the warning error.
+*Fixed null count problem in sql server
+*Fixed minor type mapping problem in the oracle ddl generator
+*Change from directly using the Swing Browser to display the manual as a form of Help, to using Sun's JavaHelp API. 
+*Added an Index file to the help file.

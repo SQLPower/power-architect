@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="architect">
+        <wb-resource deploy-path="/" source-path="/src"/>
+        <wb-resource deploy-path="/" source-path="/regress"/>
+        <wb-resource deploy-path="/" source-path="/jdbc_drivers"/>
+        <wb-resource deploy-path="/" source-path="/ext-tools-home/resgen/src"/>
+        <wb-resource deploy-path="/" source-path="/example_code"/>
+    </wb-module>
+</project-modules>

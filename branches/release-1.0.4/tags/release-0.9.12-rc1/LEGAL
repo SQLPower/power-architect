@@ -1,0 +1,94 @@
+The Power*Architect program source code, documentation, and binary
+packages are Copyright 2008 SQL Power Group Inc. All rights reserved.
+
+The Architect relies on a number of third-party libraries, most
+of which are bundled with both the source and binary distributions.
+We redistribute those libraries under their own licensing terms,
+which are outlined in the user guide.  See the user guide (or its
+source file, doc/PowerArchitectUserGuide.xml) for details on the
+third-party libraries and their respective licences.
+
+Copyright 2008 SQL Power Group Inc. All rights reserved.
+
+Power*Architect is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 3 of the
+License, or (at your option) any later version.
+
+Power*Architect is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program (see the LICENSE file).  If not, see
+<http://www.gnu.org/licenses/>.
+
+Linking Power*Architect statically or dynamically with other modules
+is making a combined work based on Power*Architect.  Thus, the terms
+and conditions of the GNU General Public License cover the whole
+combination.
+
+In addition, as a special exception, SQL Power gives you permission to
+combine Power*Architect program with free software programs or
+libraries that are released under the GNU LGPL and with the standard
+releases of the JavaBeans(TM) Activation Framework (JAF), JavaHelp(TM),
+and JavaMail (TM) reference implementations from Sun Microsystems, Inc. 
+(or modified versions of such code, with unchanged license). You may 
+copy and distribute such a system following the terms of the GNU GPL for 
+Power*Architect and the licenses of the other code concerned.
+
+As an additional special exception, SQL Power gives you permission to
+use Power*Architect together with publicly available JDBC drivers
+whether or not they are licensed compatibly with the GPL.
+
+As a final special exception, SQL Power gives you permission to use
+Power*Architect together with any release of the JUnit test
+framework, which is licensed under the Common Public License (CPL).
+
+Note that people who make modified versions of Power*Architect are
+not obligated to grant this special exception for their modified
+versions; it is their choice whether to do so.  The GNU General Public
+License gives permission to release a modified version without this
+exception; this exception also makes it possible to release a modified
+version which carries forward this exception.
+
+
+Additional Restrictions for the Bundled SQL Server 2005 JDBC Driver
+
+The Architect is bundled with Microsoft's JDBC driver for Microsoft
+SQL Server.  That driver (the file sqlserver_2005.jar) is distributed
+under these additional restrictions:
+
+1. You may not redistribute copies of the Architect download which
+   includes the Oracle and/or Microsoft SQL Server JDBC drivers.  If
+   you wish to redistribute the Architect, you must obtain and
+   distribute the version which does not include these bundled drivers.
+
+2. You may not publish benchmark information about performance related
+   to your use of any of the 3rd-party JDBC drivers.
+
+3. You may not reverse engineer, de-compile, or disassemble the 3rd
+   party JDBC drivers.
+
+4. You must comply with all domestic and international United States
+   export laws when downloading and redistributing the software.  In
+   particular, you may not download the Architect which includes bundled
+   3rd-party drivers to, or allow your copy of the Architect with 3rd
+   party bundled drivers to be exported to a country on one of the
+   export-controlled countries lists.
+   
+   For details, see http://www.microsoft.com/exporting
+
+
+The source distribution comes with a number of bundled third-party tools
+for testing, code analysis, packaging, and so on.  Acknowledgements and
+license terms for those tools are together with the copies we redistribute.
+See the ext-tools-home, doc/tools, and osx_packaging_utils directories for
+details.
+
+For PMD, we include this specific acknowledgement here to satisfy the
+license:
+
+This product includes software developed in part by support from
+the Defense Advanced Research Project Agency (DARPA)

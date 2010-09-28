@@ -1,0 +1,124 @@
+<project name="architect" default="dist" basedir=".">
+
+	<!-- $Id$ -->
+
+	<property file="user.properties" />
+
+	<property name="src" value="."/>
+	<property name="build" value="build"/>
+	<property name="build.compiler" value="modern"/>
+
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="compile" depends="init,copyicons,copylog4jprops">
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true" deprecation="true">
+          <!-- <compilerarg compiler="jikes" value="+Pno-naming-convention"/> -->
+        </javac>
+		<move file="${build}/ca/sqlpower/architect/altclassloader/DriverManagerDiplomat.class"
+		      tofile="${build}/ca/sqlpower/architect/altclassloader/DriverManagerDiplomat.altclass" />
+	</target>
+
+
+    <!-- copies our custom icon files to the build dir so
+         they will be in the classpath at runtime. -->
+	<target name="copyicons" depends="init">
+		<mkdir dir="${build}/icons"/>
+        <copy todir="${build}/icons">
+			<fileset dir="icons">
+				<include name="*.gif"/>
+			</fileset>
+		</copy>
+    </target>
+
+    <!-- Deploy the log4j.properties.example file to log4j.properties -->
+
+	<target name="copylog4jprops" depends="init">
+	    <!-- copies the template log4j config file into the build dir -->
+	    <copy tofile="${build}/log4j.properties"
+    	        file="log4j.properties.example"/>
+	    <!-- copies customized log4j config file into the build dir -->
+	    <copy file="log4j.properties" todir="${build}" overwrite="true" />
+    </target>
+
+    <!-- Creates a WebStart distribution under the webstart/ directory -->
+	<target name="dist" depends="compile">
+        <mkdir dir="webstart/lib"/>
+		<jar destfile="webstart/lib/architect.jar" basedir="${build}" includes="ca/** icons/** log4j.properties" manifest="manifest">
+		</jar>
+        <copy todir="webstart/lib">
+            <fileset dir="lib"/>
+        </copy>
+        <signjar alias="sqlpower" keystore="sqlpower.kdb" storepass="low_security" keypass="low_security">
+            <fileset dir="webstart/lib"/>
+        </signjar>
+	</target>
+
+    
+    <target name="deploy" depends="dist">
+        <mkdir dir="${deploy.dir}"/>
+        <copy file="webstart/lib/architect.jar" todir="${deploy.dir}"/>
+        	<copy todir="${deploy.dir}">
+            <fileset dir="webstart/lib" excludes="architect.jar"/>
+        </copy>
+	</target>
+
+	<target name="run" depends="compile">
+		<java fork="true" classname="ca.sqlpower.architect.swingui.ArchitectFrame" classpathref="test.classpath">
+			<jvmarg value="-Dlog4j.configuration=file:log4j.properties"/>
+		</java>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}"/>
+	</target>
+
+	<path id="compile.classpath">
+		<fileset dir="lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<path id="test.classpath">
+		<pathelement location="build"/>
+		<fileset dir="lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="regress" depends="compile">
+		<junit printsummary="yes" fork="no" haltonfailure="yes">
+			<sysproperty key="architect.databaseListFile" value="/jonathan/jdbc/databases.xml"/>
+			<sysproperty key="architect.databaseListFile.nameToUse" value="autotest_ss"/>
+			<classpath refid="test.classpath"/>
+			<formatter type="plain"/>
+			<test name="regress.ArchitectExceptionTest"/>
+			<test name="regress.TestSQLColumn"/>
+			<test name="regress.TestSQLDatabase"/>
+		</junit>
+	</target>
+
+
+	<target name="docs" depends="compile">
+		<mkdir dir="${build}/docs/api"/>
+		<javadoc sourcepath="${src}" destdir="${build}/docs/api"
+			packagenames="com.darwinsys.*"
+			maxmemory="32m" 
+			windowtitle="ca.sqlpower.architect.* Power*Architect"
+			Version="true" Author="true" Use="true"
+			Overview="html/overview.html"
+			classpathref="test.classpath"
+			>
+			<packageset dir="${src}" defaultexcludes="yes">
+				<include name="ca/sqlpower/**" />
+				<exclude name="regress/**"/>
+			</packageset>
+			<bottom><![CDATA[<i>Copyright &#169; 2003 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+		</javadoc>
+		<copy file="html/index.html" todir="${build}/docs"/>
+
+	</target>
+
+</project>

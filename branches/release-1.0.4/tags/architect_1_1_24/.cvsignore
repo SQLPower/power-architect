@@ -1,0 +1,12 @@
+log4j.properties
+build.properties
+user.properties
+build
+*.bak
+*~
+TEST*
+architect.log*
+.fbwarnings
+deploy
+.fbprefs
+staging

@@ -1,0 +1,30 @@
+# Optional: To use this file, copy it to "build.properties" and edit the properties.
+# Properties you set or uncomment here will override those defined in build.xml
+
+# IMPORTANT NOTE: There is a problem with the XSLT-based help file generation that
+# will not write the help files to the build path you specified if your build path
+# contains spaces. This is because the XSLT ends up replacing spaces in the
+# pathname with '%20' and does not change them back when writing. As we do not
+# currently know a good way to fix this yet, DO NOT USE SPACES in your build path 
+
+# Unix-based build pathname example 
+# build=/absolute/path
+
+# Windows-based build pathname example 
+# build=C:\\absolute\\path
+
+# SQL Power Library project directory (set this to the sqlpower-library project directory)
+# sqlpower.library.home=../sqlpower_library
+
+# Set value to have the build script only copy the SQL Power Library project (not build)
+# Otherwise, leave the property unset (leaving it commented should be enough).
+# only.copy.sqlpower.library=true
+
+# Set the output format for the FindBugs report. 
+# findbugs.report.format=html
+
+# Set the output format for the PMD report.
+# pmd.report.format=html
+
+# Set the output format for the Clover report.
+# clover.report.format=html

@@ -1,0 +1,60 @@
+                     Power*Architect release checklist
+
+$Id:$
+
+This file is intended as a guide for the person who is packaging, posting,
+and announcing a new release of the Power*Architect.  This list is probably
+not complete.  If you find yourself performing a step that is not mentioned
+here, please add it!
+
+The items listed here are intended to be in a sensible chronological order.
+If working from top to bottom paints you into a corner, adjust the order so
+that the next person won't run into the same problem.
+
+Good luck with the release!
+
+
+*Comment out all the logging configs set to DEBUG (leave the RootLogger at INFO)
+*Update the ca.sqlpower.architect.ArchitectVersion class to reflect the correct
+ release number.  Normally, this will mean setting the suffix to "" for a full
+ release, or "beta", "rc1", etc for a pre-release.
+*Run the ArchitectMegaTestSuite. It should pass with a flying colour (green)
+*Build the distribution (build.xml target "dist"). For an official release, this
+ has to be done on OS X, since the tools for creating the dmg disk image file are
+ unavailable elsewhere.
+*Test the three flavours of binaries (Generic tarball, OS X disk image, Windows
+ installer) for the following:
+ *Rename your PL.INI file so you get the "new user experience"
+ *File size is close to the expected size (it was ~14MB in 0.9.8)
+ *Archive expands properly or installer works as expected
+ *Try connecting to all databases that the Architect is preconfigured for (MySQL,
+  PostgreSQL, SQL Server)
+ *Try adding the Oracle driver to the driver manager then connect to an Oracle
+  database
+ *Try creating a new database type from scratch (it could just be a new config for
+  one of the existing types)
+ *Ensure the online help is present
+ *Scan through the PDF documentation. Ensure the pictures are included properly
+  (not stretched, properly cropped)
+ *Try saving and loading a project file. Ensure project settings are persistent:
+  DDL settings, compare dm settings, profiles in the profile manager, and so on
+ *Make sure the app quits once all windows have been closed
+ *For Windows only, test the uninstaller
+*Commit, then tag the release in the SVN repository, if you made it all the way
+ to this point without finding any new problems!
+
+
+Making the new release available
+*Upload generic, mac, and windows binaries to Google Code
+*Upload user guide (PDF format) to Google Code
+*Upload source code snapshot to Google Code
+*Deprecate all Google Code files related to the previous release
+*Upload the dist directory to the SQL Power web server (/tomcat/virtualhosts/download/x.y.z/)
+
+Announcing the New Release
+*Post to architect-developers mailing list
+*Front page of Google Code project
+*SQL Power website news item
+*Freshmeat.net
+*apple.com/downloads
+*news wire press release if significant milestone

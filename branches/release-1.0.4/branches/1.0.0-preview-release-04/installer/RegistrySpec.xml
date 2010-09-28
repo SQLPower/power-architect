@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<registry>
+    <pack name="Core">
+    	<key	root="HKCR"
+    			keypath=".architect"/>
+		<value	root="HKCR"
+    			name=""
+			   	keypath=".architect"
+		       	string="architect_auto_file"/>
+		       	
+		<key   	keypath="architect_auto_file"
+    		   	root="HKCR"/>
+        <value 	name=""
+			   	keypath="architect_auto_file"
+			   	root="HKCR"
+		       	string=""/>
+		<value 	name="EditFlags"
+			   	keypath="architect_auto_file"
+			   	root="HKCR"
+		       	string="dword:00000000"/>
+		<value 	name="BrowserFlags"
+			   	keypath="architect_auto_file"
+			   	root="HKCR"
+		       	string="dword:00000008"/>     
+		
+		<key	keypath="architect_auto_file\DefaultIcon"
+				root="HKCR"/>
+		<value 	name=""
+			   	keypath="architect_auto_file\DefaultIcon"
+			   	root="HKCR"
+		       	string="$INSTALL_PATH\architect_icon_bundle.ico,0"/>
+    
+    	<key   	keypath="architect_auto_file\shell\open\command"
+    		   	root="HKCR"/>
+        <value 	name=""
+			   	keypath="architect_auto_file\shell\open\command"
+			   	root="HKCR"
+		       	string="&quot;$INSTALL_PATH\architect.exe&quot; &quot;%1&quot; %*"/>
+    </pack>
+</registry>
+

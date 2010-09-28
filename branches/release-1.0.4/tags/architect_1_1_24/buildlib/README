@@ -1,0 +1,4 @@
+This directory is for libraries that we will not distribute with the
+app, but are required at build/test/compile time.
+
+Initially, the build-only libraries are junit and jfcunit.
