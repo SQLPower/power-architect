@@ -29,6 +29,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.security.AccessDeniedException;
 
+import ca.sqlpower.enterprise.JSONMessage;
+
 public class JSONResponseHandler implements ResponseHandler<JSONMessage> {
     
     private static final Logger logger = Logger.getLogger(JSONResponseHandler.class);
