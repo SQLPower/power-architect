@@ -72,6 +72,7 @@ import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.diff.DiffInfo;
 import ca.sqlpower.diff.SimpleDiffChunkJSONConverter;
+import ca.sqlpower.enterprise.JSONMessage;
 import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
@@ -98,9 +99,9 @@ import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
-import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory;
 
 public class ArchitectClientSideSession extends ArchitectSessionImpl implements RevisionController {	
 	
