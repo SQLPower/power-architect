@@ -58,9 +58,9 @@ import org.apache.commons.codec.binary.Hex;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.DomainCategory;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
+import ca.sqlpower.enterprise.AbstractNetworkConflictResolver;
+import ca.sqlpower.enterprise.AbstractNetworkConflictResolver.UpdateListener;
 import ca.sqlpower.enterprise.client.Grant;
 import ca.sqlpower.enterprise.client.Group;
 import ca.sqlpower.enterprise.client.SPServerInfo;
@@ -253,7 +253,7 @@ public class SecurityPanel {
                 }
                 
                 @Override
-                public boolean updatePerformed(NetworkConflictResolver resolver) {
+                public boolean updatePerformed(AbstractNetworkConflictResolver resolver) {
                     panel.removeAll();
                     panel.add(splitpane);
                     dialog.pack();
@@ -262,13 +262,13 @@ public class SecurityPanel {
                 }
                 
                 @Override
-                public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
+                public boolean updateException(AbstractNetworkConflictResolver resolver, Throwable t) {
                     //do nothing, the error will be handled elsewhere
                     return true;
                 }
                 
                 @Override
-                public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                public void preUpdatePerformed(AbstractNetworkConflictResolver resolver) {
                     //do nothing
                 }
             };

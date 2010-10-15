@@ -65,7 +65,6 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.LiquibaseSettings;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.olap.OLAPRootObject;
 import ca.sqlpower.architect.olap.OLAPSession;
@@ -80,6 +79,7 @@ import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.olap.OLAPEditSession;
 import ca.sqlpower.architect.swingui.olap.OLAPSchemaManager;
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
+import ca.sqlpower.enterprise.AbstractNetworkConflictResolver;
 import ca.sqlpower.object.AbstractPoolingSPListener;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
@@ -1225,15 +1225,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 close();
 
                 ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession())
-                    .getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
-                    public boolean updatePerformed(NetworkConflictResolver updater) {
+                    .getUpdater().addListener(new AbstractNetworkConflictResolver.UpdateListener() {
+                    public boolean updatePerformed(AbstractNetworkConflictResolver updater) {
                        dialog.dispose();
                        return true; // true indicates that the listener should be removed
                     }
                     
-                    public boolean updateException(NetworkConflictResolver resolver, Throwable t) {return false;}
+                    public boolean updateException(AbstractNetworkConflictResolver resolver, Throwable t) {return false;}
 
-                    public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                    public void preUpdatePerformed(AbstractNetworkConflictResolver resolver) {
                         //do nothing
                     }
                     

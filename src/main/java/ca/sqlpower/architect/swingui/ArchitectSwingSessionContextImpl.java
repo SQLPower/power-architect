@@ -47,7 +47,7 @@ import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
+import ca.sqlpower.enterprise.AbstractNetworkConflictResolver;
 import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.SPServerInfoManager;
@@ -229,17 +229,17 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         final ArchitectSwingSession swingSession = new ArchitectSwingSessionImpl(this, clientSession);
         clientSession.getUpdater().setUserPrompterFactory(new NonModalSwingUIUserPrompterFactory(swingSession.getArchitectFrame()));
         
-        clientSession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
+        clientSession.getUpdater().addListener(new AbstractNetworkConflictResolver.UpdateListener() {
             
             boolean loading = true;
             
-            public void preUpdatePerformed(NetworkConflictResolver resolver) {
+            public void preUpdatePerformed(AbstractNetworkConflictResolver resolver) {
                 if (loading) {
                     swingSession.getUndoManager().setLoading(true);
                 }
             }
         
-            public boolean updatePerformed(NetworkConflictResolver resolver) {
+            public boolean updatePerformed(AbstractNetworkConflictResolver resolver) {
                 //On the first update from the server we must discard all edits
                 //as it is equivalent to loading from a file and undoing does not
                 //make sense.
@@ -250,7 +250,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                 return false;
             }
         
-            public boolean updateException(NetworkConflictResolver resolver, Throwable t) {                
+            public boolean updateException(AbstractNetworkConflictResolver resolver, Throwable t) {                
                 if (loading) {
                     swingSession.getUndoManager().setLoading(false);
                     loading = false;
@@ -312,10 +312,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             try {
                 final ArchitectClientSideSession newSecuritySession = new ArchitectClientSideSession(this, serverInfo.getServerAddress(), securityLocation);
             
-                newSecuritySession.getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
-                    public boolean updatePerformed(NetworkConflictResolver resolver) {return false;}
+                newSecuritySession.getUpdater().addListener(new AbstractNetworkConflictResolver.UpdateListener() {
+                    public boolean updatePerformed(AbstractNetworkConflictResolver resolver) {return false;}
                 
-                    public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
+                    public boolean updateException(AbstractNetworkConflictResolver resolver, Throwable t) {
                         if (t instanceof AccessDeniedException) return false;
                         
                         newSecuritySession.close();
@@ -328,7 +328,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                         return true;
                     }
 
-                    public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                    public void preUpdatePerformed(AbstractNetworkConflictResolver resolver) {
                         //do nothing
                     }
                     

@@ -121,7 +121,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	 * server changes to the {@link #sessionPersister}.
 	 */
 	private final SPJSONPersister jsonPersister;
-	private final NetworkConflictResolver updater;
+	private final ArchitectNetworkConflictResolver updater;
 	private final SPJSONMessageDecoder jsonMessageDecoder;
 	private final DataSourceCollectionUpdater dataSourceCollectionUpdater;
 	
@@ -172,7 +172,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		
 		jsonMessageDecoder = new SPJSONMessageDecoder(sessionPersister);
 		
-		updater = new NetworkConflictResolver(
+		updater = new ArchitectNetworkConflictResolver(
 		        projectLocation, 
 		        jsonMessageDecoder, 
 		        ClientSideSessionUtils.createHttpClient(projectLocation.getServiceInfo(), cookieStore), 
@@ -731,7 +731,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	            cookieStore, session);
     }
     
-    public NetworkConflictResolver getUpdater() {
+    public ArchitectNetworkConflictResolver getUpdater() {
         return updater;
     }
 	
