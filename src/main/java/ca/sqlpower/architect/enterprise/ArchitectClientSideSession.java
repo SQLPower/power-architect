@@ -28,10 +28,6 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -89,6 +85,7 @@ import ca.sqlpower.util.UserPrompterFactory;
 public class ArchitectClientSideSession extends ArchitectSessionImpl implements RevisionController {	
 	
 	private static Logger logger = Logger.getLogger(ArchitectClientSideSession.class);
+	
 	private static CookieStore cookieStore = new BasicCookieStore();
 	
 	public static final String MONDRIAN_SCHEMA_REL_PATH = "/mondrian";
@@ -133,7 +130,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	 * Used to store sessions which hold nothing but security info.
 	 */
 	public static Map<String, ArchitectClientSideSession> securitySessions;
+	
     private AbstractPoolingSPListener deletionListener;
+    
     static {
         securitySessions = new HashMap<String, ArchitectClientSideSession>();
     }
@@ -295,7 +294,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         }
     }
 
-	// -
     /**
      * Map of server addresses to system workspaces. Use
      * {@link SPServerInfo#getServerAddress()} as the key.
@@ -542,69 +540,36 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     
     public static ProjectLocation uploadProject(SPServerInfo serviceInfo, String name, File project, ArchitectSession session) 
     throws URISyntaxException, ClientProtocolException, IOException, JSONException {
-        HttpClient httpClient = ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
-        try {
-            MultipartEntity entity = new MultipartEntity();
-            ContentBody fileBody = new FileBody(project);
-            ContentBody nameBody = new StringBody(name);
-            entity.addPart("file", fileBody);
-            entity.addPart("name", nameBody);
-            
-            HttpPost request = new HttpPost(ClientSideSessionUtils.getServerURI(serviceInfo, "/" + ClientSideSessionUtils.REST_TAG + "/jcr", "name=" + name));
-            request.setEntity(entity);
-            JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
-            JSONObject response = new JSONObject(message.getBody());
-            return new ProjectLocation(
-                    response.getString("uuid"),
-                    response.getString("name"),
-                    serviceInfo);
-        } catch (AccessDeniedException e) {
-            session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
-                       UserPromptType.MESSAGE, 
+        return ClientSideSessionUtils.uploadProject(serviceInfo,
+                name,
+                project,
+                session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
+                UserPromptType.MESSAGE, 
                        UserPromptOptions.OK, 
                        UserPromptResponse.OK, 
-                       "OK", "OK").promptUser("");
-            return null;
-        } finally {
-            httpClient.getConnectionManager().shutdown();
-        }
+                       "OK", "OK"),
+                cookieStore);
     }
     
 	public int revertServerWorkspace(int revisionNo) throws IOException, URISyntaxException, JSONException {
 	    return revertServerWorkspace(projectLocation, revisionNo);
 	}
-	
-	/**
-	 * This method reverts the server workspace specified by the given project location
-	 * to the specified revision number.
-	 * 
-	 * All sessions should automatically update to the reverted revision due to their Updater.
-	 * 
-	 * @returns The new global revision number, right after the reversion, or -1 if the server did not revert.
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 * @throws JSONException 
-	 */
-	public static int revertServerWorkspace(ProjectLocation projectLocation, int revisionNo)
-	throws IOException, URISyntaxException, JSONException {
-        SPServerInfo serviceInfo = projectLocation.getServiceInfo();
-        HttpClient httpClient = ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
-        
-        try {
-            JSONMessage message = ClientSideSessionUtils.executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/" + ClientSideSessionUtils.REST_TAG + "/project/" + projectLocation.getUUID() + "/revert",
-                    "revisionNo=" + revisionNo, 
-                    new JSONResponseHandler());    
-            if (message.isSuccessful()) {
-                return new JSONObject(message.getBody()).getInt("currentRevision");
-            } else {
-                return -1;
-            }
-        } finally {
-            httpClient.getConnectionManager().shutdown();
-        }
-        
-	}
+    
+    /**
+     * This method reverts the server workspace specified by the given project location
+     * to the specified revision number.
+     * 
+     * All sessions should automatically update to the reverted revision due to their Updater.
+     * 
+     * @returns The new global revision number, right after the reversion, or -1 if the server did not revert.
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws JSONException 
+     */
+    public static int revertServerWorkspace(ProjectLocation projectLocation, int revisionNo)
+    throws IOException, URISyntaxException, JSONException {
+        return ClientSideSessionUtils.revertServerWorkspace(projectLocation, revisionNo, cookieStore);
+    }
 
     /**
      * This method can update any users password on the server given the correct
@@ -714,7 +679,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	public void persistRevisionFromServer(int revisionNo, SPJSONMessageDecoder targetDecoder)
 	throws IOException, URISyntaxException, SPPersistenceException, IllegalArgumentException {
-	    ClientSideSessionUtils.persistRevisionFromServer(projectLocation, revisionNo, targetDecoder, cookieStore);
+	    persistRevisionFromServer(projectLocation, revisionNo, targetDecoder);
 	}
 
 	/**

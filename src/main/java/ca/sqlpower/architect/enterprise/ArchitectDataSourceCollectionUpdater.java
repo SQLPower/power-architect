@@ -24,7 +24,6 @@ import ca.sqlpower.enterprise.ClientSideSessionUtils;
 import ca.sqlpower.enterprise.DataSourceCollectionUpdater;
 import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.sql.DatabaseListChangeEvent;
-import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.Olap4jDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -52,9 +51,10 @@ public class ArchitectDataSourceCollectionUpdater extends DataSourceCollectionUp
             properties.add(new BasicNameValuePair(ent.getKey(), ent.getValue()));
         }
         
-        if (source instanceof JDBCDataSource) {
-            postJDBCDataSourceProperties((JDBCDataSource) source, properties);
+        if (source instanceof Olap4jDataSource) {
+            postOlapDataSourceProperties((Olap4jDataSource) source, properties);
         }
+        
         super.databaseAdded(e, source, properties);
     }
     
