@@ -1,7 +1,5 @@
 package ca.sqlpower.architect.enterprise;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -20,36 +18,21 @@ import java.util.prefs.Preferences;
 
 import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -72,8 +55,12 @@ import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.diff.DiffInfo;
 import ca.sqlpower.diff.SimpleDiffChunkJSONConverter;
+import ca.sqlpower.enterprise.ClientSideSessionUtils;
+import ca.sqlpower.enterprise.DataSourceCollectionUpdater;
 import ca.sqlpower.enterprise.JSONMessage;
+import ca.sqlpower.enterprise.JSONResponseHandler;
 import ca.sqlpower.enterprise.TransactionInformation;
+import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.enterprise.client.RevisionController;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.User;
@@ -84,11 +71,7 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.object.SPObjectUUIDComparator;
 import ca.sqlpower.sql.DataSourceCollection;
-import ca.sqlpower.sql.DatabaseListChangeEvent;
-import ca.sqlpower.sql.DatabaseListChangeListener;
 import ca.sqlpower.sql.JDBCDataSource;
-import ca.sqlpower.sql.JDBCDataSourceType;
-import ca.sqlpower.sql.Olap4jDataSource;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SpecificDataSourceCollection;
@@ -109,12 +92,6 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	private static CookieStore cookieStore = new BasicCookieStore();
 	
 	public static final String MONDRIAN_SCHEMA_REL_PATH = "/mondrian";
-
-    /**
-     * All requests to the server will contain this tag after the enterprise
-     * server name (which is normally architect-enterprise).
-     */
-	static final String REST_TAG = "rest";
 	
 	/**
 	 * The prefs node that will store information about the current settings of
@@ -148,7 +125,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	private final SPJSONPersister jsonPersister;
 	private final NetworkConflictResolver updater;
 	private final SPJSONMessageDecoder jsonMessageDecoder;
-	private final DataSourceCollectionUpdater dataSourceCollectionUpdater = new DataSourceCollectionUpdater();
+	private final DataSourceCollectionUpdater dataSourceCollectionUpdater;
 	
 	private DataSourceCollection <JDBCDataSource> dataSourceCollection;
 
@@ -166,6 +143,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		super(context, name, new ArchitectSwingProject());
 		
 		this.projectLocation = projectLocation;
+		dataSourceCollectionUpdater = new ArchitectDataSourceCollectionUpdater(projectLocation);
 		this.isEnterpriseSession = true;
 		
 		setupSnapshots();
@@ -185,7 +163,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             }
 		}
 		
-		outboundHttpClient = createHttpClient(projectLocation.getServiceInfo());
+		outboundHttpClient = ClientSideSessionUtils.createHttpClient(projectLocation.getServiceInfo(), cookieStore);
 		dataSourceCollection = getDataSources();
 		
 		sessionPersister = new ArchitectSessionPersister("inbound-" + projectLocation.getUUID(), getWorkspace(), 
@@ -197,7 +175,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		updater = new NetworkConflictResolver(
 		        projectLocation, 
 		        jsonMessageDecoder, 
-		        createHttpClient(projectLocation.getServiceInfo()), 
+		        ClientSideSessionUtils.createHttpClient(projectLocation.getServiceInfo(), cookieStore), 
 		        outboundHttpClient, this);
 		
 		jsonPersister = new SPJSONPersister(updater);
@@ -397,8 +375,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 
                 PlDotIni plIni;
                 try {
-					plIni = new PlDotIni(getServerURI(projectLocation.getServiceInfo(), "/" + REST_TAG +"/jdbc/"),
-                            getServerURI(projectLocation.getServiceInfo(), MONDRIAN_SCHEMA_REL_PATH)) {
+					plIni = new PlDotIni(ClientSideSessionUtils.getServerURI(projectLocation.getServiceInfo(), "/" + ClientSideSessionUtils.REST_TAG +"/jdbc/"),
+					        ClientSideSessionUtils.getServerURI(projectLocation.getServiceInfo(), MONDRIAN_SCHEMA_REL_PATH)) {
 					    
 					    @Override
 					    public List<UserDefinedSQLType> getSQLTypes() {
@@ -457,8 +435,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
         DataSourceCollection<JDBCDataSource> dsc;
         try {
-            dsc = executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), 
-                    "/" + REST_TAG + "/data-sources/", plIniHandler);
+            dsc = ClientSideSessionUtils.executeServerRequest(outboundHttpClient, projectLocation.getServiceInfo(), 
+                    "/" + ClientSideSessionUtils.REST_TAG + "/data-sources/", plIniHandler);
         } catch (AccessDeniedException e) {
             throw e;
         } catch (Exception ex) {
@@ -540,46 +518,21 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		return projectLocation;
 	}
 	
-	// -
-	
-	public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo) 
-	throws IOException, URISyntaxException, JSONException {
-    	HttpClient httpClient = createHttpClient(serviceInfo);
-    	try {
-    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/" + REST_TAG + "/jcr/projects"));
-    		JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
-    		List<ProjectLocation> workspaces = new ArrayList<ProjectLocation>();
-    		JSONArray response = new JSONArray(message.getBody());
-    		for (int i = 0; i < response.length(); i++) {
-    			JSONObject workspace = (JSONObject) response.get(i);
-    			workspaces.add(new ProjectLocation(
-    					workspace.getString("uuid"),
-    					workspace.getString("name"),
-    					serviceInfo));
-    		}
-    		return workspaces;
-    	} catch (AccessDeniedException e) {
-    	    throw e;
-    	} finally {
-    		httpClient.getConnectionManager().shutdown();
-    	}
-    }
-	
-    public List<TransactionInformation> getTransactionList(long fromVersion, long toVersion)
+	public List<TransactionInformation> getTransactionList(long fromVersion, long toVersion)
     throws IOException, URISyntaxException, JSONException, ParseException {
         
         SPServerInfo serviceInfo = projectLocation.getServiceInfo();
-        HttpClient httpClient = createHttpClient(serviceInfo);
+        HttpClient httpClient = ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
         
         try {
             
             logger.info("Getting transactions between " + fromVersion + " and " + toVersion);
-            JSONMessage message = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/revision_list",
+            JSONMessage message = ClientSideSessionUtils.executeServerRequest(httpClient, projectLocation.getServiceInfo(),
+                    "/" + ClientSideSessionUtils.REST_TAG + "/project/" + projectLocation.getUUID() + "/revision_list",
                     "versions=" + fromVersion + ":" + toVersion,
                     new JSONResponseHandler());
             
-            return decodeJSONRevisionList(message.getBody());
+            return ClientSideSessionUtils.decodeJSONRevisionList(message.getBody());
             
         } finally {
             httpClient.getConnectionManager().shutdown();
@@ -587,33 +540,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         
     }
     
-    public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name, ArchitectSession session)
-    throws URISyntaxException, ClientProtocolException, IOException, JSONException {
-        
-    	HttpClient httpClient = createHttpClient(serviceInfo);
-    	try {
-    		HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, "/" + REST_TAG + "/jcr/projects/new", "name=" + name));
-    		JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
-    		JSONObject response = new JSONObject(message.getBody());
-    		return new ProjectLocation(
-    					response.getString("uuid"),
-    					response.getString("name"),
-    					serviceInfo);
-    	} catch (AccessDeniedException e) {
-    	    session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
-                       UserPromptType.MESSAGE, 
-                       UserPromptOptions.OK, 
-                       UserPromptResponse.OK, 
-                       "OK", "OK").promptUser("");
-    	    return null;
-    	} finally {
-    		httpClient.getConnectionManager().shutdown();
-    	}
-    }
-    
     public static ProjectLocation uploadProject(SPServerInfo serviceInfo, String name, File project, ArchitectSession session) 
     throws URISyntaxException, ClientProtocolException, IOException, JSONException {
-        HttpClient httpClient = createHttpClient(serviceInfo);
+        HttpClient httpClient = ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
         try {
             MultipartEntity entity = new MultipartEntity();
             ContentBody fileBody = new FileBody(project);
@@ -621,7 +550,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
             entity.addPart("file", fileBody);
             entity.addPart("name", nameBody);
             
-            HttpPost request = new HttpPost(getServerURI(serviceInfo, "/" + REST_TAG + "/jcr", "name=" + name));
+            HttpPost request = new HttpPost(ClientSideSessionUtils.getServerURI(serviceInfo, "/" + ClientSideSessionUtils.REST_TAG + "/jcr", "name=" + name));
             request.setEntity(entity);
             JSONMessage message = httpClient.execute(request, new JSONResponseHandler());
             JSONObject response = new JSONObject(message.getBody());
@@ -659,11 +588,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	public static int revertServerWorkspace(ProjectLocation projectLocation, int revisionNo)
 	throws IOException, URISyntaxException, JSONException {
         SPServerInfo serviceInfo = projectLocation.getServiceInfo();
-        HttpClient httpClient = createHttpClient(serviceInfo);
+        HttpClient httpClient = ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
         
         try {
-            JSONMessage message = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/revert",
+            JSONMessage message = ClientSideSessionUtils.executeServerRequest(httpClient, projectLocation.getServiceInfo(),
+                    "/" + ClientSideSessionUtils.REST_TAG + "/project/" + projectLocation.getUUID() + "/revert",
                     "revisionNo=" + revisionNo, 
                     new JSONResponseHandler());    
             if (message.isSuccessful()) {
@@ -700,7 +629,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	        String oldPassword, String newPassword, UserPrompterFactory upf) {
 	    SPServerInfo serviceInfo = getProjectLocation().getServiceInfo();
         
-        HttpClient client = ArchitectClientSideSession.createHttpClient(serviceInfo);
+        HttpClient client = ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
         
         MessageDigest digester;
         try {
@@ -739,7 +668,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                     serviceInfo.getServerAddress(), 
                     serviceInfo.getPort(),
                     serviceInfo.getPath() + 
-                    "/" + ArchitectClientSideSession.REST_TAG + "/project/system", 
+                    "/" + ClientSideSessionUtils.REST_TAG + "/project/system", 
                     "currentRevision=" + getCurrentRevisionNumber(), null);
             HttpPost postRequest = new HttpPost(serverURI);
             postRequest.setEntity(new StringEntity(transaction.toString())); 
@@ -785,43 +714,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	public void persistRevisionFromServer(int revisionNo, SPJSONMessageDecoder targetDecoder)
 	throws IOException, URISyntaxException, SPPersistenceException, IllegalArgumentException {
-	    ArchitectClientSideSession.persistRevisionFromServer(projectLocation, revisionNo, targetDecoder);
-	}
-	
-	/**
-	 * Requests the server for persist calls from version 0 to the given revision
-	 * of the given project, and persists them to the given decoder.
-	 * 
-	 * @param projectLocation
-	 * @param revisionNo Must be greater than zero, and no greater than the current revision number
-	 * @param decoder
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 * @throws SPPersistenceException
-	 * @throws IllegalArgumentException Thrown if the server rejects the given revisionNo
-	 */
-	public static void persistRevisionFromServer(ProjectLocation projectLocation, 
-	        int revisionNo, SPJSONMessageDecoder decoder)
-	throws IOException, URISyntaxException, SPPersistenceException, IllegalArgumentException {
-	    
-	    SPServerInfo serviceInfo = projectLocation.getServiceInfo();
-	    HttpClient httpClient = createHttpClient(serviceInfo);
-        
-        try {
-            JSONMessage response = executeServerRequest(httpClient, serviceInfo,
-                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/" + revisionNo,
-                    new JSONResponseHandler());            
-            
-            if (response.isSuccessful()) {
-                decoder.decode(response.getBody());                
-            } else {
-                throw new IllegalArgumentException("The server rejected the revision number " +
-                		"(it must be greater than 0, and no greater than the current revision number)");
-            }
-            
-        } finally {
-            httpClient.getConnectionManager().shutdown();
-        }   
+	    ClientSideSessionUtils.persistRevisionFromServer(projectLocation, revisionNo, targetDecoder, cookieStore);
 	}
 
 	/**
@@ -831,11 +724,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	throws IOException, URISyntaxException, JSONException, SPPersistenceException {
 	    
         SPServerInfo serviceInfo = projectLocation.getServiceInfo();
-        HttpClient httpClient = createHttpClient(serviceInfo);
+        HttpClient httpClient = ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
         
         try {
-            JSONMessage response = executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-                    "/" + REST_TAG + "/project/" + projectLocation.getUUID() + "/compare",
+            JSONMessage response = ClientSideSessionUtils.executeServerRequest(httpClient, projectLocation.getServiceInfo(),
+                    "/" + ClientSideSessionUtils.REST_TAG + "/project/" + projectLocation.getUUID() + "/compare",
                     "versions=" + oldRevisionNo + ":" + newRevisionNo, 
                     new JSONResponseHandler());    
                                   
@@ -846,364 +739,49 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         }
         
 	}
+    
+    public static HttpClient createHttpClient(SPServerInfo serviceInfo) {
+        return ClientSideSessionUtils.createHttpClient(serviceInfo, cookieStore);
+    }
+    
+    public static void persistRevisionFromServer(ProjectLocation projectLocation, 
+            int revisionNo, 
+            SPJSONMessageDecoder decoder)
+    throws IOException, URISyntaxException, SPPersistenceException, IllegalArgumentException {
+        
+        ClientSideSessionUtils.persistRevisionFromServer(projectLocation, revisionNo, decoder, cookieStore);
+    }
 	
-	public static List<TransactionInformation> decodeJSONRevisionList(String json) 
-	throws JSONException, ParseException {
-        JSONArray jsonArray = new JSONArray(json);
-        List<TransactionInformation> transactions = new ArrayList<TransactionInformation>();
-        
-        for (int i = 0; i < jsonArray.length(); i++) {
-            
-            JSONObject jsonItem = jsonArray.getJSONObject(i);
-            TransactionInformation transaction = new TransactionInformation(
-                    jsonItem.getLong("number"),                     
-                    jsonItem.getLong("time"),
-                    jsonItem.getString("author"),
-                    jsonItem.getString("description"),
-                    jsonItem.getString("simpleDescription"));
-            transactions.add(transaction);
-            
-        }
-        
-        return transactions;
-	}
+	public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name, ArchitectSession session)
+    throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+        return ClientSideSessionUtils.createNewServerSession(serviceInfo,
+                name,
+                cookieStore,
+                session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
+                        UserPromptType.MESSAGE, 
+                        UserPromptOptions.OK, 
+                        UserPromptResponse.OK, 
+                        "OK", "OK"));
+    }
+    
+    public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo) 
+    throws IOException, URISyntaxException, JSONException {
+        return ClientSideSessionUtils.getWorkspaceNames(serviceInfo, cookieStore);
+    }
 	
 	public static void deleteServerWorkspace(ProjectLocation projectLocation, ArchitectSession session) throws URISyntaxException, ClientProtocolException, IOException {
-    	SPServerInfo serviceInfo = projectLocation.getServiceInfo();
-    	HttpClient httpClient = createHttpClient(serviceInfo);
     	
-    	try {
-    		executeServerRequest(httpClient, projectLocation.getServiceInfo(),
-    		        "/" + REST_TAG + "/jcr/" + projectLocation.getUUID() + "/delete", 
-    				new JSONResponseHandler());
-    	} catch (AccessDeniedException e) { 
-    	    session.createUserPrompter("You do not have sufficient privileges to delete the selected workspace.", 
+	    ClientSideSessionUtils.deleteServerWorkspace(projectLocation,
+	            cookieStore,
+	            session.createUserPrompter("You do not have sufficient privileges to delete the selected workspace.", 
                        UserPromptType.MESSAGE, 
                        UserPromptOptions.OK, 
                        UserPromptResponse.OK, 
-                       "OK", "OK").promptUser(""); 
-    	} finally {
-    		httpClient.getConnectionManager().shutdown();
-    	}
+                       "OK", "OK"));
     }
-	
-	private static <T> T executeServerRequest(HttpClient httpClient, SPServerInfo serviceInfo, 
-            String contextRelativePath, ResponseHandler<T> responseHandler)throws IOException, URISyntaxException {
-        return executeServerRequest(httpClient, serviceInfo, contextRelativePath, null, responseHandler);
-    }	
-	
-	private static <T> T executeServerRequest(HttpClient httpClient, SPServerInfo serviceInfo, 
-	        String contextRelativePath, String query, ResponseHandler<T> responseHandler) throws IOException, URISyntaxException {
-	    HttpUriRequest request = new HttpGet(getServerURI(serviceInfo, contextRelativePath, query));  
-	    return httpClient.execute(request, responseHandler);
-	}
-	
-	private static URI getServerURI(SPServerInfo serviceInfo, String contextRelativePath) throws URISyntaxException {
-	    return getServerURI(serviceInfo, contextRelativePath, null);
-	}
-	
-	private static URI getServerURI(SPServerInfo serviceInfo, String contextRelativePath, String query) throws URISyntaxException {
-        String contextPath = serviceInfo.getPath();
-        URI serverURI = new URI("http", null, serviceInfo.getServerAddress(), serviceInfo.getPort(),
-                contextPath + contextRelativePath, query, null);
-        return serverURI;
-    }
-	
-	public static HttpClient createHttpClient(SPServerInfo serviceInfo) {
-		HttpParams params = new BasicHttpParams();
-        HttpConnectionParams.setConnectionTimeout(params, 2000);
-        DefaultHttpClient httpClient = new DefaultHttpClient(params);
-        httpClient.setCookieStore(cookieStore);
-        httpClient.getCredentialsProvider().setCredentials(
-            new AuthScope(serviceInfo.getServerAddress(), AuthScope.ANY_PORT), 
-            new UsernamePasswordCredentials(serviceInfo.getUsername(), serviceInfo.getPassword()));
-        return httpClient;
-	}
     
     public NetworkConflictResolver getUpdater() {
         return updater;
-    }
-	
-	private class DataSourceCollectionUpdater implements DatabaseListChangeListener, PropertyChangeListener, UndoableEditListener {
-    	
-    	/**
-    	 * If true this updater is currently posting properties to the server. If
-    	 * properties are being posted to the server and an event comes in because
-    	 * of a change during posting the updater should not try to repost the message
-    	 * it is currently trying to post.
-    	 */
-    	private boolean postingProperties = false;
-
-    	private final ResponseHandler<Void> responseHandler = new ResponseHandler<Void>() {
-            public Void handleResponse(HttpResponse response)
-            throws ClientProtocolException, IOException {
-                if (response.getStatusLine().getStatusCode() != 200) {
-                    throw new ClientProtocolException(
-                            "Failed to create/update data source on server. Reason:\n" +
-                            EntityUtils.toString(response.getEntity()));
-                } else {
-                    return null;
-                }
-            }
-        };
-    	
-        public void attach(DataSourceCollection<JDBCDataSource> dsCollection) {
-            dsCollection.addDatabaseListChangeListener(this);
-            dsCollection.addUndoableEditListener(this);
-            
-            for (JDBCDataSourceType jdst : dsCollection.getDataSourceTypes()) {
-                jdst.addPropertyChangeListener(this);
-            }
-            
-            for (SPDataSource ds : dsCollection.getConnections()) {
-                ds.addPropertyChangeListener(this);
-            }
-        }
-        
-        public void detach(DataSourceCollection<JDBCDataSource> dsCollection) {
-            dsCollection.removeDatabaseListChangeListener(this);
-            dsCollection.removeUndoableEditListener(this);
-            
-            for (JDBCDataSourceType jdst : dsCollection.getDataSourceTypes()) {
-                jdst.removePropertyChangeListener(this);
-            }
-            
-            for (SPDataSource ds : dsCollection.getConnections()) {
-                ds.removePropertyChangeListener(this);
-            }
-        }
-
-        /**
-         * Handles the addition of a new database entry, relaying its current
-         * state to the server. Also begins listening to the new data source as
-         * would have happened if the new data source existed before
-         * {@link #attach(DataSourceCollection)} was invoked.
-         */
-        public void databaseAdded(DatabaseListChangeEvent e) {
-            SPDataSource source = e.getDataSource();
-            source.addPropertyChangeListener(this);
-            
-            List<NameValuePair> properties = new ArrayList<NameValuePair>();
-            for (Map.Entry<String, String> ent : source.getPropertiesMap().entrySet()) {
-                properties.add(new BasicNameValuePair(ent.getKey(), ent.getValue()));
-            }
-            
-            if (source instanceof JDBCDataSource) {
-                postJDBCDataSourceProperties((JDBCDataSource) source, properties);
-            }
-            
-            if (source instanceof Olap4jDataSource) {
-                postOlapDataSourceProperties((Olap4jDataSource) source, properties);
-            }
-        }
-
-        /**
-         * Handles changes to individual data sources by relaying their new
-         * state to the server.
-         * <p>
-         * <b>Implementation note:</b> Presently, all properties for the data
-         * source are sent back to the server every time one of them changes.
-         * This is not the desired behaviour, but without rethinking the
-         * SPDataSource event system, there is little else we can do: the
-         * property change events tell us JavaBeans property names, but in order
-         * to send incremental updates, we's need to know the pl.ini property
-         * key names.
-         * 
-         * @param evt
-         *            The event describing the change. Its source must be the
-         *            data source object which was modified.
-         */
-        public void propertyChange(PropertyChangeEvent evt) {
-            // Updating all properties is less than ideal, but a property change event does
-            // not tell us what the "pl.ini" key for the property is.
-
-            Object source = evt.getSource();
-            
-            if (source instanceof SPDataSource) {
-                SPDataSource ds = (SPDataSource) source;
-                ds.addPropertyChangeListener(this);
-                
-                List<NameValuePair> properties = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, String> ent : ds.getPropertiesMap().entrySet()) {
-                    properties.add(new BasicNameValuePair(ent.getKey(), ent.getValue()));
-                }
-                
-                if (ds instanceof JDBCDataSource) {
-                    postJDBCDataSourceProperties((JDBCDataSource) ds, properties);
-                }
-                
-                if (ds instanceof Olap4jDataSource) {
-                    postOlapDataSourceProperties((Olap4jDataSource) ds, properties);
-                }
-            }
-            
-            if (source instanceof JDBCDataSourceType) {
-                JDBCDataSourceType jdst = (JDBCDataSourceType) source;
-                jdst.addPropertyChangeListener(this);
-                
-                List<NameValuePair> properties = new ArrayList<NameValuePair>();
-                for (String name : jdst.getPropertyNames()) {
-                    properties.add(new BasicNameValuePair(name, jdst.getProperty(name)));
-                }
-                
-                postJDBCDataSourceTypeProperties(jdst, properties);
-            }
-        }
-
-        private void postJDBCDataSourceProperties(JDBCDataSource ds,
-                List<NameValuePair> properties) {
-        	if (postingProperties) return;
-        	
-            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
-            try {
-                URI jdbcDataSourceURI = jdbcDataSourceURI(ds);
-                try {
-                    HttpPost request = new HttpPost(jdbcDataSourceURI);
-                    request.setEntity(new UrlEncodedFormEntity(properties));
-                    httpClient.execute(request, responseHandler);
-                } catch (IOException ex) {
-                    throw new RuntimeException("Server request failed at " + jdbcDataSourceURI, ex);
-                }
-            } catch (URISyntaxException ex) {
-                throw new RuntimeException(ex);
-            } finally {
-                httpClient.getConnectionManager().shutdown();
-            }
-        }
-        
-        private void postOlapDataSourceProperties(Olap4jDataSource ods,
-                List<NameValuePair> properties) {
-            if (postingProperties) return;
-            
-            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
-            try {
-                File schemaFile = new File(ods.getMondrianSchema());
-                
-                if (!schemaFile.exists()) 
-                    logger.error("Schema file " + schemaFile.getAbsolutePath() + 
-                            " does not exist for data source " + ods.getName());
-                
-                HttpPost request = new HttpPost(
-                        getServerURI(projectLocation.getServiceInfo(), 
-                                MONDRIAN_SCHEMA_REL_PATH + schemaFile.getName()));
-                
-                request.setEntity(new FileEntity(schemaFile, "text/xml"));
-                httpClient.execute(request, responseHandler);
-                
-                //updating new data source to point to the server's schema.
-                for (int i = properties.size() - 1; i >= 0; i--) {
-                    NameValuePair pair = properties.get(i);
-                    if (pair.getName().equals(Olap4jDataSource.MONDRIAN_SCHEMA)) {
-                        properties.add(new BasicNameValuePair(
-                                Olap4jDataSource.MONDRIAN_SCHEMA, 
-                                SPDataSource.SERVER + schemaFile.getName()));
-                        properties.remove(pair);
-                        break;
-                    }
-                }
-                
-                try {
-                    postingProperties = true;
-                    ods.setMondrianSchema(new URI(SPDataSource.SERVER + schemaFile.getName()));
-                } finally {
-                    postingProperties = false;
-                }
-                
-                request = new HttpPost(olapDataSourceURI(ods));
-                request.setEntity(new UrlEncodedFormEntity(properties));
-                httpClient.execute(request, responseHandler);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            } finally {
-                httpClient.getConnectionManager().shutdown();
-            }
-        }
-
-        private void postJDBCDataSourceTypeProperties(JDBCDataSourceType jdst,
-                List<NameValuePair> properties) {
-            if (postingProperties) return;
-            
-            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
-            try {
-                HttpPost request = new HttpPost(jdbcDataSourceTypeURI(jdst));
-                request.setEntity(new UrlEncodedFormEntity(properties));
-                httpClient.execute(request, responseHandler);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            } finally {
-                httpClient.getConnectionManager().shutdown();
-            }
-        }
-        
-        /**
-         * Handles deleting of a database entry by requesting that the server
-         * deletes it. Also unlistens to the data source to prevent memory
-         * leaks.
-         */
-        public void databaseRemoved(DatabaseListChangeEvent e) {
-            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
-            try {
-                SPDataSource removedDS = e.getDataSource();
-                HttpDelete request = new HttpDelete(jdbcDataSourceURI(removedDS));
-				httpClient.execute(request, responseHandler);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            } finally {
-                httpClient.getConnectionManager().shutdown();
-            }
-        }
-        
-        public void removeJDBCDataSourceType(JDBCDataSourceType jdst) {
-            HttpClient httpClient = createHttpClient(projectLocation.getServiceInfo());
-            try {
-                HttpDelete request = new HttpDelete(jdbcDataSourceTypeURI(jdst));
-                httpClient.execute(request, responseHandler);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            } finally {
-                httpClient.getConnectionManager().shutdown();
-            }
-        }
-        
-        private URI jdbcDataSourceURI(SPDataSource jds) throws URISyntaxException {
-            if (!(jds instanceof JDBCDataSource)) throw new IllegalStateException("DataSource must be an instance of JDBCDataSource");
-            
-            return getServerURI(projectLocation.getServiceInfo(),
-                    "/" + REST_TAG + "/data-sources/JDBCDataSource/" + jds.getName());
-        }
-        
-        private URI olapDataSourceURI(SPDataSource jds) throws URISyntaxException {
-            if (!(jds instanceof Olap4jDataSource)) throw new IllegalStateException("DataSource must be an instance of JDBCDataSource");
-            
-            return getServerURI(projectLocation.getServiceInfo(),
-                    "/" + REST_TAG + "/data-sources/Olap4jDataSource/" + jds.getName());
-        }
-        
-        private URI jdbcDataSourceTypeURI(JDBCDataSourceType jdst) throws URISyntaxException {
-            return getServerURI(projectLocation.getServiceInfo(),
-                    "/" + REST_TAG + "/data-sources/type/" + jdst.getName());
-        }
-
-        public void undoableEditHappened(UndoableEditEvent e) {
-            if (e.getEdit() instanceof PlDotIni.AddDSTypeUndoableEdit) {
-                JDBCDataSourceType jdst = ((PlDotIni.AddDSTypeUndoableEdit) e.getEdit()).getType();
-                jdst.addPropertyChangeListener(this);
-                
-                List<NameValuePair> properties = new ArrayList<NameValuePair>();
-                for (String name : jdst.getPropertyNames()) {
-                    properties.add(new BasicNameValuePair(name, jdst.getProperty(name)));
-                }
-                
-                postJDBCDataSourceTypeProperties(jdst, properties);
-            }
-            
-            if (e.getEdit() instanceof PlDotIni.RemoveDSTypeUndoableEdit) {
-                JDBCDataSourceType jdst = ((PlDotIni.RemoveDSTypeUndoableEdit) e.getEdit()).getType();
-                jdst.removePropertyChangeListener(this);
-                
-                removeJDBCDataSourceType(jdst);
-            }
-        }
     }
 	
 	// ----------- Preferences accessors and mutators -----------
