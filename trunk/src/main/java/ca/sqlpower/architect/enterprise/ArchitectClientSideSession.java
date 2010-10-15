@@ -79,9 +79,9 @@ import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
-import ca.sqlpower.util.UserPrompterFactory;
 
 public class ArchitectClientSideSession extends ArchitectSessionImpl implements RevisionController {	
 	
@@ -539,20 +539,12 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         }               
         
     }
-    
-    public static ProjectLocation uploadProject(SPServerInfo serviceInfo, String name, File project, ArchitectSession session) 
+
+	public static ProjectLocation uploadProject(SPServerInfo serviceInfo, String name, File project, UserPrompterFactory session) 
     throws URISyntaxException, ClientProtocolException, IOException, JSONException {
-        return ClientSideSessionUtils.uploadProject(serviceInfo,
-                name,
-                project,
-                session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
-                UserPromptType.MESSAGE, 
-                       UserPromptOptions.OK, 
-                       UserPromptResponse.OK, 
-                       "OK", "OK"),
-                cookieStore);
-    }
-    
+	    return ClientSideSessionUtils.uploadProject(serviceInfo, name, project, session, cookieStore);
+	}
+	
 	public int revertServerWorkspace(int revisionNo) throws IOException, URISyntaxException, JSONException {
 	    return revertServerWorkspace(projectLocation, revisionNo);
 	}
@@ -719,16 +711,13 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         ClientSideSessionUtils.persistRevisionFromServer(projectLocation, revisionNo, decoder, cookieStore);
     }
 	
-	public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name, ArchitectSession session)
+	public static ProjectLocation createNewServerSession(SPServerInfo serviceInfo, String name, 
+	        ArchitectSession session)
     throws URISyntaxException, ClientProtocolException, IOException, JSONException {
         return ClientSideSessionUtils.createNewServerSession(serviceInfo,
                 name,
                 cookieStore,
-                session.createUserPrompter("You do not have sufficient privileges to create a new workspace.", 
-                        UserPromptType.MESSAGE, 
-                        UserPromptOptions.OK, 
-                        UserPromptResponse.OK, 
-                        "OK", "OK"));
+                session);
     }
     
     public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo) 
@@ -739,12 +728,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	public static void deleteServerWorkspace(ProjectLocation projectLocation, ArchitectSession session) throws URISyntaxException, ClientProtocolException, IOException {
     	
 	    ClientSideSessionUtils.deleteServerWorkspace(projectLocation,
-	            cookieStore,
-	            session.createUserPrompter("You do not have sufficient privileges to delete the selected workspace.", 
-                       UserPromptType.MESSAGE, 
-                       UserPromptOptions.OK, 
-                       UserPromptResponse.OK, 
-                       "OK", "OK"));
+	            cookieStore, session);
     }
     
     public NetworkConflictResolver getUpdater() {
