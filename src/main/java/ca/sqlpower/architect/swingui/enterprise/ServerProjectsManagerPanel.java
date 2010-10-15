@@ -20,8 +20,8 @@
 package ca.sqlpower.architect.swingui.enterprise;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Dialog.ModalityType;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -51,12 +51,12 @@ import javax.swing.event.DocumentListener;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
-import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
 import ca.sqlpower.architect.swingui.action.Messages;
+import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;

@@ -7,7 +7,7 @@ import javax.swing.AbstractAction;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.architect.enterprise.ProjectLocation;
+import ca.sqlpower.enterprise.client.ProjectLocation;
 
 public class RemoveServerProjectAction extends AbstractAction {
 

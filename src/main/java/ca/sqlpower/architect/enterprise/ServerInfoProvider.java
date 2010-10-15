@@ -42,6 +42,7 @@ import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ca.sqlpower.enterprise.ClientSideSessionUtils;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.enterprise.client.ServerProperties;
 import ca.sqlpower.util.BrowserUtil;
@@ -106,7 +107,7 @@ public abstract class ServerInfoProvider {
 		sb.append(port);
 		sb.append(path);
 		sb.append(path.endsWith("/")?"":"/");
-		sb.append(ArchitectClientSideSession.REST_TAG);
+		sb.append(ClientSideSessionUtils.REST_TAG);
 		sb.append("/serverinfo");
 		
 		// Spawn a connection object

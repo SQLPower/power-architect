@@ -55,7 +55,10 @@ import ca.sqlpower.dao.SPPersisterListener;
 import ca.sqlpower.dao.SPSessionPersister;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
+import ca.sqlpower.enterprise.ClientSideSessionUtils;
 import ca.sqlpower.enterprise.JSONMessage;
+import ca.sqlpower.enterprise.JSONResponseHandler;
+import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.util.MonitorableImpl;
@@ -145,7 +148,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
         this.outboundHttpClient = outboundHttpClient;
         this.session = session;
         
-        contextRelativePath = "/" + ArchitectClientSideSession.REST_TAG + "/project/" + projectLocation.getUUID();
+        contextRelativePath = "/" + ClientSideSessionUtils.REST_TAG + "/project/" + projectLocation.getUUID();
         
     }
     
@@ -981,7 +984,7 @@ public class NetworkConflictResolver extends Thread implements MessageSender<JSO
                     projectLocation.getServiceInfo().getServerAddress(), 
                     projectLocation.getServiceInfo().getPort(),
                     projectLocation.getServiceInfo().getPath() + 
-                    "/" + ArchitectClientSideSession.REST_TAG + "/project/" + projectLocation.getUUID(), 
+                    "/" + ClientSideSessionUtils.REST_TAG + "/project/" + projectLocation.getUUID(), 
                     "currentRevision=" + currentRevision, null);
             HttpPost postRequest = new HttpPost(serverURI);
             postRequest.setEntity(new StringEntity(jsonArray)); 

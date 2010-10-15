@@ -23,8 +23,8 @@ import java.sql.Types;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectSwingProject;
+import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -34,8 +34,8 @@ import ca.sqlpower.sql.SpecificDataSourceCollection;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.BasicSQLType;
+import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 public class SPObjectSnapshotHierarchyListenerTest extends TestCase {
 

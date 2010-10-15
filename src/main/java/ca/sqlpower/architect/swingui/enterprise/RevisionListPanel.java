@@ -45,10 +45,10 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.enterprise.ArchitectPersisterSuperConverter;
 import ca.sqlpower.architect.enterprise.ArchitectSessionPersister;
-import ca.sqlpower.architect.enterprise.ProjectLocation;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
+import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
