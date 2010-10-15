@@ -136,10 +136,10 @@ import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
+import ca.sqlpower.architect.swingui.enterprise.ArchitectServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.enterprise.ProjectSecurityPanel;
 import ca.sqlpower.architect.swingui.enterprise.RevisionListPanel;
 import ca.sqlpower.architect.swingui.enterprise.SecurityPanel;
-import ca.sqlpower.architect.swingui.enterprise.ServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.action.ImportSchemaAction;
@@ -159,6 +159,7 @@ import ca.sqlpower.swingui.StackedTabComponent.StackedTab;
 import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.action.OpenUrlAction;
 import ca.sqlpower.swingui.enterprise.client.SPServerInfoManagerPanel;
+import ca.sqlpower.swingui.enterprise.client.ServerProjectsManagerPanel;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.BrowserUtil;
@@ -314,8 +315,7 @@ public class ArchitectFrame extends JFrame {
                             }
                         };
                         
-                        ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(si, currentSession, context,
-                                ArchitectFrame.this, closeAction);
+                        ServerProjectsManagerPanel spm = new ArchitectServerProjectsManagerPanel(si, currentSession, context, closeAction);
                         if (spm.isConnected()) {
                             dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                             dialog.setContentPane(spm.getPanel());
@@ -373,8 +373,7 @@ public class ArchitectFrame extends JFrame {
                 }
             };
             
-            ServerProjectsManagerPanel spm = new ServerProjectsManagerPanel(currentSession, context,
-                    ArchitectFrame.this, closeAction);
+            ServerProjectsManagerPanel spm = new ArchitectServerProjectsManagerPanel(currentSession, context, closeAction);
             d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             d.setContentPane(spm.getPanel());
             
