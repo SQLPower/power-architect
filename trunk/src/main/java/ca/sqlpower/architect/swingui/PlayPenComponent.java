@@ -43,11 +43,11 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver.UpdateListener;
 import ca.sqlpower.architect.swingui.PlayPen.FloatingContainerPaneListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.enterprise.AbstractNetworkConflictResolver;
+import ca.sqlpower.enterprise.AbstractNetworkConflictResolver.UpdateListener;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPObject;
@@ -101,15 +101,15 @@ implements Selectable {
      * the same time an update comes in.
      */
     private final UpdateListener updateWhileMovingListener = new UpdateListener() {       
-        public boolean updatePerformed(NetworkConflictResolver resolver) {
+        public boolean updatePerformed(AbstractNetworkConflictResolver resolver) {
             return true;
         }
         
-        public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
+        public boolean updateException(AbstractNetworkConflictResolver resolver, Throwable t) {
             return false;
         }
 
-        public void preUpdatePerformed(NetworkConflictResolver resolver) {
+        public void preUpdatePerformed(AbstractNetworkConflictResolver resolver) {
             if (isBeingDragged) {
                 doneDragging(false);
             }
