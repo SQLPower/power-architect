@@ -55,6 +55,7 @@ import ca.sqlpower.enterprise.ClientSideSessionUtils;
 import ca.sqlpower.enterprise.DataSourceCollectionUpdater;
 import ca.sqlpower.enterprise.JSONMessage;
 import ca.sqlpower.enterprise.JSONResponseHandler;
+import ca.sqlpower.enterprise.ServerInfoProvider;
 import ca.sqlpower.enterprise.TransactionInformation;
 import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.enterprise.client.RevisionController;
@@ -189,7 +190,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                     String.valueOf(projectLocation.getServiceInfo().getPort()), 
                     projectLocation.getServiceInfo().getPath(), 
                     projectLocation.getServiceInfo().getUsername(), 
-                    projectLocation.getServiceInfo().getPassword());
+                    projectLocation.getServiceInfo().getPassword(),
+                    cookieStore);
         } catch (Exception e) {
             throw new AssertionError("Exception encountered while verifying the server license:" + e.getMessage());
         }
