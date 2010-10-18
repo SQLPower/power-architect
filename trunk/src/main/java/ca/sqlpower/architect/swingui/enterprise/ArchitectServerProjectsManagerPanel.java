@@ -33,12 +33,12 @@ import javax.swing.JProgressBar;
 import org.json.JSONException;
 
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
-import ca.sqlpower.architect.enterprise.NetworkConflictResolver;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionImpl;
+import ca.sqlpower.enterprise.AbstractNetworkConflictResolver;
 import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.enterprise.client.SPServerInfo;
 import ca.sqlpower.swingui.SPSUtils;
@@ -108,17 +108,17 @@ public class ArchitectServerProjectsManagerPanel extends ServerProjectsManagerPa
                         dialog.setVisible(true);
 
                         ((ArchitectClientSideSession) ((ArchitectSwingSessionImpl) newSession).getDelegateSession())
-                        .getUpdater().addListener(new NetworkConflictResolver.UpdateListener() {
-                            public boolean updatePerformed(NetworkConflictResolver resolver) {
+                        .getUpdater().addListener(new AbstractNetworkConflictResolver.UpdateListener() {
+                            public boolean updatePerformed(AbstractNetworkConflictResolver resolver) {
                                 dialog.dispose();
                                 return true;
                             }
 
-                            public boolean updateException(NetworkConflictResolver resolver, Throwable t) {
+                            public boolean updateException(AbstractNetworkConflictResolver resolver, Throwable t) {
                                 return false;
                             }
 
-                            public void preUpdatePerformed(NetworkConflictResolver resolver) {
+                            public void preUpdatePerformed(AbstractNetworkConflictResolver resolver) {
                                 //do nothing
                             }
 
