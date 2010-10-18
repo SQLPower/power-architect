@@ -19,7 +19,6 @@
 package ca.sqlpower.architect.enterprise;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.http.client.HttpClient;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -49,7 +47,6 @@ import ca.sqlpower.enterprise.client.ProjectLocation;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.util.MonitorableImpl;
-import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
@@ -192,7 +189,7 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                 if (conflicts.size() == 0) {
                     // Try to return the persisted objects to their state pre-update.
                     try {
-                        SPSessionPersister.redoForSession(session.getWorkspace(), 
+                        SPSessionPersister.redoForSession(getWorkspace(), 
                                 new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
                                 outboundPropertiesToChange, 
                                 new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
@@ -223,270 +220,12 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
         }
     }
     
-    private void fillInboundPersistedLists(String json) {
-        try {
-            JSONArray array = new JSONArray(json);
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
-                
-                if (obj.getString("method").equals("persistObject")) {
-                    
-                    String parentUUID = obj.getString("parentUUID");
-                    String type = obj.getString("type");
-                    String uuid = obj.getString("uuid");
-                    int index = obj.getInt("index");
-                    
-                    inboundObjectsToAdd.put(uuid, new PersistedSPObject(parentUUID, type, uuid, index));
-                    
-                } else if (obj.getString("method").equals("persistProperty")) {
-                    
-                    String uuid = obj.getString("uuid");
-                    String propertyName = obj.getString("propertyName");
-                    DataType type = DataType.valueOf(obj.getString("type"));
-                    Object oldValue = null;
-                    try {
-                        oldValue = SPJSONMessageDecoder.getWithType(obj, type, "oldValue");
-                    } catch (Exception e) {}
-                    Object newValue = SPJSONMessageDecoder.getWithType(obj, type, "newValue");
-                    boolean unconditional = false;
-                    
-                    PersistedSPOProperty property = new PersistedSPOProperty(uuid, propertyName, type, oldValue, newValue, unconditional);
-                    
-                    if (inboundPropertiesToChange.keySet().contains(uuid)) {
-                        inboundPropertiesToChange.asMap().get(uuid).add(property);
-                    } else {
-                        inboundPropertiesToChange.put(uuid, property);
-                    }
-                    
-                } else if (obj.getString("method").equals("removeObject")) {
-                    
-                    String parentUUID = obj.getString("parentUUID");
-                    String uuid = obj.getString("uuid");
-                    SPObject objectToRemove = SQLPowerUtils.findByUuid(session.getWorkspace(), uuid, SPObject.class);
-
-                    inboundObjectsToRemove.put(uuid, new RemovedObjectEntry(parentUUID, objectToRemove, 
-                            objectToRemove.getParent().getChildren().indexOf(objectToRemove)));
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Unable to create persisted lists: ", ex);
-        }
-    }
-    
     @Override
     protected List<ConflictMessage> detectConflicts() {
         List<ConflictMessage> conflicts = checkForSimultaneousEdit();
         // ----- Special cases -----
         allowSimultaneousAdditionsUnderDB(conflicts);
         disallowColumnMappingsPointingToSameColumn(conflicts);
-        return conflicts;
-    }
-
-    /**
-     * Goes through all the inbound and outbound change lists and
-     * determines whether the outbound changes should be allowed to continue.
-     * The reasons to prevent the outbound changes are usually cases where
-     * as a result of the incoming change, the outbound change would not be
-     * possible through the UI anymore, and/or are impossible in such a state.
-     * 
-     * See ConflictCase for all the cases that are looked for in this method.
-     * A Google Docs spreadsheet called Conflict rules has been shared
-     * with the psc group. For more information, see that.
-     */
-    @Override
-    protected List<ConflictMessage> checkForSimultaneousEdit() {                        
-        
-        List<ConflictMessage> conflicts = new LinkedList<ConflictMessage>();
-        
-        Set<String> inboundAddedObjectParents = new HashSet<String>();
-        Set<String> inboundRemovedObjectParents = new HashSet<String>();
-        
-        Set<String> inboundChangedObjects = new HashSet<String>();
-        HashMap<String, String> inboundCreatedDependencies = new HashMap<String, String>();
-        
-        Set<String> duplicateMoves = new HashSet<String>();
-        
-
-        // ----- Populate the inbound sets / maps -----        
-        
-        for (String uuid : inboundPropertiesToChange.keys()) {
-            inboundChangedObjects.add(uuid);
-            for (PersistedSPOProperty p : inboundPropertiesToChange.get(uuid)) {
-                if (p.getDataType() == DataType.REFERENCE) {
-                    inboundCreatedDependencies.put((String) p.getNewValue(), p.getUUID()); 
-                }
-            }
-        }
-        
-        for (PersistedSPObject o : inboundObjectsToAdd.values()) {
-            inboundAddedObjectParents.add(o.getParentUUID());
-        }      
-        
-        for (RemovedObjectEntry o : inboundObjectsToRemove.values()) {          
-            inboundRemovedObjectParents.add(o.getParentUUID());
-        }
-        
-        // ----- Iterate through outbound additions -----
-        
-        Set<String> checkedIfCanAddToTree = new HashSet<String>();        
-        Iterator<PersistedSPObject> addedObjects = outboundObjectsToAdd.values().iterator();
-        while (addedObjects.hasNext()) {
-            PersistedSPObject o = addedObjects.next();            
-            
-            // Can't add object to a parent that already had a child added or removed.
-            // This will also include incoming and/or outgoing moves, which are conflicts too.
-            if (inboundAddedObjectParents.contains(o.getParentUUID()) || 
-                    inboundRemovedObjectParents.contains(o.getParentUUID())) {              
-                conflicts.add(new ConflictMessage(ConflictCase.SIMULTANEOUS_ADDITION, 
-                        o.getUUID(), getPersistedObjectName(o)));
-            }
-            
-            // Can't add an object if the direct parent was changed.
-            if (inboundChangedObjects.contains(o.getParentUUID())) {
-                conflicts.add(new ConflictMessage(ConflictCase.ADDITION_UNDER_CHANGE, 
-                        o.getUUID(), getPersistedObjectName(o), 
-                        o.getParentUUID(), session.getWorkspace().getObjectInTree(o.getParentUUID()).getName()));
-            }
-            
-            // Make sure we are not adding an object that had an ancestor removed.
-            // First iterate up ancestors that are being added in the same transaction.
-            PersistedSPObject highestAddition = o;
-            while (outboundObjectsToAdd.containsKey(highestAddition.getParentUUID()) &&
-                    !checkedIfCanAddToTree.contains(highestAddition.getParentUUID())) {
-                checkedIfCanAddToTree.add(highestAddition.getUUID());
-                highestAddition = outboundObjectsToAdd.get(highestAddition.getParentUUID());                
-            }
-            checkedIfCanAddToTree.add(highestAddition.getUUID());
-            if (checkedIfCanAddToTree.add(highestAddition.getParentUUID()) &&
-                    session.getWorkspace().getObjectInTree(highestAddition.getParentUUID()) == null) {
-                conflicts.add(new ConflictMessage(ConflictCase.ADDITION_UNDER_REMOVAL, 
-                        highestAddition.getUUID(), getPersistedObjectName(highestAddition)));
-            }
-            
-            // Check if both clients are adding the same object.
-            // It could mean they both undid a deletion of this object,
-            // or are both trying to move the same object.
-            // If they are identical, remove the outbound add from this list.
-            // If it was a move and has a corresponding remove call, that
-            // must be taken care of in the following outbound removals loop.
-            if (inboundObjectsToAdd.containsKey(o.getUUID())) {
-                if (inboundObjectsToAdd.get(o.getUUID()).equals(o)) {
-                    addedObjects.remove();
-                    outboundPropertiesToChange.removeAll(o.getUUID());
-                    duplicateMoves.add(o.getUUID());
-                } else {
-                    conflicts.add(new ConflictMessage(ConflictCase.DIFFERENT_MOVE, 
-                            o.getUUID(), getPersistedObjectName(o)));
-                }
-            }                             
-        }
-        
-        
-        // ----- Iterate through outbound removals -----
-             
-        Iterator<RemovedObjectEntry> removedObjects = outboundObjectsToRemove.values().iterator();        
-        while (removedObjects.hasNext()) {
-            RemovedObjectEntry object = removedObjects.next();
-            final String uuid = object.getRemovedChild().getUUID();
-            
-            // Check if the object the outbound client is trying to remove does not exist.
-            SPObject removedObject = session.getWorkspace().getObjectInTree(uuid);
-            if (removedObject == null) {
-                // Check if this remove has a corresponding add, meaning it is a move.
-                // The incoming remove will override the outgoing move.
-                if (outboundObjectsToAdd.containsKey(uuid)) {
-                    conflicts.add(new ConflictMessage(ConflictCase.MOVE_OF_REMOVED, 
-                            object.getRemovedChild().getUUID(), object.getRemovedChild().getName()));
-                } else {
-                    // Both clients removed the same object, either directly or indirectly.
-                    removedObjects.remove();
-                }
-            } else if (inboundCreatedDependencies.containsKey(uuid)) {
-                // Can't remove an object that was just made a dependency
-                String uuidOfDependent = inboundCreatedDependencies.get(uuid);
-                conflicts.add(new ConflictMessage(ConflictCase.REMOVAL_OF_DEPENDENCY, 
-                        uuid, removedObject.getName(),
-                        uuidOfDependent, session.getWorkspace().getObjectInTree(uuidOfDependent).getName()));
-            } else if (duplicateMoves.contains(uuid)) {
-                removedObjects.remove();
-            }
-            
-        }   
-        
-        
-        // ----- Iterate through outbound properties -----
-        
-        for (String uuid : outboundPropertiesToChange.keys()) {            
-            SPObject changedObject = session.getWorkspace().getObjectInTree(uuid);            
-            
-            // If this object is being newly added, the rest of the loop body does not matter.
-            if (outboundObjectsToAdd.containsKey(uuid)) continue;
-            
-            // Cannot change a property on an object that no longer exists (due to inbound removal).
-            if (changedObject == null) {
-                conflicts.add(new ConflictMessage(ConflictCase.CHANGE_OF_REMOVED, uuid, uuid));
-                continue;
-            }
-            
-            // Cannot change the property of an object whose direct parent was also changed.
-            if (changedObject.getParent() != null && 
-                    inboundChangedObjects.contains(changedObject.getParent().getUUID())) {
-                conflicts.add(new ConflictMessage(ConflictCase.CHANGE_UNDER_CHANGE, 
-                        uuid, changedObject.getName(),
-                        changedObject.getParent().getUUID(), changedObject.getParent().getName()));
-            }
-            
-            // You cannot change the property of an object that had a property already changed,
-            // unless any and all property changes are identical, in which case the duplicate
-            // property changes will be removed from the outgoing list.
-                        
-            if (inboundChangedObjects.contains(uuid)) {                
-                ConflictMessage message = new ConflictMessage(ConflictCase.SIMULTANEOUS_OBJECT_CHANGE, 
-                        uuid, session.getWorkspace().getObjectInTree(uuid).getName());
-                
-                HashMap<String, Object> inboundPropertiesMap = 
-                    new HashMap<String, Object>();                
-                for (PersistedSPOProperty p : inboundPropertiesToChange.get(uuid)) {
-                    inboundPropertiesMap.put(p.getPropertyName(), p.getNewValue());
-                }
-                                
-                Iterator<PersistedSPOProperty> properties = outboundPropertiesToChange.get(uuid).iterator();                
-                while (properties.hasNext()) {
-                    PersistedSPOProperty p = properties.next();
-                    // Check if there is a corresponding inbound property.
-                    // If not, this is a conflict since there are non-identical properties.
-                    if (inboundPropertiesMap.containsKey(p.getPropertyName())) {
-                        if (inboundPropertiesMap.get(p.getPropertyName()).equals(p.getNewValue())) {
-                            properties.remove();
-                        } else {
-                            conflicts.add(message);
-                            break;
-                        }
-                    } else {
-                        conflicts.add(message);
-                        break;
-                    }
-                }
-            }
-            
-            // Cannot change the property of a parent whose direct child was either:
-            for (SPObject child : changedObject.getChildren()) {                                        
-                // also changed
-                if (inboundChangedObjects.contains(child.getUUID())) {
-                    conflicts.add(new ConflictMessage(ConflictCase.CHANGE_UNDER_CHANGE,
-                            uuid, changedObject.getName(),
-                            child.getUUID(), child.getName()));                    
-                }
-                
-                // or just added (moved is okay, though).
-                if (inboundObjectsToAdd.containsKey(child.getUUID()) &&
-                        !inboundObjectsToRemove.containsKey(child.getUUID())){
-                    conflicts.add(new ConflictMessage(ConflictCase.CHANGE_AFTER_ADDITION,
-                            uuid, changedObject.getName(),
-                            child.getUUID(), child.getName()));
-                }
-            }
-        }
         return conflicts;
     }
 
@@ -599,5 +338,10 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
         for (PersistedSPObject o : indexUpdates) {
             outboundObjectsToAdd.put(o.getUUID(), o);
         }
+    }
+
+    @Override
+    protected SPObject getWorkspace() {
+        return session.getWorkspace();
     }
 }
