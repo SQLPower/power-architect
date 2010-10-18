@@ -77,11 +77,12 @@ import ca.sqlpower.sqlobject.UserDefinedSQLType;
 import ca.sqlpower.sqlobject.UserDefinedSQLTypeSnapshot;
 import ca.sqlpower.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.event.SessionLifecycleListener;
+import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
-import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
+import ca.sqlpower.util.UserPrompterFactory;
 
 public class ArchitectClientSideSession extends ArchitectSessionImpl implements RevisionController {	
 	
@@ -717,7 +718,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
         return ClientSideSessionUtils.createNewServerSession(serviceInfo,
                 name,
                 cookieStore,
-                session);
+                new DefaultUserPrompterFactory());
     }
     
     public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo) 
@@ -728,7 +729,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	public static void deleteServerWorkspace(ProjectLocation projectLocation, ArchitectSession session) throws URISyntaxException, ClientProtocolException, IOException {
     	
 	    ClientSideSessionUtils.deleteServerWorkspace(projectLocation,
-	            cookieStore, session);
+	            cookieStore, new DefaultUserPrompterFactory());
     }
     
     public ArchitectNetworkConflictResolver getUpdater() {
