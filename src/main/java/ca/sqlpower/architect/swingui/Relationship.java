@@ -224,12 +224,10 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	 */
 	protected void setup() {
 		updateUI();
-		//((RelationshipUI)getUI()).bestConnectionPoints();
 		setOpaque(false);
 		setBackgroundColor(Color.green);
 		model.addSPListener(this);
 		setToolTipText(model.getName());
-		
 	}
 
 	protected void createPopup() {
@@ -550,18 +548,12 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
             /* (non-Javadoc)
              * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
              */
-            if ((evt.getPropertyName().equals("topLeftCorner") || (evt.getPropertyName().equals("lengths")))/* && isMagicEnabled()*/) {
+            if ((evt.getPropertyName().equals("topLeftCorner") || (evt.getPropertyName().equals("lengths")))) {
                 logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
                 
                 Point pkPoint = new Point(createPkConnectionPoint().getX(), createPkConnectionPoint().getY());
                 Point fkPoint = new Point(createFkConnectionPoint().getX(), createFkConnectionPoint().getY());
                 
-                /*if (((PlayPenComponent)(evt.getSource())) == pkTable) {
-                    setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, pkPoint)); // true == PK
-                }
-                if (((PlayPenComponent)(evt.getSource())) == fkTable) {
-                    setFkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(false, fkPoint)); // false == FK
-                }*/
                 Point oldVal;
                 Point newVal;
                 if (evt.getPropertyName().equals("lengths")) {
