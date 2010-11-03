@@ -53,6 +53,7 @@ import ca.sqlpower.architect.swingui.event.ItemSelectionEvent;
 import ca.sqlpower.architect.swingui.event.ItemSelectionListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
@@ -308,11 +309,11 @@ public class RelationalPlayPenFactory {
             if (treePaths == null) {
                 pp.selectNone();
             } else {
-                List<SQLObject> objects = new ArrayList<SQLObject>();
+                List<SPObject> objects = new ArrayList<SPObject>();
                 for (TreePath tp : treePaths) {
                     if (tree.isTargetDatabaseNode(tp) || !tree.isTargetDatabaseChild(tp))
                         continue;
-                    SQLObject obj = (SQLObject) tp.getLastPathComponent();
+                    SPObject obj = (SPObject) tp.getLastPathComponent();
                     // only select playpen represented objects.
                     if ((obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn) &&
                             !objects.contains(obj)) {

@@ -37,6 +37,7 @@ import javax.swing.undo.UndoableEdit;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.BasicRelationshipUI;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
@@ -463,25 +464,25 @@ public class TestArchitectUndoManager extends TestCase {
         pp.addTablePane(tp1, new Point(0, 200));
         pp.addRelationship(rel);
         
-        Point oldPkCon = rel.getPkConnectionPoint();
-        Point oldFkCon = rel.getFkConnectionPoint();
+        BasicRelationshipUI.ImmutablePoint oldPkCon = rel.createPkConnectionPoint();
+        BasicRelationshipUI.ImmutablePoint oldFkCon = rel.createFkConnectionPoint();
         
-        rel.setPkConnectionPoint(new Point(oldPkCon.x + 20, oldPkCon.y));
-        rel.setFkConnectionPoint(new Point(oldFkCon.x - 20, oldFkCon.y));
-        Point newPkCon = rel.getPkConnectionPoint();
-        Point newFkCon = rel.getFkConnectionPoint();
+        rel.setPkConnectionPoint(new Point(oldPkCon.getX() + 20, oldPkCon.getY()));
+        rel.setFkConnectionPoint(new Point(oldFkCon.getX() - 20, oldFkCon.getY()));
+        BasicRelationshipUI.ImmutablePoint newPkCon = rel.createPkConnectionPoint();
+        BasicRelationshipUI.ImmutablePoint newFkCon = rel.createFkConnectionPoint();
         
         undoManager.undo();
         undoManager.undo();
-        assertEquals(oldFkCon, rel.getFkConnectionPoint());
+        assertEquals(oldFkCon, rel.createFkConnectionPoint());
         undoManager.undo();
         undoManager.undo();
-        assertEquals(oldPkCon, rel.getPkConnectionPoint());
+        assertEquals(oldPkCon, rel.createPkConnectionPoint());
         undoManager.redo();
         undoManager.redo();
         undoManager.redo();
-        assertEquals(newPkCon, rel.getPkConnectionPoint());
-        assertEquals(newFkCon, rel.getFkConnectionPoint());
+        assertEquals(newPkCon, rel.createPkConnectionPoint());
+        assertEquals(newFkCon, rel.createFkConnectionPoint());
     }
     
     public void testUndoManagerActionUpdates() throws SQLObjectException

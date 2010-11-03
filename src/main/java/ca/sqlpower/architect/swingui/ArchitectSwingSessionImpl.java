@@ -371,6 +371,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         UserSettings sprefs = getUserSettings().getSwingSettings();
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+            Object d = sprefs.getObject("zoom", new Double(1.0));
+            if (!(d instanceof Double)) {
+                throw new RuntimeException("Your playpen zoom must be a double");
+            }
+            playPen.setZoom((Double) d);
+            
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
         

@@ -70,6 +70,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.prefs.Preferences;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -94,7 +95,9 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.olap.MondrianModel;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
@@ -623,7 +626,9 @@ public class PlayPen extends JPanel
 		if (session.isEnterpriseSession()) {
 		    zoom = session.getEnterpriseSession().getPrefDouble("zoom", 1.0);
 		} else {
-		    zoom = 1.0;
+	        Preferences p = Preferences.userNodeForPackage(ArchitectSessionImpl.class);
+	        Preferences prefs = p.node(session.getWorkspace().getName());
+            zoom = prefs.getDouble("zoom", 1.0);
 		}
         viewportPosition = new Point(0, 0);
 		this.setBackground(java.awt.Color.white);
@@ -1060,6 +1065,14 @@ public class PlayPen extends JPanel
 		if (newZoom != zoom) {
 			double oldZoom = zoom;
 			zoom = newZoom;
+			if(session.isEnterpriseSession()) {
+	            session.getEnterpriseSession().putPref("zoom", zoom);
+			} else {
+		        UserSettings sprefs = session.getUserSettings().getSwingSettings();
+		        if (sprefs != null) {
+		            sprefs.setObject("zoom", new Double(zoom));
+		        }
+			}
 			this.firePropertyChange("zoom", oldZoom, newZoom); //$NON-NLS-1$
 			this.revalidate();
 			this.repaint();
@@ -2864,7 +2877,7 @@ public class PlayPen extends JPanel
      * @param selection A list of SQLObjects, should only have SQLColumn, SQLTable or SQLRelationship.
      * @throws SQLObjectException 
      */
-    public void selectObjects(List<SQLObject> selections) throws SQLObjectException {
+    public void selectObjects(List<? extends SPObject> selections) throws SQLObjectException {
         if (ignoreTreeSelection) return;
         ignoreTreeSelection = true;
 
@@ -2872,12 +2885,12 @@ public class PlayPen extends JPanel
         DBTree tree = session.getDBTree();
         
         // tables to add to select because of column selection 
-        List<SQLObject> colTables = new ArrayList<SQLObject>();
+        List<SPObject> colTables = new ArrayList<SPObject>();
         
         // objects that were already selected, only used for debugging
-        List<SQLObject> ignoredObjs = new ArrayList<SQLObject>();
+        List<SPObject> ignoredObjs = new ArrayList<SPObject>();
 
-        for (SQLObject obj : selections) {
+        for (SPObject obj : selections) {
             if (obj instanceof SQLColumn){
                 //Since we cannot directly select a SQLColumn directly
                 //from the playpen, there is a special case for it

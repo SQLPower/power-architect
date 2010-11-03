@@ -70,6 +70,7 @@ import ca.sqlpower.architect.swingui.dbtree.DBTreeCellRenderer;
 import ca.sqlpower.architect.swingui.dbtree.DBTreeModel;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPListener;
+import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.SPObjectSnapshot;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.SPDataSource;
@@ -1117,7 +1118,7 @@ public class DBTree extends JTree implements DragSourceListener {
     public void clearNonPlayPenSelections() {
         if (getSelectionPaths() == null) return;
         for (TreePath tp : getSelectionPaths()) {
-            SQLObject obj = (SQLObject) tp.getLastPathComponent();
+            SPObject obj = (SPObject) tp.getLastPathComponent();
             if (!(obj instanceof SQLTable || obj instanceof SQLRelationship || obj instanceof SQLColumn || obj instanceof SQLRelationship.SQLImportedKey)) {
                 removeSelectionPath(tp);
             }
