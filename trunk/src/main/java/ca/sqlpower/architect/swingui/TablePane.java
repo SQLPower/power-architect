@@ -223,6 +223,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         TablePaneUI ui = (TablePaneUI) BasicTablePaneUI.createUI(this);
         ui.installUI(this);
         setUI(ui);
+        updateLengths(false);
     }
 
 	// ---------------------- utility methods ----------------------

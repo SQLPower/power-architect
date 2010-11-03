@@ -20,6 +20,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -90,8 +91,17 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	private TablePane pkTable;
 	private TablePane fkTable;
 	
-	private Point pkConnectionPoint;
-	private Point fkConnectionPoint;
+	/**
+	 * This represents a percentage of how far along one of the sides the connection
+	 * to the primary key table should be drawn.
+	 */
+	private double pkConnection;
+    
+    /**
+     * This represents a percentage of how far along one of the sides the connection
+     * to the foreign key table should be drawn.
+     */
+	private double fkConnection;
 	
     /**
      * A bitmask of the constants (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
@@ -148,8 +158,8 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		setName(r.getName());
 		this.pkTable = r.pkTable;
 		this.fkTable = r.fkTable;
-		this.pkConnectionPoint = new Point(r.getPkConnectionPoint());
-		this.fkConnectionPoint = new Point(r.getFkConnectionPoint());
+		this.pkConnection = r.getPkConnection();
+		this.fkConnection = r.getFkConnection();
 		this.selected = false;
 		this.columnHighlightColour = r.columnHighlightColour;
 		
@@ -186,7 +196,7 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	public Relationship(SQLRelationship model, TablePane pkTable, 
 	        TablePane fkTable, PlayPenContentPane parent) 
 	throws SQLObjectException {
-	    this (model, pkTable, fkTable, parent, new Point(), new Point(), 0);	    
+	    this (model, pkTable, fkTable, parent, 0, 0, 0);	    
 	}
 
 	@Constructor
@@ -194,16 +204,16 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	        @ConstructorParameter(propertyName="pkTable") TablePane pkTable,
 	        @ConstructorParameter(propertyName="fkTable") TablePane fkTable,
 	        @ConstructorParameter(propertyName="parent") PlayPenContentPane parent,
-	        @ConstructorParameter(propertyName="pkConnectionPoint") Point pkConnectionPoint,
-	        @ConstructorParameter(propertyName="fkConnectionPoint") Point fkConnectionPoint,
+	        @ConstructorParameter(propertyName="pkConnection") double pkConnection,
+	        @ConstructorParameter(propertyName="fkConnection") double fkConnection,
 	        @ConstructorParameter(propertyName="orientation") int orientation) 
 	throws SQLObjectException {
 	    super(model.getName());
 		this.model = model;
 		setPkTable(pkTable);
 		setFkTable(fkTable);
-        this.pkConnectionPoint = new Point(pkConnectionPoint);
-        this.fkConnectionPoint = new Point(fkConnectionPoint);
+        this.pkConnection = pkConnection;
+        this.fkConnection = fkConnection;
 		this.orientation = orientation;
 		setParent(parent);
         setup();
@@ -214,13 +224,12 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	 */
 	protected void setup() {
 		updateUI();
+		//((RelationshipUI)getUI()).bestConnectionPoints();
 		setOpaque(false);
 		setBackgroundColor(Color.green);
 		model.addSPListener(this);
 		setToolTipText(model.getName());
-
-		// requires pkTable and fkTable to be initialized
-        //ui.bestConnectionPoints(); // breaks when loading a new project?
+		
 	}
 
 	protected void createPopup() {
@@ -266,12 +275,12 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
         
         if (logger.isDebugEnabled()) {
             popup.addSeparator();
-            mi = new JMenuItem(new AbstractAction("Show Mappings") { //$NON-NLS-1$
+            mi = new JMenuItem(new AbstractAction("Show Mappings") {
                 public void actionPerformed(ActionEvent e) {
                     StringBuffer componentList = new StringBuffer();
                     
                     for (ColumnMapping columnMap : getModel().getChildren(ColumnMapping.class)) {
-                        componentList.append(columnMap).append("\n"); //$NON-NLS-1$
+                        componentList.append(columnMap).append("\n");
                     }
                     
                     JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JTextArea(componentList.toString())));
@@ -332,6 +341,11 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
         RelationshipUI ui = (RelationshipUI) IERelationshipUI.createUI(this);
         ui.installUI(this);
 		setUI(ui);
+        updateLengths(false);
+        
+        if(isMagicEnabled())
+            ui.bestConnectionPoints();
+        
 		revalidate();
     }
 
@@ -413,14 +427,88 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	}
 
 	@Accessor(isInteresting=true)
-	public Point getPkConnectionPoint() {
-		return new Point(pkConnectionPoint);
+	public double getPkConnection() {
+		return pkConnection;
 	}
 
 	@Accessor(isInteresting=true)
-	public Point getFkConnectionPoint() {
-		return new Point(fkConnectionPoint);
+	public double getFkConnection() {
+		return fkConnection;
 	}
+    
+    /**
+     * Creates a point that tells the UI exactly where the connection should be connecting to the
+     * primary key table.
+     */
+    public BasicRelationshipUI.ImmutablePoint createPkConnectionPoint() {
+        
+        Point p;
+        TablePane pane = getPkTable();
+        
+        if((getOrientation() & PARENT_FACES_BOTTOM) != 0)
+            p = new Point((int)(pane.getWidth() * getPkConnection()), pane.getHeight());
+        else if((getOrientation() & PARENT_FACES_TOP) != 0)
+            p = new Point((int)(pane.getWidth() * getPkConnection()), 0);
+        else if((getOrientation() & PARENT_FACES_LEFT) != 0)
+            p = new Point(0, (int)(pane.getHeight() * getPkConnection()));
+        else
+            p = new Point(pane.getWidth(), (int)(pane.getHeight() * getPkConnection()));
+        
+        return new BasicRelationshipUI.ImmutablePoint(p);
+    }
+    
+    /**
+     * Creates a point that tells the UI exactly where the connection should be connecting to the
+     * foreign key table.
+     */
+    public BasicRelationshipUI.ImmutablePoint createFkConnectionPoint() {
+        
+        Point p;
+        TablePane pane = getFkTable();
+        
+        if((getOrientation() & CHILD_FACES_BOTTOM) != 0)
+            p = new Point((int)(pane.getWidth() * getFkConnection()), pane.getHeight());
+        else if((getOrientation() & CHILD_FACES_TOP) != 0)
+            p = new Point((int)(pane.getWidth() * getFkConnection()), 0);
+        else if((getOrientation() & CHILD_FACES_LEFT) != 0)
+            p = new Point(0, (int)(pane.getHeight() * getFkConnection()));
+        else
+            p = new Point(pane.getWidth(), (int)(pane.getHeight() * getFkConnection()));
+        
+        return new BasicRelationshipUI.ImmutablePoint(p);
+    }
+    
+    /**
+     * Takes the necessary info from the point and gets the percentage value we need to store
+     */
+    @Transient
+    @Mutator
+    public void setFkConnectionPoint(Point p) {
+        if((getOrientation() & CHILD_FACES_BOTTOM) != 0)
+            setFkConnection(p.getX() / getFkTable().getWidth());
+        else if((getOrientation() & CHILD_FACES_TOP) != 0)
+            setFkConnection(p.getX() / getFkTable().getWidth());
+        else if((getOrientation() & CHILD_FACES_LEFT) != 0)
+            setFkConnection(p.getY() / getFkTable().getHeight());
+        else
+            setFkConnection(p.getY() / getFkTable().getHeight());
+    }
+    
+    /**
+     * Takes the necessary info from the point and gets the percentage value we need to store
+     */
+    @Transient
+    @Mutator
+    public void setPkConnectionPoint(Point p) {
+        if((getOrientation() & PARENT_FACES_BOTTOM) != 0)
+            setPkConnection(p.getX() / getPkTable().getWidth());
+        else if((getOrientation() & PARENT_FACES_TOP) != 0)
+            setPkConnection(p.getX() / getPkTable().getWidth());
+        else if((getOrientation() & PARENT_FACES_LEFT) != 0)
+            setPkConnection(p.getY() / getPkTable().getHeight());
+        else
+            setPkConnection(p.getY() / getPkTable().getHeight());
+    }
 	
     /**
      * Returns the current orientation of this relationship; that is, which
@@ -437,21 +525,22 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 	public void setOrientation(int orientation) {	    
 	    int oldValue = this.orientation;
 	    this.orientation = orientation;
-	    firePropertyChange("orientation", oldValue, orientation);	    
-	}
-	
-	@Mutator
-	public void setPkConnectionPoint(Point p) {
-	    Point oldValue = new Point(pkConnectionPoint);
-	    pkConnectionPoint = new Point(p);
-	    firePropertyChange("pkConnectionPoint", oldValue, new Point(p));
+	    firePropertyChange("orientation", oldValue, orientation);
+	    repaint();
 	}
 
 	@Mutator
-	public void setFkConnectionPoint(Point p) {
-	    Point oldValue = new Point(fkConnectionPoint);
-	    fkConnectionPoint = new Point(p);
-		firePropertyChange("fkConnectionPoint", oldValue, new Point(p));
+	public void setPkConnection(double pk) {
+	    double oldValue = pkConnection;
+	    pkConnection = pk;
+	    firePropertyChange("pkConnection", oldValue, pk);
+	}
+
+	@Mutator
+	public void setFkConnection(double fk) {
+	    double oldValue = fkConnection;
+	    fkConnection = fk;
+		firePropertyChange("fkConnection", oldValue, fk);
 	}
 
 	// ---------------- Component Listener ----------------
@@ -461,24 +550,36 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
             /* (non-Javadoc)
              * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
              */
-            if (evt.getPropertyName().equals("bounds") && isMagicEnabled()) {
+            if ((evt.getPropertyName().equals("topLeftCorner") || (evt.getPropertyName().equals("lengths")))/* && isMagicEnabled()*/) {
                 logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
-                if (((PlayPenComponent)(evt.getSource())) == pkTable) {
-                    setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, getPkConnectionPoint())); // true == PK
+                
+                Point pkPoint = new Point(createPkConnectionPoint().getX(), createPkConnectionPoint().getY());
+                Point fkPoint = new Point(createFkConnectionPoint().getX(), createFkConnectionPoint().getY());
+                
+                /*if (((PlayPenComponent)(evt.getSource())) == pkTable) {
+                    setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, pkPoint)); // true == PK
                 }
                 if (((PlayPenComponent)(evt.getSource())) == fkTable) {
-                    setFkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(false, getFkConnectionPoint())); // false == FK
+                    setFkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(false, fkPoint)); // false == FK
+                }*/
+                Point oldVal;
+                Point newVal;
+                if (evt.getPropertyName().equals("lengths")) {
+                    Dimension oldDim = (Dimension) evt.getOldValue();
+                    Dimension newDim = (Dimension) evt.getNewValue();
+                    oldVal = new Point(oldDim.width, oldDim.height);
+                    newVal = new Point(newDim.width, newDim.height);
+                } else {
+                    oldVal = (Point) evt.getOldValue();
+                    newVal = (Point) evt.getNewValue();
                 }
-                
-                Rectangle oldVal = (Rectangle) evt.getOldValue();
-                Rectangle newVal = (Rectangle) evt.getNewValue();
                 if(oldVal.x != newVal.x || oldVal.y != newVal.y) {
-                    logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" moved"); //$NON-NLS-1$ //$NON-NLS-2$
+                    logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" changed"); //$NON-NLS-1$ //$NON-NLS-2$
                     if (((PlayPenComponent)(evt.getSource())) == pkTable || ((PlayPenComponent)(evt.getSource())) == fkTable) {
                         ((BasicRelationshipUI) getUI()).revalidate();
                     }
                 }
-            }         
+            }     
         }
 	}
 	
@@ -508,8 +609,8 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
 		public RelationshipDecorationMover(Relationship r, boolean movePk) {
 			this.r = r;
 			this.movingPk = movePk;
-			this.startingPk = new Point(r.getPkConnectionPoint().x, r.getPkConnectionPoint().y);
-			this.startingFk = new Point(r.getFkConnectionPoint().x, r.getFkConnectionPoint().y);
+			this.startingPk = new Point(r.createPkConnectionPoint().getX(), r.createPkConnectionPoint().getY());
+			this.startingFk = new Point(r.createFkConnectionPoint().getX(), r.createFkConnectionPoint().getY());
 			r.startedDragging();
 			r.getPlayPen().addMouseMotionListener(this);
 			r.getPlayPen().addMouseListener(this);

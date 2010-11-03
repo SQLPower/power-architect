@@ -72,7 +72,8 @@ implements Selectable {
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
     
-    private Rectangle bounds = new Rectangle();
+    protected Point topLeftCorner = new Point();
+    private Dimension lengths = new Dimension();
     private Dimension minimumSize = new Dimension();
     protected Color backgroundColor;
     protected Color foregroundColor;
@@ -145,8 +146,11 @@ implements Selectable {
     protected PlayPenComponent(PlayPenComponent copyMe, PlayPenContentPane parent) {
         this(copyMe.getName(), parent);
         backgroundColor = copyMe.backgroundColor;
-        if (copyMe.bounds != null) {
-            bounds = new Rectangle(copyMe.bounds);
+        if (copyMe.topLeftCorner != null) {
+            topLeftCorner = new Point(copyMe.topLeftCorner);
+        }
+        if (copyMe.lengths != null) {
+            lengths = new Dimension(copyMe.lengths);
         }
         componentPreviouslySelected = copyMe.componentPreviouslySelected;
         foregroundColor = copyMe.foregroundColor;
@@ -226,19 +230,14 @@ implements Selectable {
             logger.debug("getPlayPen() returned null.  Not generating repaint request."); //$NON-NLS-1$
             return;
         } else {
-            Rectangle r = new Rectangle(bounds);
+            Rectangle r = new Rectangle(topLeftCorner, lengths);
             if (isMagicEnabled()) { 
                 // This temporary disabling of magic is under the
                 // assumption that this method properly revalidates
                 // the component in one pass, and does not rely 
                 // on recursive calls due to magical side effects
                 setMagicEnabled(false);
-                PlayPenComponentUI ui = getUI();
-                if (ui != null) {
-                    ui.revalidate();
-                    Dimension ps = ui.getPreferredSize();
-                    if (ps != null) setSize(ps);
-                }            
+                updateLengths(true);
                 if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
                 setMagicEnabled(true);
             }
@@ -246,42 +245,23 @@ implements Selectable {
             pp.repaint(r);
         }
     }
-
+    
     /**
-     * Updates the bounds of this component, then issues a repaint to the
-     * PlayPen which covers the old bounds of this component. This will allow
-     * newly-exposed sections of the PlayPen to draw themselves in case this
-     * setBounds call is shrinking this component.  Also ensures the new bounds
-     * do not remain left of or above the (0,0) point by normalizing the play pen.
-     * 
-     * <p>All methods that affect the bounds rectangle should do so by calling this
-     * method.
-     */    
-    @Transient @Mutator
-    public void setBounds(int x, int y, int width, int height) { 
-        setBounds(new Rectangle(x, y, width, height));
+     * Sets the lengths to the current correct value
+     */
+    public void updateLengths(boolean revalidate) {
+        PlayPenComponentUI ui = getUI();
+        if (ui != null) {
+            if(revalidate) ui.revalidate();
+            Dimension ps = ui.getPreferredSize();
+            if (ps != null) setLengths(ps);
+        }       
     }
     
-    @Mutator
-    public void setBounds(Rectangle r) {
-        Rectangle oldBounds = getBounds();   
-        repaint();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Updating bounds on "+getName() //$NON-NLS-1$
-                    +" to ["+r.x+","+r.y+","+r.width+","+r.height+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-        }
-
-        bounds.setBounds(r.x,r.y,r.width,r.height);            
-        firePropertyChange("bounds", oldBounds, new Rectangle(bounds));
-
-        repaint();
-    }
-
     /**
      * Returns a copy of this component's bounding rectangle.
      */
-    @Accessor
+    @NonBound
     public Rectangle getBounds() {
         return getBounds(null);
     }
@@ -320,13 +300,13 @@ implements Selectable {
     @NonBound
     public Rectangle getBounds(Rectangle r) {
         if (r == null) r = new Rectangle();
-        r.setBounds(bounds);
+        r.setBounds(getX(), getY(), getWidth(), getHeight());
         return r;
     }
 
     @Transient @Accessor(isInteresting=true)
     public Dimension getSize() {
-        return new Dimension(bounds.width, bounds.height);
+        return lengths;
     }
     
     /**
@@ -353,30 +333,9 @@ implements Selectable {
      */
     @Transient @Accessor
     public Point getLocation(Point p) {
-        if (p == null) p = new Point();
-        p.x = bounds.x;
-        p.y = bounds.y;
+        if(p == null) p = new Point();
+        p.setLocation(getTopLeftCorner());
         return p;
-    }
-    
-    /**
-     * Updates the on-screen location of this component.  If you try to move this
-     * component to a negative co-ordinate, it will automatically be normalized (along
-     * with everything else in the playpen) to non-negative coordinates.
-     */
-    @Transient @Mutator
-    public void setLocation(Point point) {
-        setBounds(point.x,point.y, getWidth(), getHeight());
-    }
-
-    /**
-     * Updates the on-screen location of this component.  If you try to move this
-     * component to a negative co-ordinate, it will automatically be normalized (along
-     * with everything else in the playpen) to non-negative coordinates.
-     */
-    @Transient @Mutator
-    public void setLocation(int x, int y) {
-		setBounds(x, y, getWidth(), getHeight());
     }
     
     @NonBound
@@ -384,11 +343,6 @@ implements Selectable {
         Rectangle oldVal = (Rectangle) evt.getOldValue();
         Rectangle newVal = (Rectangle) evt.getNewValue();
         return (oldVal.x != newVal.x || oldVal.y != newVal.y);
-    }
-    
-    @Transient @Mutator
-    public void setSize(Dimension size) {
-        setBounds(getX(), getY(), size.width, size.height);
     }
 
     /**
@@ -415,22 +369,22 @@ implements Selectable {
     
     @Transient @Accessor
     public int getX() {
-        return bounds.x;
+        return topLeftCorner.x;
     }
     
     @Transient @Accessor
     public int getY() {
-        return bounds.y;
+        return topLeftCorner.y;
     }
     
     @Transient @Accessor
     public int getWidth() {
-        return bounds.width;
+        return lengths.width;
     }
     
     @Transient @Accessor
     public int getHeight() {
-        return bounds.height;
+        return lengths.height;
     }
     
     @Transient @Accessor
@@ -768,6 +722,73 @@ implements Selectable {
         pp.zoomPoint(p);
         SwingUtilities.convertPointToScreen(p, pp);
         return p;
+    }
+
+    /**
+     * Updates the on-screen location of this component.  If you try to move this
+     * component to a negative co-ordinate, it will automatically be normalized (along
+     * with everything else in the playpen) to non-negative coordinates.
+     */
+    @Mutator
+    public void setTopLeftCorner(Point topLeftCorner) {
+        repaint();
+        
+        Point old = this.topLeftCorner;
+        this.topLeftCorner = topLeftCorner;
+        firePropertyChange("topLeftCorner", old, topLeftCorner);
+        
+        repaint();
+    }
+
+    @Accessor
+    public Point getTopLeftCorner() {
+        return topLeftCorner;
+    }
+
+    @Transient
+    @Mutator
+    public void setLengths(Dimension lengths) {
+        Dimension old = this.lengths;
+        this.lengths = lengths;
+        firePropertyChange("lengths", old, lengths);
+    }
+
+    @Transient
+    @Mutator
+    public Dimension getLengths() {
+        return lengths;
+    }
+
+    @Transient 
+    @Mutator
+    public void setBounds(Rectangle r) { 
+        setTopLeftCorner(new Point(r.x,r.y));
+        setLengths(new Dimension(r.width, r.height));
+    }
+
+    @Transient 
+    @Mutator
+    public void setBounds(int x, int y, int width, int height) { 
+        setTopLeftCorner(new Point(x,y));
+        setLengths(new Dimension(width, height));
+    }
+
+    @Transient 
+    @Mutator
+    public void setLocation(int x, int y) {
+        setTopLeftCorner(new Point(x,y));
+    }
+
+    @Transient 
+    @Mutator
+    public void setLocation(Point pos) {
+        setTopLeftCorner(pos);
+    }
+    
+    @Transient
+    @Mutator
+    public void setSize(Dimension size) {
+        setBounds(getX(), getY(), size.width, size.height);
     }
 
 }

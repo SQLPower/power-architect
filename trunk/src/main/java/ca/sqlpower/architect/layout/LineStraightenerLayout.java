@@ -72,12 +72,8 @@ public class LineStraightenerLayout extends AbstractLayout {
         for (LayoutEdge e : edges) {
             if (e instanceof Relationship) {
                 Relationship r = (Relationship) e;
-                Point[] oldConnectionPoints = {r.getPkConnectionPoint(), r.getFkConnectionPoint()};
+                BasicRelationshipUI.ImmutablePoint[] oldConnectionPoints = {r.createPkConnectionPoint(), r.createFkConnectionPoint()};
                 attemptToStraighten(r);
-                // connectionPoints property no longer exists, and setting the connection points fires events,
-                // so commenting this out SHOULD be okay...
-                //r.firePropertyChange(new PropertyChangeEvent(r, "connectionPoints", oldConnectionPoints, 
-                //        new Point[] {r.getPkConnectionPoint(), r.getFkConnectionPoint()}));
             }
         }
         hasRun = true;
@@ -101,8 +97,8 @@ public class LineStraightenerLayout extends AbstractLayout {
             if (vertOverlap != null) {
                 int y = vertOverlap.getMidpoint();
                 logger.debug("Found vertical overlap at y = " + y);
-                r.setPkConnectionPoint(new Point(r.getPkConnectionPoint().x, y - tp1.getY()));
-                r.setFkConnectionPoint(new Point(r.getFkConnectionPoint().x, y - tp2.getY()));
+                r.setPkConnectionPoint(new Point(r.createPkConnectionPoint().getX(), y - tp1.getY()));
+                r.setFkConnectionPoint(new Point(r.createFkConnectionPoint().getX(), y - tp2.getY()));
                 ((BasicRelationshipUI)(r.getUI())).fixConnectionPoints();
                 
             }
@@ -114,8 +110,8 @@ public class LineStraightenerLayout extends AbstractLayout {
             if (horizOverlap != null) {
                 int x = horizOverlap.getMidpoint();
                 logger.debug("Found horizontal overlap at x = " + x);
-                r.setPkConnectionPoint(new Point(x - tp1.getX(), r.getPkConnectionPoint().y));
-                r.setFkConnectionPoint(new Point(x - tp2.getX(), r.getFkConnectionPoint().y));
+                r.setPkConnectionPoint(new Point(x - tp1.getX(), r.createPkConnectionPoint().getY()));
+                r.setFkConnectionPoint(new Point(x - tp2.getX(), r.createFkConnectionPoint().getY()));
                 ((BasicRelationshipUI)(r.getUI())).fixConnectionPoints();
             }
         } else {
