@@ -155,6 +155,7 @@ import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.StackedTabComponent;
+import ca.sqlpower.swingui.SwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.StackedTabComponent.StackedTab;
 import ca.sqlpower.swingui.SwingUIUserPrompterFactory.NonModalSwingUIUserPrompterFactory;
 import ca.sqlpower.swingui.action.OpenUrlAction;
@@ -342,7 +343,8 @@ public class ArchitectFrame extends JFrame {
                         
                         List<ProjectLocation> l = 
                             ArchitectClientSideSession.getWorkspaceNames(
-                                findPanel((JButton) e.getSource()).getServerInfo());
+                                findPanel((JButton) e.getSource()).getServerInfo(),
+                                new SwingUIUserPrompterFactory(ArchitectFrame.this));
                         if (l != null) {
                             msg = "Successfully connected to server";
                         }

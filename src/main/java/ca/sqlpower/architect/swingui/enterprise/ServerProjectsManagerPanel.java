@@ -549,7 +549,8 @@ public class ServerProjectsManagerPanel {
                 ((ArchitectSwingSessionContextImpl) session.getContext()).createSecuritySession(serviceInfo);
                 
                 // Sorts the project locations alphabetically
-                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo);
+                List<ProjectLocation> projects = ArchitectClientSideSession.getWorkspaceNames(serviceInfo,
+                        session);
                 Collections.sort(projects, new Comparator<ProjectLocation>() {
                     public int compare(ProjectLocation proj1, ProjectLocation proj2) {
                         return proj1.getName().compareToIgnoreCase(proj2.getName());

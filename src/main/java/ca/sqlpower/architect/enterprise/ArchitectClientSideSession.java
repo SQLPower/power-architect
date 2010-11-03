@@ -721,9 +721,10 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 new DefaultUserPrompterFactory());
     }
     
-    public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo) 
+    public static List<ProjectLocation> getWorkspaceNames(SPServerInfo serviceInfo,
+            UserPrompterFactory upf) 
     throws IOException, URISyntaxException, JSONException {
-        return ClientSideSessionUtils.getWorkspaceNames(serviceInfo, cookieStore);
+        return ClientSideSessionUtils.getWorkspaceNames(serviceInfo, cookieStore, upf);
     }
 	
 	public static void deleteServerWorkspace(ProjectLocation projectLocation, ArchitectSession session) throws URISyntaxException, ClientProtocolException, IOException {

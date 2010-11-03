@@ -166,7 +166,8 @@ public class ArchitectServerProjectsManagerPanel extends ServerProjectsManagerPa
         ((ArchitectSwingSessionContextImpl) session.getContext()).
             createSecuritySession(getSelectedServerInfo());
         
-        return ArchitectClientSideSession.getWorkspaceNames(getSelectedServerInfo());
+        return ArchitectClientSideSession.getWorkspaceNames(getSelectedServerInfo(),
+                session);
     }
 
     @Override
