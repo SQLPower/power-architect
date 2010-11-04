@@ -20,6 +20,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +32,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -51,6 +53,8 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class RefreshAction extends AbstractArchitectAction {
+    
+    private DBTree dbTree;
     
     /**
      * This will refresh all of the databases on a different thread and
@@ -129,8 +133,21 @@ public class RefreshAction extends AbstractArchitectAction {
               new ImageIcon(RefreshAction.class.getResource("/icons/database_refresh.png")));
     }
     
+    /** 
+     * Refreshes based on selections in a specific tree.
+     */
+    public RefreshAction(ArchitectSwingSession session, DBTree tree) {
+        super(session,
+              "Refresh",
+              "Refreshes the tree to match current structure in the selected database",
+              new ImageIcon(RefreshAction.class.getResource("/icons/database_refresh.png")));
+        dbTree = tree;
+    }
+    
     public void actionPerformed(ActionEvent e) {
-        DBTree dbTree = getSession().getDBTree();
+        if (dbTree == null) {
+            dbTree = getSession().getDBTree();
+        }
         
         Set<SQLDatabase> databasesToRefresh = new HashSet<SQLDatabase>();
         for (TreePath tp : dbTree.getSelectionPaths()) {
@@ -146,14 +163,14 @@ public class RefreshAction extends AbstractArchitectAction {
             return;
         }
 
-        final SPSwingWorker worker = new RefreshMonitorableWorker(getSession(), getSession().getArchitectFrame(), databasesToRefresh);
+        final SPSwingWorker worker = new RefreshMonitorableWorker(getSession(), (Window)SwingUtilities.getRoot(dbTree), databasesToRefresh);
         final Thread thread = new Thread(worker, "Refresh database worker");
         JProgressBar progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
         JLabel messageLabel = new JLabel("Refreshing selected databases.");
         ProgressWatcher.watchProgress(progressBar, worker, messageLabel);
         
-        final JDialog dialog = new JDialog(getSession().getArchitectFrame(), "Refresh");
+        final JDialog dialog = new JDialog((Window)SwingUtilities.getRoot(dbTree), "Refresh");
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref:grow, 5dlu, pref"));
         builder.setDefaultDialogBorder();
         builder.append(messageLabel, 3);

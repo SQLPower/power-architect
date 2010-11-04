@@ -563,7 +563,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		        p.getLastPathComponent() != treeModel.getSnapshotContainer()) { // clicked on DBCS item in DBTree
 			newMenu.addSeparator();
 			
-			newMenu.add(new RefreshAction(session));
+			newMenu.add(new RefreshAction(session, this));
 			
 			newMenu.addSeparator();
 
