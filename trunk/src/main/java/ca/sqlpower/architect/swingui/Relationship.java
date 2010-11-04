@@ -142,6 +142,15 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
             }
         }
      };
+     
+     /**
+      * This listener will force a repaint when the label text changes
+      */
+     private final AbstractSPListener labelListener = new AbstractSPListener() {
+         public void propertyChanged(PropertyChangeEvent evt) {
+             repaint();
+         }
+      };
  
     /**
      * This constructor is only for making a copy of an existing relationship component.
@@ -315,6 +324,8 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
             fkTable.addSPListener(tpbListener);
         }
         getParent().addSPListener(containerPaneListener);
+        
+        model.addSPListener(labelListener);
 	}
 	
 	/**
@@ -331,6 +342,8 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
             fkTable.removeSPListener(tpbListener);
         }
 	    getParent().removeSPListener(containerPaneListener);
+	    
+        model.removeSPListener(labelListener);
 	}
 
 	// -------------------- PlayPenComponent overrides --------------------
@@ -550,9 +563,6 @@ public class Relationship extends PlayPenComponent implements SPListener, Layout
              */
             if ((evt.getPropertyName().equals("topLeftCorner") || (evt.getPropertyName().equals("lengths")))) {
                 logger.debug("Component "+((PlayPenComponent)(evt.getSource())).getName()+" changed size"); //$NON-NLS-1$ //$NON-NLS-2$
-                
-                Point pkPoint = new Point(createPkConnectionPoint().getX(), createPkConnectionPoint().getY());
-                Point fkPoint = new Point(createFkConnectionPoint().getX(), createFkConnectionPoint().getY());
                 
                 Point oldVal;
                 Point newVal;
