@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.dao.PersisterUtils;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
@@ -168,7 +169,12 @@ public class CompareSQL implements Monitorable {
 		setFinished(false);
 		setStarted(false);
 	}
+	
 	public List<DiffChunk<SQLObject>> generateTableDiffs() throws SQLObjectException {
+	return generateTableDiffs(null);
+	}
+	
+	public List<DiffChunk<SQLObject>> generateTableDiffs(ArchitectSession session) throws SQLObjectException {
 		setStarted(true);
 		setFinished(false);
 	    try {
@@ -203,6 +209,10 @@ public class CompareSQL implements Monitorable {
 			// Will loop until one or both the list reaches its last table
 			while (sourceContinue && targetContinue && !isCancelled()) {
 			    logger.debug("Generating table diffs for " + sourceTable.getName());
+			    if (session != null) {
+			        ArchitectUtils.setUpstreamTypesInTable(sourceTable, session);
+			        ArchitectUtils.setUpstreamTypesInTable(targetTable, session);
+			    }
 			    DiffChunk<SQLObject> chunk = null;
 			    int compareResult = getObjectComparator().compare(sourceTable, targetTable);
 
@@ -288,6 +298,9 @@ public class CompareSQL implements Monitorable {
 			}
 			// If any tables in the sourceList still exist, the changes are added
 			while (sourceContinue && !isCancelled()) {
+			    if (session != null) {
+			        ArchitectUtils.setUpstreamTypesInTable(sourceTable, session);
+			    }
 				results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
 				incProgress(1, sourceTable, null);
 				//results.addAll(generateColumnDiffs(sourceTable, null));
@@ -301,7 +314,9 @@ public class CompareSQL implements Monitorable {
 
 			//If any remaining tables in the targetList still exist, they are now being added
 			while (targetContinue && !isCancelled()) {
-
+			    if (session != null) {
+			        ArchitectUtils.setUpstreamTypesInTable(targetTable, session);
+			    }
 				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
 				incProgress(1, null, targetTable);
 

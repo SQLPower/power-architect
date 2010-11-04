@@ -1313,9 +1313,9 @@ public class CompareDMPanel extends JPanel {
 	                }
 	                setJobSize(sourceComp.getJobSize() + targetComp.getJobSize());
 	                logger.debug("Generating TableDiffs for source");
-	                diff = sourceComp.generateTableDiffs();
+	                diff = sourceComp.generateTableDiffs(session);
 	                logger.debug("Generating TableDiffs for target");
-	                diff1 = targetComp.generateTableDiffs();
+	                diff1 = targetComp.generateTableDiffs(session);
 					message = "Finished";
 					logger.debug("Finished Compare");
 				}
