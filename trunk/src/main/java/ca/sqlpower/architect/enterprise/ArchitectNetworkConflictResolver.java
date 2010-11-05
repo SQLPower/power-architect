@@ -57,11 +57,25 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 
 public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictResolver implements MessageSender<JSONObject> {
-
+    
 
     private static final Logger logger = Logger.getLogger(ArchitectNetworkConflictResolver.class);
+
+    /**
+     * Implement a listener of this type to know when a transaction is about to
+     * be sent to the server or when a transaction just completed being sent to
+     * the server regardless of a success or failure.
+     */
+    public static interface PostTransactionListener {
+        
+        public void preServerSend();
+        
+        public void postServerSend();
+    }
     
     private ArchitectClientSideSession session;
+    
+    private final List<PostTransactionListener> postTransactionListeners = new ArrayList<PostTransactionListener>();
     
     public ArchitectNetworkConflictResolver(
             ProjectLocation projectLocation, 
@@ -113,7 +127,13 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
             // Try to send json message ...
             JSONMessage response = null;
             try {
+                for (PostTransactionListener l : postTransactionListeners) {
+                    l.preServerSend();
+                }
                 response = postJsonArray(messageBuffer.toString());
+                for (PostTransactionListener l : postTransactionListeners) {
+                    l.postServerSend();
+                }
             } catch (AccessDeniedException e) {
                 List<UpdateListener> listenersToRemove = new ArrayList<UpdateListener>();
                 for (UpdateListener listener : updateListeners) {
@@ -349,5 +369,13 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
     @Override
     protected SPObject getWorkspace() {
         return session.getWorkspace();
+    }
+    
+    public void addPostTransactionListener(PostTransactionListener l) {
+        postTransactionListeners.add(l);
+    }
+    
+    public void removePostTransactionListener(PostTransactionListener l) {
+        postTransactionListeners.remove(l);
     }
 }
