@@ -49,6 +49,8 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	public OracleDDLGenerator() throws SQLException {
 		super();
 	}
+	
+	private boolean alter = true;
 
 	public static final String GENERATOR_VERSION = "$Revision$";
 
@@ -330,6 +332,17 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		endStatement(StatementType.MODIFY, c);
 	}
 
+    /**
+     * We need to tell if the nullability is changing or not because Oracle syntax requires NULL if
+     * you are changing to NULL, but if is the same, if you add the NULL, it doesn't work.
+     * Same for NOT NULL. Yay oracle.
+     */
+    public void modifyColumn(SQLColumn c, boolean alter) {
+        this.alter = alter;
+        modifyColumn(c);
+        this.alter = true;
+    }
+
     protected String columnNullability(SQLColumn c) {
         GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
         if (c.isDefinitelyNullable()) {
@@ -337,9 +350,9 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 				throw new UnsupportedOperationException
 					("The data type "+td.getName()+" is not nullable on the target database platform.");
 			}
-			return " NULL";
+			return alter ? " NULL" : "";
 		} else {
-			return " NOT NULL";
+			return alter ? " NOT NULL" : "";
 		}
     }
     
