@@ -39,6 +39,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
+import ca.sqlpower.architect.ddl.OracleDDLGenerator;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
@@ -284,7 +285,17 @@ public class CompareDMFormatter {
             } else if (chunk.getType() == DiffType.SQL_MODIFIED) {
                 if (chunk.getData() instanceof SQLColumn) {
                     SQLColumn c = (SQLColumn) chunk.getData();
-                    gen.modifyColumn(c);
+                    if(OracleDDLGenerator.class.isAssignableFrom(gen.getClass())) {
+                        boolean changeNull = false;
+                        for (PropertyChange change : chunk.getPropertyChanges()) {
+                            if (change.getPropertyName().equals("nullable")) {
+                                changeNull = true;
+                                break;
+                            }
+                        }
+                        ((OracleDDLGenerator)gen).modifyColumn(c, changeNull);
+                    } else 
+                        gen.modifyColumn(c);
                 }
                 for (PropertyChange change : chunk.getPropertyChanges()) {
                     if (change.getPropertyName().equals("remarks")) {
