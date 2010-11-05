@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.client.HttpClient;
@@ -38,8 +39,8 @@ import ca.sqlpower.dao.MessageSender;
 import ca.sqlpower.dao.PersistedSPOProperty;
 import ca.sqlpower.dao.PersistedSPObject;
 import ca.sqlpower.dao.RemovedObjectEntry;
-import ca.sqlpower.dao.SPPersister.DataType;
 import ca.sqlpower.dao.SPSessionPersister;
+import ca.sqlpower.dao.SPPersister.DataType;
 import ca.sqlpower.dao.json.SPJSONMessageDecoder;
 import ca.sqlpower.enterprise.AbstractNetworkConflictResolver;
 import ca.sqlpower.enterprise.JSONMessage;
@@ -52,6 +53,7 @@ import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 import ca.sqlpower.util.UserPrompterFactory.UserPromptType;
 
 import com.enterprisedt.util.debug.Logger;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 
 public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictResolver implements MessageSender<JSONObject> {
@@ -146,7 +148,7 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                     currentWaitPerPersist = currentWaitPerPersist * 0.9 + processTimePerObj * 0.1;
                 }
             } else {
-                // Did not successfully post json, we must update ourselves, and then try again if we can. 
+                // Did not successfully post json, we must update ourselves, and then try again if we can.
                 if (!reflush) {
                     // These lists should reflect the state of the workspace at the time of the conflict.
                     // The workspace could be updated several times before a successful post is made.
@@ -156,7 +158,7 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                 try {
                     SPSessionPersister.undoForSession(session.getWorkspace(), 
                             new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
-                            outboundPropertiesToChange, 
+                            LinkedListMultimap.create(outboundPropertiesToChange), 
                             new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
                 } catch (Exception e) {
                     throw new RuntimeException("Reflush failed on rollback", e);
@@ -189,9 +191,13 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                 if (conflicts.size() == 0) {
                     // Try to return the persisted objects to their state pre-update.
                     try {
+                        listener.clear();
+                        for (Map.Entry<String, PersistedSPObject> entry : outboundObjectsToAdd.entrySet()) {
+                            entry.getValue().setLoaded(false);
+                        }
                         SPSessionPersister.redoForSession(getWorkspace(), 
                                 new LinkedList<PersistedSPObject>(outboundObjectsToAdd.values()),
-                                outboundPropertiesToChange, 
+                                LinkedListMultimap.create(outboundPropertiesToChange), 
                                 new LinkedList<RemovedObjectEntry>(outboundObjectsToRemove.values()), converter);
                         // We want to re-send our changes, but only if we were able to restore them
                         flush(true);
