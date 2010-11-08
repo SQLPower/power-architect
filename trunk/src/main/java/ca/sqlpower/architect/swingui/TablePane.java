@@ -605,9 +605,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 		
 		DataSourceCollection<SPDataSource> dsCollection = getModel().getParentDatabase().getDataSource().getParentCollection(); 
         for (String platform : newColumns.keySet()) {
-            SQLColumn.assignTypes(newColumns.get(platform), dsCollection, platform, getPlayPen().getSession());
+            SQLColumn.assignTypes(newColumns.get(platform), dsCollection, platform == null ? "" : platform, getPlayPen().getSession());
         }
-		
 		return true;
 	}
 	
@@ -824,6 +823,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                     if (s.length() > 0) {
                         SQLColumn newCol = new SQLColumn();
                         newCol.setName(s);
+                        newCol.setParent(getModel());
                         droppedItems.add(newCol);
                     }
                 }
