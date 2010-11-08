@@ -413,6 +413,7 @@ public class ProjectLoader {
         SQLTableFactory tableFactory = new SQLTableFactory();
         d.addFactoryCreate("*/table", tableFactory);
         d.addSetProperties("*/table");
+        d.addCallMethod("*/remarks", "setRemarks", 0);
         d.addSetNext("*/table", "addChild");
 
         d.addFactoryCreate("*/folder", new SQLFolderFactory());
@@ -420,6 +421,7 @@ public class ProjectLoader {
         SQLColumnFactory columnFactory = new SQLColumnFactory();
         d.addFactoryCreate("*/column", columnFactory);
         d.addSetProperties("*/column");
+        d.addCallMethod("*/remarks", "setRemarks", 0);
         // this needs to be manually set last to prevent generic types
         // from overwriting database specific types
 
@@ -654,6 +656,8 @@ public class ProjectLoader {
             if (populated != null && populated.equals("false")) {
                 tab.initFolders(false);
             }
+            
+            
 
             currentTable = tab;
 
