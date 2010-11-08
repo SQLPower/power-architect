@@ -1446,7 +1446,6 @@ public class SwingUIProjectLoader extends ProjectLoader {
         } else if (o instanceof SQLTable) {
             id = "TAB"+sqlObjectSaveIdMap.size(); //$NON-NLS-1$
             type = "table"; //$NON-NLS-1$
-            propNames.put("remarks", ((SQLTable) o).getRemarks()); //$NON-NLS-1$
             propNames.put("objectType", ((SQLTable) o).getObjectType()); //$NON-NLS-1$
             // don't save primary key name. It is a propery of the PK index, not the table.
             if (pm != null) {
@@ -1468,7 +1467,6 @@ public class SwingUIProjectLoader extends ProjectLoader {
             propNames.put("scale", new Integer(((SQLColumn) o).getScale())); //$NON-NLS-1$
             propNames.put("precision", new Integer(((SQLColumn) o).getPrecision())); //$NON-NLS-1$
             propNames.put("nullable", new Integer(((SQLColumn) o).getNullable())); //$NON-NLS-1$
-            propNames.put("remarks", ((SQLColumn) o).getRemarks()); //$NON-NLS-1$
             propNames.put("defaultValue", ((SQLColumn) o).getDefaultValue()); //$NON-NLS-1$
             propNames.put("primaryKeySeq", ((SQLColumn) o).isPrimaryKey() ? ((SQLColumn) o).getParent().getChildrenWithoutPopulating(SQLColumn.class).indexOf(o) : null); //$NON-NLS-1$
             propNames.put("autoIncrement", Boolean.valueOf(((SQLColumn) o).isAutoIncrement())); //$NON-NLS-1$
@@ -1524,9 +1522,12 @@ public class SwingUIProjectLoader extends ProjectLoader {
         }
         
         sqlObjectSaveIdMap.put(o, id);
-
-        //ioo.print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
-        ioo.print(out, "<"+type+" id="+quote(id)+" "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if(logger.isDebugEnabled()) {
+            // use this for debugging duplicate object problems
+            ioo.print(out, "<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+quote(id)+"\" ");
+        } else {
+            ioo.print(out, "<"+type+" id="+quote(id)+" "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        }
 
         if ( (!getSession().isSavingEntireSource()) && (!o.isPopulated()) ) {
             ioo.niprint(out, "populated=\"false\" "); //$NON-NLS-1$
@@ -1562,6 +1563,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             String indicesFolder = null;
             if (o instanceof SQLTable) {
                 SQLTable table = (SQLTable) o;
+                ioo.println(out, "<remarks>" + table.getRemarks() + "</remarks>");
                 String exception;
                 if (table.getChildrenInaccessibleReason(SQLColumn.class) != null) {
                     exception = "sql-exception=\"" + 
@@ -1603,6 +1605,8 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 indicesFolder = "<folder id=\"FOL" + id + "4\" populated=\"" + 
                     table.isIndicesPopulated() + "\" name=\"Indices\" " +
                     "physicalName=\"Indices\" " + exception + "type=\"4\">";
+            } else if (o instanceof SQLColumn) {
+                ioo.println(out, "<remarks>" + ((SQLColumn) o).getRemarks() + "</remarks>");
             }
             while (children.hasNext()) {
                 SQLObject child = (SQLObject) children.next();
