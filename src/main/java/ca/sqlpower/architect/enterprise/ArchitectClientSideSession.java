@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 import javax.annotation.Nonnull;
@@ -80,9 +84,9 @@ import ca.sqlpower.swingui.event.SessionLifecycleListener;
 import ca.sqlpower.util.DefaultUserPrompterFactory;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
+import ca.sqlpower.util.UserPrompterFactory;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
-import ca.sqlpower.util.UserPrompterFactory;
 
 public class ArchitectClientSideSession extends ArchitectSessionImpl implements RevisionController {	
 	
@@ -134,6 +138,25 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	public static Map<String, ArchitectClientSideSession> securitySessions;
 	
     private AbstractPoolingSPListener deletionListener;
+
+    /**
+     * The executor to use as the foreground thread manager. If this is not null
+     * and there is no EDT available this executor will be used to ensure the
+     * system is single threaded.
+     */
+    private final ThreadPoolExecutor foregroundThreadExecutor;
+
+    /**
+     * This is false except for testing purposes when the single thread executor
+     * may want to be used if the test is running headless.
+     */
+    private final boolean useThreadPool;
+    
+    /**
+     * The thread used by {@link #foregroundThreadExecutor} to keep Architect
+     * single threaded if we are using the {@link #foregroundThreadExecutor}.
+     */
+    private Thread foregroundExecutorThread = null;
     
     static {
         securitySessions = new HashMap<String, ArchitectClientSideSession>();
@@ -141,9 +164,37 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	
 	public ArchitectClientSideSession(ArchitectSessionContext context, 
 			String name, ProjectLocation projectLocation) throws SQLObjectException {
+	    this(context, name, projectLocation, false);
+	}
+
+    /**
+     * This constructor is only used for testing. This constructor allows users
+     * to specify an executor to use as the foreground thread instead of using
+     * the normal EDT. This is handy for ensuring all of the events occur on the
+     * correct thread and updates do not conflict with persists. If the executor
+     * is null then the foreground thread will just execute the runnables on the
+     * current thread.
+     */
+	public ArchitectClientSideSession(ArchitectSessionContext context,
+	        String name, ProjectLocation projectLocation, boolean useThreadPool) throws SQLObjectException {
 		super(context, name, new ArchitectSwingProject());
 		
 		this.projectLocation = projectLocation;
+        this.useThreadPool = useThreadPool;
+        this.foregroundThreadExecutor = new ThreadPoolExecutor(1, 1, 5, TimeUnit.MINUTES, 
+                new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        if (foregroundExecutorThread == null) {
+                            foregroundExecutorThread = new Thread(r);
+                            return foregroundExecutorThread;
+                        } else {
+                            throw new RuntimeException("We only want to make one thread. " +
+                            		"This should never be reached.");
+                        }
+                    }
+                });
+        foregroundThreadExecutor.allowCoreThreadTimeOut(false);
 		dataSourceCollectionUpdater = new ArchitectDataSourceCollectionUpdater(projectLocation);
 		this.isEnterpriseSession = true;
 		
@@ -502,9 +553,20 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 		// have a WabitSwingSession instead.
 		if (getContext() instanceof ArchitectSwingSessionContext) {
 			SwingUtilities.invokeLater(runner);
+		} else if (useThreadPool) {
+		    foregroundThreadExecutor.execute(runner);
 		} else {
 			super.runInForeground(runner);
 		}
+	}
+	
+	@Override
+	public boolean isForegroundThread() {
+	    if (useThreadPool) {
+	        return Thread.currentThread().equals(foregroundExecutorThread);
+	    } else {
+	        return super.isForegroundThread();
+	    }
 	}
 	
 	/**
