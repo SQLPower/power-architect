@@ -20,7 +20,11 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -29,9 +33,9 @@ import javax.swing.JPanel;
 import ca.sqlpower.sqlobject.SQLCatalog;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLSchema;
-import ca.sqlpower.swingui.CommonCloseAction;
 import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 
 /**
@@ -44,14 +48,68 @@ public class CompareDMDialog extends JDialog {
     
     private CompareDMPanel compareDMPanel;
     
+    /**
+     * Cancels a compare operation if it's running, and closes the window otherwise.
+     */
+    class CancelCompareAction extends AbstractAction {
+        final JDialog dialog;
+        CancelCompareAction(JDialog d) {
+            super("Cancel");
+            dialog = d;
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SPSwingWorker spsw = ((CompareDMPanel.StartCompareAction)compareDMPanel
+                    .getStartCompareAction())
+                    .getCompareWorker();
+            if (spsw == null || spsw.isCancelled() || spsw.isFinished()) {
+                dialog.setVisible(false);
+                dialog.dispose();
+            } else {
+                spsw.setCancelled(true);
+            }
+        }
+    }
+    
     public CompareDMDialog(ArchitectSwingSession session) {
-        
-        
         // This can not easily be replaced with ArchitectPanelBuilder
         // because the current CompareDMPanel is not an ArchitectPanel
         // (and has no intention of becoming one, without some work).
         
         super(session.getArchitectFrame(),Messages.getString("CompareDMDialog.compareDmDialogTitle")); //$NON-NLS-1$
+        
+        this.addWindowListener(new WindowListener() { 
+            @Override
+            public void windowOpened(WindowEvent e) { }
+            
+            @Override
+            public void windowIconified(WindowEvent e) { }
+            
+            @Override
+            public void windowDeiconified(WindowEvent e) { }
+            
+            @Override
+            public void windowDeactivated(WindowEvent e) { }
+            
+            @Override
+            public void windowClosing(WindowEvent e) {
+                SPSwingWorker spsw = ((CompareDMPanel.StartCompareAction)compareDMPanel
+                        .getStartCompareAction())
+                        .getCompareWorker();
+                if (spsw != null) {
+                    spsw.setCancelled(true);
+                }
+            }
+            
+            @Override
+            public void windowClosed(WindowEvent e) {
+                windowClosing(e);
+            }
+            
+            @Override
+            public void windowActivated(WindowEvent e) { }
+        });
         JPanel cp = new JPanel(new BorderLayout(12,12));
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
                 
@@ -68,7 +126,9 @@ public class CompareDMDialog extends JDialog {
         JDefaultButton okButton = new JDefaultButton(compareDMPanel.getStartCompareAction());
         buttonPanel.add(okButton);
         
-        JButton cancelButton = new JButton(new CommonCloseAction(this));   
+        
+        
+        JButton cancelButton = new JButton(new CancelCompareAction(this));   
         buttonPanel.add(cancelButton);
 
         bottomPanel.add(buttonPanel,BorderLayout.EAST);
