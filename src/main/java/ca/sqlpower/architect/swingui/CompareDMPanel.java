@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -1233,7 +1234,13 @@ public class CompareDMPanel extends JPanel {
 
 		private Collection<SQLTable> targetTables;
 
-		public StartCompareAction() {
+        private SPSwingWorker compareWorker;
+
+		public SPSwingWorker getCompareWorker() {
+            return compareWorker;
+        }
+
+        public StartCompareAction() {
 			super(Messages.getString("CompareDMPanel.startCompareActionName")); //$NON-NLS-1$
 		}
 
@@ -1293,56 +1300,81 @@ public class CompareDMPanel extends JPanel {
 	             reenableGUIComponents();
 			}
 			
-			SPSwingWorker compareWorker = new SPSwingWorker(session) {
+			compareWorker = new SPSwingWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
 
 				private String message;
 				
+				/**
+			     * Checks if this engine has been cancelled by another thread.  If so,
+			     * throws a CancellationException.
+			     *
+			     * @throws CancellationException if this engine has been cancelled
+			     */
+			    protected void checkCancelled() {
+			        if (isCancelled()) {
+			            throw new CancellationException("User-requested abort");
+			        }
+			    }
+				
 				public void doStuff() throws SQLObjectException {
-	                if (source.physicalRadio.isSelected()) {
+	                try {
+	                    if (source.physicalRadio.isSelected()) {
 	                    message = "Refreshing older database";
 	                    logger.debug(message);
 	                    source.getDatabase().refresh();
+	                    checkCancelled();
 	                }
 	                if (target.physicalRadio.isSelected()) {
 	                    message = "Refreshing newer database";
                         logger.debug(message);
 	                    target.getDatabase().refresh();
+	                    checkCancelled();
 	                }
 	                setJobSize(sourceComp.getJobSize() + targetComp.getJobSize());
 	                logger.debug("Generating TableDiffs for source");
 	                diff = sourceComp.generateTableDiffs(session);
+	                checkCancelled();
 	                logger.debug("Generating TableDiffs for target");
 	                diff1 = targetComp.generateTableDiffs(session);
+	                checkCancelled();
 					message = "Finished";
 					logger.debug("Finished Compare");
+	                } catch (CancellationException e) {
+	                    setFinished(true);
+	                }
 				}
 
 				public void cleanup() {
-				    reenableGUIComponents();
-                    if (getDoStuffException() != null) {
-                        Throwable exc = getDoStuffException();
-                        logger.error("Error in doStuff()", exc); //$NON-NLS-1$
-                        ASUtils.showExceptionDialog(session,
-                                Messages.getString("CompareDMPanel.databaseComparisonFailed"), exc); //$NON-NLS-1$
-                        return;
+				    try {
+                        reenableGUIComponents();
+                        if (getDoStuffException() != null) {
+                            Throwable exc = getDoStuffException();
+                            logger.error("Error in doStuff()", exc); //$NON-NLS-1$
+                            ASUtils.showExceptionDialog(session,
+                                    Messages.getString("CompareDMPanel.databaseComparisonFailed"), exc); //$NON-NLS-1$
+                            return;
+                        }
+                        logger.debug("cleanup starts"); //$NON-NLS-1$
+                        CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());                   
+                        checkCancelled();
+                        switch (session.getCompareDMSettings().getOutputFormat()) {
+                        case SQL:
+                        case LIQUIBASE:
+                            dmFormat.formatForSQLOutput(diff, diff1, left, right);
+                            break;
+                        case ENGLISH:
+                            dmFormat.formatForEnglishOutput(diff, diff1, left, right);
+                            break;
+                        default:
+                            throw new IllegalStateException("Don't know what type of output to make");                        
+                        }
+                        logger.debug("cleanup finished"); //$NON-NLS-1$
+                    } catch (CancellationException e) {
+                        setFinished(true);
                     }
-					logger.debug("cleanup starts"); //$NON-NLS-1$
-                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());                   
-                    switch (session.getCompareDMSettings().getOutputFormat()) {
-                    case SQL:
-                    case LIQUIBASE:
-                        dmFormat.formatForSQLOutput(diff, diff1, left, right);
-                        break;
-                    case ENGLISH:
-                        dmFormat.formatForEnglishOutput(diff, diff1, left, right);
-                        break;
-                    default:
-                        throw new IllegalStateException("Don't know what type of output to make");                        
-                    }
-                    logger.debug("cleanup finished"); //$NON-NLS-1$
 				}
 
 				@Override
