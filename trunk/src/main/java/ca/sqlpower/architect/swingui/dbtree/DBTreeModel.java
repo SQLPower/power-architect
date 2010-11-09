@@ -645,7 +645,12 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren(spChild.getClass()).indexOf(child)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		
 		if (parent instanceof ArchitectFolder) {
-            return ((ArchitectFolder) parent).getChildren(spChild.getClass()).indexOf(child);
+            if (((ArchitectFolder) parent).isPopulated() ||
+                    spChild.getParent().equals(parent)) {
+                return ((ArchitectFolder) parent).getChildren(spChild.getClass()).indexOf(child);
+            } else {
+                return -1;
+            }
         } else if (parent instanceof SQLTable) {
             if (foldersInTables.get((SQLTable) parent) == null) return -1;
             return foldersInTables.get((SQLTable) parent).indexOf(child);
