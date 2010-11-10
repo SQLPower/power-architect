@@ -85,12 +85,13 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
             ArchitectClientSideSession session) 
     {
         super(projectLocation, jsonDecoder, inboundHttpClient, outboundHttpClient, session);
-        
+        logger.info("Constructed");
         this.session = session;
     }
     
     @Override
     protected void flush(boolean reflush) {
+
         if (postingJSON.get() && !reflush) {
             return;
         }
@@ -153,6 +154,7 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                 } else {
                     throw e;
                 }
+
                 return;
             }
             if (response.isSuccessful()) {
