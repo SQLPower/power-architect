@@ -264,6 +264,9 @@
 		</condition>
 
 		<property name="app.version" value="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}${app.ver.suffix}"/>
+		
+		<property name="dist.dir" value="${dist.base}/architect-${app.version}"/>
+		
 		<condition property="downloadLinkBase" value="http://nightlybuild.sqlpower.ca/architect/nightly/${app.version}">
 			<isset property="nightly"/>
 		</condition>
@@ -280,7 +283,6 @@
 		</condition>
 
 		<echo message="Building Architect version: ${app.version}"/>
-		<property name="dist.dir" value="${dist.base}/architect-${app.version}"/>
 		<mkdir dir="${dist.dir}"/>
 		<!-- The directory where junit HTML reports are generated.
 			 Other report files could eventually be placed here too. -->
@@ -768,12 +770,12 @@
 
 	</target>
 	
-	<target name ="jar" depends="compile, compile-tests" description="Builds the embedable JAR">
-		<jar jarfile="dist/architect.jar" basedir="${build}"/>
-		<jar jarfile="dist/architect-tests.jar" basedir="${build.tests}"/>
+	<target name ="jar" depends="compile, compile-tests, build.manifest" description="Builds the embedable JAR">
+		<jar jarfile="dist/architect.jar" basedir="${build}" manifest="${build}/manifest"/>
+		<jar jarfile="dist/architect-tests.jar" basedir="${build.tests}" manifest="${build}/manifest"/>
 	</target>
-
-    <target name="stage" depends="checkAntVersion,compile">
+	
+	<target name="build.stage" depends="">
     	<mkdir dir="${dist.dir}" />
         <mkdir dir="${staging.dir}"/>
         <mkdir dir="${staging.dir}/lib"/>
@@ -792,8 +794,10 @@
     		</fileset>
     		<fileset dir="${build}" includes="architecthelp.jar" />
     	</copy>
-
-    	<!-- This is an Ant 1.7 feature. To upgrade if using Eclipse 3.x,
+	</target>
+	
+	<target name="build.manifest" depends="build.stage">
+		<!-- This is an Ant 1.7 feature. To upgrade if using Eclipse 3.x,
     	     1. Download the latest Ant from http://ant.apache.org/bindownload.cgi
     	     2. Extract it somewhere
     	     3. Under window, preferences select Ant runtime in the tree
@@ -812,6 +816,9 @@
     		<attribute name="Main-Class" value="ca.sqlpower.architect.swingui.ArchitectFrame"/>
     		<attribute name="Class-Path" value="${architect.jar.classpath}" />
     	</manifest>
+	</target>
+
+    <target name="stage" depends="checkAntVersion,compile,build.manifest">
 
     	<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" 
