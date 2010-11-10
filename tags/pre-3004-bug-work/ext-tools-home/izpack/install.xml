@@ -1,0 +1,70 @@
+<installation version="1.0">
+	<!-- comment -->
+	<info>
+		<appname>Power Architect</appname>
+		<appversion>@{app.version}</appversion>
+		<url>http://www.sqlpower.ca/</url>
+		<javaversion>1.5</javaversion>
+	</info>
+	<guiprefs height="600" resizable="yes" width="800">
+		<laf name="metouia">
+			<os family="unix"/>
+		</laf>
+	</guiprefs>
+
+	<locale>
+		<langpack iso3="eng"/>
+	</locale>
+	<resources>
+		<res id="Installer.image" src="../src/icons/architect.png"/>
+		<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
+		<res id="LicencePanel.licence" src="../LICENSE" />
+	</resources>
+	<panels>
+		<panel classname="HelloPanel"/>
+		<panel classname="LicencePanel"/>
+		<panel classname="TargetPanel"/>
+		<panel classname="InstallPanel"/>
+		<panel classname="ShortcutPanel"/>
+		<panel classname="SimpleFinishPanel"/>
+	</panels>
+	<packs>
+		<pack name="Core" required="yes">
+			<description>Architect Core Files</description>
+			<fileset dir="../staging/" targetdir="$INSTALL_PATH">
+				<include name="architect.jar"/>
+			</fileset>
+			<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
+				<include name="*.jar"/>
+			</fileset>
+			<!-- the directory jdbc is referenced in the manifest as well as
+				various targets. -->
+			<fileset dir="../jdbc_drivers" targetdir="$INSTALL_PATH/jdbc">
+				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="../" targetdir="$INSTALL_PATH">
+				<include name="LICENSE"/>
+			</fileset>
+			<fileset dir="." targetdir="$INSTALL_PATH">
+				<include name="*.reg"/>
+			</fileset>
+			<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
+				<include name="*.ico"/>
+			</fileset>
+			<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg"/>
+			<executable targetfile="regedit.exe" stage="postinstall" keep="true">
+			   <args>
+			     <arg value="\/s"/>
+			     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
+		      </args>
+		   </executable>
+			<executable targetfile="regedit.exe" stage="uninstall" keep="true">
+			   <args>
+			     <arg value="\/s"/>
+			     <arg value="$INSTALL_PATH/uninstall.reg"/>
+		      </args>
+		   </executable>
+		</pack>
+	</packs>
+	<native type="izpack" name="ShellLink.dll"/>
+</installation>
