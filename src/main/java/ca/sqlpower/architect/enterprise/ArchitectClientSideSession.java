@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -153,10 +155,11 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
     private final boolean useThreadPool;
     
     /**
-     * The thread used by {@link #foregroundThreadExecutor} to keep Architect
+     * The threads used by {@link #foregroundThreadExecutor} to keep Architect
      * single threaded if we are using the {@link #foregroundThreadExecutor}.
+     * The executor will only allow one of these threads to be used at a time.
      */
-    private Thread foregroundExecutorThread = null;
+    private final Set<Thread> foregroundExecutorThread = Collections.synchronizedSet(new HashSet<Thread>());
     
     static {
         securitySessions = new HashMap<String, ArchitectClientSideSession>();
@@ -185,13 +188,9 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                 new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        if (foregroundExecutorThread == null) {
-                            foregroundExecutorThread = new Thread(r);
-                            return foregroundExecutorThread;
-                        } else {
-                            throw new RuntimeException("We only want to make one thread. " +
-                            		"This should never be reached.");
-                        }
+                        Thread newThread = new Thread(r);
+                        foregroundExecutorThread.add(newThread);
+                        return newThread;
                     }
                 });
         foregroundThreadExecutor.allowCoreThreadTimeOut(false);
@@ -563,7 +562,7 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	@Override
 	public boolean isForegroundThread() {
 	    if (useThreadPool) {
-	        return Thread.currentThread().equals(foregroundExecutorThread);
+	        return foregroundExecutorThread.contains(Thread.currentThread());
 	    } else {
 	        return super.isForegroundThread();
 	    }
