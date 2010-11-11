@@ -508,13 +508,12 @@ public class CompareDMFormatter {
             } else if (ancestors.get(depth).allowsChildType(data.getClass())) {
                 ancestors.add(data);
                 depth++;
-            } else {
-                while (depth > 0 && !ancestors.get(depth - 1).allowsChildType(data.getClass())) {
-                    ancestors.remove(depth);
-                    depth--;
-                }
-                ancestors.add(depth, data);
             }
+            while (depth > 0 && !ancestors.get(depth - 1).allowsChildType(data.getClass())) {
+                ancestors.remove(depth);
+                depth--;
+            }
+            ancestors.add(depth, data);
 
 
             info.setDepth(depth);
