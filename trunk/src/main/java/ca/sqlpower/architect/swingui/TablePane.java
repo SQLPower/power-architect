@@ -304,7 +304,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             
             updateHiddenColumns();
             firePropertyChange("model.children", null, e.getChild()); //$NON-NLS-1$
-            //revalidate();
+            setLengths(getUI().getPreferredSize());
+            repaint();
         }
 
         /**
@@ -339,10 +340,10 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             
             // no matter where the event came from, we should no longer be listening to the removed children
             SQLPowerUtils.unlistenToHierarchy(e.getChild(), this);
-//            updateNameDisplay();
             updateHiddenColumns();
             firePropertyChange("model.children", e.getChild(), null); //$NON-NLS-1$
-            //revalidate();
+            setLengths(getUI().getPreferredSize());
+            repaint();
         }
 
         /**
@@ -358,10 +359,10 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                         " oldVal="+e.getOldValue()+" newVal="+e.getNewValue() +  //$NON-NLS-1$ //$NON-NLS-2$
                         " selectedItems=" + getSelectedItems());
             }
-//            updateNameDisplay();
             updateHiddenColumns();
             firePropertyChange("model."+e.getPropertyName(), e.getOldValue(), e.getNewValue()); //$NON-NLS-1$
-            //repaint();
+            setLengths(getUI().getPreferredSize());
+            repaint();
         }
 
         public void transactionEnded(TransactionEvent e) {
