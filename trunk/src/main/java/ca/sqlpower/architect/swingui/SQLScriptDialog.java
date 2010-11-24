@@ -101,6 +101,8 @@ public class SQLScriptDialog extends JDialog {
 
 	private SPSwingWorker executeTask;
 
+    private JButton executeButton;
+
     /**
      * Creates and packs a new SQL script dialog, but does not display it. Call
      * setVisible(true) to show the dialog, which will appear over or near the
@@ -220,7 +222,7 @@ public class SQLScriptDialog extends JDialog {
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
-		JButton executeButton = new JButton(execute);
+		executeButton = new JButton(execute);
 		executeButton.setText(Messages.getString("SQLScriptDialog.executeOption")); //$NON-NLS-1$
 		barBuilder.addGridded(executeButton);
 		barBuilder.addRelatedGap();
@@ -382,6 +384,8 @@ public class SQLScriptDialog extends JDialog {
 				logger.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis())); //$NON-NLS-1$
 				logger.info("Database Target: " + target.getDataSource()); //$NON-NLS-1$
 				logger.info("Playpen Dump: " + target.getDataSource()); //$NON-NLS-1$
+				
+				SQLScriptDialog.this.executeButton.setEnabled(false);
 				Iterator<DDLStatement> it = statements.iterator();
 				while (it.hasNext() && !isFinished() && !isCancelled()) {
 					DDLStatement ddlStmt = it.next();
@@ -450,6 +454,7 @@ public class SQLScriptDialog extends JDialog {
 				} catch (SQLException ex) {
 					logger.error("Couldn't close connection", ex); //$NON-NLS-1$
 				}
+				SQLScriptDialog.this.executeButton.setEnabled(true);
 			}
 
 		}

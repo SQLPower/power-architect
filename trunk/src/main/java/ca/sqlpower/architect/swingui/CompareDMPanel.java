@@ -1293,11 +1293,10 @@ public class CompareDMPanel extends JPanel {
 			            Messages.getString("CompareDMPanel.couldNotBeginDiffProcess"), ex); //$NON-NLS-1$
 			    return;
 			} catch (IOException ex) {
+			    reenableGUIComponents();
 			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, Messages.getString("CompareDMPanel.couldNotReadFile"), ex); //$NON-NLS-1$
 				logger.error("Could not read file", ex); //$NON-NLS-1$
 				return;
-			} finally {
-	             reenableGUIComponents();
 			}
 			
 			compareWorker = new SPSwingWorker(session) {
@@ -1343,18 +1342,19 @@ public class CompareDMPanel extends JPanel {
 					message = "Finished";
 					logger.debug("Finished Compare");
 	                } catch (CancellationException e) {
+	                    reenableGUIComponents();
 	                    setFinished(true);
 	                }
 				}
 
 				public void cleanup() {
 				    try {
-                        reenableGUIComponents();
                         if (getDoStuffException() != null) {
                             Throwable exc = getDoStuffException();
                             logger.error("Error in doStuff()", exc); //$NON-NLS-1$
                             ASUtils.showExceptionDialog(session,
                                     Messages.getString("CompareDMPanel.databaseComparisonFailed"), exc); //$NON-NLS-1$
+                            reenableGUIComponents();
                             return;
                         }
                         logger.debug("cleanup starts"); //$NON-NLS-1$
@@ -1373,6 +1373,7 @@ public class CompareDMPanel extends JPanel {
                         }
                         logger.debug("cleanup finished"); //$NON-NLS-1$
                     } catch (CancellationException e) {
+                        reenableGUIComponents();
                         setFinished(true);
                     }
 				}
