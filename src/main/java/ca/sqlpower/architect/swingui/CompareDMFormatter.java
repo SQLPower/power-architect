@@ -40,6 +40,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
 import ca.sqlpower.architect.ddl.OracleDDLGenerator;
+import ca.sqlpower.architect.ddl.SQLServer2005DDLGenerator;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
@@ -151,12 +152,12 @@ public class CompareDMFormatter {
         }
     }
 
-    public void formatForSQLOutput(List<DiffChunk<SQLObject>> diff,
+    public DDLGenerator formatForSQLOutput(List<DiffChunk<SQLObject>> diff,
             List<DiffChunk<SQLObject>> diff1, SQLObject left, SQLObject right) {
+        DDLGenerator gen = null;
         try {
             SourceOrTargetStuff source = dmSetting.getSourceStuff();
 
-            DDLGenerator gen = null;
             if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
                 gen = dmSetting.getDdlGenerator().newInstance();
                 SQLCatalog cat = (SQLCatalog) dmSetting.getSourceSettings().getCatalogObject();
@@ -223,6 +224,7 @@ public class CompareDMFormatter {
             ASUtils.showExceptionDialog(session, "Unxepected Exception!", ex);
             logger.error("Unxepected Exception!", ex);
         }
+        return gen;
 
     }
 
@@ -294,6 +296,30 @@ public class CompareDMFormatter {
                             }
                         }
                         ((OracleDDLGenerator)gen).modifyColumn(c, changeNull);
+                    } else if (SQLServer2005DDLGenerator.class.isAssignableFrom(gen.getClass())) { 
+                        //Fix for the first part of bug 1827. All time data types in sql server
+                        //collapse to Datetime which then gets converted to a timestamp.
+                        if (chunk.getPropertyChanges().size() == 1) {
+                            PropertyChange propertyChange = chunk.getPropertyChanges().get(0);
+                            String newVal = propertyChange.getNewValue();
+                            String oldVal = propertyChange.getOldValue();
+                            String dateType = "DATE";
+                            String timeType = "TIME";
+                            String timestampType = "TIMESTAMP";
+                            if (propertyChange.getPropertyName().equals("type") && 
+                                    (newVal.equalsIgnoreCase(dateType) || newVal.equalsIgnoreCase(timeType) || 
+                                            newVal.equalsIgnoreCase(timestampType)) &&
+                                    (oldVal.equalsIgnoreCase(dateType) || oldVal.equalsIgnoreCase(timeType) || 
+                                            oldVal.equalsIgnoreCase(timestampType))) {
+                                //skip becuase they are actually of the same type for SQL Server.
+                            } else {
+                                gen.modifyColumn(c);
+                            }
+
+                        } else {
+                            gen.modifyColumn(c);
+                        }
+                        
                     } else 
                         gen.modifyColumn(c);
                 }
