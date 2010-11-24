@@ -346,8 +346,8 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
                         if (lineStart.y < lineEnd.y) {
                             logger.debug("pk table is at right and higher");
                             if (lineEnd.y - lineStart.y > maxStringWidth || lineStart.x - lineEnd.x < lineEnd.y - lineStart.y) {
-                                pkLabelDistance = midx;
-                                fkLabelDistance = midx + fm.getHeight();
+                                pkLabelDistance = midx + fm.getHeight();
+                                fkLabelDistance = midx;
                                 rotate = true;
                             } else {
                                 pkLabelDistance = lineStart.y - fm.getHeight();
@@ -378,8 +378,8 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
                         } else {
                             logger.debug("pk table is at left and lower");
                             if (lineStart.y - lineEnd.y > maxStringWidth || lineEnd.x - lineStart.x < lineStart.y - lineEnd.y) {
-                                pkLabelDistance = midx;
-                                fkLabelDistance = midx + fm.getHeight();
+                                pkLabelDistance = midx + fm.getHeight();
+                                fkLabelDistance = midx;
                                 rotate = true;
                             } else {
                                 pkLabelDistance = lineEnd.y - fm.getHeight();
