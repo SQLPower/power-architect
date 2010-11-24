@@ -158,16 +158,47 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
             if (response.isSuccessful()) {
                 // Sent json message without conflict.
                 try {
-                    currentRevision = (new JSONObject(response.getBody())).getInt("currentRevision");
+                    JSONObject jsonObj= new JSONObject(response.getBody());
+                    currentRevision = jsonObj.getInt("currentRevision");
+                    serverTimestamp = jsonObj.getLong("serverTimestamp");
+                    if (logger.isDebugEnabled())
+                        logger.debug("Setting currentRevision to: " + currentRevision + 
+                                    " and serverTimestamp to: " + serverTimestamp);
                 } catch (JSONException e) {
                     throw new RuntimeException("Could not update current revision" + e.getMessage());
                 }
                 long endTime = System.currentTimeMillis();
                 if (messageLength != 0) {
-                    double processTimePerObj = (endTime - startTimeMillis) / messageLength;
+                    double processTimePerObj = ((double)(endTime - startTimeMillis)) / (double)messageLength;
                     currentWaitPerPersist = currentWaitPerPersist * 0.9 + processTimePerObj * 0.1;
                 }
             } else {
+                
+                if (response.getStatusCode() == 403) { // FORBIDDEN, server timestamp is newer
+                    updateListeners.clear();
+                    if (projectLocation.getUUID().equals("system")) {
+                        if (upf != null) {
+                            upf.createUserPrompter("Server at " + projectLocation.getServiceInfo().getServerAddress() + "has failed since your session began." +
+                                 " Please restart the program to synchronize the system workspace with the server." , 
+                                UserPromptType.MESSAGE, 
+                                UserPromptOptions.OK, 
+                                UserPromptResponse.OK, 
+                                null, "OK").promptUser();  
+                        }
+                    } else {
+                        if (upf != null) {
+                            upf.createUserPrompter("Server at "  + projectLocation.getServiceInfo().getServerAddress() + 
+                                " has failed since your session began." +
+                                " Please use the refresh button to synchronize workspace " + projectLocation.getName() + 
+                                " with the server.", 
+                                UserPromptType.MESSAGE, 
+                                UserPromptOptions.OK, 
+                                UserPromptResponse.OK, 
+                                null, "OK").promptUser();
+                        }
+                    }
+                    return;
+                }
                 // Did not successfully post json, we must update ourselves, and then try again if we can.
                 if (!reflush) {
                     // These lists should reflect the state of the workspace at the time of the conflict.
@@ -193,10 +224,12 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                 
                 final String json;
                 final int newRev;
+                final long timestamp;
                 try {
                     JSONObject jsonObject = new JSONObject(response.getBody());
                     json = jsonObject.getString("data");
                     newRev = jsonObject.getInt("currentRevision");
+                    timestamp = jsonObject.getLong("serverTimestamp");
                 } catch (Exception e) {
                     throw new RuntimeException("Reflush failed on getJson", e);
                 }
@@ -205,7 +238,7 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                 fillInboundPersistedLists(json);
 
                 // Try to apply update
-                decodeMessage(new JSONTokener(json), newRev);
+                decodeMessage(new JSONTokener(json), newRev, timestamp);
                 // We need an additional step here for checking for special case conflicts
                 List<ConflictMessage> conflicts = detectConflicts();
                 if (conflicts.size() == 0) {
@@ -226,10 +259,12 @@ public class ArchitectNetworkConflictResolver extends AbstractNetworkConflictRes
                     }
                 } else {
                     String message = "";
+                    StringBuilder sb = new StringBuilder();
                     message += "Your changes have been discarded due to a conflict between you and another user: \n";
                     for (int i = 0; i < AbstractNetworkConflictResolver.MAX_CONFLICTS_TO_DISPLAY && i < conflicts.size(); i++) {
-                        message += conflicts.get(i).getMessage() + "\n";
+                        sb.append(conflicts.get(i).getMessage() + "\n");
                     }
+                    message = sb.toString();
                     session.createUserPrompter(message, 
                             UserPromptType.MESSAGE, 
                             UserPromptOptions.OK, 
