@@ -39,8 +39,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
-import ca.sqlpower.architect.ddl.OracleDDLGenerator;
-import ca.sqlpower.architect.ddl.SQLServer2005DDLGenerator;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
@@ -287,41 +285,7 @@ public class CompareDMFormatter {
             } else if (chunk.getType() == DiffType.SQL_MODIFIED) {
                 if (chunk.getData() instanceof SQLColumn) {
                     SQLColumn c = (SQLColumn) chunk.getData();
-                    if(OracleDDLGenerator.class.isAssignableFrom(gen.getClass())) {
-                        boolean changeNull = false;
-                        for (PropertyChange change : chunk.getPropertyChanges()) {
-                            if (change.getPropertyName().equals("nullable")) {
-                                changeNull = true;
-                                break;
-                            }
-                        }
-                        ((OracleDDLGenerator)gen).modifyColumn(c, changeNull);
-                    } else if (SQLServer2005DDLGenerator.class.isAssignableFrom(gen.getClass())) { 
-                        //Fix for the first part of bug 1827. All time data types in sql server
-                        //collapse to Datetime which then gets converted to a timestamp.
-                        if (chunk.getPropertyChanges().size() == 1) {
-                            PropertyChange propertyChange = chunk.getPropertyChanges().get(0);
-                            String newVal = propertyChange.getNewValue();
-                            String oldVal = propertyChange.getOldValue();
-                            String dateType = "DATE";
-                            String timeType = "TIME";
-                            String timestampType = "TIMESTAMP";
-                            if (propertyChange.getPropertyName().equals("type") && 
-                                    (newVal.equalsIgnoreCase(dateType) || newVal.equalsIgnoreCase(timeType) || 
-                                            newVal.equalsIgnoreCase(timestampType)) &&
-                                    (oldVal.equalsIgnoreCase(dateType) || oldVal.equalsIgnoreCase(timeType) || 
-                                            oldVal.equalsIgnoreCase(timestampType))) {
-                                //skip becuase they are actually of the same type for SQL Server.
-                            } else {
-                                gen.modifyColumn(c);
-                            }
-
-                        } else {
-                            gen.modifyColumn(c);
-                        }
-                        
-                    } else 
-                        gen.modifyColumn(c);
+                    gen.modifyColumn(c, chunk);
                 }
                 for (PropertyChange change : chunk.getPropertyChanges()) {
                     if (change.getPropertyName().equals("remarks")) {

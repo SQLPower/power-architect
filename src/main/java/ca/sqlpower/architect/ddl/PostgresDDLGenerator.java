@@ -28,6 +28,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.sql.SQL;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -276,7 +277,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
-    public void modifyColumn(SQLColumn c) {
+    public void modifyColumn(SQLColumn c, DiffChunk<SQLObject> diffChunk) {
         Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
         SQLTable t = c.getParent();
         print("\nALTER TABLE ONLY ");

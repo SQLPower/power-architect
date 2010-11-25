@@ -37,6 +37,7 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
+import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.object.SPResolverRegistry;
 import ca.sqlpower.object.SPVariableHelper;
 import ca.sqlpower.object.SPVariableResolver;
@@ -667,7 +668,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	}
 
-	public void modifyColumn(SQLColumn c) {
+	public void modifyColumn(SQLColumn c, DiffChunk<SQLObject> diffChunk) {
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
 		SQLTable t = c.getParent();
 		print("\nALTER TABLE ");
@@ -698,6 +699,32 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * it in the context of a valid SQL statement.
 	 */
 	protected String columnDefinition(SQLColumn c, Map<String, SQLObject> colNameMap) {
+	    return columnDefinition(c, colNameMap, true);
+	}
+
+    /**
+     * Creates a SQL DDL snippet which consists of the column name, data type,
+     * default value, and nullability clauses.
+     * 
+     * @param c
+     *            The column to generate the DDL snippet for.
+     * @param colNameMap
+     *            Dirty hack for coming up with unique physical names. The final
+     *            physical name generated in the SQL snippet will be stored in
+     *            this map. If you don't care about producing unique column
+     *            names, just pass in a freshly-created map. See
+     *            {@link #createPhysicalName(Map, SQLObject)} for more
+     *            information.
+     * @param alterNullability
+     *            If true the nullability of the column will be changed. If
+     *            false it will be skipped. For Oracle if a column is currently
+     *            null you cannot alter it to be null again.
+     * @return The SQL snippet that describes the given column. The returned
+     *         string is not delimited at the beginning or end: you're
+     *         responsible for properly putting it in the context of a valid SQL
+     *         statement.
+     */
+	protected String columnDefinition(SQLColumn c, Map<String, SQLObject> colNameMap, boolean alterNullability) {
         StringBuffer def = new StringBuffer();
 
         // Column name
@@ -714,7 +741,9 @@ public class GenericDDLGenerator implements DDLGenerator {
             def.append(defaultValue);
         }
 
-        def.append(columnNullability(c));
+        if (alterNullability) {
+            def.append(columnNullability(c));
+        }
         
         List<SQLCheckConstraint> checkConstraints;
         List<SQLEnumeration> enumerations;

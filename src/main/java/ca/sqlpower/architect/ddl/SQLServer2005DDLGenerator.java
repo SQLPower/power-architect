@@ -21,6 +21,10 @@ package ca.sqlpower.architect.ddl;
 
 import java.sql.SQLException;
 
+import ca.sqlpower.diff.DiffChunk;
+import ca.sqlpower.diff.PropertyChange;
+import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.UpdateDeleteRule;
 
@@ -55,5 +59,28 @@ public class SQLServer2005DDLGenerator extends SQLServerDDLGenerator {
     @Override
     public boolean supportsUpdateAction(SQLRelationship r) {
         return r.getUpdateRule() != UpdateDeleteRule.RESTRICT;
+    }
+    
+    @Override
+    public void modifyColumn(SQLColumn c, DiffChunk<SQLObject> diffChunk) {
+        if (diffChunk.getPropertyChanges().size() == 1) {
+            PropertyChange propertyChange = diffChunk.getPropertyChanges().get(0);
+            String newVal = propertyChange.getNewValue();
+            String oldVal = propertyChange.getOldValue();
+            String dateType = "DATE";
+            String timeType = "TIME";
+            String timestampType = "TIMESTAMP";
+            if (propertyChange.getPropertyName().equals("type") && 
+                    (newVal.equalsIgnoreCase(dateType) || newVal.equalsIgnoreCase(timeType) || 
+                            newVal.equalsIgnoreCase(timestampType)) &&
+                    (oldVal.equalsIgnoreCase(dateType) || oldVal.equalsIgnoreCase(timeType) || 
+                            oldVal.equalsIgnoreCase(timestampType))) {
+                //skip becuase they are actually of the same type for SQL Server.
+            } else {
+                super.modifyColumn(c, diffChunk);
+            }
+        } else {
+            super.modifyColumn(c, diffChunk);
+        }
     }
 }
