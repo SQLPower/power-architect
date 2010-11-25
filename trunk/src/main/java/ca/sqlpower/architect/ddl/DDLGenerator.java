@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
@@ -121,11 +122,16 @@ public interface DDLGenerator {
 
     /**
      * Appends the DDL statement for modifying the given column's datatype and
-     * nullability in its parent table in this DDL Generator's target schema/catalog.
-     *
-     * @param c The column to create a MODIFY or ALTER COLUMN statement for.
+     * nullability in its parent table in this DDL Generator's target
+     * schema/catalog.
+     * 
+     * @param c
+     *            The column to create a MODIFY or ALTER COLUMN statement for.
+     * @param diffChunk
+     *            A collection of changes that need to be done to the column.
+     *            Helpful to decide what to include in the modify column script.
      */
-    public void modifyColumn(SQLColumn c);
+    public void modifyColumn(SQLColumn c, DiffChunk<SQLObject> diffChunk);
 
     /**
      * Appends the DDL statement for creating the given FK relationship

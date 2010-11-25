@@ -28,6 +28,8 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.diff.DiffChunk;
+import ca.sqlpower.diff.PropertyChange;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLIndex.AscendDescend;
@@ -50,8 +52,6 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		super();
 	}
 	
-	private boolean alter = true;
-
 	public static final String GENERATOR_VERSION = "$Revision$";
 
 	private static final Logger logger = Logger.getLogger(OracleDDLGenerator.class);
@@ -322,37 +322,34 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      * "ALTER COLUMN".
      */
     @Override
-    public void modifyColumn(SQLColumn c) {
+    public void modifyColumn(SQLColumn c, DiffChunk<SQLObject> diffChunk) {
+        boolean alter = false;
+        for (PropertyChange change : diffChunk.getPropertyChanges()) {
+            if (change.getPropertyName().equals("nullable")) {
+                alter = true;
+                break;
+            }
+        }
+        
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
 		SQLTable t = c.getParent();
 		print("\nALTER TABLE ");
 		print(toQualifiedName(t.getPhysicalName()));
 		print(" MODIFY ");
-		print(columnDefinition(c,colNameMap));
+		print(columnDefinition(c,colNameMap, alter));
 		endStatement(StatementType.MODIFY, c);
 	}
 
-    /**
-     * We need to tell if the nullability is changing or not because Oracle syntax requires NULL if
-     * you are changing to NULL, but if is the same, if you add the NULL, it doesn't work.
-     * Same for NOT NULL. Yay oracle.
-     */
-    public void modifyColumn(SQLColumn c, boolean alter) {
-        this.alter = alter;
-        modifyColumn(c);
-        this.alter = true;
-    }
-
-    protected String columnNullability(SQLColumn c) {
+    protected String columnNullability(SQLColumn c, boolean alterNullability) {
         GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
         if (c.isDefinitelyNullable()) {
 			if (! td.isNullable()) {
 				throw new UnsupportedOperationException
 					("The data type "+td.getName()+" is not nullable on the target database platform.");
 			}
-			return alter ? " NULL" : "";
+			return " NULL";
 		} else {
-			return alter ? " NOT NULL" : "";
+			return " NOT NULL";
 		}
     }
     
