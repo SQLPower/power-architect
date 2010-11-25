@@ -1289,6 +1289,7 @@ public class CompareDMPanel extends JPanel {
                 targetComp.setCompareIndices(includeIndexes.isSelected());
 
 			} catch (SQLObjectException ex) {
+			    reenableGUIComponents();
 			    ASUtils.showExceptionDialog(session,
 			            Messages.getString("CompareDMPanel.couldNotBeginDiffProcess"), ex); //$NON-NLS-1$
 			    return;
@@ -1375,6 +1376,8 @@ public class CompareDMPanel extends JPanel {
                     } catch (CancellationException e) {
                         reenableGUIComponents();
                         setFinished(true);
+                    } finally {
+                        reenableGUIComponents();
                     }
 				}
 
