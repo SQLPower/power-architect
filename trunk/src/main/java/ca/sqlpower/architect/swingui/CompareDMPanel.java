@@ -1298,6 +1298,9 @@ public class CompareDMPanel extends JPanel {
 			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, Messages.getString("CompareDMPanel.couldNotReadFile"), ex); //$NON-NLS-1$
 				logger.error("Could not read file", ex); //$NON-NLS-1$
 				return;
+			} catch (RuntimeException ex) {
+			    reenableGUIComponents();
+			    throw new RuntimeException(ex);
 			}
 			
 			compareWorker = new SPSwingWorker(session) {
@@ -1345,6 +1348,9 @@ public class CompareDMPanel extends JPanel {
 	                } catch (CancellationException e) {
 	                    reenableGUIComponents();
 	                    setFinished(true);
+	                } catch (RuntimeException ex) {
+	                    reenableGUIComponents();
+	                    throw new RuntimeException(ex);
 	                }
 				}
 
@@ -1374,7 +1380,6 @@ public class CompareDMPanel extends JPanel {
                         }
                         logger.debug("cleanup finished"); //$NON-NLS-1$
                     } catch (CancellationException e) {
-                        reenableGUIComponents();
                         setFinished(true);
                     } finally {
                         reenableGUIComponents();
