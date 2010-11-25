@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Types;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JFileChooser;
@@ -337,13 +336,6 @@ public class ArchitectUtils {
     }
     
     /**
-     * Gets the basic SQL types from the PL.INI file for a session
-     */
-    public static List<UserDefinedSQLType> getSQLTypes(ArchitectSession s) {
-        return Collections.unmodifiableList(s.getContext().getPlDotIni().getSQLTypes());
-    }
-
-    /**
      * Gets the basic SQL type from the list of SQL types by comparing jdbc codes.
      */
     public static UserDefinedSQLType getSQLType(int sqlType, List<UserDefinedSQLType> types) {
@@ -360,7 +352,7 @@ public class ArchitectUtils {
      * the types from the session's pl.ini.
      */
     public static void setUpstreamTypesInTable(SQLTable table, ArchitectSession session) {
-        List<UserDefinedSQLType> types = getSQLTypes(session);
+        List<UserDefinedSQLType> types = session.getSQLTypes();
         for (SQLColumn col : table.getColumnsWithoutPopulating()) {
             if (col.getUserDefinedSQLType().getUpstreamType() == null) {
                 col.setType(getSQLType(col.getType(), types));
