@@ -722,8 +722,8 @@ public class DBTree extends JTree implements DragSourceListener {
 	public void addSourceConnection(SPDataSource dbcs) {
 	    SQLObject root = (SQLObject) getModel().getRoot();
 	    try {
-	        // check to see if we've already seen this one
-	        if (dbcsAlreadyExists(dbcs)) {
+	        // check to see if we've already seen this one (and it's not the playpen database)
+	        if (dbcsAlreadyExists(dbcs) && !dbcs.equals(session.getTargetDatabase().getDataSource())) {
 	            logger.warn("database already exists in this project."); //$NON-NLS-1$
 	            JOptionPane.showMessageDialog(DBTree.this, Messages.getString("DBTree.connectionAlreadyExists", dbcs.getDisplayName()), //$NON-NLS-1$
 	                    Messages.getString("DBTree.connectionAlreadyExistsDialogTitle"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
