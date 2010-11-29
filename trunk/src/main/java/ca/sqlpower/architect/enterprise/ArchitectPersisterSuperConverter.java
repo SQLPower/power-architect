@@ -21,7 +21,6 @@ package ca.sqlpower.architect.enterprise;
 
 import java.util.List;
 
-import ca.sqlpower.dao.session.SPObjectConverter;
 import ca.sqlpower.dao.session.SessionPersisterSuperConverter;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -34,11 +33,8 @@ import ca.sqlpower.sqlobject.UserDefinedSQLType;
  */
 public class ArchitectPersisterSuperConverter extends SessionPersisterSuperConverter {
 
-    private SPObjectConverter spObjectConverter;
-
     public ArchitectPersisterSuperConverter(DataSourceCollection<? extends SPDataSource> dsCollection, SPObject root) {
         super(dsCollection, root);
-        spObjectConverter = new SPObjectConverter(root);
     }
     
     @Override
