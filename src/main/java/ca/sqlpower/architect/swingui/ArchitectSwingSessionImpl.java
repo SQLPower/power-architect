@@ -369,7 +369,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         playPen = RelationalPlayPenFactory.createPlayPen(this, dbTree);
         this.getWorkspace().setPlayPenContentPane(playPen.getContentPane());
         UserSettings sprefs = getUserSettings().getSwingSettings();
-        if (sprefs != null) {
+        if (sprefs != null && playPen.getZoom() == 1.0) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
             Object d = sprefs.getObject("zoom", new Double(1.0));
             if (!(d instanceof Double)) {
