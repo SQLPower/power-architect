@@ -509,13 +509,24 @@ public class ASUtils {
     public static DuplicateProperties createDuplicateProperties(ArchitectSwingSession currentSession, SQLObject source) {
         ArchitectSwingSession containingSession = null;
         final List<SQLObject> ancestorList = SQLObjectUtils.ancestorList(source);
+        List<ArchitectSwingSession> containingSessions = new ArrayList<ArchitectSwingSession>();
         for (ArchitectSession s : currentSession.getContext().getSessions()) {
             ArchitectSwingSession session = (ArchitectSwingSession) s;
             SQLObjectRoot root = session.getRootObject();
             if (ancestorList.contains(root)) {
-                containingSession = session;
-                break;
+                containingSessions.add(session);
             }
+        }
+        if (containingSessions.size() == 1) {
+            containingSession = containingSessions.get(0);
+        } else if (containingSessions.size() > 1) { //Used in the case where multiple of the same project is open at the same time.
+            for (ArchitectSwingSession session : containingSessions) {
+                if (!session.getWorkspace().getUUID().equals(currentSession.getWorkspace().getUUID())) {
+                    throw new IllegalStateException("The object " + source + " exists in both " + 
+                            currentSession.getWorkspace() + " and " + session.getWorkspace() + " by UUID equality.");
+                }
+            }
+            containingSession = currentSession;
         }
         if (containingSession == null) { //The SQLObject source comes from outside this context.
             return new DuplicateProperties(
