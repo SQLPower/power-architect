@@ -713,6 +713,14 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
                             UserPromptResponse.OK, 
                             "OK", "OK").promptUser("");
                 }
+            } else {
+                upf.createUserPrompter(
+                        "Password successfully changed. Please log into open projects" +
+                        " with your new password.", 
+                        UserPromptType.MESSAGE, 
+                        UserPromptOptions.OK, 
+                        UserPromptResponse.OK, 
+                        "OK", "OK").promptUser("");
             }
         } catch (AccessDeniedException ex) {
             logger.warn("Failed password change", ex);
