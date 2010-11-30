@@ -754,7 +754,7 @@ implements Selectable {
     }
 
     @Transient
-    @Mutator
+    @Accessor
     public Dimension getLengths() {
         return lengths;
     }
