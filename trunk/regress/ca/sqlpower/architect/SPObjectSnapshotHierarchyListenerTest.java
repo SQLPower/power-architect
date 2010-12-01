@@ -116,8 +116,8 @@ public class SPObjectSnapshotHierarchyListenerTest extends TestCase {
         table.addColumn(col);
         
         assertEquals(1, session.getWorkspace().getSnapshotCollection().getSPObjectSnapshots().size());
-        assertEquals(1, session.getWorkspace().getChildren(UserDefinedSQLType.class).size());
-        assertTrue(session.getWorkspace().getChildren(UserDefinedSQLType.class).get(0) == 
+        assertEquals(1, session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLType.class).size());
+        assertTrue(session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLType.class).get(0) == 
             session.getWorkspace().getSnapshotCollection().getSPObjectSnapshots().get(0).getSPObject());
     }
     
@@ -134,8 +134,8 @@ public class SPObjectSnapshotHierarchyListenerTest extends TestCase {
         table.addColumn(col);
         
         assertEquals(1, session.getWorkspace().getSnapshotCollection().getSPObjectSnapshots().size());
-        assertEquals(1, session.getWorkspace().getChildren(UserDefinedSQLType.class).size());
-        UserDefinedSQLType snapshotUDT = session.getWorkspace().getChildren(UserDefinedSQLType.class).get(0);
+        assertEquals(1, session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLType.class).size());
+        UserDefinedSQLType snapshotUDT = session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLType.class).get(0);
         SPObjectSnapshot<?> snapshot = session.getWorkspace().getSnapshotCollection().getSPObjectSnapshots().get(0);
         assertTrue(snapshotUDT == snapshot.getSPObject());
         assertEquals(systemType1.getUUID(), snapshot.getOriginalUUID());
@@ -144,8 +144,8 @@ public class SPObjectSnapshotHierarchyListenerTest extends TestCase {
         col.getUserDefinedSQLType().setUpstreamType(systemType2);
         
         assertEquals(1, session.getWorkspace().getSnapshotCollection().getSPObjectSnapshots().size());
-        assertEquals(1, session.getWorkspace().getChildren(UserDefinedSQLType.class).size());
-        snapshotUDT = session.getWorkspace().getChildren(UserDefinedSQLType.class).get(0);
+        assertEquals(1, session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLType.class).size());
+        snapshotUDT = session.getWorkspace().getSnapshotCollection().getChildren(UserDefinedSQLType.class).get(0);
         snapshot = session.getWorkspace().getSnapshotCollection().getSPObjectSnapshots().get(0);
         assertTrue(snapshotUDT == snapshot.getSPObject());
         
