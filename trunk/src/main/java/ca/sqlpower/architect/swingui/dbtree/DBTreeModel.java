@@ -41,7 +41,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SnapshotCollection;
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
@@ -55,8 +54,8 @@ import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.swingui.FolderNode;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
@@ -625,9 +624,6 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
 		    return false;
 		} else if (parent instanceof SQLColumn) {
 		    return true;
-		}
-		if (parent instanceof SnapshotCollection) {
-		   return true; 
 		}
 		return !((SPObject) parent).allowsChildren();
 	}
