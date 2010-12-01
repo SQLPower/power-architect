@@ -140,7 +140,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <source-databases>" +
         " </source-databases>" +
         " <target-database dbcs-ref='DS0'>" +
-        "  <table id='TAB0' populated='true' primaryKeyName='id' remarks='' name='Customers' >" +
+        "  <table id='TAB0' populated='true' primaryKeyName='id' remarks='remarks' name='Customers' >" +
         "   <folder id='FOL1' populated='true' name='Columns' type='1' >" +
         "    <column id='COL2' populated='true' autoIncrement='false' name='id' defaultValue='' nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' remarks='' scale='0' type='4' />" +
         "    <column id='COL3' populated='true' autoIncrement='false' name='name' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
@@ -152,7 +152,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <folder id='FOL13' populated='true' name='Indices' type='4' >" +
         "   </folder>" +
         "  </table>" +
-        "  <table id='TAB6' populated='true' primaryKeyName='id' remarks='' name='Orders' >" +
+        "  <table id='TAB6' populated='true' primaryKeyName='id' remarks='remarks' name='Orders' >" +
         "   <folder id='FOL7' populated='true' name='Columns' type='1' >" +
         "    <column id='COL8' populated='true' autoIncrement='false' name='i&amp;d' defaultValue='' " +
         "    remarks=\"This isn't a problem\" nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' scale='0' type='4' />" +
@@ -165,7 +165,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <folder id='FOL14' populated='true' name='Indices' type='4' >" +
         "   </folder>" +
         "  </table>" +
-        "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+        "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"remarks\" >" +
         "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
         "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
         "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
@@ -199,7 +199,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\" relationship-style=\"rectilinear\" showPrimaryTag=\"true\" showForeignTag=\"true\" showAlternateTag=\"true\"  columnVisibility=\"PK_FK\" >" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
-        "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
+        "  <table-link relationship-ref='REL12' pkConnection='0.3755656108597285' fkConnection='0.7083333333333334' />" +
         " </play-pen>" +
         " <profiles topNCount=\"10\">" +
         "  <profile-result ref-id=\"TAB0\" type=\"ca.sqlpower.architect.profile.TableProfileResult\" createStartTime=\"1185828799320\" createEndTime=\"1185828807187\" exception=\"false\"   rowCount=\"234937\"/>" +
@@ -374,7 +374,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
 		p2.save(byteArrayOutputStream2,ENCODING);
+        System.out.println(byteArrayOutputStream2.toString());
 
+		String s1 = byteArrayOutputStream.toString();
+        String s2 = byteArrayOutputStream2.toString();
+		
         assertEquals(byteArrayOutputStream.toString(), byteArrayOutputStream2.toString());
 	}
     
