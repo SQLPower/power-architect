@@ -35,17 +35,23 @@ public class MySqlDDLGeneratorTest extends TestCase {
 		tbl.initFolders(true);
 		tbl.setPhysicalName("test_table");
 		tbl.setRemarks("Test single ' quotes");
-		SQLColumn id = new SQLColumn(tbl, "id", Types.INTEGER, 0, 0);
+		SQLColumn id = new SQLColumn(tbl, "id", Types.INTEGER, 1, 0);
 		UserDefinedSQLType idUpstreamType = new UserDefinedSQLType();
 		idUpstreamType.setName("INTEGER");
-		idUpstreamType.setScaleType("GENERIC", PropertyType.NOT_APPLICABLE);
+        idUpstreamType.setType(Types.INTEGER);
+        idUpstreamType.setPrecision("MySQL", 1);
+        idUpstreamType.setPrecisionType("MySQL", PropertyType.VARIABLE);
+		idUpstreamType.setScaleType("MySQL", PropertyType.NOT_APPLICABLE);
         id.getUserDefinedSQLType().setUpstreamType(idUpstreamType);
 		id.setRemarks("The row's primary key");
 		tbl.addColumn(id);
 		SQLColumn name = new SQLColumn(tbl, "name", Types.VARCHAR, 50, 0);
 		UserDefinedSQLType nameUpstreamType = new UserDefinedSQLType();
 		nameUpstreamType.setName("VARCHAR");
-		nameUpstreamType.setScaleType("GENERIC", PropertyType.NOT_APPLICABLE);
+        nameUpstreamType.setType(Types.VARCHAR);
+        nameUpstreamType.setPrecision("MySQL", 50);
+        nameUpstreamType.setPrecisionType("MySQL", PropertyType.VARIABLE);
+		nameUpstreamType.setScaleType("MySQL", PropertyType.NOT_APPLICABLE);
         name.getUserDefinedSQLType().setUpstreamType(nameUpstreamType);
 		name.setRemarks("The person's name");
 		tbl.addColumn(name);
@@ -61,7 +67,7 @@ public class MySqlDDLGeneratorTest extends TestCase {
 		assertEquals("ALTER TABLE test_table COMMENT 'Test single '' quotes'", sql);
 
 		sql = stmts.get(2).getSQLText().trim();
-		assertEquals("ALTER TABLE test_table MODIFY COLUMN id INTEGER(0) COMMENT 'The row''s primary key'", sql);
+		assertEquals("ALTER TABLE test_table MODIFY COLUMN id INTEGER(1) COMMENT 'The row''s primary key'", sql);
 		
 		sql = stmts.get(3).getSQLText().trim();
         assertEquals("ALTER TABLE test_table MODIFY COLUMN name VARCHAR(50) COMMENT 'The person''s name'", sql);
