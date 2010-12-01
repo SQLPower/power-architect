@@ -334,8 +334,8 @@ implements Selectable {
     
     @NonBound
     public static boolean isLocationChange(PropertyChangeEvent evt) {
-        Rectangle oldVal = (Rectangle) evt.getOldValue();
-        Rectangle newVal = (Rectangle) evt.getNewValue();
+        Point oldVal = (Point) evt.getOldValue();
+        Point newVal = (Point) evt.getNewValue();
         return (oldVal.x != newVal.x || oldVal.y != newVal.y);
     }
 
