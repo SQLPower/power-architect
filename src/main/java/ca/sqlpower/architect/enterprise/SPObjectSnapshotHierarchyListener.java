@@ -119,7 +119,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
         } else if (e.getChild() instanceof SQLColumn) {
             SQLColumn sqlColumn = (SQLColumn) e.getChild();
             UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
-            if (upstreamType != null) {
+            if (sqlColumn.isMagicEnabled() && upstreamType != null) {
                 
                 // check if the upstream type is exactly an existing snapshot
                 List<UserDefinedSQLTypeSnapshot> udtSnapshots = 
@@ -524,6 +524,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      *         new snapshot type. Return false if otherwise.
      */
     private void reassignType(SQLColumn column) {
+        if (!column.isMagicEnabled()) return;
         UserDefinedSQLType upstreamType = column.getUserDefinedSQLType().getUpstreamType();
         SPObject upstreamTypeParent = upstreamType.getParent();
         
