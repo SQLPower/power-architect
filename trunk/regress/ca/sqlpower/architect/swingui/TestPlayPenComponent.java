@@ -113,7 +113,9 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
 	    copyIgnoreProperties.add("fontRenderContext");
 	    copyIgnoreProperties.add("height");
 	    copyIgnoreProperties.add("insets");
+        copyIgnoreProperties.add("lengths");
 	    copyIgnoreProperties.add("location");
+        copyIgnoreProperties.add("locationOnScreen");
 	    copyIgnoreProperties.add("magicEnabled");
 	    copyIgnoreProperties.add("opaque");
 	    copyIgnoreProperties.add("parent");
@@ -139,7 +141,6 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
         
         // copy and original should point to same business object
         copySameInstanceIgnoreProperties.add("model");
-        
 	    
         // First pass: set all settable properties, because testing the duplication of
         //             an object with all its properties at their defaults is not a
@@ -199,6 +200,8 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
             return false;
         } else if (property.getPropertyType() == Integer.class || property.getPropertyType() == Integer.TYPE) {
             return false;
+        } else if (property.getPropertyType() == Double.class || property.getPropertyType() == Double.TYPE) {
+            return false;
         } else if (property.getPropertyType() == Color.class) {
             return false;
         } else if (property.getPropertyType() == Font.class) {
@@ -254,7 +257,13 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
 	        } else {
 	            newVal = new Integer(((Integer) oldVal).intValue() + 1);
 	        }
-	    } else if (property.getPropertyType() == Color.class) {
+	    } else if (property.getPropertyType() == Double.class || property.getPropertyType() == Double.TYPE) {
+            if(oldVal == null) {
+                newVal = new Double(0);
+            } else {
+                newVal = new Double(((Double) oldVal).doubleValue() + 1);
+            }
+        } else if (property.getPropertyType() == Color.class) {
 	        if (oldVal == null) {
 	            newVal = new Color(0xFAC157);
 	        } else {

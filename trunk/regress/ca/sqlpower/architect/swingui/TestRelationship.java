@@ -196,4 +196,11 @@ public class TestRelationship extends TestPlayPenComponent<Relationship> {
     public ArchitectNewValueMaker createNewValueMaker(SPObject root, DataSourceCollection<SPDataSource> dsCollection) {
         return new ArchitectNewValueMaker(root, dsCollection);
     }
+    @Override
+    public void testCopyConstructor() throws Exception {
+        // For relationships, since they are positioned by the tables they connect and not
+        // just positioned with respect to the play pen, we need to ingore specifically this.
+        copyIgnoreProperties.add("topLeftCorner");
+        super.testCopyConstructor();
+    }
 }
