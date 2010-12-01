@@ -19,6 +19,8 @@
 
 package ca.sqlpower.architect.swingui;
 
+import ca.sqlpower.architect.SnapshotCollection;
+import ca.sqlpower.architect.ddl.critic.CriticManager;
 import ca.sqlpower.architect.enterprise.ArchitectPersisterSuperConverter;
 import ca.sqlpower.architect.enterprise.ArchitectSessionPersister;
 import ca.sqlpower.architect.enterprise.DirectJsonMessageSender;
@@ -53,19 +55,29 @@ public class ArchitectSwingSessionPersisterTest extends DatabaseConnectedTestCas
         SPJSONMessageDecoder decoder = new SPJSONMessageDecoder(persister);
         SPJSONPersister jsonPersister = new SPJSONPersister(new DirectJsonMessageSender(decoder));
         
+        session.getUndoManager().setLoading(true);
+        
         jsonPersister.begin();
         jsonPersister.persistObject(null, ArchitectSwingProject.class.getName(), "ArchitectProjectUUID", 0);
         jsonPersister.persistObject("ArchitectProjectUUID", KettleSettings.class.getName(), "KettleSettingsUUID", 0);
         jsonPersister.persistObject("ArchitectProjectUUID", SQLObjectRoot.class.getName(), "SQLObjectRootUUID", 0);
         jsonPersister.persistObject("ArchitectProjectUUID", OLAPRootObject.class.getName(), "OLAPRootObjectUUID", 0);
+        jsonPersister.persistObject("ArchitectProjectUUID", CriticManager.class.getName(), "CriticManagerUUID", 0);
+        jsonPersister.persistObject("ArchitectProjectUUID", SnapshotCollection.class.getName(), "SnapshotCollectionUUID", 0);
         jsonPersister.persistProperty("ArchitectProjectUUID", "rootObject", DataType.STRING, "SQLObjectRootUUID");
         jsonPersister.persistProperty("ArchitectProjectUUID", "olapRootObject", DataType.STRING, "OLAPRootObjectUUID");
         jsonPersister.persistProperty("ArchitectProjectUUID", "kettleSettings", DataType.STRING, "KettleSettingsUUID");
+        jsonPersister.persistProperty("ArchitectProjectUUID", "criticManager", DataType.STRING, "CriticManagerUUID");
+        jsonPersister.persistProperty("ArchitectProjectUUID", "snapshotCollection", DataType.STRING, "SnapshotCollectionUUID");
         jsonPersister.commit();
         
         assertEquals("KettleSettingsUUID", session.getWorkspace().getKettleSettings().getUUID());
         assertEquals("SQLObjectRootUUID", session.getWorkspace().getRootObject().getUUID());
         assertEquals("OLAPRootObjectUUID", session.getWorkspace().getOlapRootObject().getUUID());
+        assertEquals("CriticManagerUUID", session.getWorkspace().getCriticManager().getUUID());
+        assertEquals("SnapshotCollectionUUID", session.getWorkspace().getSnapshotCollection().getUUID());
+
+        session.getUndoManager().setLoading(false);
     }
 
 }
