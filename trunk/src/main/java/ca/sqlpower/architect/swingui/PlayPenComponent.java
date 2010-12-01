@@ -231,16 +231,10 @@ implements Selectable {
             return;
         } else {
             Rectangle r = new Rectangle(topLeftCorner, lengths);
-            if (isMagicEnabled()) { 
-                // This temporary disabling of magic is under the
-                // assumption that this method properly revalidates
-                // the component in one pass, and does not rely 
-                // on recursive calls due to magical side effects
-                setMagicEnabled(false);
-                updateLengths(true);
-                if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
-                setMagicEnabled(true);
-            }
+            setMagicEnabled(false);
+            updateLengths(true);
+            if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
+            setMagicEnabled(true);
             pp.zoomRect(r);
             pp.repaint(r);
         }

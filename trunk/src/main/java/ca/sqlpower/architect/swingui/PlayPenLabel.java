@@ -65,6 +65,9 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
 
         @Override
         public Dimension getPreferredSize() {
+            if (label.getText() == null) {
+                return new Dimension(0, 0);
+            }
             String[] textToRender = label.getText().split("\n");
             FontMetrics fm = getPlayPen().getFontMetrics(getPlayPen().getFont());
             int textHeight = fm.getHeight() * textToRender.length;
@@ -97,6 +100,9 @@ public class PlayPenLabel extends DraggablePlayPenComponent {
             g2.translate(insets.left, insets.top);
             g2.setColor(Color.BLACK);
             
+            if (label.getText() == null) {
+                return;
+            }
             String[] textToRender = label.getText().split("\n");
             g2.setFont(getPlayPen().getFont());
             FontMetrics fm = g2.getFontMetrics();
