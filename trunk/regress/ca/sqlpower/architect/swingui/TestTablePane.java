@@ -366,7 +366,7 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         final PlayPenComponentEventCounter eventCounter = new PlayPenComponentEventCounter();
         tp.addSPListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt)) {
+                if (evt.getPropertyName().equals("topLeftCorner") && PlayPenComponent.isLocationChange(evt)) {
                     eventCounter.propertyChange(evt);
                 }
             }

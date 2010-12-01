@@ -171,6 +171,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 		
 		this.insertionPoint = tp.insertionPoint;
 		this.draggingColumn = tp.draggingColumn;
+		this.topLeftCorner = new Point(tp.topLeftCorner);
 		this.selected = false;
 
 		this.hiddenColumns = new HashSet<SQLColumn>(tp.getHiddenColumns());
