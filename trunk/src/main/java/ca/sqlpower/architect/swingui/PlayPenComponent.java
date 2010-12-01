@@ -481,6 +481,7 @@ implements Selectable {
 
     @Transient @Accessor
     public Font getFont() {
+        if(getPlayPen() == null) return null;
         return getPlayPen().getFont();
     }
 
