@@ -557,14 +557,12 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 pp.addRelationship(r);
                 r.updateUI();
 
-                int pkx = Integer.parseInt(attributes.getValue("pk-x")); //$NON-NLS-1$
-                int pky = Integer.parseInt(attributes.getValue("pk-y")); //$NON-NLS-1$
-                int fkx = Integer.parseInt(attributes.getValue("fk-x")); //$NON-NLS-1$
-                int fky = Integer.parseInt(attributes.getValue("fk-y")); //$NON-NLS-1$
+                double pk = Double.parseDouble(attributes.getValue("pkConnection")); //$NON-NLS-1$
+                double fk = Double.parseDouble(attributes.getValue("fkConnection")); //$NON-NLS-1$
                 int orientation = Integer.parseInt(attributes.getValue("orientation")); //$NON-NLS-1$
                 r.setOrientation(orientation);
-                r.setPkConnectionPoint(new Point(pkx, pky));
-                r.setFkConnectionPoint(new Point(fkx, fky));
+                r.setPkConnection(pk);
+                r.setFkConnection(fk);
                 
                 String rLineColor = attributes.getValue("rLineColor"); //$NON-NLS-1$
                 if (rLineColor != null) {
@@ -1256,10 +1254,8 @@ public class SwingUIProjectLoader extends ProjectLoader {
                 String rColorString = String.format("0x%02x%02x%02x", relationshipLineColor.getRed(), relationshipLineColor.getGreen(), relationshipLineColor.getBlue()); //$NON-NLS-1$
                 
                 ioo.println(out, "<table-link relationship-ref="+quote(sqlObjectSaveIdMap.get(r.getModel())) //$NON-NLS-1$
-                        +" pk-x=\""+r.createPkConnectionPoint().getX()+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" pk-y=\""+r.createPkConnectionPoint().getY()+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" fk-x=\""+r.createFkConnectionPoint().getX()+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-                        +" fk-y=\""+r.createFkConnectionPoint().getY()+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" pkConnection=\""+r.getPkConnection()+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+                        +" fkConnection=\""+r.getFkConnection()+"\"" //$NON-NLS-1$ //$NON-NLS-2$
                         +" rLineColor="+quote(rColorString) //$NON-NLS-1$
                         +" pkLabelText="+quote(r.getTextForParentLabel()) //$NON-NLS-1$
                         +" fkLabelText="+quote(r.getTextForChildLabel()) //$NON-NLS-1$
