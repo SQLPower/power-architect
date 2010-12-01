@@ -184,6 +184,9 @@ public class PlayPenContentPane extends AbstractSPObject {
             owner.addPropertyChangeListener("zoom", new ZoomFixer()); //$NON-NLS-1$
             firePropertyChange("playPen", null, owner);
         }
+        for (PlayPenComponent c : components) {
+            c.revalidate();
+        }
     }
 
     public boolean contains(Point p) {
