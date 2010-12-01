@@ -234,7 +234,7 @@ public class TestArchitectUndoManager extends TestCase {
         TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane(new SQLDatabase()));
         comp.addSPListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt)) {
+                if (evt.getPropertyName().equals("topLeftCorner") && PlayPenComponent.isLocationChange(evt)) {
                     l.propertyChange(evt);
                 }
             }
@@ -243,9 +243,7 @@ public class TestArchitectUndoManager extends TestCase {
         Point newLocation = new Point(1, 2);
         Dimension size = comp.getSize();
         comp.setLocation(newLocation);
-        comp.firePropertyChange("bounds", 
-                new Rectangle(oldLocation, size), 
-                new Rectangle(newLocation, size));
+        comp.firePropertyChange("topLeftCorner", oldLocation, newLocation);
         assertTrue(undoManager.canUndo());
         undoManager.undo();
         assertEquals(oldLocation, comp.getLocation());
@@ -290,7 +288,7 @@ public class TestArchitectUndoManager extends TestCase {
         pp.addTablePane(tp, new Point());
         ArchitectUndoManager undoManager = new ArchitectUndoManager(pp);
         final PropertyChangeListener l = undoManager.getEventAdapter();
-        pp.getContentPane().addComponentPropertyListener("bounds", new AbstractSPListener() {
+        pp.getContentPane().addComponentPropertyListener("topLeftCorner", new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
                 l.propertyChange(evt);
             }
@@ -332,7 +330,7 @@ public class TestArchitectUndoManager extends TestCase {
         final PropertyChangeListener l = undoManager.getEventAdapter();
         pp.getContentPane().addComponentPropertyListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt)) {
+                if (evt.getPropertyName().equals("topLeftCorner") && PlayPenComponent.isLocationChange(evt)) {
                     l.propertyChange(evt);
                 }
             }
@@ -474,15 +472,19 @@ public class TestArchitectUndoManager extends TestCase {
         
         undoManager.undo();
         undoManager.undo();
-        assertEquals(oldFkCon, rel.createFkConnectionPoint());
+        assertEquals(oldFkCon.getX(), rel.createFkConnectionPoint().getX());
+        assertEquals(oldFkCon.getY(), rel.createFkConnectionPoint().getY());
         undoManager.undo();
         undoManager.undo();
-        assertEquals(oldPkCon, rel.createPkConnectionPoint());
+        assertEquals(oldPkCon.getX(), rel.createPkConnectionPoint().getX());
+        assertEquals(oldPkCon.getY(), rel.createPkConnectionPoint().getY());
         undoManager.redo();
         undoManager.redo();
         undoManager.redo();
-        assertEquals(newPkCon, rel.createPkConnectionPoint());
-        assertEquals(newFkCon, rel.createFkConnectionPoint());
+        assertEquals(newPkCon.getX(), rel.createPkConnectionPoint().getX());
+        assertEquals(newPkCon.getY(), rel.createPkConnectionPoint().getY());
+        assertEquals(newFkCon.getX(), rel.createFkConnectionPoint().getX());
+        assertEquals(newFkCon.getY(), rel.createFkConnectionPoint().getY());
     }
     
     public void testUndoManagerActionUpdates() throws SQLObjectException
