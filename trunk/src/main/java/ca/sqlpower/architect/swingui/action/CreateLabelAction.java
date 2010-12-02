@@ -81,7 +81,7 @@ public class CreateLabelAction extends AbstractArchitectAction {
         @Override
         public DataEntryPanel place(final Point p) throws SQLObjectException {
             label.setLocation(p);
-            LabelEditorPanel editPanel = frame.getEditLabelAction().new PlayPenLabelEditorPanel(label.getLabel(), false) {
+            LabelEditorPanel editPanel = frame.getEditLabelAction().new PlayPenLabelEditorPanel(label.getLabel(), false, true) {
                 @Override
                 public boolean applyChanges() {
                     ArchitectSwingSession session = getSession();

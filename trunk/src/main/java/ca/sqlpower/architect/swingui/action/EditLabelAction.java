@@ -41,8 +41,8 @@ public class EditLabelAction extends AbstractArchitectAction {
 
     public class PlayPenLabelEditorPanel extends LabelEditorPanel {
 
-        public PlayPenLabelEditorPanel(SPLabel label, boolean variables) {
-            super(label, variables);
+        public PlayPenLabelEditorPanel(SPLabel label, boolean variables, boolean override) {
+            super(label, variables, override);
         }
 
         @Override
@@ -81,7 +81,7 @@ public class EditLabelAction extends AbstractArchitectAction {
     }
     
     private void showDialog(final PlayPenLabel label) {
-        DataEntryPanel panel = new PlayPenLabelEditorPanel(label.getLabel(), false);
+        DataEntryPanel panel = new PlayPenLabelEditorPanel(label.getLabel(), false, false);
         JDialog editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 panel, frame,
                 Messages.getString("EditLabelAction.dialogTitle"), //$NON-NLS-1$ 
