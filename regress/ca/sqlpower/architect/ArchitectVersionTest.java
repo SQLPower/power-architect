@@ -20,6 +20,7 @@
 package ca.sqlpower.architect;
 
 import junit.framework.TestCase;
+import ca.sqlpower.util.VersionParseException;
 
 public class ArchitectVersionTest extends TestCase {
     
@@ -52,7 +53,7 @@ public class ArchitectVersionTest extends TestCase {
         try {
             version = new ArchitectVersion("1.2.3.-alpha");
             fail("Bad version format was accepted");
-        } catch (ArchitectVersionParseException ex) {
+        } catch (VersionParseException ex) {
             // good
         }
     }
