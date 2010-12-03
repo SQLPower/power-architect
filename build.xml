@@ -229,7 +229,7 @@
 		</not>
 	</condition>
 	
-	<target name="init" depends="checkAntVersion"
+	<target name="init" depends="checkAntVersion, copy.sqlpower.library"
 		description="Checks build prereqs, creates output dir, and determines product version"
 		>
 		<tstamp/>
