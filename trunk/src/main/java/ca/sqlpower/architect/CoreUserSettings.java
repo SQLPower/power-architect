@@ -27,7 +27,6 @@ import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.swingui.ArchitectSwingUserSettings;
 import ca.sqlpower.architect.swingui.QFAUserSettings;
-import ca.sqlpower.architect.swingui.UpdateCheckSettings;
 import ca.sqlpower.sqlobject.SQLObjectException;
 
 /**
