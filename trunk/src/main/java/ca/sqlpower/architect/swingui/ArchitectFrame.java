@@ -1414,12 +1414,15 @@ public class ArchitectFrame extends JFrame {
                         }
                         frame.setCurrentSession(sessions.get(0));
                         
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                frame.checkForUpdateAction.checkForUpdate(false);
-                            }
-                        }).start();
+                        if (context.getUserSettings().getUpdateCheckSettings().getBoolean(
+                                UpdateCheckSettings.AUTO_UPDATE_CHECK, true)) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    frame.checkForUpdateAction.checkForUpdate(false);
+                                }
+                            }).start();
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

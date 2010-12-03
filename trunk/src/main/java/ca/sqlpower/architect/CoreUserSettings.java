@@ -27,6 +27,7 @@ import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.swingui.ArchitectSwingUserSettings;
 import ca.sqlpower.architect.swingui.QFAUserSettings;
+import ca.sqlpower.architect.swingui.UpdateCheckSettings;
 import ca.sqlpower.sqlobject.SQLObjectException;
 
 /**
@@ -70,6 +71,8 @@ public class CoreUserSettings {
     private DDLUserSettings ddlUserSettings;
 
     private QFAUserSettings qfaUserSettings;
+    
+    private UpdateCheckSettings updateCheckSettings;
 	
 	public CoreUserSettings(Preferences prefs) {
 		super();
@@ -78,6 +81,7 @@ public class CoreUserSettings {
 		etlUserSettings = new ETLUserSettings();
 		ddlUserSettings = new DDLUserSettings();
         qfaUserSettings = new QFAUserSettings();
+        setUpdateCheckSettings(new UpdateCheckSettings());
         this.prefs = prefs;
         loadFromPrefs();
 	}
@@ -101,6 +105,8 @@ public class CoreUserSettings {
         ddlUserSettings.setString(DDLUserSettings.PROP_DDL_LOG_PATH,prefs.get(DDLUserSettings.PROP_DDL_LOG_PATH, defaultHomeFile("ddl.log")));
 
         qfaUserSettings.setBoolean(QFAUserSettings.EXCEPTION_REPORTING,prefs.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
+        
+        getUpdateCheckSettings().setBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, prefs.getBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, true));
 
         printUserSettings.setDefaultPrinterName(
                 prefs.get(PrintUserSettings.DEFAULT_PRINTER_NAME, ""));
@@ -122,6 +128,8 @@ public class CoreUserSettings {
         prefs.put(DDLUserSettings.PROP_DDL_LOG_PATH, ddlUserSettings.getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
 
         prefs.putBoolean(QFAUserSettings.EXCEPTION_REPORTING,qfaUserSettings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
+        
+        prefs.putBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, getUpdateCheckSettings().getBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, true));
 
         prefs.put(PrintUserSettings.DEFAULT_PRINTER_NAME, printUserSettings.getDefaultPrinterName());
 
@@ -181,4 +189,12 @@ public class CoreUserSettings {
 	public void setDDLUserSettings(DDLUserSettings v) {
 		ddlUserSettings = v;
 	}
+
+    public void setUpdateCheckSettings(UpdateCheckSettings updateCheckSettings) {
+        this.updateCheckSettings = updateCheckSettings;
+    }
+
+    public UpdateCheckSettings getUpdateCheckSettings() {
+        return updateCheckSettings;
+    }
 }
