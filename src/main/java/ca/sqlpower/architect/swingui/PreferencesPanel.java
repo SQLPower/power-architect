@@ -64,6 +64,9 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 
     private JRadioButton showWelcomeOn;
     private JRadioButton showWelcomeOff;
+    
+    private JRadioButton updateCheckOn;
+    private JRadioButton updateCheckOff;
 
     private final ArchitectSwingSessionContext context;
 
@@ -134,6 +137,16 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
         showWelcomePanel.add(showWelcomeOn);
         showWelcomePanel.add(showWelcomeOff);
         add(showWelcomePanel);
+        //line 7
+        add(new JLabel(Messages.getString("PreferencesPanel.checkForUpdates"))); //$NON-NLS-1$
+        JPanel checkUpdatesPanel = new JPanel();
+        checkUpdatesPanel.setLayout(new FlowLayout());
+        ButtonGroup checkUpdatesGroup = new ButtonGroup();
+        checkUpdatesGroup.add(updateCheckOn = new JRadioButton(Messages.getString("PreferencesPanel.onOption"))); //$NON-NLS-1$
+        checkUpdatesGroup.add(updateCheckOff = new JRadioButton(Messages.getString("PreferencesPanel.offOption"))); //$NON-NLS-1$
+        checkUpdatesPanel.add(updateCheckOn);
+        checkUpdatesPanel.add(updateCheckOff);
+        add(checkUpdatesPanel);
 	}
 
 	protected void revertToUserSettings() {
@@ -155,6 +168,11 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
         } else {
             exceptionReportOff.setSelected(true);
         }
+        if (us.getUpdateCheckSettings().getBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, true)) {
+            updateCheckOn.setSelected(true);
+        } else {
+            updateCheckOff.setSelected(true);
+        }
 	}
 
 	public boolean applyChanges() {
@@ -164,6 +182,7 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 		us.getSwingSettings().setBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
         us.getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, showWelcomeOn.isSelected());
         us.getQfaUserSettings().setBoolean(QFAUserSettings.EXCEPTION_REPORTING, exceptionReportOn.isSelected());
+        us.getUpdateCheckSettings().setBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, updateCheckOn.isSelected());
         for (ArchitectSession session: context.getSessions()) {
             ((ArchitectSwingSession)session).getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
         }
