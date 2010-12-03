@@ -26,10 +26,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,20 +35,15 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.pentaho.di.core.NotePadMeta;
-import org.pentaho.di.core.database.Database;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogWriter;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.repository.RepositoryDirectory;
-import org.pentaho.di.repository.RepositoryMeta;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.TestingArchitectSession;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.sql.JDBCDataSource;
@@ -60,46 +53,10 @@ import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.util.UserPrompter;
-import ca.sqlpower.util.UserPrompter.UserPromptOptions;
 import ca.sqlpower.util.UserPrompter.UserPromptResponse;
 
 public class CreateKettleJobTest extends TestCase {
     
-    /**
-     * This implementation of the {@link TestingArchitectSessionContext} is used to allow the file
-     * validator return type to be specified by the test. This is for testing how the saving of
-     * Kettle jobs reacts if the a file is canceled or selected to not be saved.
-     */
-    private class ArchitectSessionContextWithFileValidator extends TestingArchitectSession {
-        
-        private final UserPromptResponse fvr;
-
-        public ArchitectSessionContextWithFileValidator(ArchitectSessionContext context, UserPromptResponse fvr) {
-            super(context);
-            this.fvr = fvr;
-        }
-
-        @Override
-        public UserPrompter createUserPrompter(String question, UserPromptType responseType, UserPromptOptions optionType, UserPromptResponse defaultResponseType,
-                Object defaultResponse, String ... buttonNames) {
-            return new UserPrompter() {
-
-                public Object getUserSelectedResponse() {
-                    if (fvr == UserPromptResponse.OK) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-
-                public UserPromptResponse promptUser(Object... formatArgs) {
-                    return fvr;
-                }
-            };
-        }
-    }
-
     private SQLDatabase target;
     private SQLTable targetTableNoSource;
     private SQLTable targetTableMixedSource;
@@ -341,49 +298,6 @@ public class CreateKettleJobTest extends TestCase {
         assertEquals(architectDS.getUser(), dbMeta.getUsername());
     }
     
-    public void testOutputToRepositoryOverwrite() throws Exception {
-        testOutputToRepository(UserPromptResponse.OK);
-    }
-    
-    public void testOutputToRepositoryDontOverwrite() throws Exception {
-        testOutputToRepository(UserPromptResponse.NOT_OK);
-    }
-    
-    public void testOutputToRepositoryCancel() throws Exception {
-        testOutputToRepository(UserPromptResponse.CANCEL);
-    }
-    
-    private void testOutputToRepository(final UserPromptResponse fvr) throws Exception {
-        TransMeta transMeta = createTransMeta();
-        JobMeta job = createJobMeta();
-        
-        List<TransMeta> transList = new ArrayList<TransMeta>();
-        transList.add(transMeta);
-
-        KettleJob kettleJob = new KettleJob(new ArchitectSessionContextWithFileValidator(new TestingArchitectSessionContext(), fvr), 
-                new KettleRepositoryDirectoryChooser(){
-            public RepositoryDirectory selectDirectory(Repository repo) {
-                return new RepositoryDirectory();
-            }
-        });
-        kettleJob.setRepository(new ArchitectDataSourceStub());
-        kettleJob.setSavingToFile(false);
-        kettleJob.setJobName("jobName");
-        KettleRepositoryStub rep = new KettleRepositoryStub(new RepositoryMeta("", "", null));
-        kettleJob.outputToRepository(job, transList, rep);
-
-        if (fvr == UserPromptResponse.NOT_OK || fvr == UserPromptResponse.CANCEL) {
-            assertEquals(0, rep.getNumTransformationsSaved());
-            assertEquals(0, rep.getNumJobsSaved());
-        } else if (fvr == UserPromptResponse.OK) {
-            assertEquals(1, rep.getNumTransformationsSaved());
-            assertEquals(1, rep.getNumJobsSaved());
-        } else {
-            fail("Unknown user prompt response: " + fvr);
-        }
-        assertTrue(rep.getRepositoryDisconnected());
-    }
-    
     /**
      * This method tests the outputToXML method based on different settings.
      * @param fvr The FileValidationResponse that will always be chosen
@@ -415,8 +329,12 @@ public class CreateKettleJobTest extends TestCase {
         newJob.setName("jobName");
         newJob.addNote(new NotePadMeta("new job note", 0, 150, 125, 125));
         
-        KettleJob kettleJob = new KettleJob(new ArchitectSessionContextWithFileValidator(new TestingArchitectSessionContext(), fvr),
-                new RootRepositoryDirectoryChooser());
+        
+        ArchitectSessionWithFileValidator as = 
+            new ArchitectSessionWithFileValidator(new TestingArchitectSessionContext());
+        as.setReponse(fvr);
+        
+        KettleJob kettleJob = new KettleJob(as, new RootRepositoryDirectoryChooser());
         kettleJob.setFilePath(jobOutputFile.getPath());
         kettleJob.setSavingToFile(true);
         kettleJob.setJobName("jobName");
@@ -474,200 +392,4 @@ public class CreateKettleJobTest extends TestCase {
         return new File(outputFile.getParentFile().getPath() + File.separator + 
                 "transformation_for_table_" + name + ".ktr");
     }
-    
-    /**
-     * This is a stub of the Repository class from Kettle. This was made to have a 
-     * stub repository to give to the outputToRepository method but there are too 
-     * many methods and not all of them are stubbed. This means when you create a 
-     * transformation to output to the repository you may not be able to give a 
-     * complex transformation. Jobs should be fine to make complex.
-     */
-    private class KettleRepositoryStub extends Repository {
-        
-        KettleDatabaseStub db;
-        boolean repositoryDisconnected = false;
-        int transformationsSaved = 0;
-        int jobsSaved = 0;
-        
-        public KettleRepositoryStub(RepositoryMeta repMeta) {
-            super(null, repMeta, null);
-            db = new KettleDatabaseStub();
-        }
-        
-        public KettleDatabaseStub getDatabase() {
-            return db;
-        }
-        
-        /**
-         * This method does not actually disconnect from the connection!
-         */
-        public void disconnect() {
-            repositoryDisconnected = true;
-        }
-        
-        public boolean getRepositoryDisconnected() {
-            return repositoryDisconnected;
-        }
-        
-        public int getNumTransformationsSaved() {
-            return transformationsSaved;
-        }
-        
-        public int getNumJobsSaved() {
-            return jobsSaved;
-        }
-        
-        public void refreshRepositoryDirectoryTree() {
-        }
-        
-        public long getTransformationID(String s, long l) {
-            return getValFromString(s);
-        }
-        
-        public long getNextTransformationID() {
-            return 1;
-        }
-        
-        public synchronized void delAllFromTrans(long id) {
-        }
-
-        public void lockRepository() {
-        }
-
-        public synchronized long insertLogEntry(String s) {
-            return 0;
-        }
-            
-        public long getJobID(String s, RepositoryDirectory d) {
-            return getValFromString(s);
-        }
-        
-        public long getNextJobID() {
-            return 1;
-        }
-        
-        public synchronized void delAllFromJob(long id) {
-        }
-        
-        public void insertJobNote(long l1, long l2) {
-        }
-        
-        public synchronized void insertJob(long id_job, long id_directory, String name, long id_database_log, String table_name_log,
-                String modified_user, Date modified_date, boolean useBatchId, boolean batchIdPassed, boolean logfieldUsed, 
-                String sharedObjectsFile, String description, String extended_description, String version, int status,
-                String created_user, Date created_date) throws KettleException {
-            jobsSaved++;
-        }
-        
-        public synchronized long insertJobEntryCopy(long id_job, long id_jobentry, long id_jobentry_type, int nr, long gui_location_x,
-                long gui_location_y, boolean gui_draw, boolean parallel) throws KettleException {
-            return 1;
-        }
-        
-        public synchronized long insertJobHop(long id_job, long id_jobentry_copy_from, long id_jobentry_copy_to, boolean enabled,
-                boolean evaluation, boolean unconditional) throws KettleException {
-            return 1;
-        }
-        
-        public synchronized long insertNote(String note, long gui_location_x, long gui_location_y, long gui_location_width, 
-                long gui_location_height) throws KettleException {
-            return 1;
-        }
-        
-        public synchronized long insertDatabase(String name, String type, String access, String host, String dbname, String port,
-                String user, String pass, String servername, String data_tablespace, String index_tablespace)
-        throws KettleDatabaseException {
-            return 1;
-        }
-        
-        public synchronized void updateDatabase(long id_database, String name, String type, String access, String host, String dbname,
-                String port, String user, String pass, String servername, String data_tablespace, String index_tablespace)
-                throws KettleDatabaseException {
-        }
-        
-        public synchronized void delDatabaseAttributes(long id_database) throws KettleDatabaseException {
-        }
-        
-        public synchronized long insertDatabaseAttribute(long id_database, String code, String value_str) throws KettleDatabaseException {
-            return 1;
-        }
-        
-        public synchronized void updateJobEntryTypes() throws KettleException {
-        }
-        
-        public long getJobEntryTypeID(String s) {
-            return getValFromString(s);
-        }
-        
-        public void commit() {
-        }
-        
-        public void rollback() {
-        }
-        
-        public void unlockRepository() {
-        }
-        
-        public void clearNextIDCounters() {
-        }
-        
-        public synchronized void updateStepTypes() throws KettleException {
-        }
-        
-        public synchronized void closeStepAttributeInsertPreparedStatement() throws KettleDatabaseException {
-        }
-        
-        public long getDatabaseID(String s) {
-            return getValFromString(s);
-        }
-        
-        public synchronized void insertTransformation(TransMeta transMeta) throws KettleDatabaseException {
-            transformationsSaved++;
-        }
-        
-        public synchronized void closeTransAttributeInsertPreparedStatement() throws KettleDatabaseException {
-        }
-        
-        public synchronized void insertTransNote(long id_transformation, long id_note) throws KettleException {
-        }
-        
-        public synchronized long getJobID(String name, long id_directory) throws KettleException {
-            return 1;
-        }
-        
-        private long getValFromString(String s) {
-            try {
-                return new Integer(s).intValue();
-            } catch (NumberFormatException e) {
-                return 1;
-            }
-        }
-
-    }
-    
-    private class KettleDatabaseStub extends Database {
-        
-        public KettleDatabaseStub() {
-            super(null);
-        }
-        
-        public void setConnection(Connection conn) {
-        }
-    }
-    
-    /**
-     * This is a data source that will always return null when it 
-     * tries to create a connection. Otherwise it is fully functional.
-     */
-    private class ArchitectDataSourceStub extends JDBCDataSource {
-        
-        public ArchitectDataSourceStub() {
-            super(new PlDotIni());
-        }
-
-        public Connection createConnection() {
-            return null;
-        }
-    }
-    
 }

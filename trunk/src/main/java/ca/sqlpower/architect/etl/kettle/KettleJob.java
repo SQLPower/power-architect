@@ -456,6 +456,15 @@ public class KettleJob implements Monitorable {
         logger.debug("Parent file path is " + parentPath);
         return new File(parentPath, "transformation_for_table_" + transName + ".ktr").getPath();
     }
+    
+    /** 
+     * Pass the repository a connection straight as the Repository
+     * connect method loads its own drivers and we don't want to
+     * include them.
+     */
+    public void createStraightConnection(Repository repo)  throws KettleException, SQLException {
+        repo.getDatabase().setConnection(settings.getRepository().createConnection());
+    }
 
     /**
      * This method translates the list of SQLTables to a Kettle Job and Transformations and saves 
@@ -465,10 +474,7 @@ public class KettleJob implements Monitorable {
     void outputToRepository(JobMeta jm, List<TransMeta> transformations, Repository repo) throws KettleException, SQLException {
         
         try {
-            // Pass the repository a connection straight as the Repository
-            // connect method loads its own drivers and we don't want to
-            // include them.
-            repo.getDatabase().setConnection(settings.getRepository().createConnection());
+            createStraightConnection(repo);
             
             RepositoryDirectory directory;
             
@@ -587,6 +593,28 @@ public class KettleJob implements Monitorable {
 
         Repository repo = new Repository(lw, repoMeta, userInfo);
         return repo;
+
+    }
+    
+    /**
+     * This method returns the necessary data to create a repository, but doesn't actually
+     * create it so that we create a testing repository.
+     */
+    public Object[] createTestRepository() {
+
+        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(settings.getRepository());
+        RepositoryMeta repoMeta = new RepositoryMeta("", "", kettleDBMeta);
+
+        UserInfo userInfo = new UserInfo(settings.getRepository().get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
+                settings.getRepository().get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
+                settings.getJobName(), "", true, null);
+        LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
+
+        Object[] ret = new Object[3];
+        ret[0] = (Object)lw;
+        ret[1] = repoMeta;
+        ret[2] = userInfo;
+        return ret;
 
     }
 
