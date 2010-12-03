@@ -17,9 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.AbstractUserSetting;
 
 public class UpdateCheckSettings extends AbstractUserSetting {
 

@@ -81,6 +81,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.UpdateCheckSettings;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.enterprise.ArchitectClientSideSession;
 import ca.sqlpower.architect.layout.ArchitectLayout;
