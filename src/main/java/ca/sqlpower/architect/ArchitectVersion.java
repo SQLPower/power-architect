@@ -94,7 +94,8 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      * <tt>a1.a2.(...).aN[suffix]</tt>.  Examples: <tt>1.2.3-alpha</tt>
      * or <tt>1.3</tt> or <tt>2</tt>.  The version number must have at
      * least one numeric component, so <tt>1suffix</tt> is legal but
-     * <tt>suffix</tt> on its own is not.
+     * <tt>suffix</tt> on its own is not. A suffix may contain any sequence of
+     * characters, but every <tt>.</tt> in the suffix must be followed with a number.
      * 
      * @param version The version string
      */
@@ -102,12 +103,12 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
         String[] rawParts = version.split("\\.");
         List<Object> parsedParts = new ArrayList<Object>();
         Pattern p = Pattern.compile("[0-9]+");
+        Pattern suffixPattern = Pattern.compile("([0-9]+)(.+)");
         for (int i = 0; i < rawParts.length; i++) {
             Matcher m = p.matcher(rawParts[i]);
             if (m.matches()) {
                 parsedParts.add(Integer.parseInt(rawParts[i]));
-            } else if (i == rawParts.length - 1) {
-                Pattern suffixPattern = Pattern.compile("([0-9]+)(.+)");
+            } else {
                 Matcher suffixMatcher = suffixPattern.matcher((String) rawParts[i]);
                 if (suffixMatcher.matches()) {
                     parsedParts.add(Integer.parseInt(suffixMatcher.group(1)));
@@ -115,9 +116,7 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
                 } else {
                     throw new ArchitectVersionParseException(version);
                 }
-            } else {
-                throw new ArchitectVersionParseException(version);
-            }
+            } 
         }
         parts = parsedParts.toArray();
     }
@@ -167,6 +166,8 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
      *  <li>1.1-alpha
      *  <li>1.1
      * </ul>
+     * Suffixes are broken down into numeric and non-numeric sections, and evaluated
+     * as such.
      */
     public int compareTo(ArchitectVersion o) {
         int i;
@@ -179,8 +180,22 @@ public class ArchitectVersion implements Comparable<ArchitectVersion> {
             } else if (parts[i] instanceof String && o.parts[i] instanceof String) {
                 String v = (String) parts[i];
                 String ov = (String) o.parts[i];
-                int diff = v.compareTo(ov);
-                if (diff != 0) return diff;
+                // Splits into name and final number
+                Pattern p = Pattern.compile("([^0-9]*)([0-9]*)");
+                Matcher vm = p.matcher(v);
+                Matcher ovm = p.matcher(ov);
+                
+                while (vm.find() && ovm.find()) {
+                    if (!vm.group(1).equals(ovm.group(1))) {
+                        return vm.group(1).compareTo(ovm.group(1));
+                    } else {
+                        Integer vi = Integer.parseInt("0"+vm.group(2));
+                        Integer ovi = Integer.parseInt("0"+ovm.group(2));
+                        if (vi.compareTo(ovi) != 0) {
+                            return vi.compareTo(ovi);
+                        }
+                    }
+                }
             } else if (parts[i] instanceof Integer && o.parts[i] instanceof String) {
                 return 1;
             } else if (parts[i] instanceof String && o.parts[i] instanceof Integer) {
