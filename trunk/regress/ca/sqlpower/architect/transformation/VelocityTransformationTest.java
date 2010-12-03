@@ -62,6 +62,7 @@ public class VelocityTransformationTest extends TestCase {
         session = context.createSession();
         project = session.getProjectLoader();
         plIni = new PlDotIni();
+        plIni.read(new File("pl.regression.ini"));
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
 		project.load(r, plIni);
 	}
@@ -80,8 +81,8 @@ public class VelocityTransformationTest extends TestCase {
         " <target-database dbcs-ref='DS0'>" +
         "  <table id='TAB0' populated='true' primaryKeyName='id' remarks='' name='Customers' >" +
         "   <folder id='FOL1' populated='true' name='Columns' type='1' >" +
-        "    <column id='COL2' populated='true' autoIncrement='false' name='id' defaultValue='' nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' remarks='' scale='0' type='4' />" +
-        "    <column id='COL3' populated='true' autoIncrement='false' name='name' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
+        "    <column id='COL2' populated='true' autoIncrement='false' name='id' defaultValue='' nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' remarks='' scale='0' type='12' />" +
+        "    <column id='COL3' populated='true' autoIncrement='false' name='name' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='12' />" +
         "   </folder>" +
         "   <folder id='FOL4' populated='true' name='Exported Keys' type='3' >" +
         "   </folder>" +
@@ -93,8 +94,9 @@ public class VelocityTransformationTest extends TestCase {
         "  <table id='TAB6' populated='true' primaryKeyName='id' remarks='' name='Orders' >" +
         "   <folder id='FOL7' populated='true' name='Columns' type='1' >" +
         "    <column id='COL8' populated='true' autoIncrement='false' name='id' defaultValue='' " +
-        "    nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' scale='0' type='4' />" +
+        "    nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' scale='0' type='12' />" +
         "    <column id='COL9' populated='true' autoIncrement='false' name='customer_id' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
+        "    <column id='COL15' populated='true' autoIncrement='false' name='purchase_date' defaultValue='' nullable='0' precision='0' referenceCount='1' remarks='' scale='0' type='91' />" +
         "   </folder>" +
         "   <folder id='FOL10' populated='true' name='Exported Keys' type='3' >" +
         "   </folder>" +
@@ -108,6 +110,7 @@ public class VelocityTransformationTest extends TestCase {
         "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
         "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
         "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+        "    <column id=\"COL2222\" populated=\"true\" autoIncrement=\"false\" name=\"vision\" nullable=\"1\" physicalName=\"SIGHT\" precision=\"20\" referenceCount=\"1\" remarks=\"\" scale=\"20\" type=\"3\" />" +
         "   </folder>" +
         "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
         "   </folder>" +
@@ -129,7 +132,7 @@ public class VelocityTransformationTest extends TestCase {
         "   <reference ref-id='REL12' />" +
         "  </relationships>" +
         " </target-database>" +
-        " <ddl-generator type='ca.sqlpower.architect.ddl.GenericDDLGenerator' allow-connection='true'> </ddl-generator>" +
+        " <ddl-generator type='ca.sqlpower.architect.ddl.SQLServerDDLGenerator' allow-connection='true'> </ddl-generator>" +
         " <compare-dm-settings ddlGenerator='ca.sqlpower.architect.ddl.SQLServerDDLGenerator' outputFormatAsString='ENGLISH'>" +
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
@@ -167,8 +170,17 @@ public class VelocityTransformationTest extends TestCase {
 		InputStreamReader in = new InputStreamReader(fi, "UTF-8");
 		List<String> lines = IOUtils.readLines(in);
 		assertEquals("Table: Customers", lines.get(0));
-		assertEquals("     id: INTEGER(10)", lines.get(1));
-		assertEquals("     name: INTEGER(10)", lines.get(2));
+		assertEquals("     id: VARCHAR(10)", lines.get(1));
+		assertEquals("     name: VARCHAR(10)", lines.get(2));
+		assertEquals("Table: Orders", lines.get(3));
+        assertEquals("     id: VARCHAR(10)", lines.get(4));
+        assertEquals("     customer_id: INTEGER", lines.get(5));
+        assertEquals("     purchase_date: DATE", lines.get(6));
+        assertEquals("Table: mm_project", lines.get(7));
+        assertEquals("     project_oid: INTEGER", lines.get(8));
+        assertEquals("     FOLDER_OID: INTEGER", lines.get(9));
+        assertEquals("     project_name: VARCHAR(80)", lines.get(10));
+        assertEquals("     vision: DECIMAL(20, 20)", lines.get(11));
 	}
 
 }
