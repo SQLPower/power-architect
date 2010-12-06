@@ -237,6 +237,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	    
 	    //If we are here the snapshot is no longer in use.
 	    collection.removeSPObjectSnapshot(udtSnapshot);
+	    SPObjectSnapshot<?> categorySnapshot = null;
 	    try {
 	        if (udtSnapshot.isDomainSnapshot()) {
 	            DomainCategory cat = (DomainCategory) udtSnapshot.getSPObject().getParent();
@@ -248,14 +249,15 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	            
 	            cleanupSnapshot(udtSnapshot.getSPObject().getUpstreamType());
 	            
-	            if (cat.getChildren().size() == 0) {
-	                for (SPObjectSnapshot<?> snapshot : collection.getSPObjectSnapshots()) {
-	                    if (snapshot.getSPObject().equals(cat)) {
-	                        collection.removeChild(snapshot);
-	                        collection.removeChild(cat);
-	                        break;
-	                    }
+	            for (SPObjectSnapshot<?> snapshot : collection.getSPObjectSnapshots()) {
+	                if (snapshot.getSPObject().equals(cat)) {
+	                    categorySnapshot = snapshot;
+	                    break;
 	                }
+	            }
+	            if (cat.getChildren().size() == 0) {
+	                collection.removeChild(categorySnapshot);
+	                collection.removeChild(cat);
 	            }
 	        } else {
 	            collection.removeChild(udtSnapshot.getSPObject());
@@ -264,9 +266,21 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 	        throw new RuntimeException(e);
         }
 	    
-	    //find its upstream type and remove its listener.
+	    //find its upstream type and remove its listener. Note that the system type
+	    //may have been removed but the snapshot may have existed until this point.
 	    UserDefinedSQLType systemType = session.findSystemTypeFromSnapshot(udtSnapshot);
-        SQLPowerUtils.unlistenToHierarchy(systemType, listenerMap.get(udtSnapshot));
+	    if (systemType != null) {
+	        SQLPowerUtils.unlistenToHierarchy(systemType, listenerMap.get(udtSnapshot));
+	    } else if (categorySnapshot != null) {
+	        UserDefinedSQLType systemCategory = session.findSystemTypeFromSnapshot(categorySnapshot);
+	        if (systemCategory != null) {
+	            SQLPowerUtils.unlistenToHierarchy(systemCategory, listenerMap.get(udtSnapshot));
+	        } else {
+	            SQLPowerUtils.unlistenToHierarchy(session.getSystemWorkspace(), listenerMap.get(udtSnapshot));
+	        }
+	    } else {
+	        SQLPowerUtils.unlistenToHierarchy(session.getSystemWorkspace(), listenerMap.get(udtSnapshot));
+	    }
         
 	    //handle domain categories and domain's upstream type as well.
 	}
