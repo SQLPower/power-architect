@@ -867,9 +867,10 @@ public class DBTree extends JTree implements DragSourceListener {
                 db = (SQLDatabase)getValue(DATABASE);
             }
             
-            session.getArchitectFrame().getCompareDMDialog().setVisible(true);
+            CompareDMDialog compareDialog = new CompareDMDialog(session);
+            compareDialog.setVisible(true);
             //sets to the right settings
-            session.getArchitectFrame().getCompareDMDialog().compareCurrentWithOrig(schema,catalog, db);
+            compareDialog.compareCurrentWithOrig(schema,catalog, db);
         }
     }
 	
