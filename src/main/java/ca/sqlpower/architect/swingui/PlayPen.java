@@ -2733,13 +2733,13 @@ public class PlayPen extends JPanel
 		    LinkedHashSet<PlayPenComponent> dependentComponents = new LinkedHashSet<PlayPenComponent>();
 		    
 			for (PlayPenComponent c : pp.getSelectedItems()) {
-			    if (c instanceof UsageComponent) {
-			        dependentComponents.add(c);
-			        
-			        try {
-			            pp.getContentPane().removeChild(c);
-			        } catch (ObjectDependentException ex) {
-			            throw new RuntimeException(ex);
+			    if (PlayPenContentPane.isDependentComponentType(c.getClass())) {
+			        if (dependentComponents.add(c)) {
+			            try {
+			                pp.getContentPane().removeChild(c);
+			            } catch (ObjectDependentException ex) {
+			                throw new RuntimeException(ex);
+			            }
 			        }
 			    } else {
 			        independentComponents.add(c);
@@ -2798,14 +2798,15 @@ public class PlayPen extends JPanel
 		    
 		    for (PlayPenComponent c : pp.getSelectedItems()) {
 		        
-		        if (c instanceof UsageComponent) {
-		            dependentComponents.add(c);
-		            
-		            try {
-		                pp.getContentPane().removeChild(c);
-		            } catch (ObjectDependentException ex) {
-		                throw new RuntimeException(ex);
+		        if (PlayPenContentPane.isDependentComponentType(c.getClass())) {
+		            if (dependentComponents.add(c)) {
+		                try {
+		                    pp.getContentPane().removeChild(c);
+		                } catch (ObjectDependentException ex) {
+		                    throw new RuntimeException(ex);
+		                }
 		            }
+		            
 		        } else {
 		            independentComponents.add(c);
 		        }
