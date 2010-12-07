@@ -29,7 +29,6 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
-import java.beans.PropertyChangeEvent;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -332,13 +331,6 @@ implements Selectable {
         return p;
     }
     
-    @NonBound
-    public static boolean isLocationChange(PropertyChangeEvent evt) {
-        Point oldVal = (Point) evt.getOldValue();
-        Point newVal = (Point) evt.getNewValue();
-        return (oldVal.x != newVal.x || oldVal.y != newVal.y);
-    }
-
     /**
      * Forwards to {@link #repaint(Rectangle)}.
      */

@@ -114,7 +114,8 @@ public class PlayPenContentPane extends AbstractSPObject {
 
         @Override
         public void propertyChanged(PropertyChangeEvent evt) {
-            if (evt.getPropertyName().equals("bounds") && playPen != null) {
+            if ((evt.getPropertyName().equals("topLeftCorner") || 
+                    evt.getPropertyName().equals("lengths")) && playPen != null) {
                 playPen.revalidate();
             }
         }

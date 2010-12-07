@@ -62,7 +62,8 @@ public class UsageComponentUI implements PlayPenComponentUI {
     private SPListener componentEventHandler = new AbstractSPListener() {
 
         public void propertyChanged(PropertyChangeEvent evt) {
-            if ("bounds".equals(evt.getPropertyName()) && evt.getSource() != c) {
+            if (("topLeftCorner".equals(evt.getPropertyName()) || 
+                    "lengths".equals(evt.getPropertyName())) && evt.getSource() != c) {
                 revalidate();
                 c.repaint();
             }

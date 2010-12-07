@@ -234,7 +234,7 @@ public class TestArchitectUndoManager extends TestCase {
         TestPlayPenComp comp = new TestPlayPenComp(new PlayPenContentPane(new SQLDatabase()));
         comp.addSPListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("topLeftCorner") && PlayPenComponent.isLocationChange(evt)) {
+                if (evt.getPropertyName().equals("topLeftCorner")) {
                     l.propertyChange(evt);
                 }
             }
@@ -330,7 +330,7 @@ public class TestArchitectUndoManager extends TestCase {
         final PropertyChangeListener l = undoManager.getEventAdapter();
         pp.getContentPane().addComponentPropertyListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("topLeftCorner") && PlayPenComponent.isLocationChange(evt)) {
+                if (evt.getPropertyName().equals("topLeftCorner")) {
                     l.propertyChange(evt);
                 }
             }
@@ -495,7 +495,7 @@ public class TestArchitectUndoManager extends TestCase {
         final PropertyChangeListener l = undoManager.getEventAdapter();
         pp.getContentPane().addComponentPropertyListener(new AbstractSPListener() {
             public void propertyChanged(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(evt) || 
+                if (evt.getPropertyName().equals("topLeftCorner") || 
                         evt.getPropertyName().equals("connectionPoints")) {
                     l.propertyChange(evt);
                 }

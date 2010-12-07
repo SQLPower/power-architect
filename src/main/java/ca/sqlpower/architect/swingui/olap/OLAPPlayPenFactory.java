@@ -317,7 +317,7 @@ public class OLAPPlayPenFactory {
         }
 
         public void propertyChanged(PropertyChangeEvent e) {
-            if (e.getPropertyName().equals("bounds") && PlayPenComponent.isLocationChange(e)) {
+            if (e.getPropertyName().equals("topLeftCorner")) {
                 // this edit will be absorbed by our PlayPenComponentLocationEdit
                 PropertyChangeEdit edit = new PropertyChangeEdit(e);
                 undoManager.addEdit(edit);
