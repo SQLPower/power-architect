@@ -2733,7 +2733,7 @@ public class PlayPen extends JPanel
 		    LinkedHashSet<PlayPenComponent> dependentComponents = new LinkedHashSet<PlayPenComponent>();
 		    
 			for (PlayPenComponent c : pp.getSelectedItems()) {
-			    if (PlayPenContentPane.isDependentComponentType(c.getClass())) {
+			    if (c instanceof UsageComponent) {
 			        dependentComponents.add(c);
 			        
 			        try {
@@ -2798,7 +2798,7 @@ public class PlayPen extends JPanel
 		    
 		    for (PlayPenComponent c : pp.getSelectedItems()) {
 		        
-		        if (PlayPenContentPane.isDependentComponentType(c.getClass())) {
+		        if (c instanceof UsageComponent) {
 		            dependentComponents.add(c);
 		            
 		            try {
