@@ -53,7 +53,7 @@ public class ArchitectVersion extends Version {
      * back to 0 when the minor version changes.  All versions under the same
      * minor version number are fully compatible with each other.
      */
-    public static final String APP_VERSION_TINY   = "3";
+    public static final String APP_VERSION_TINY   = "5";
     
     /**
      * Suffixes indicate pre-release builds.  They normally progress from "alpha"

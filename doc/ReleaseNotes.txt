@@ -1,5 +1,11 @@
 SQL Power Architect Community Edition Release Notes
 
+1.0.5
+  Bug Fixes:
+    * Fixed the JDBC driver panel to properly save the modified drivers.
+    * Comments do not lose new line characters
+    * Corrected the label layout on relationships.
+
 1.0.0
   Validation:
     * There is now a critic manager window that allows users to specify what validations apply
