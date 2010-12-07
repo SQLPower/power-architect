@@ -58,9 +58,8 @@ public class PlayPenComponentLocationEdit extends AbstractUndoableEdit {
             PropertyChangeEvent evt = new PropertyChangeEvent(
                     pce.getSource(), pce.getPropertyName(), pce.getOldValue(), pce.getNewValue());
             
-            if (pce.getPropertyName().equals("bounds")
-                    && pce.getSource() instanceof PlayPenComponent
-                    && PlayPenComponent.isLocationChange(evt)) {
+            if (pce.getPropertyName().equals("topLeftCorner")
+                    && pce.getSource() instanceof PlayPenComponent) {
                 PlayPenComponent ppc = (PlayPenComponent) pce.getSource();
                 if (!initialBounds.containsKey(pce.getSource())) {
                     initialBounds.put(ppc, new Rectangle((Rectangle) pce.getOldValue()));
