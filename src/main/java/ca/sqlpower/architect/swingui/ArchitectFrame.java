@@ -195,7 +195,6 @@ public class ArchitectFrame extends JFrame {
     private BiMap<ArchitectSwingSession, StackedTab> sessionTabs = HashBiMap.create();
     
     private Navigator navigatorDialog;
-    private CompareDMDialog compareDMDialog = null;
     
     private int oldWidth;
     private int oldHeight;
@@ -1549,10 +1548,6 @@ public class ArchitectFrame extends JFrame {
         return createNonIdentifyingRelationshipAction;
     }
     
-    public CompareDMDialog getCompareDMDialog() {
-        return compareDMDialog;
-    }
-
     public ReverseRelationshipAction getReverseRelationshipAction() {
         return reverseRelationshipAction;
     }
