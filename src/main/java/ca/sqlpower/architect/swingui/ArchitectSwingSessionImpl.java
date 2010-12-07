@@ -400,8 +400,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         playPen.getContentPane().addComponentPropertyListener(
                 new String[] {
                         "bounds",
-                        "pkConnectionPoint",
-                        "fkConnectionPoint",
+                        "pkConnection",
+                        "fkConnection",
                         "backgroundColor",
                         "foregroundColor",
                         "dashed",
