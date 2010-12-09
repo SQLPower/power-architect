@@ -119,7 +119,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
         } else if (e.getChild() instanceof SQLColumn) {
             SQLColumn sqlColumn = (SQLColumn) e.getChild();
             UserDefinedSQLType upstreamType = sqlColumn.getUserDefinedSQLType().getUpstreamType();
-            if (sqlColumn.isMagicEnabled() && upstreamType != null) {
+            if (session.getWorkspace().getSnapshotCollection().isMagicEnabled() && upstreamType != null) {
                 
                 // check if the upstream type is exactly an existing snapshot
                 List<UserDefinedSQLTypeSnapshot> udtSnapshots = 
@@ -166,7 +166,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 			e.getChild().removeSPListener(this);
 			for (SQLColumn col : e.getChild().getChildren(SQLColumn.class)) {
 				col.getUserDefinedSQLType().removeSPListener(this);
-				if (col.getUserDefinedSQLType().isMagicEnabled()) {
+				if (session.getWorkspace().getSnapshotCollection().isMagicEnabled()) {
 				    UserDefinedSQLType snapshotType = col.getUserDefinedSQLType().getUpstreamType();
 				    Integer cleanupCount = typesToCleanup.get(snapshotType);
 				    if (cleanupCount == null) {
@@ -178,7 +178,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
 		} else if (e.getChild() instanceof SQLColumn) {
 		    UserDefinedSQLType colType = ((SQLColumn) e.getChild()).getUserDefinedSQLType();
 			colType.removeSPListener(this);
-			if (colType.isMagicEnabled()) {
+			if (session.getWorkspace().getSnapshotCollection().isMagicEnabled()) {
                 UserDefinedSQLType snapshotType = colType.getUpstreamType();
                 Integer cleanupCount = typesToCleanup.get(snapshotType);
                 if (cleanupCount == null) {
@@ -357,7 +357,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
     public static void createSPObjectSnapshot(UserDefinedSQLType typeProxy, 
             UserDefinedSQLType upstreamType, SnapshotCollection collection,
             SPObjectSnapshotHierarchyListener updateListener) {
-        if (!typeProxy.isMagicEnabled()) return;
+        if (!collection.isMagicEnabled()) return;
         
         SPObject upstreamTypeParent = upstreamType.getParent();
         
@@ -505,7 +505,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
                     createSPObjectSnapshot(source, newValue, 
                             session.getWorkspace().getSnapshotCollection(), this);
 
-                    if (oldValue != null && source.isMagicEnabled()) {
+                    if (oldValue != null && session.getWorkspace().getSnapshotCollection().isMagicEnabled()) {
                         cleanupSnapshot(oldValue);
                     }
 
@@ -538,7 +538,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      *         new snapshot type. Return false if otherwise.
      */
     private void reassignType(SQLColumn column) {
-        if (!column.isMagicEnabled()) return;
+        if (!session.getWorkspace().getSnapshotCollection().isMagicEnabled()) return;
         UserDefinedSQLType upstreamType = column.getUserDefinedSQLType().getUpstreamType();
         SPObject upstreamTypeParent = upstreamType.getParent();
         
