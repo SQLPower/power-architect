@@ -1,0 +1,65 @@
+The critics system is a work in progress. This file documents the progress of that work.
+It is organized into three sections:
+
+1. Outstanding items I know I need to implement
+2. Problems and/or design questions I have not yet made a decision about
+3. Reminders about pitfalls I anticipate I might run into in the future if I'm not vigilant
+
+
+1. TODO:
+
+*TableCellRenderer for SQLObjects (so we get nice icons)
+*Severity for criticisms (share severity enum with validation API? move it up into the library's core?)
+*Icon in table for criticism severity
+*Underline criticized things in playpen
+*Badge criticized things in dbtree
+*nice type name routine/method that shows type name and optionally precision,scale (could be in SQLColumn or SQLObjectUtils)
+ *use this in relationship mapping criticizer
+ *use this in tablepane renderer as well!
+*Preferences API and GUI for selecting which critics to use (and to configure the ones that need it)
+*disperse classes into the appropriate places (including migrating into library)
+*need a way of silencing a particular warning (for example, a table that has no PK defined
+ on purpose). It would be neat if you could right click a warning and choose "Ignore..." which
+ would bring up a prompt like "Ignore just this instance of the warning, or disable this type
+ of warning for all objects?"
+
+2. Things I'm not sure about:
+
+* is it actually useful for a critic to return a list of criticisms?
+  it would be nicer to write a critic if it could return 0 or 1 criticisms.
+  OTOH, the relationship mapping critic wants to be able to comment on several
+  different mappings in the same relationship.
+
+* should a critic be written to criticize exactly one thing? for example,
+  the first critic I wrote was for checking the physical name of a SQLObject.
+  It checks both the length of the name as well as its legality (by matching
+  it with a provided regex). Should this be two critics?
+
+* should a criticizer be disposable or reusable? I think it would be much simpler
+  if disposable, but then things like the table model would keep losing their state
+  (due to a full structure change every time anything changes)
+
+* can we use the JAR SPI system to enumerate the critics that currently exist in
+  the classpath?
+  
+* how can we improve the use of generics so a critic like PrimaryKeyCritic can implement
+  Critic<SQLTable> instead of the overly-general Critic<SQLObject>?
+  * how about making an AbstractSQLObjectCritic<S extends SQLObject> implements Critic<SQLObject>
+    and have subclasses provide the single type they're interested in (SQLObject is legal if you want
+    to do your own type filtering). This would let us easily ignore things like SQLTable.Folder and
+    SQLRelationship.ColumnMapping, which never need direct criticism
+  
+  
+3. Things to keep in mind:
+
+* it would be nice if criticisms were stored in such a way that it's easy to
+  invalidate/reevaluate only the necessary objects whenever a change takes place.
+  For example:
+   * PrimaryKeyCritic: The primaryKeySize attribute of the SQLTable in question
+   * PhysicalNameCritic: Just the physicalName property of the object with the disagreeable name
+   * RelationshipMappingTypeCritic:
+     * The type, precision, and scale of the parent and child columns in the mapping
+     * The mapping itself (shrink or grow)
+   Something else to consider here is how to handle the disappearance of existing criticized
+   objects and the appearance of new objects to criticize.
+
