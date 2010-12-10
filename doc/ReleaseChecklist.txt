@@ -63,6 +63,7 @@ Making the new release available
 *Upload the dist directory to the SQL Power web server (/tomcat/virtualhosts/download/x.y.z/)
 *Add/update the architect.version.properties file on an update website domain. The SQL Power Architect
 will use this to check the latest version number.
+*Update the file on the web server for the update checker (/tomcat/virtualhosts/power-architect.sqlpower.ca/ROOT)
 *Check that all links point to where they are supposed to be pointing to, including all download links, documentation links, and continuous integration build links
 
 Announcing the New Release
