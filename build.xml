@@ -536,7 +536,7 @@
 		<!-- TODO a manifest with author, version, and license info in it -->
 		<jar jarfile="${build}/architect_dbtree_lib.jar" basedir="${build}"
 			includes="ca/sqlpower/architect/swingui/dbtree/**,
-			          icons/parts/**">
+			          icons/**">
 		</jar>
 		<copyfile 
 				dest="${dist.base}/architect-dbtree-${app.version}.jar" 
