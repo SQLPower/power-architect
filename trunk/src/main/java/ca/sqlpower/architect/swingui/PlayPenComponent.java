@@ -229,11 +229,11 @@ implements Selectable {
             logger.debug("getPlayPen() returned null.  Not generating repaint request."); //$NON-NLS-1$
             return;
         } else {
-            Rectangle r = new Rectangle(topLeftCorner, lengths);
             setMagicEnabled(false);
             updateLengths(true);
-            if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
             setMagicEnabled(true);
+            Rectangle r = new Rectangle(topLeftCorner, lengths);
+            if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r); //$NON-NLS-1$
             pp.zoomRect(r);
             pp.repaint(r);
         }
