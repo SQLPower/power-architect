@@ -2543,18 +2543,23 @@ public class PlayPen extends JPanel
 		public void maybeShowPopup(MouseEvent evt) {
 		    Point p = unzoomPoint(evt.getPoint());
 		    PlayPenComponent c = contentPane.getComponentAt(p);
-		    if (c != null) {
-		        p.translate(-c.getX(), -c.getY());
-		        if (evt.isPopupTrigger() && !evt.isConsumed()) {
-		            c.showPopup(p);
-		        }
-		    } else {
-		        if (evt.isPopupTrigger() && popupFactory != null) {
-		            JPanel pp = (JPanel) evt.getSource();
-		            //XXX we should let popupfactory to produce playpencomponent popup as well
-		            JPopupMenu popup = popupFactory.createPopupMenu(null);
-		            popup.show(pp, evt.getX(), evt.getY());
-		        }
+		    if(!mouseMode.equals(MouseModeType.CREATING_RELATIONSHIP) && 
+		            mouseMode.equals(MouseModeType.CREATING_TABLE)) {
+    		    if (c != null) {
+    		        if(!c.isBeingDragged()) {
+        		        p.translate(-c.getX(), -c.getY());
+        		        if (evt.isPopupTrigger() && !evt.isConsumed()) {
+        		            c.showPopup(p);
+        		        }
+    		        }
+    		    } else {
+    		        if (evt.isPopupTrigger() && popupFactory != null) {
+    		            JPanel pp = (JPanel) evt.getSource();
+    		            //XXX we should let popupfactory to produce playpencomponent popup as well
+    		            JPopupMenu popup = popupFactory.createPopupMenu(null);
+    		            popup.show(pp, evt.getX(), evt.getY());
+    		        }
+    		    }
 		    }
 		}
 	}
