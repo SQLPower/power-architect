@@ -24,6 +24,8 @@ import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.olap.OLAPObject;
@@ -255,7 +257,14 @@ public class DimensionPane extends OLAPPane<Dimension, OLAPObject> {
                 // also OLAPObjects.  If it is a Hierarchy, then we do not want to
                 // move its levels as well because they come with the Hierarchy
                 // anyways.
-                items.add(((HierarchySection) coord.getSection()).getHierarchy());
+                if(coord.getSection() instanceof HierarchySection) {
+                    items.add(((HierarchySection) coord.getSection()).getHierarchy());
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            coord.getSection() + " is not a Hierarchy Section.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             } else if (coord.getIndex() >= 0) {
                 if (coord.getItem() == null) {
                     throw new NullPointerException(
