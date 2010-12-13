@@ -215,7 +215,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
         @Override
         public void doStuff() throws Exception {
-            session.getProjectLoader().load(in, session.getDataSources());
+            session.getProjectLoader().load(in, session.getDataSources(), openingSession);
             session.getProjectLoader().setFile(file);
         }
 
@@ -226,8 +226,11 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 // This if clause is to prevent an error from being thrown if
                 // the user cancelled the file load,
                 // in which ProgressMonitorInputStream throws an
-                // InterruptedIOException with message "progress"
-                if (!(cause instanceof InterruptedIOException) || !(cause.getMessage().equals("progress"))) { //$NON-NLS-1$
+                // InterruptedIOException with message "progress",
+                // or if the user cancelled because of a warning when
+                // they tried to open an incompatible file
+                if (!(getDoStuffException() instanceof InterruptedIOException) &&
+                        (!(cause instanceof InterruptedIOException) || !(cause.getMessage().equals("progress")))) { //$NON-NLS-1$
                     // We have to use the non-session exception dialogue here,
                     // because there is no session available (we just failed to
                     // create one!)
