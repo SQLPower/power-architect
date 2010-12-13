@@ -228,7 +228,9 @@ implements DragSourceListener, LayoutNode {
                 }
             }
 
-            if (clickItem == ITEM_INDEX_TITLE && !pp.getSession().getArchitectFrame().createRelationshipIsActive()) {
+            if (clickItem == ITEM_INDEX_TITLE && 
+                    !pp.getSession().getArchitectFrame().createRelationshipIsActive() &&
+                    evt.getButton() == MouseEvent.BUTTON1) {
                 setupDrag(p);
             }
         } else if (evt.getID() == MouseEvent.MOUSE_MOVED || evt.getID() == MouseEvent.MOUSE_DRAGGED) {
