@@ -46,6 +46,7 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.ProjectLoader;
 import ca.sqlpower.architect.UnclosableInputStream;
@@ -179,9 +180,14 @@ public class SwingUIProjectLoader extends ProjectLoader {
         return olapModified || super.isModified();
     }
     
+    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources) throws IOException, SQLObjectException {
+        load(in, dataSources, null);
+    }
+    
     // ------------- READING THE PROJECT FILE ---------------
 
-    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources) throws IOException, SQLObjectException {
+    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources,
+            ArchitectSession messageDelegate) throws IOException, SQLObjectException {
         olapPaneLoadIdMap = new HashMap<String, OLAPPane<?, ?>>();
         
         UnclosableInputStream uin = new UnclosableInputStream(in);
@@ -213,7 +219,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             
             in.reset();
             
-            super.load(in, dataSources);
+            super.load(in, dataSources, messageDelegate);
         } finally {
             getSession().getUndoManager().setLoading(false);
             uin.forceClose();

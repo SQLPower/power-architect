@@ -22,6 +22,7 @@ package ca.sqlpower.architect;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -169,6 +170,11 @@ public class ProjectLoader {
     protected int progress = 0;
 
     protected ArchitectSession session;
+    
+    /**
+     * The session that will display any required popups.
+     */
+    protected ArchitectSession siblingSession;
 
     /**
      * This stores the version of the file that this project loader would
@@ -186,6 +192,10 @@ public class ProjectLoader {
 
     // ------------- READING THE PROJECT FILE ---------------
 
+    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources) throws IOException, SQLObjectException {
+        load(in, dataSources, null);
+    }
+    
     /**
      * Loads the project data from the given input stream.
      * <p>
@@ -196,8 +206,10 @@ public class ProjectLoader {
      * @param dataSources
      *            Collection of the data sources used in the project
      */
-    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources) throws IOException, SQLObjectException {
+    public void load(InputStream in, DataSourceCollection<? extends SPDataSource> dataSources,
+            ArchitectSession messageDelegate) throws IOException, SQLObjectException {
         UnclosableInputStream uin = new UnclosableInputStream(in);
+        siblingSession = messageDelegate;
         try {
             dbcsLoadIdMap = new HashMap<String, JDBCDataSource>();
             sqlObjectLoadIdMap = new HashMap<String, SQLObject>();
@@ -212,7 +224,7 @@ public class ProjectLoader {
                 //The digester likes to wrap the cancelled exception in a SAXException.
                 if (ex.getException() instanceof DigesterCancelledException) {
                     //Digeseter was cancelled by the user. Do not load anything.
-                    return;
+                    throw new RuntimeException(new InterruptedIOException("progress"));
                 }
                 logger.error("SAX Exception in project file parse!", ex);
                 String message;
@@ -327,9 +339,30 @@ public class ProjectLoader {
 
     protected Digester setupDigester() throws ParserConfigurationException, SAXException {
         Digester d = new Digester(new UnescapingSaxParser());
+        final ArchitectSession messageOwner = (siblingSession == null ? session : siblingSession);
         d.setValidating(false);
         d.push(session);
 
+        d.addRule("architect-enterprise-project", new Rule() {
+            @Override
+            public void begin(String namespace, String name, Attributes attributes) throws Exception {
+                UserPrompter loadingWarningPrompt = messageOwner.createUserPrompter(
+                        "This file contains an Enterprise project and can only\n" + 
+                        "be opened in the Architect Enterprise Edition.",
+                        UserPromptType.BOOLEAN, UserPromptOptions.OK_CANCEL,
+                        UserPromptResponse.CANCEL, UserPromptResponse.CANCEL, "Get Enterprise", "Cancel");
+                UserPromptResponse upr = loadingWarningPrompt.promptUser();
+                if (upr == UserPromptResponse.OK) {
+                    try {
+                        BrowserUtil.launch("http://www.sqlpower.ca/page/architect-e");
+                    } catch (IOException e) {
+                        throw new DigesterCancelledException();
+                    }
+                }
+                throw new DigesterCancelledException();
+            }
+        });
+        
         //app version number
         d.addRule("architect-project", new Rule() {
             @Override
@@ -350,7 +383,7 @@ public class ProjectLoader {
                 } catch (Exception e) {
                     loadingMessage = "The version of the file cannot be understood.";
                 }
-                UserPrompter loadingWarningPrompt = session.createUserPrompter(
+                UserPrompter loadingWarningPrompt = messageOwner.createUserPrompter(
                         loadingMessage + "\nDo you wish to try and open the file?",
                         UserPromptType.BOOLEAN, UserPromptOptions.OK_NOTOK_CANCEL,
                         UserPromptResponse.OK, UserPromptResponse.OK, "Try loading",
