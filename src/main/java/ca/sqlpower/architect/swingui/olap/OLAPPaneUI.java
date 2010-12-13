@@ -153,7 +153,7 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
         width = MINIMUM_WIDTH;
         width = Math.max(
                 width,
-                calculateTextWidth(cp, cp.getName()) +
+                calculateTextWidth(cp, cp.getModelName()) +
                     OSUtils.iconFor(olapPane.getModel()).getIconWidth() + ICON_TITLE_HGAP);
         for (PaneSection<? extends C> ps : olapPane.getSections()) {
             width = Math.max(width, calculateMaxSectionWidth(ps, cp));
