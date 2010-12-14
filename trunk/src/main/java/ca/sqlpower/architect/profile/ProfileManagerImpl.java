@@ -56,6 +56,7 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectPreEvent;
 import ca.sqlpower.sqlobject.SQLObjectPreEventListener;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.util.SessionNotFoundException;
 import ca.sqlpower.util.UserPrompter;
 import ca.sqlpower.util.UserPrompter.UserPromptOptions;
@@ -318,14 +319,20 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
      * must call in order to add the result. It takes care of setting SQLObject
      * client properties, firing events, and actually adding the profile to the
      * set of profile results in this profile manager.
+     * @param newResults The results to add
+     * @param overrideCompletion Whether the results have already been calculated,
+     * such as when loading from an Architect server.
      */
-    private void addResults(List<TableProfileResult> newResults) {
+    private void addResults(List<TableProfileResult> newResults, boolean overrideCompletion) {
         results.addAll(newResults);
         for (TableProfileResult tpr : newResults) {
             tpr.setParent(this);
         }
         fireProfilesAdded(newResults);
         for (TableProfileResult newResult : newResults) {
+            if (overrideCompletion) {
+                ((MonitorableImpl)(newResult.getProgressMonitor())).setFinished(true);
+            }
             SQLTable table = newResult.getProfiledObject();
             table.putClientProperty(ProfileManager.class, PROFILE_COUNT_PROPERTY, getResults(table).size());
         }
@@ -334,7 +341,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     /* docs inherited from interface */
     public TableProfileResult createProfile(SQLTable table) throws SQLObjectException {
         TableProfileResult tpr = new TableProfileResult(table, getDefaultProfileSettings());
-        addResults(Collections.singletonList(tpr));
+        addResults(Collections.singletonList(tpr), false);
         
         try {
             profileExecutor.submit(new ProfileResultCallable(tpr)).get();
@@ -356,7 +363,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
             profiles.add(new TableProfileResult(t, getDefaultProfileSettings()));
         }
         
-        addResults(profiles);
+        addResults(profiles, false);
         
         List<Future<TableProfileResult>> results = new ArrayList<Future<TableProfileResult>>();
         for (TableProfileResult tpr : profiles) {
@@ -479,7 +486,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
     public void loadResult(ProfileResult<? extends SQLObject> pr) {
         if (pr instanceof TableProfileResult) {
             TableProfileResult tpr = (TableProfileResult) pr;
-            addResults(Collections.singletonList(tpr));
+            addResults(Collections.singletonList(tpr), true);
         }
         // the column results will get added to the table result by
         // the project's profile result factory class
@@ -564,7 +571,7 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
             setDefaultProfileSettings((ProfileSettings) child);
         } else if (child instanceof TableProfileResult) {
             //XXX make a new add method that can add one result.
-            addResults(Collections.singletonList((TableProfileResult) child));
+            addResults(Collections.singletonList((TableProfileResult) child), true);
         }
     }
 
