@@ -2544,7 +2544,7 @@ public class PlayPen extends JPanel
 		    Point p = unzoomPoint(evt.getPoint());
 		    PlayPenComponent c = contentPane.getComponentAt(p);
 		    if(!mouseMode.equals(MouseModeType.CREATING_RELATIONSHIP) && 
-		            mouseMode.equals(MouseModeType.CREATING_TABLE)) {
+		            !mouseMode.equals(MouseModeType.CREATING_TABLE)) {
     		    if (c != null) {
     		        if(!c.isBeingDragged()) {
         		        p.translate(-c.getX(), -c.getY());
