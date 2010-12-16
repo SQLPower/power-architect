@@ -253,7 +253,9 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
          * So we need to get around the check.
          */
         private void processSQLObjectChanged(PropertyChangeEvent e) {
-            if (e.getPropertyName().equals("name") &&  //$NON-NLS-1$
+            if (e.getSource() != null && 
+            		e.getNewValue() != null &&
+                    e.getPropertyName().equals("name") &&  //$NON-NLS-1$
                     !e.getNewValue().equals(((SPObject) e.getSource()).getName()) ) {
                 logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+((SPObject) e.getSource()).getName()); //$NON-NLS-1$ //$NON-NLS-2$
             }
