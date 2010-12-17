@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -557,40 +558,69 @@ public class SwingUIProjectLoader extends ProjectLoader {
             PlayPen pp = (PlayPen) topItem;
             Relationship r = null;
             try {
-                SQLRelationship rel =
-                    (SQLRelationship) sqlObjectLoadIdMap.get(attributes.getValue("relationship-ref")); //$NON-NLS-1$
-                r = new Relationship(rel, pp.getContentPane());
-                pp.addRelationship(r);
-                r.updateUI();
+                try {
+                    SQLRelationship rel =
+                        (SQLRelationship) sqlObjectLoadIdMap.get(attributes.getValue("relationship-ref")); //$NON-NLS-1$
+                    r = new Relationship(rel, pp.getContentPane());
+                    pp.addRelationship(r);
+                    r.updateUI();
+                    
+                    //In Architect <= 1.0.0, this is how relationships were saved.
+                    //We need backwards compatability so we check for how they are saved.
+                    String pkxStr = attributes.getValue("pk-x"); //$NON-NLS-1$
+                    if(pkxStr != null) {
+                        int pkx = Integer.parseInt(pkxStr);
+                        int pky = Integer.parseInt(attributes.getValue("pk-y")); //$NON-NLS-1$
+                        int fkx = Integer.parseInt(attributes.getValue("fk-x")); //$NON-NLS-1$
+                        int fky = Integer.parseInt(attributes.getValue("fk-y")); //$NON-NLS-1$
+                        r.setPkConnectionPoint(new Point(pkx, pky));
+                        r.setFkConnectionPoint(new Point(fkx, fky));
+                    } else {
+                        double pk = Double.parseDouble(attributes.getValue("pkConnection")); //$NON-NLS-1$
+                        double fk = Double.parseDouble(attributes.getValue("fkConnection")); //$NON-NLS-1$
+                        r.setPkConnection(pk);
+                        r.setFkConnection(fk);
+                    }
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(null,
+                            "Warning: your relationship point connection data was not loaded properly, but\n" +
+                            "it was not a critical failure. This file could be too old or corrupted.", 
+                            "Warning",
+                            JOptionPane.WARNING_MESSAGE);
+                    
+                    logger.warn("Didn't set connection points because of integer parse error"); //$NON-NLS-1$
+                } catch (NullPointerException e) {
+                    JOptionPane.showMessageDialog(null,
+                            "Warning: your relationship point connection data was not loaded properly, but\n" +
+                            "it was not a critical failure. This file could be too old or corrupted.", 
+                            "Warning",
+                            JOptionPane.WARNING_MESSAGE);
+                    
+                    logger.debug("No pk/fk connection points specified in save file;" //$NON-NLS-1$
+                            +" not setting custom connection points"); //$NON-NLS-1$
+                }
 
-                double pk = Double.parseDouble(attributes.getValue("pkConnection")); //$NON-NLS-1$
-                double fk = Double.parseDouble(attributes.getValue("fkConnection")); //$NON-NLS-1$
                 int orientation = Integer.parseInt(attributes.getValue("orientation")); //$NON-NLS-1$
                 r.setOrientation(orientation);
-                r.setPkConnection(pk);
-                r.setFkConnection(fk);
                 
                 String rLineColor = attributes.getValue("rLineColor"); //$NON-NLS-1$
                 if (rLineColor != null) {
                     Color relationshipLineColor = Color.decode(rLineColor);
                     r.setForegroundColor(relationshipLineColor);
                 }
-                String pkLabelText = attributes.getValue("pkLabelText");
+                
+                String pkLabelText = attributes.getValue("pkLabelText"); //$NON-NLS-1$
                 if (pkLabelText != null) {
                     r.setTextForParentLabel(pkLabelText);
                 }
-                String fkLabelText = attributes.getValue("fkLabelText");
+                String fkLabelText = attributes.getValue("fkLabelText"); //$NON-NLS-1$
                 if (fkLabelText != null) {
                     r.setTextForChildLabel(fkLabelText);
                 }
-                
             } catch (SQLObjectException e) {
                 logger.error("Couldn't create relationship component", e); //$NON-NLS-1$
-            } catch (NumberFormatException e) {
-                logger.warn("Didn't set connection points because of integer parse error"); //$NON-NLS-1$
             } catch (NullPointerException e) {
-                logger.debug("No pk/fk connection points specified in save file;" //$NON-NLS-1$
-                        +" not setting custom connection points"); //$NON-NLS-1$
+                logger.error("Error loading a relationship.", e); //$NON-NLS-1$
             }
             return r;
         }
