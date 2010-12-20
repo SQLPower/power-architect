@@ -42,12 +42,6 @@ public class ColumnValueCount extends AbstractSPObject {
      * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections.emptyList();
-    
-    /**
-     * This class is used to make an object that is used specifically as the value object
-     * in this class when the otherValues flag is true.
-     */
-    public static class OtherValueObject{}
 
     /**
      * String name that identifies this column value count as the count of all
@@ -55,6 +49,9 @@ public class ColumnValueCount extends AbstractSPObject {
      * profile. The flag in this class for representing other values should be
      * checked for the official decision if this value count is all of the other
      * values.
+     * 
+     * This is used the the TableModelSortDecorator in the library in comparing table
+     * rows so if you update this here, update it there as well.
      */
     public static final String OTHER_VALUE_OBJECT = "Other Values";
     
