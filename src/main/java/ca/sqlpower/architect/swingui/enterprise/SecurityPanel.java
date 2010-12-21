@@ -366,6 +366,7 @@ public class SecurityPanel {
     private User createUserFromPrompter() {
         JTextField nameField = new JTextField(15);
         JTextField passField = new JPasswordField(15);
+        JTextField confirmField = new JPasswordField(15);
         
         JPanel namePanel = new JPanel(new BorderLayout());
         namePanel.add(new JLabel("User Name"), BorderLayout.WEST);
@@ -375,9 +376,13 @@ public class SecurityPanel {
         passPanel.add(new JLabel("Password"), BorderLayout.WEST);
         passPanel.add(passField, BorderLayout.EAST);
         
+        JPanel confirmPanel = new JPanel(new BorderLayout());
+        confirmPanel.add(new JLabel("Confirm Password"), BorderLayout.WEST);
+        confirmPanel.add(confirmField, BorderLayout.EAST);
+        
         Object[] messages = new Object[] {
                 "Specify the User's Name and Password.",
-                namePanel, passPanel};
+                namePanel, passPanel, confirmPanel};
 
         String[] options = { "OK", "Cancel",};
         int option = JOptionPane.showOptionDialog(getPanel(), messages, 
@@ -388,6 +393,14 @@ public class SecurityPanel {
                 || nameField.getText() == null 
                 || passField.getText().equals("") 
                 || passField.getText() == null) {
+            return null;
+        }
+        
+        if(!passField.getText().equals(confirmField.getText())) {
+            JOptionPane.showMessageDialog(getPanel(),
+                    "The passwords you entered do not match.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return null;
         }
         
