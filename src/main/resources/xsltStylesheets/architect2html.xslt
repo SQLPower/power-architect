@@ -156,9 +156,9 @@
       <h2>
       (Physical Name: <xsl:value-of select="$physicalName"/>)
       </h2>
-      <xsl:if test="string-length(@remarks) &gt; 0">
+      <xsl:if test="string-length(remarks) &gt; 0">
         <p class="comment">
-        <xsl:apply-templates select="@remarks" />
+        <xsl:apply-templates select="remarks" />
         </p>
       </xsl:if>
     </div>
@@ -206,10 +206,10 @@
               </xsl:if>
             </td>
           </tr>
-          <xsl:if test="string-length(@remarks) &gt; 0">
+          <xsl:if test="string-length(remarks) &gt; 0">
           <tr>
             <td colspan="4">
-              <div class="comment"><xsl:apply-templates select="@remarks" /></div>
+              <div class="comment"><xsl:apply-templates select="remarks" /></div>
             </td>
           </tr>
           </xsl:if>
@@ -342,7 +342,7 @@
   </xsl:choose>
 </xsl:template>
 
-<xsl:template name="makelinebreak" match="@remarks">
+<xsl:template name="makelinebreak" match="remarks">
    <xsl:param name="text" select="."/>
    <xsl:choose>
    <xsl:when test="contains($text, '&#xa;')">
