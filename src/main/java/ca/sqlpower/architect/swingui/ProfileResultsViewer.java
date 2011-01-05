@@ -60,6 +60,7 @@ import javax.swing.table.JTableHeader;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -92,7 +93,7 @@ import com.jgoodies.forms.layout.FormLayout;
  * A class that manages a viewer component for a set of Profile Results.
  */
 public class ProfileResultsViewer {
-
+    
     private static final Logger logger = Logger.getLogger(ProfileResultsViewer.class);
 
     /**
@@ -476,6 +477,8 @@ public class ProfileResultsViewer {
             JTextField columnSearchField = new JTextField("", 25); //$NON-NLS-1$
             final FancyExportableJTable columnTable = new FancyExportableJTable(columnTableModel, columnSearchField
                     .getDocument());
+            columnTable.getTableModelSortDecorator().setColumnComparator(columnTableModel.getColumnClass(2), 
+                    new ColumnValueCount.ColumnValueComparator());
             columnTableModel.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
                     TableUtils.fitColumnWidths(columnTable, 15);

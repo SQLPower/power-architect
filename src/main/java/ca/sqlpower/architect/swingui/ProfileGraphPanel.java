@@ -70,6 +70,7 @@ import com.jgoodies.forms.layout.FormLayout;
  * 
  */
 public class ProfileGraphPanel {
+    
     private JLabel rowCountDisplay;
 
     private JLabel title;
@@ -366,6 +367,8 @@ public class ProfileGraphPanel {
 
         FreqValueCountTableModel freqValueCountTableModel = new FreqValueCountTableModel(cr);
         TableModelSortDecorator sortModel = new TableModelSortDecorator(freqValueCountTableModel);
+        sortModel.setColumnComparator(freqValueCountTableModel.getColumnClass(2), 
+                new ColumnValueCount.ColumnValueComparator());
         freqValueTable.setModel(sortModel);
         sortModel.setTableHeader(freqValueTable.getTableHeader());
         freqValueTable.initColumnSizes();
