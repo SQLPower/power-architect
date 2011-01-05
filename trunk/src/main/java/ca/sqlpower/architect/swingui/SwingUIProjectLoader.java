@@ -1595,7 +1595,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             String indicesFolder = null;
             if (o instanceof SQLTable) {
                 SQLTable table = (SQLTable) o;
-                ioo.println(out, "<remarks>" + table.getRemarks() + "</remarks>");
+                ioo.println(out, "<remarks>" + SQLPowerUtils.escapeXML(table.getRemarks()) + "</remarks>");
                 String exception;
                 if (table.getChildrenInaccessibleReason(SQLColumn.class) != null) {
                     exception = "sql-exception=\"" + 
@@ -1638,7 +1638,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
                     table.isIndicesPopulated() + "\" name=\"Indices\" " +
                     "physicalName=\"Indices\" " + exception + "type=\"4\">";
             } else if (o instanceof SQLColumn) {
-                ioo.println(out, "<remarks>" + ((SQLColumn) o).getRemarks() + "</remarks>");
+                ioo.println(out, "<remarks>" + SQLPowerUtils.escapeXML(((SQLColumn) o).getRemarks()) + "</remarks>");
             }
             while (children.hasNext()) {
                 SQLObject child = (SQLObject) children.next();
