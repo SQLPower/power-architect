@@ -1,5 +1,11 @@
 SQL Power Architect Community Edition Release Notes
 
+1.0.6
+  Bug Fixes:
+    * Fixed saving of files with XML characters in remarks fields.
+    * Fixed a exception when right clicking in the play pen while dragging.
+    * Fixed an exception when sorting numerical value fields in the graphical viewer of profiles
+
 1.0.5
   Bug Fixes:
     * Fixed the JDBC driver panel to properly save the modified drivers.
