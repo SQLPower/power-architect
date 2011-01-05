@@ -19,6 +19,7 @@
 package ca.sqlpower.architect.profile;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import ca.sqlpower.object.AbstractSPObject;
@@ -27,6 +28,7 @@ import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
 import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.swingui.table.TableModelSortDecorator;
 
 /**
  * A simple class for keeping track of a value, the number of occurrences
@@ -49,11 +51,37 @@ public class ColumnValueCount extends AbstractSPObject {
      * profile. The flag in this class for representing other values should be
      * checked for the official decision if this value count is all of the other
      * values.
-     * 
-     * This is used the the TableModelSortDecorator in the library in comparing table
-     * rows so if you update this here, update it there as well.
      */
     public static final String OTHER_VALUE_OBJECT = "Other Values";
+    
+    /**
+     * A comparator that correctly sorts the value column of tables now that the value
+     * column will always contain an entry for other values. Without sorting with this
+     * comparator a class cast exception will occur if you sort only numeric values.
+     */
+    public static class ColumnValueComparator implements Comparator<Object> {
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public int compare(Object o1, Object o2) {
+            if (o1 instanceof String && ColumnValueCount.OTHER_VALUE_OBJECT.equals((String)o1)) {
+                return 1;
+            } else if (o2 instanceof String && ColumnValueCount.OTHER_VALUE_OBJECT.equals((String)o2)) {
+                return -1;
+            } else if (o1 == null && o2 == null) {
+                 return 0;
+            } else if (o1 == null) {
+                return -1;
+            } else if (o2 == null) {
+                return 1;
+            } else {
+                if (o1.getClass().equals(o2.getClass()) && Comparable.class.isAssignableFrom(o1.getClass())) {
+                    return TableModelSortDecorator.COMPARABLE_COMAPRATOR.compare(o1, o2);
+                }
+                return TableModelSortDecorator.LEXICAL_COMPARATOR.compare(o1, o2);
+            }
+        }
+    }
     
     private final Object value;
     private final int count;
