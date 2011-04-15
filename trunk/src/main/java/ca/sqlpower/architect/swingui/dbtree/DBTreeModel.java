@@ -222,7 +222,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
                         " not on the foreground thread.");
             logger.debug("dbObjectChanged. source="+e.getSource()); //$NON-NLS-1$
             if ((!SwingUtilities.isEventDispatchThread()) && (!refireOnAnyThread)) {
-                logger.warn("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
+                logger.debug("Not refiring because this is not the EDT. You will need to call refreshTreeStructure() at some point in the future."); //$NON-NLS-1$
                 return;
             }
             if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e); //$NON-NLS-1$
