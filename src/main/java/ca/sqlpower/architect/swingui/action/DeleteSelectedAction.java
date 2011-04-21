@@ -161,7 +161,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                     }
                 } catch (LockedColumnException ex) {
                     int decision = JOptionPane.showConfirmDialog(getPlaypen(),
-                            Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", o.getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
+                            Messages.getString("DeleteSelectedAction.couldNotDeleteColumnContinueConfirmation", ex.getCol().getName(), ex.getLockingRelationship().toString()), //$NON-NLS-1$
                             Messages.getString("DeleteSelectedAction.couldNotDeleteColumnDialogTitle"), //$NON-NLS-1$
                             JOptionPane.YES_NO_OPTION);
                     if (decision == JOptionPane.NO_OPTION) {
