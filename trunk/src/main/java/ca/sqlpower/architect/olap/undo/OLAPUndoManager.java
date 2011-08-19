@@ -40,8 +40,8 @@ import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.OLAPUtil;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
-import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
-import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
+import ca.sqlpower.object.undo.NotifyingUndoManager;
+import ca.sqlpower.object.undo.PropertyChangeEdit;
 import ca.sqlpower.util.TransactionEvent;
 
 /**
