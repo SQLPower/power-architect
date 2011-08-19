@@ -30,7 +30,7 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 
 import ca.sqlpower.architect.undo.ArchitectUndoManager;
-import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
+import ca.sqlpower.object.undo.PropertyChangeEdit;
 
 /**
  * An undoable edit that absorbs PropertyChangeEdits from PlayPenComponents. The

@@ -48,14 +48,14 @@ import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPListener;
 import ca.sqlpower.object.SPObject;
+import ca.sqlpower.object.undo.PropertyChangeEdit;
+import ca.sqlpower.object.undo.ArchitectPropertyChangeUndoableEditTest.TestSQLObject;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.undo.PropertyChangeEdit;
-import ca.sqlpower.sqlobject.undo.ArchitectPropertyChangeUndoableEditTest.TestSQLObject;
 import ca.sqlpower.util.TransactionEvent;
 
 public class TestArchitectUndoManager extends TestCase {
@@ -382,7 +382,7 @@ public class TestArchitectUndoManager extends TestCase {
         
         StateChangeTestListner listener = new StateChangeTestListner();
         manager.addChangeListener(listener);
-        ArchitectUndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
+        ArchitectUndoManager.SPObjectUndoableEventAdapter adapter = manager.getEventAdapter();
         assertTrue(adapter.canUndoOrRedo());
         
         adapter.transactionStarted(TransactionEvent.createStartTransactionEvent(null, "Test"));

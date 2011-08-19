@@ -24,14 +24,14 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.object.AbstractSPListener;
 import ca.sqlpower.object.SPChildEvent;
+import ca.sqlpower.object.undo.NotifyingUndoManager;
+import ca.sqlpower.object.undo.SPObjectUndoManager;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRoot;
-import ca.sqlpower.sqlobject.undo.NotifyingUndoManager;
-import ca.sqlpower.sqlobject.undo.SQLObjectUndoManager;
 import ca.sqlpower.util.SQLPowerUtils;
 
-public class ArchitectUndoManager extends SQLObjectUndoManager implements NotifyingUndoManager {
+public class ArchitectUndoManager extends SPObjectUndoManager implements NotifyingUndoManager {
 
     /**
      * Creates a new UndoManager and attaches it to the given PlayPen's
@@ -46,7 +46,7 @@ public class ArchitectUndoManager extends SQLObjectUndoManager implements Notify
     public ArchitectUndoManager(PlayPen playPen) {
         super(playPen.getSession().getTargetDatabase());
         SQLObjectRoot rootObject = playPen.getSession().getRootObject();
-        final SQLObjectUndoableEventAdapter undoListener = new SQLObjectUndoableEventAdapter(false);
+        final SPObjectUndoableEventAdapter undoListener = new SPObjectUndoableEventAdapter(false);
         rootObject.addSPListener(undoListener);
         undoListener.attachToObject(rootObject);
         final ArchitectSwingProject workspace = playPen.getSession().getWorkspace();
