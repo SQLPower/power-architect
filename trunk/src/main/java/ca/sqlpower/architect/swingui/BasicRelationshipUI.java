@@ -1141,9 +1141,21 @@ public class BasicRelationshipUI extends RelationshipUI implements java.io.Seria
             
             // actual work to adjust the connection point
             if (isPkConnectionPoint) {
-                relationship.setPkConnection(((double)lastValidPoint.getX() / relationship.getPkTable().getWidth()));
-            } else {
-                relationship.setFkConnection(((double)lastValidPoint.getX() / relationship.getFkTable().getWidth()));
+                if((relationship.getOrientation() & Relationship.PARENT_FACES_LEFT) > 0 ||
+                        (relationship.getOrientation() & Relationship.PARENT_FACES_RIGHT )> 0 ){
+                    relationship.setPkConnection(((double)lastValidPoint.getY() / relationship.getPkTable().getHeight()));
+                }
+                else{
+                    relationship.setPkConnection(((double)lastValidPoint.getX() / relationship.getPkTable().getWidth()));
+                }
+            }else{
+                if((relationship.getOrientation() & Relationship.PARENT_FACES_LEFT) > 0 ||
+                        (relationship.getOrientation() & Relationship.PARENT_FACES_RIGHT ) > 0 ){
+                    relationship.setFkConnection(((double)lastValidPoint.getY() / relationship.getFkTable().getHeight()));
+                }
+                else {
+                    relationship.setFkConnection(((double)lastValidPoint.getX() / relationship.getFkTable().getWidth()));
+                }
             }
             
             // sets up for the next connection point, assumes
