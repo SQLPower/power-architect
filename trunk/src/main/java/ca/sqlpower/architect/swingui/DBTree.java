@@ -1098,6 +1098,7 @@ public class DBTree extends JTree implements DragSourceListener {
        }
        for (SQLObject o : copyObjects) {
            SQLDatabase target = session.getTargetDatabase();
+           if(o.equals(target)) break;
            if (SQLObjectUtils.ancestorList(o).contains(target)) {
                try {
                    o.getParent().removeChild(o);
