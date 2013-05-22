@@ -1300,11 +1300,10 @@ public class PlayPen extends JPanel
 		logger.info("adding table "+newTable); //$NON-NLS-1$
 		addImpl(tp, preferredLocation);
 		tp.revalidate();
-
-		if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
-		    createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
-		    createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
-		}
+		
+		createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
+		createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
+		
 		return tp;
 	}
 	
