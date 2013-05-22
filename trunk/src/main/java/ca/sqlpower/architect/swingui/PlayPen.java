@@ -2308,7 +2308,8 @@ public class PlayPen extends JPanel
      *            The transferable to get objects from to add to the playpen
      */
 	public void pasteData(Transferable t) {
-        if (!getSelectedContainers().isEmpty()) {
+	    // check if user trying to paste table while copied table is still selected
+        if (!getSelectedContainers().isEmpty()  &&  !isCopyingTable(t)) {
             for (ContainerPane<?, ?> cp : getSelectedContainers()) {
                 cp.pasteData(t);
             }
@@ -2333,7 +2334,42 @@ public class PlayPen extends JPanel
         }
 	}
 
-	public class TablePaneDragGestureListener implements DragGestureListener {
+	/**
+	 * This method checks if user try to paste table while copied table is still selected instead of playpen
+	 * @param t
+	 * @return true if trying to paste table 
+	 */
+	private boolean isCopyingTable(Transferable t) {
+
+	    boolean copyingTable = false;
+
+	    List<? extends SQLObject> copyingItems;
+
+	    for (ContainerPane<?, ?> cp : getSelectedContainers()) {
+	        DataFlavor flavor = cp.bestImportFlavor(this, t.getTransferDataFlavors());
+
+	        try {
+	            if (flavor == SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR) {
+	                copyingItems = Arrays.asList((SQLObject[]) t.getTransferData(flavor));
+	                for(SQLObject o:copyingItems ) {
+	                    if (o instanceof SQLTable) {
+	                        copyingTable = true;
+	                        break;
+	                    }
+	                }
+	                if(copyingTable) break;
+	            } 
+	        } catch (UnsupportedFlavorException e) {
+	            throw new RuntimeException("Cannot add items to a table of type " + flavor, e);
+	        } catch (IOException e) {
+	            throw new RuntimeException("Transfer type changed while adding it to the table", e);
+	        } 
+	    }
+
+	    return copyingTable;
+	}
+
+    public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
 
             // ignore drag events that aren't from the left mouse button
