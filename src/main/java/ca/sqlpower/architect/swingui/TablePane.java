@@ -155,6 +155,8 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 	protected SQLColumn draggingColumn;
 
     private boolean fullyQualifiedNameInHeader = false;
+    
+    private boolean isDragging = false;
 
     SPListener columnListener = new ColumnListener();
 
@@ -432,8 +434,10 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 		int old = insertionPoint;
 		this.insertionPoint = ip;
 		if (ip != old) {
-			firePropertyChange("insertionPoint", new Integer(old), new Integer(insertionPoint)); //$NON-NLS-1$
-			repaint();
+		    if(!isDragging()) {
+		        firePropertyChange("insertionPoint", new Integer(old), new Integer(insertionPoint)); //$NON-NLS-1$
+		    }
+		    repaint();
 		}
 	}
 
@@ -698,6 +702,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         if (logger.isDebugEnabled()) {
             logger.debug("DragEnter event on "+getName()); //$NON-NLS-1$
         }
+        setDragging(true);
     }
 
     /**
@@ -714,6 +719,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         if (logger.isDebugEnabled()) {
             logger.debug("DragExit event on "+getName()); //$NON-NLS-1$
         }
+        setDragging(false);
         setInsertionPoint(ITEM_INDEX_NONE);
     }
 
@@ -728,6 +734,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * will be of the PlayPen.
      */
     public void dragOver(DropTargetDragEvent dtde) {
+        setDragging(true);
         if (logger.isDebugEnabled()) {
             logger.debug("DragOver event on "+getName()+": "+dtde); //$NON-NLS-1$ //$NON-NLS-2$
             logger.debug("Drop Action = "+dtde.getDropAction()); //$NON-NLS-1$
@@ -748,6 +755,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         } else {
             logger.debug("Unsuccesful drop"); //$NON-NLS-1$
         }
+        setDragging(false);
     }
 
     /**
@@ -797,6 +805,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
             } finally {
                 setInsertionPoint(ITEM_INDEX_NONE);
                 pp.endCompoundEdit("Ending drag and drop");
+                setDragging(false);
             }
         }
     }
@@ -1292,5 +1301,21 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         } else {
             return new SQLObjectSelection(new ArrayList<SQLObject>(getSelectedItems()));
         }
+    }
+
+    /**
+     * @return the isDragging
+     */
+    @NonBound
+    public boolean isDragging() {
+        return isDragging;
+    }
+
+    /**
+     * @param isDragging the isDragging to set
+     */
+    @NonBound
+    public void setDragging(boolean isDragging) {
+        this.isDragging = isDragging;
     }
 }
