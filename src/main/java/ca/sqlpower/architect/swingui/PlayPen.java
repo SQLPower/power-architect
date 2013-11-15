@@ -69,10 +69,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.prefs.Preferences;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.Map.Entry;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -99,6 +99,7 @@ import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.olap.MondrianModel;
+import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.olap.MondrianModel.Cube;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsage;
 import ca.sqlpower.architect.olap.MondrianModel.CubeUsages;
@@ -110,7 +111,6 @@ import ca.sqlpower.architect.olap.MondrianModel.Schema;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCube;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeDimension;
 import ca.sqlpower.architect.olap.MondrianModel.VirtualCubeMeasure;
-import ca.sqlpower.architect.olap.OLAPObject;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenLifecycleListener;
@@ -118,12 +118,12 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.olap.CubePane;
 import ca.sqlpower.architect.swingui.olap.DimensionPane;
-import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.architect.swingui.olap.OLAPPane;
 import ca.sqlpower.architect.swingui.olap.OLAPTree;
 import ca.sqlpower.architect.swingui.olap.PaneSection;
 import ca.sqlpower.architect.swingui.olap.UsageComponent;
 import ca.sqlpower.architect.swingui.olap.VirtualCubePane;
+import ca.sqlpower.architect.swingui.olap.DimensionPane.HierarchySection;
 import ca.sqlpower.object.ObjectDependentException;
 import ca.sqlpower.object.SPChildEvent;
 import ca.sqlpower.object.SPListener;
@@ -138,11 +138,11 @@ import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLObjectRuntimeException;
 import ca.sqlpower.sqlobject.SQLObjectUtils;
 import ca.sqlpower.sqlobject.SQLRelationship;
-import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLSchema;
 import ca.sqlpower.sqlobject.SQLTable;
-import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
+import ca.sqlpower.sqlobject.SQLTable.TransferStyles;
 import ca.sqlpower.swingui.CursorManager;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -1273,8 +1273,8 @@ public class PlayPen extends JPanel
 	    }
 
 	    // Although this method is called in AddObjectsTask.cleanup(), it
-        // remains here so that tests will use it as well. Columns that have
-        // upstream types are ignored, so this is safe.
+	    // remains here so that tests will use it as well. Columns that have
+	    // upstream types are ignored, so this is safe.
 	    if (assignTypes) {
 	        String platform;
 	        if (source.getParentDatabase() != null && source.getParentDatabase().getDataSource() != null) {
@@ -1286,25 +1286,50 @@ public class PlayPen extends JPanel
 	    }
 	    boolean isAlreadyOnPlaypen = false;
 		
-		// ensure tablename is unique
-		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames); //$NON-NLS-1$
-		int suffix = uniqueTableSuffix(source.getName());
-		if (suffix != 0) {
-		    String newName = source.getName() + "_" + suffix;
-		    newTable.setName(newName);
-		    isAlreadyOnPlaypen = true;
-		}
-		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames); //$NON-NLS-1$
+	    // ensure tablename is unique
+	    if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames); //$NON-NLS-1$
+	    int suffix = uniqueTableSuffix(source.getName());
+	    if (suffix != 0) {
+	        String newName = source.getName() + "_" + suffix;
+	        newTable.setName(newName);
+	        isAlreadyOnPlaypen = true;
+	    }
+	    if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames); //$NON-NLS-1$
 
-		TablePane tp = new TablePane(newTable, getContentPane());
-		logger.info("adding table "+newTable); //$NON-NLS-1$
-		addImpl(tp, preferredLocation);
-		tp.revalidate();
-		
-		createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
-		createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
-		
-		return tp;
+	    TablePane tp = new TablePane(newTable, getContentPane());
+	    logger.info("adding table "+newTable); //$NON-NLS-1$
+	    addImpl(tp, preferredLocation);
+	    tp.revalidate();
+	    Transferable clipboardContents = getSession().getContext().getClipboardContents();
+	    // implemented for copy/paste issue#2074
+	    boolean isRelationshipLineSelected = false;
+	    try {
+	        Object object[] = (Object[]) clipboardContents.getTransferData(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
+	        for (int i= 0; i< object.length; i++) {
+	            if (object[i] instanceof SQLDatabase) {
+	                isRelationshipLineSelected = true;
+	            } 
+	        }
+	    } catch (UnsupportedFlavorException e) {
+	        e.printStackTrace();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+
+	    if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
+	        createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
+	        createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
+	    } else if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.COPY) {
+	        // draw/paste relationship line only if it is selected during copy process
+	        if (isRelationshipLineSelected) {
+	            createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
+	        } else {
+	            createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
+	        }
+	        createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
+	    }
+
+	    return tp;
 	}
 	
 	public int uniqueTableSuffix(String base) {
