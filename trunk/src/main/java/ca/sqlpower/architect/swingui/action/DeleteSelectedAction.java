@@ -104,6 +104,18 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
                 cCount++;
             } else if (item instanceof SQLTable) {
                 tCount++;
+                // to improve message, In case if table is selected to delete, then all children of selected table also deleted
+                for (SPObject child :  ((SQLTable)item).getChildren()) {
+                    if (!deleteItems.contains(child)) {
+                        if (child instanceof SQLColumn ) {
+                            cCount++;
+                        } else if (child instanceof SQLRelationship) {
+                            rCount++;
+                        } else if (child instanceof SQLIndex) {
+                            iCount++;
+                        }
+                    }
+                }
             } else if (item instanceof SQLRelationship) {
                 rCount++;
             } else if (item instanceof SQLIndex) {
