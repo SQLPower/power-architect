@@ -28,11 +28,17 @@ import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.swingui.dbtree.SQLObjectSelection;
 
 public class PasteSelectedAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(PasteSelectedAction.class);
@@ -46,15 +52,24 @@ public class PasteSelectedAction extends AbstractArchitectAction {
     public void actionPerformed(ActionEvent e) {
         PlayPen playPen = getSession().getPlayPen();
         final Component focusOwner = getSession().getArchitectFrame().getFocusOwner();
-        if (playPen.isAncestorOf(focusOwner) || playPen == focusOwner) {
+        DBTree tree = getSession().getDBTree();
+        TreePath tp = tree.getSelectionModel().getSelectionPath();
+        if (playPen.isAncestorOf(focusOwner) || playPen == focusOwner || tree.isTargetDatabaseNode(tp)) {
             Transferable clipboardContents = getSession().getContext().getClipboardContents();
             logger.debug("Pasting " + clipboardContents + " into the playpen.");
             if (clipboardContents != null) {
+               for( PlayPenComponent comp: playPen.getSelectedItems()) {
+                   if (comp instanceof TablePane && (clipboardContents instanceof SQLObjectSelection && ((SQLObjectSelection)clipboardContents).getSqlObjects()[0] instanceof SQLTable )) {
+                       JOptionPane.showMessageDialog(getSession().getArchitectFrame(), "cannot paste Table inside another Table", "Cannot Paste", JOptionPane.INFORMATION_MESSAGE);
+                       return;
+                   }
+               }
                 playPen.pasteData(clipboardContents);
             } else {
                 JOptionPane.showMessageDialog(getSession().getArchitectFrame(), "There is no contents in the clipboard to paste.", "Clipboard empty", JOptionPane.INFORMATION_MESSAGE);
             }
-        }
+        } 
+       
     }
 
 }
