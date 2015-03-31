@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -267,6 +268,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
     private final JTextField stringLengthSQLFuncField = new JTextField();
     private final JTextField caseWhenNullSQLFuncField = new JTextField();
     private final JCheckBox updatableRSField = new JCheckBox("Supports Updatable Result Sets");
+    private final JCheckBox quotesNameCheckBox = new JCheckBox(Messages.getString("ArchitectPropertiesDataSourceTypeOptionPanel.quotingNameLabel"));
     private final JComboBox ddlGeneratorCombo = new JComboBox(KnownDDLGenerators.values());
     
     /**
@@ -280,6 +282,8 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
      */
     private DefaultTableModel indexTableModel;
     
+    private String ddlGeneratorClass;
+
     public ArchitectPropertiesDataSourceTypeOptionPanel() {
         panel = new JPanel(new BorderLayout());
     }
@@ -294,8 +298,23 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         stringLengthSQLFuncField.setText("");
         caseWhenNullSQLFuncField.setText("");
         updatableRSField.setSelected(false);
+        quotesNameCheckBox.setVisible(false);
         ddlGeneratorCombo.setSelectedItem(KnownDDLGenerators.GENERIC);
-        
+        ddlGeneratorClass = dsType.getDDLGeneratorClass();
+        ddlGeneratorCombo.addActionListener( new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+               if (ddlGeneratorClass!= null && ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName())) {
+                   quotesNameCheckBox.setVisible(true);
+               } else {
+                   quotesNameCheckBox.setVisible(false);
+                   quotesNameCheckBox.setSelected(false);
+               }
+            }
+            
+        });
+
         currentDSType = dsType;
         profileFunctionTableModel = new ProfileFunctionTableModel();
         final JTable profileFunctionTable = new JTable(profileFunctionTableModel);
@@ -333,6 +352,8 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
                 }
             } else if (property.equals(JDBCDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS)) {
                 updatableRSField.setSelected(Boolean.parseBoolean(dsType.getProperty(property)));
+            } else if (property.equals(JDBCDataSourceType.SUPPORTS_QUOTING_NAME)) {
+                quotesNameCheckBox.setSelected(Boolean.parseBoolean(dsType.getProperty(property)));
             } else if (property.equals(JDBCDataSourceType.DDL_GENERATOR)) {
                 ddlGeneratorCombo.setSelectedItem(KnownDDLGenerators.GENERIC);
                 for (KnownDDLGenerators ddlg : KnownDDLGenerators.values()) {
@@ -378,9 +399,9 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
         
         panel.removeAll();
         DefaultFormBuilder fb = new DefaultFormBuilder(new FormLayout("4dlu, pref, 4dlu, pref:grow, 4dlu", 
-                "pref, 4dlu, pref, 4dlu, pref, 2dlu, pref, 2dlu, pref, 4dlu, fill:min:grow, 2dlu, pref, 4dlu, pref, 2dlu, pref"));
+                "pref, 4dlu, pref, 4dlu, pref, 2dlu, pref, 2dlu, pref, 4dlu, fill:min:grow, 2dlu, pref, 4dlu, pref, 2dlu, pref,2dlu, pref"));
         fb.nextColumn();
-        fb.append("", updatableRSField);
+        fb.append(updatableRSField, quotesNameCheckBox);
         fb.nextLine();
         fb.nextLine();
         fb.nextColumn();
@@ -425,6 +446,7 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
 
         currentDSType.putProperty(JDBCDataSourceType.DDL_GENERATOR, ((KnownDDLGenerators) ddlGeneratorCombo.getSelectedItem()).getDDLClassName());
         currentDSType.putProperty(JDBCDataSourceType.SUPPORTS_UPDATEABLE_RESULT_SETS, String.valueOf(updatableRSField.isSelected()));
+        currentDSType.putProperty(JDBCDataSourceType.SUPPORTS_QUOTING_NAME, String.valueOf(quotesNameCheckBox.isSelected()));
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(AverageSQLFunction.class), averageSQLFunctionField.getText());
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(StringLengthSQLFunction.class), stringLengthSQLFuncField.getText());
         currentDSType.putProperty(RemoteDatabaseProfileCreator.propName(CaseWhenNullSQLFunction.class), caseWhenNullSQLFuncField.getText());

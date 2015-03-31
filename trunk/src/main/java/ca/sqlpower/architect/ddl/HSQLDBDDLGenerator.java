@@ -175,7 +175,7 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     @Override
     public void addComment(SQLTable t, boolean includeColumns) {
         if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
-            print("\n-- Comment for table [" + t.getPhysicalName() + "]: ");
+            print("\n-- Comment for table [" + getPhysicalName(t) + "]: ");
             print(t.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
             endStatement(StatementType.COMMENT, t);
 

@@ -356,7 +356,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first) print(", ");
             if (c.getColumn() != null) {
-                print(c.getColumn().getPhysicalName());
+                print(getPhysicalName(c.getColumn()));
             } else {
                 print(c.getName());
             }
@@ -404,7 +404,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
-                print("\nALTER SEQUENCE " + toQualifiedName(seq.getName()) + " OWNED BY " + toQualifiedName(t) + "." + c.getPhysicalName());
+                print("\nALTER SEQUENCE " + toQualifiedName(seq.getName()) + " OWNED BY " + toQualifiedName(t) + "." + getPhysicalName(c));
                 endStatement(StatementType.CREATE, seq);
             }
         }

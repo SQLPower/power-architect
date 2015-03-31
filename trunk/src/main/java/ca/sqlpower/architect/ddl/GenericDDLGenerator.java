@@ -37,10 +37,14 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.object.SPResolverRegistry;
 import ca.sqlpower.object.SPVariableHelper;
 import ca.sqlpower.object.SPVariableResolver;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLCheckConstraint;
 import ca.sqlpower.sqlobject.SQLCheckConstraintVariableResolver;
 import ca.sqlpower.sqlobject.SQLCheckConstraintVariableResolver.SQLCheckConstraintVariable;
@@ -153,7 +157,8 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
 
-
+    private ArchitectSwingSession session;
+    
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
         this.allowConnection = allowConnection;
         ddlStatements = new ArrayList<DDLStatement>();
@@ -170,7 +175,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    this(true);
 	}
 
-    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
+    public String generateDDLScript(ArchitectSwingSession architectSwingSession, Collection<SQLTable> tables) throws SQLException, SQLObjectException {
+        session = architectSwingSession;
         List<DDLStatement> statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
@@ -585,7 +591,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         print("COMMENT ON COLUMN ");
         print(toQualifiedName(c.getParent()));
         print(".");
-        print(c.getPhysicalName());
+        print(getPhysicalName(c));
         print(" IS '");
         print(c.getRemarks().replaceAll("'", "''"));
         print("'");
@@ -886,7 +892,7 @@ public class GenericDDLGenerator implements DDLGenerator {
             sb.append("'" + enumeration.getName() + "'");
         }
         
-        return "CHECK (" + c.getPhysicalName() + " IN (" + 
+        return "CHECK (" + getPhysicalName(c) + " IN (" + 
                 sb.toString() + "))";
     }
 
@@ -1012,7 +1018,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    }
         createPhysicalName(topLevelNames, pk);
 	    print("CONSTRAINT ");
-	    print(pk.getPhysicalName());
+	    print(getPhysicalName(pk));
 	    print(" PRIMARY KEY (");
 
 	    boolean firstCol = true;
@@ -1021,7 +1027,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	        if (col.getColumn() == null) {
 	            throw new IllegalStateException("Index column is not associated with the real column in the table.");
 	        } else {
-	            print(col.getColumn().getPhysicalName());
+	            print(getPhysicalName(col.getColumn()));
 	        }
 	        firstCol = false;
 	    }
@@ -1151,7 +1157,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     public String toQualifiedName(String tname) {
         String catalog = getTargetCatalog();
         String schema = getTargetSchema();
-
+        tname = getQuotedPhysicalName(tname);
         return DDLUtils.toQualifiedName(catalog, schema, tname);
     }
 
@@ -1287,7 +1293,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
         logger.debug("The logical name field now is: " + so.getName());
 
-		return so.getPhysicalName();
+		return getPhysicalName(so);
 	}
 
     /**
@@ -1315,7 +1321,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void dropPrimaryKey(SQLTable t) throws SQLObjectException {
 	    SQLIndex pk = t.getPrimaryKeyIndex();
 	    print("\nALTER TABLE " + toQualifiedName(t.getName())
-	            + " DROP CONSTRAINT " + pk.getPhysicalName());
+	            + " DROP CONSTRAINT " + getPhysicalName(pk));
 		endStatement(StatementType.DROP, t);
 	}
 
@@ -1401,7 +1407,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first) print(", ");
             if (c.getColumn() != null) {
-                print(c.getColumn().getPhysicalName());
+                print(getPhysicalName(c.getColumn()));
             } else {
                 print(c.getName());
             }
@@ -1443,6 +1449,35 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     public boolean supportsEnumeration() {
         return false;
+    }
+
+    /**
+     * 
+     * @param name; a physical name of SQLObject
+     * @return name  with quotes, if database supports quoting name
+     */
+    public String getQuotedPhysicalName(String name) {
+        if (session.getDDLGenerator()!= null && session.getDDLGenerator().getClass().getName().equals(PostgresDDLGenerator.class.getName())) {
+            DataSourceCollection<JDBCDataSource> dataSourceCollection= session.getDataSources();
+            for (JDBCDataSourceType dsType : dataSourceCollection.getDataSourceTypes()) {
+                if (dsType.getDDLGeneratorClass().equals(PostgresDDLGenerator.class.getName())) {
+                    boolean isQuoting = dsType.getSupportsQuotingName();
+                    if (isQuoting && (!((name.startsWith("\"")) && name.endsWith("\"")))) {
+                        name = "\""+name+"\"";
+                    }
+                    break;
+                }
+            }
+        }
+        return name;
+    }
+
+
+    @Override
+    public String getPhysicalName(SQLObject c) {
+        String name = c.getPhysicalName();
+        name = getQuotedPhysicalName(name);
+        return name;
     }
 
 }
