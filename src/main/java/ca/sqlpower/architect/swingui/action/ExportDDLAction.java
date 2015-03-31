@@ -205,7 +205,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
              */
             private void generateAndDisplayDDL(final DDLExportPanel ddlPanel, DDLGenerator ddlg) throws SQLException,
             SQLObjectException {
-                ddlg.generateDDLScript(getSession().getTargetDatabase().getTables());
+                ddlg.generateDDLScript(getSession(), getSession().getTargetDatabase().getTables());
 
                 SQLDatabase ppdb = new SQLDatabase(ddlPanel.getTargetDB());
                 SQLScriptDialog ssd =

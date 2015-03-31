@@ -394,7 +394,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 		Map<String, SQLObject> cols = new HashMap<String, SQLObject>();
 		try {
 			for (SQLColumn col : oldCol.getParent().getColumns()) {
-				cols.put(col.getPhysicalName(), col);
+				cols.put(getPhysicalName(col), col);
 			}
 		} catch (SQLObjectException e) {
 			// can't do anything...
@@ -435,7 +435,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         boolean firstCol = true;
         for (SQLIndex.Column col : pk.getChildren(SQLIndex.Column.class)) {
             if (!firstCol) print(", ");
-            print(col.getPhysicalName());
+            print(getPhysicalName(col));
             firstCol = false;
         }
         print(")");
@@ -583,7 +583,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             if (!first)
                 print(", ");
             if (c.getColumn() != null) {
-                print(c.getColumn().getPhysicalName());
+                print(getPhysicalName(c.getColumn()));
             } else {
                 print(c.getName());
             }
@@ -663,7 +663,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 	        print("\nALTER TABLE ");
 	        print(toQualifiedName(c.getParent()));
 	        print(" MODIFY COLUMN ");
-	        print(c.getPhysicalName());
+	        print(getPhysicalName(c));
 	        print(" ");
 	        print(c.getTypeName());
 	        print(" COMMENT '");
@@ -690,7 +690,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
                 print(" FIRST");
             } else if (colPosition > 0) {
                 SQLObject precedingColumn = c.getParent().getChild(colPosition - 1);
-                print(" AFTER " + precedingColumn.getPhysicalName());
+                print(" AFTER " + getPhysicalName(precedingColumn));
             } else {
                 throw new IllegalStateException(
                         "Column " + c + " is not a child of its parent!" +

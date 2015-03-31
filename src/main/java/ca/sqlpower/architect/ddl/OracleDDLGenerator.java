@@ -334,7 +334,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
 		SQLTable t = c.getParent();
 		print("\nALTER TABLE ");
-		print(toQualifiedName(t.getPhysicalName()));
+		print(toQualifiedName(getPhysicalName(t)));
 		print(" MODIFY ");
 		print(columnDefinition(c,colNameMap, alter));
 		endStatement(StatementType.MODIFY, c);
@@ -391,7 +391,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         boolean first = true;
         for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first) print(", ");
-            print(c.getColumn().getPhysicalName());
+            print(getPhysicalName(c.getColumn()));
 			if (!isBitmapIndex) {
 				print(c.getAscendingOrDescending() == AscendDescend.ASCENDING ? " ASC" : "");
 				print(c.getAscendingOrDescending() == AscendDescend.DESCENDING ? " DESC" : "");

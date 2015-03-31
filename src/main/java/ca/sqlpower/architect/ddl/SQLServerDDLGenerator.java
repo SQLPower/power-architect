@@ -404,7 +404,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		// So we only write a SQL comment with the table's comment here
 
 		if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
-			print("\n-- Comment for table [" + t.getPhysicalName() + "]: ");
+			print("\n-- Comment for table [" + getPhysicalName(t) + "]: ");
 			print(t.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
 			endStatement(StatementType.COMMENT, t);
 
@@ -486,7 +486,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         for (SQLIndex.Column c : index.getChildren(SQLIndex.Column.class)) {
             if (!first) print(", ");
             if (c.getColumn() != null) {
-                print(c.getColumn().getPhysicalName());
+                print(getPhysicalName(c.getColumn()));
             } else {
                 print(c.getName());
             }
@@ -522,7 +522,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
     public void dropPrimaryKey(SQLTable t) {
         SQLIndex pk = t.getPrimaryKeyIndex();
         print("\nALTER TABLE " + toQualifiedName(t.getName())
-                + " DROP " + pk.getPhysicalName());
+                + " DROP " + getPhysicalName(pk));
         endStatement(StatementType.DROP, t);
     }
 

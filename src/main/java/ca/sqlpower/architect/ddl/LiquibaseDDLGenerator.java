@@ -695,7 +695,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
         print("<renameTable ");
         print(getTableQualifier(oldTable, "oldTableName", "schemaName"));
         print(" newTableName=\"");
-        print(newTable.getPhysicalName());
+        print(getPhysicalName(newTable));
         println("\"/>");
 		endOfStatement();
         endStatement(StatementType.XMLTAG, newTable);
