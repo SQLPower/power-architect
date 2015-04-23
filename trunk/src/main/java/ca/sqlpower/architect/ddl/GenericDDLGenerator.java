@@ -1230,7 +1230,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @return the value of targetCatalog
 	 */
 	public String getTargetCatalog()  {
-		return this.targetCatalog;
+	    return getQuotedPhysicalName(this.targetCatalog);
 	}
 
 	/**
@@ -1248,7 +1248,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @return the value of targetSchema
 	 */
 	public String getTargetSchema()  {
-		return this.targetSchema;
+	    return getQuotedPhysicalName(this.targetSchema);
 	}
 
 	/**

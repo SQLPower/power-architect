@@ -160,8 +160,8 @@ public class CompareDMFormatter {
                 gen = dmSetting.getDdlGenerator().newInstance();
                 SQLCatalog cat = (SQLCatalog) dmSetting.getSourceSettings().getCatalogObject();
                 SQLSchema sch = (SQLSchema) dmSetting.getSourceSettings().getSchemaObject();
-                gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
-                gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
+                gen.setTargetCatalog(cat == null ? null : gen.getPhysicalName(cat));
+                gen.setTargetSchema(sch == null ? null : gen.getPhysicalName(sch));
             } else if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.LIQUIBASE)) {
 				gen = new LiquibaseDDLGenerator();
 				LiquibaseDDLGenerator lbgen = (LiquibaseDDLGenerator)gen;
