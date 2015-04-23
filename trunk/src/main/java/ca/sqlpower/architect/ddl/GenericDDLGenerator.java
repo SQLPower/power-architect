@@ -1457,7 +1457,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * @return name  with quotes, if database supports quoting name
      */
     public String getQuotedPhysicalName(String name) {
-        if (session.getDDLGenerator()!= null && session.getDDLGenerator().getClass().getName().equals(PostgresDDLGenerator.class.getName())) {
+        if (session != null && session.getDDLGenerator() != null && session.getDDLGenerator().getClass().getName().equals(PostgresDDLGenerator.class.getName())) {
             DataSourceCollection<JDBCDataSource> dataSourceCollection= session.getDataSources();
             for (JDBCDataSourceType dsType : dataSourceCollection.getDataSourceTypes()) {
                 if (dsType.getDDLGeneratorClass().equals(PostgresDDLGenerator.class.getName())) {
