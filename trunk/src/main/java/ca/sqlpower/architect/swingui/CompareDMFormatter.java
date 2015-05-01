@@ -39,6 +39,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.LiquibaseDDLGenerator;
+import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
@@ -158,6 +159,10 @@ public class CompareDMFormatter {
 
             if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
                 gen = dmSetting.getDdlGenerator().newInstance();
+                if (gen instanceof PostgresDDLGenerator) {
+                    //setComparingDMForPostgres 'true' to quote the physical name 
+                    gen.setComparingDMForPostgres(true);
+                }
                 SQLCatalog cat = (SQLCatalog) dmSetting.getSourceSettings().getCatalogObject();
                 SQLSchema sch = (SQLSchema) dmSetting.getSourceSettings().getSchemaObject();
                 gen.setTargetCatalog(cat == null ? null : gen.getPhysicalName(cat));

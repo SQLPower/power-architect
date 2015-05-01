@@ -361,5 +361,12 @@ public interface DDLGenerator {
 	 * 
      */
     public String getPhysicalName(SQLObject object);
+    
+    /**
+     * 
+     * set to 'true' if comparing Data Model for Postgres database. 
+     * @param isComparingDMForPostgres
+     */
+    public void setComparingDMForPostgres(boolean isComparingDMForPostgres);
  
 }

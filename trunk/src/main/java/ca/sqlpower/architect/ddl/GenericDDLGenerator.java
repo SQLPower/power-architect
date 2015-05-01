@@ -157,6 +157,12 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
 
+    /**
+     * used to quote the physical name.
+     * default value is 'false'. set to 'true' only when comparing Data Model for Postgres Database.
+     */
+    protected boolean isComparingDMForPostgres = false;
+    
     private ArchitectSwingSession session;
     
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
@@ -1457,17 +1463,20 @@ public class GenericDDLGenerator implements DDLGenerator {
      * @return name  with quotes, if database supports quoting name
      */
     public String getQuotedPhysicalName(String name) {
+        if (name == null) return null;
+        boolean isQuoting = false;
         if (session != null && session.getDDLGenerator() != null && session.getDDLGenerator().getClass().getName().equals(PostgresDDLGenerator.class.getName())) {
             DataSourceCollection<JDBCDataSource> dataSourceCollection= session.getDataSources();
             for (JDBCDataSourceType dsType : dataSourceCollection.getDataSourceTypes()) {
                 if (dsType.getDDLGeneratorClass().equals(PostgresDDLGenerator.class.getName())) {
-                    boolean isQuoting = dsType.getSupportsQuotingName();
-                    if (isQuoting && (!((name.startsWith("\"")) && name.endsWith("\"")))) {
-                        name = "\""+name+"\"";
-                    }
+                    isQuoting = dsType.getSupportsQuotingName();
                     break;
                 }
             }
+        } 
+        if ((isQuoting || isComparingDMForPostgres())
+                && !(name.startsWith("\"") && name.endsWith("\""))) {
+            name = "\""+name+"\"";
         }
         return name;
     }
@@ -1480,4 +1489,16 @@ public class GenericDDLGenerator implements DDLGenerator {
         return name;
     }
 
+    @Override
+    public void setComparingDMForPostgres(boolean isComparingDMForPostgres) {
+        this.isComparingDMForPostgres = isComparingDMForPostgres;
+    }
+
+    /**
+     * @return the isComparingDMForPostgres
+     */
+    public boolean isComparingDMForPostgres() {
+        return isComparingDMForPostgres;
+    }
+   
 }
