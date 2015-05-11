@@ -31,6 +31,7 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.beans.PropertyChangeEvent;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -300,6 +301,9 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
             displayName.append(col.getPhysicalName()).append(": ");
         }
         displayName.append(col.getTypeName());
+        if (col.getNullable() == DatabaseMetaData.columnNoNulls) {
+            displayName.append("   NOT NULL");
+        }
         displayName.append(getColumnTag(col));
         return displayName.toString();
     }
