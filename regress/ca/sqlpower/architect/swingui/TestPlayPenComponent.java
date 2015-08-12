@@ -35,7 +35,6 @@ import javax.swing.JPopupMenu;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import sun.font.FontManager;
 import ca.sqlpower.architect.util.ArchitectNewValueMaker;
 import ca.sqlpower.object.PersistedSPObjectTest;
 import ca.sqlpower.object.SPObject;
@@ -272,7 +271,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
 	        }
 	    } else if (property.getPropertyType() == Font.class) {
 	        if (oldVal == null) {
-	            newVal = FontManager.getDefaultPhysicalFont();
+	            newVal =  new Font("Dialog", Font.PLAIN, 12);
 	        } else {
 	            Font oldFont = (Font) oldVal;
                 newVal = new Font(oldFont.getFontName(), oldFont.getSize() + 2, oldFont.getStyle());

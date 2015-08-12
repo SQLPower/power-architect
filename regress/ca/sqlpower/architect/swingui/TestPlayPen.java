@@ -37,7 +37,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 
-import sun.font.FontManager;
 import ca.sqlpower.object.SPObject;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.JDBCDataSource;
@@ -578,7 +577,7 @@ public class TestPlayPen extends TestCase {
 	        }
 	    } else if (property.getPropertyType() == Font.class) {
 	        if (oldVal == null) {
-	            newVal = FontManager.getDefaultPhysicalFont();
+	            newVal = new Font("Dialog", Font.PLAIN, 12);
 	        } else {
 	            Font oldFont = (Font) oldVal;
 	            newVal = new Font(oldFont.getFontName(), oldFont.getSize() + 2, oldFont.getStyle());

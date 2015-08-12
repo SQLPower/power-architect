@@ -377,7 +377,7 @@
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
 		<property name="pmd-results" value="${reports}/pmd-ant-results.${pmd.report.format}"/>
-		<pmd shortFilenames="true" targetjdk="1.6">
+		<pmd shortFilenames="true" targetjdk="1.7">
 			<ruleset>basic,imports</ruleset>
 			<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
@@ -838,7 +838,7 @@
 					customprocname="false"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
-				<jre minVersion="1.6.0"
+				<jre minVersion="1.7.0"
 					 maxHeapSize="600"
 				/>
 			</config>
@@ -860,7 +860,7 @@
 					mutexName="SQL Power Architect Uninstaller"
 					windowTitle="SQL Power Architect Uninstaller"
 				/>
-				<jre minVersion="1.6.0"/>
+				<jre minVersion="1.7.0"/>
 			</config>
 		</launch4j>
     	
@@ -983,7 +983,7 @@
 					<appname>SQL Power Architect</appname>
 					<appversion>@{app.version}</appversion>
 					<url>http://www.sqlpower.ca/</url>
-					<javaversion>1.6</javaversion>
+					<javaversion>1.7</javaversion>
 					<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
 					<!-- <pack200/> -->
 				</info>
@@ -1064,7 +1064,7 @@
 						<appname>SQL Power Architect</appname>
 						<appversion>@{app.version}</appversion>
 						<url>http://www.sqlpower.ca/</url>
-						<javaversion>1.6</javaversion>
+						<javaversion>1.7</javaversion>
 						<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
 						<!-- <pack200/> -->
 					</info>
@@ -1157,7 +1157,7 @@
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
 				/>
-				<jre minVersion="1.6.0"/>
+				<jre minVersion="1.7.0"/>
 			</config>
 		</launch4j>
 	</target>
@@ -1181,7 +1181,7 @@
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
 				/>
-				<jre minVersion="1.6.0"/>
+				<jre minVersion="1.7.0"/>
 			</config>
 		</launch4j>
 	</target>
@@ -1208,7 +1208,7 @@
 		   bundleid="ca.sqlpower.architect"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
-           jvmversion="1.6+"
+           jvmversion="1.7+"
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
            vmoptions="-Xmx600m">
@@ -1237,7 +1237,7 @@
 		   bundleid="ca.sqlpower.architect"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="${resources}/icons/Power Architect.icns"
-           jvmversion="1.6+"
+           jvmversion="1.7+"
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
            vmoptions="-Xmx600m">
