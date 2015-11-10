@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
 
 /**
@@ -96,6 +97,11 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
                 ASUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(),
                         Messages.getString("CheckForUpdateAction.failedToCheckForUpdate"), ex); //$NON-NLS-1$
             }
+        } catch (NullPointerException e) {
+            logger.error("Fail to retrieve current version number!"); //$NON-NLS-1$
+            SPSUtils.showExceptionDialogNoReport(getSession().getArchitectFrame(), 
+                    Messages.getString("CheckForUpdateAction.failedToCheckForUpdate"), 
+                    "Fail to retrieve current version number!", e);
         } finally {
             urlc.disconnect();
             try {
