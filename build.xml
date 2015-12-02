@@ -835,7 +835,6 @@
 					priority="normal"
 					downloadurl="http://java.com/download"
 					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
 				<jre minVersion="1.7.0"
