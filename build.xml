@@ -852,7 +852,6 @@
 					priority="normal"
 					downloadurl="http://java.com/download"
 					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
 					stayalive="false"
 					icon="installer/uninstall.ico">
 				<singleInstance
@@ -1149,7 +1148,6 @@
 					priority="normal"
 					downloadurl="http://java.com/download"
 					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
 				<singleInstance
@@ -1173,7 +1171,6 @@
 					priority="normal"
 					downloadurl="http://java.com/download"
 					supporturl="http://www.sqlpower.ca/forum"
-					customprocname="false"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
 				<singleInstance
