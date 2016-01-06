@@ -152,8 +152,8 @@ class ImportSafetyChecker {
         }
         sourceSourceDatabase = SQLPowerUtils.getAncestor(sourceColumn.getSourceColumn(), SQLDatabase.class);
 
-        if (targetSession.getDBTree().getDuplicateDbcs(
-                sourceSourceDatabase.getDataSource()) == null) {
+        if (sourceSourceDatabase != null && (targetSession.getDBTree().getDuplicateDbcs(
+               sourceSourceDatabase.getDataSource()) == null)) {
             return false;         
         } else {
             return true;            
