@@ -598,9 +598,13 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 			        }
 
 			    } else {
-			        newColumns.put(
-			                col.getParent().getParentDatabase().getDataSource().getParentType().getName(), 
-			                getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource()));
+			        if (col.getParent() == null) {
+			            newColumns.put(null,getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource()));
+			        } else {
+			            newColumns.put(
+			                    col.getParent().getParentDatabase().getDataSource().getParentType().getName(), 
+			                    getModel().inherit(insertionPoint, col, newColumnsInPk, duplicateProperties.getDefaultTransferStyle(), duplicateProperties.isPreserveColumnSource()));
+			        }
 			        if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision()); //$NON-NLS-1$ //$NON-NLS-2$
 			        ASUtils.correctSourceColumn(col, duplicateProperties, getModel().getColumnByName(col.getName()), getPlayPen().getSession().getDBTree());
 			    }
@@ -844,6 +848,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
             logger.debug("Importing items: " + droppedItems); //$NON-NLS-1$
 
+           
 
             //Check to see if the drag and drop will change the current relationship
             List<SQLRelationship> importedKeys = SQLRelationship.getExportedKeys(getModel().getImportedKeys());
@@ -866,6 +871,11 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
                 for (SQLObject o : droppedItems) {
                     if (o instanceof SQLColumn) {
                         droppedColumns.add((SQLColumn) o);
+//                        if (o.getParent() == null) {
+//                            droppedItems.remove(o);
+//                            o.setParent(getModel());
+//                            droppedItems.add(o);
+//                        }
                     } else if (o instanceof SQLTable) {
                         droppedColumns.addAll(((SQLTable) o).getChildren(SQLColumn.class));
                     }
