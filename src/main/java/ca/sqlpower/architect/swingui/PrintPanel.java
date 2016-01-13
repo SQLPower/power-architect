@@ -46,6 +46,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -139,6 +141,9 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		
 		formPanel.add(new JLabel(Messages.getString("PrintPanel.numCopiesLabel"))); //$NON-NLS-1$
         numOfCopies = new JSpinner(new SpinnerNumberModel(printSettings.getNumCopies(), 1, null, 1));
+        JComponent editor = numOfCopies.getEditor();
+        JFormattedTextField tf = ((JSpinner.DefaultEditor) editor).getTextField();
+        tf.setColumns(3);
 		formPanel.add(numOfCopies);
 		
 		formPanel.add(new JLabel(Messages.getString("PrintPanel.changePageFormatLabel"))); //$NON-NLS-1$
