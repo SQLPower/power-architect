@@ -50,6 +50,11 @@ public class KettleOptions {
     public static final String KETTLE_DATABASE = "Database";
     
     /**
+     * The string of the url parameter that defines the database name
+     * In case of SQL server, url has a parameter 'Database Name'
+     */
+    public static final String KETTLE_DATABASE_NAME = "Database Name";
+    /**
      * The key to use in an SPDataSource for the database name.
      */
     public static final String KETTLE_DATABASE_KEY = "ca.sqlpower.architect.etl.kettle.database";

@@ -74,9 +74,12 @@ public class KettleUtils {
         }
         String database = map.get(KettleOptions.KETTLE_DATABASE);
         if (database == null) {
+            database = map.get(KettleOptions.KETTLE_DATABASE_NAME);
+        }
+        if (database == null) {
             database = target.get(KettleOptions.KETTLE_DATABASE_KEY);
         }
-        
+
         databaseMeta = new DatabaseMeta(databaseName
                                               , connectionType
                                               , "Native"
