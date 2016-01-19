@@ -87,6 +87,12 @@ import ca.sqlpower.swingui.PopupJTreeAction;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.util.TransactionEvent;
+import ca.sqlpower.validation.StringNotEmptyValidator;
+import ca.sqlpower.validation.Validator;
+import ca.sqlpower.validation.swingui.FormValidationHandler;
+import ca.sqlpower.validation.swingui.StatusComponent;
+import ca.sqlpower.validation.swingui.ValidatableDataEntryPanel;
+import ca.sqlpower.validation.swingui.ValidationHandler;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -97,7 +103,8 @@ import com.jgoodies.forms.layout.RowSpec;
  * of one or more columns. The user interface is slightly different in multi-column
  * edit mode.
  */
-public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements ActionListener, SPListener {
+
+public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements ActionListener, SPListener, ValidatableDataEntryPanel {
     
     private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
@@ -185,7 +192,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     private final JSpinner colPrec;
 
-    private final JComboBox colNullable;
+    private final JComboBox<Enum<?>> colNullable;
 
     private final JTextArea colRemarks;
 
@@ -193,7 +200,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     private final JCheckBox colInPK;
 
-    private final JComboBox colAutoInc;
+    private final JComboBox<Enum<?>> colAutoInc;
     
     private final JCheckBox colPrecCB;
     
@@ -222,6 +229,13 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     private String seqNameSuffix;
 
     private final ArchitectSwingSession session;
+    
+    /**
+     * Validation handler for errors in the dialog
+     */
+    private FormValidationHandler handler;
+    
+    private StatusComponent status = new StatusComponent();
 
     public ColumnEditPanel(SQLColumn col, ArchitectSwingSession session) throws SQLObjectException {
         this(Collections.singleton(col), session);
@@ -346,6 +360,8 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         row++;
         
         layout.appendRow(RowSpec.decode("p"));
+        panel.add(status, cc.xyw(2, row++,width));
+        layout.appendRow(RowSpec.decode("p"));
         panel.add(makeTitle(Messages.getString("ColumnEditPanel.logicalName")), cc.xyw(2, row++, width)); //$NON-NLS-1$
         layout.appendRow(RowSpec.decode("p"));
         cb = new JCheckBox();
@@ -397,7 +413,9 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                 colPhysicalName.selectAll();
             }
         });
-
+        handler = new FormValidationHandler(status, true);
+        Validator v2 = new StringNotEmptyValidator();
+        handler.addValidateObject(colLogicalName,v2);
         layout.appendRow(RowSpec.decode("5dlu"));
         row++;
         
@@ -506,7 +524,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         layout.appendRow(RowSpec.decode("p"));
         final JCheckBox colNullCB = new JCheckBox();
         panel.add(colNullCB, cc.xy(2, row));
-        panel.add(colNullable = new JComboBox(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
+        panel.add(colNullable = new JComboBox<Enum<?>>(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
         typeOverrideMap.put(colNullable, colNullCB);
         colNullable.addActionListener(this);
         colNullable.addActionListener(checkboxEnabler);
@@ -535,7 +553,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         layout.appendRow(RowSpec.decode("p"));
         final JCheckBox colAutoIncCB = new JCheckBox();
         panel.add(colAutoIncCB, cc.xy(2, row));
-        panel.add(colAutoInc = new JComboBox(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
+        panel.add(colAutoInc = new JComboBox<Enum<?>>(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
         typeOverrideMap.put(colAutoInc, colAutoIncCB);
         colAutoInc.addActionListener(this);
         colAutoInc.addActionListener(checkboxEnabler);
@@ -1106,7 +1124,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JComboBox getColAutoInc() {
+    public JComboBox<Enum<?>> getColAutoInc() {
         return colAutoInc;
     }
 
@@ -1130,7 +1148,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JComboBox getColNullable() {
+    public JComboBox<Enum<?>> getColNullable() {
         return colNullable;
     }
 
@@ -1398,5 +1416,10 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
      */
     Map<JComponent, JCheckBox> getTypeOverrideMap() {
         return typeOverrideMap;
+    }
+
+    @Override
+    public ValidationHandler getValidationHandler() {
+        return handler;
     }
 }
