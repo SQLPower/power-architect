@@ -18,11 +18,15 @@
  */
     package ca.sqlpower.architect.swingui;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -96,6 +100,26 @@ public class KettleJobPanel implements DataEntryPanel {
      */
     private JButton browseFilePath;
     
+    
+    /**
+     * This field allows the user to specify an absolute path to where the file should be
+     * saved for FileBasedRepository.
+     */
+    private JTextField fileBasedPath;
+    
+    /**
+     * This button brings up a JFileChooser to allow the user to select a 'File based repository' (folder) to save
+     * the XML file output to.
+     */
+    private JButton browseFileBasedPath;
+    
+    /**
+     * The label that shows the user the path to the file based repository to let them know that the 
+     * transformations will be stored in the same place. This label is defined here as it
+     * is updated by inline classes.
+     */
+    private JLabel fileBasedTransPathLabel;
+
     /**
      * The default join type to set Kettle joins to if they are required in a transformation.
      */
@@ -112,7 +136,11 @@ public class KettleJobPanel implements DataEntryPanel {
      * The radio button that denoted the Job will be saved to a file.
      */
     private JRadioButton saveFileRadioButton;
-    
+  
+    /**
+     * The radio button that denoted the Job will be saved to a 'File based repository'.
+     */
+    private JRadioButton saveFileBasedRadioButton;
     /**
      * The radio button that denoted the Job will be saved to a repository.
      */
@@ -155,7 +183,7 @@ public class KettleJobPanel implements DataEntryPanel {
     private void buildUI(){
         KettleJob settings = session.getKettleJob();
         panel.setLayout(new FormLayout());
-        panel.setPreferredSize(new Dimension(450,300));
+        panel.setPreferredSize(new Dimension(500,450));
         
         nameField = new JTextField(settings.getJobName());
         databaseComboBox = new JComboBox();
@@ -172,7 +200,7 @@ public class KettleJobPanel implements DataEntryPanel {
         schemaName = new JTextField(settings.getSchemaName());
         
         saveFileRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToFileOption"), settings.isSavingToFile()); //$NON-NLS-1$
-        
+        //saveto file(XML)
         filePath = new JTextField(settings.getFilePath());
         filePath.getDocument().addDocumentListener(new DocumentListener(){
            public void changedUpdate(DocumentEvent e) {
@@ -198,10 +226,20 @@ public class KettleJobPanel implements DataEntryPanel {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser chooser = new JFileChooser(session.getProjectLoader().getFile());
                 chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
+                File  currentDir = new java.io.File(System.getProperty("user.home")+"/Desktop");
+               
+                if (filePath.getText() != null && !filePath.getText().isEmpty()) {
+                    File parentFile = new File(filePath.getText()).getParentFile();
+                    if (parentFile.isDirectory()) {
+                        currentDir = parentFile.getAbsoluteFile();
+                    }
+                }
+                chooser.setCurrentDirectory(currentDir);
                 int response = chooser.showSaveDialog(panel);
                 if (response != JFileChooser.APPROVE_OPTION) {
                     return;
                 } else {
+                    saveFileRadioButton.setSelected(true);
                     File file = chooser.getSelectedFile();
                     File parentFile = file.getParentFile();
                     filePath.setText(file.getPath());
@@ -218,18 +256,105 @@ public class KettleJobPanel implements DataEntryPanel {
         } else {
             transformationPath = new JLabel("     " + parentFile.getPath()); //$NON-NLS-1$
         }
-        
-        saveReposRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToRepositoryOption"), !settings.isSavingToFile()); //$NON-NLS-1$
+        // save to FileBasedRepository
+        saveFileBasedRadioButton  = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToFileBasedOption"), settings.isSavingToFileBased()); //$NON-NLS-1$
+        fileBasedPath = new JTextField(settings.getFileBasedPath());
+
+        fileBasedPath.getDocument().addDocumentListener(new DocumentListener(){
+            public void changedUpdate(DocumentEvent e) {
+                copyFilePath();
+            }
+            public void insertUpdate(DocumentEvent e) {
+                copyFilePath();
+            }
+            public void removeUpdate(DocumentEvent e) {
+                copyFilePath();
+            }
+            private void copyFilePath() {
+                if (fileBasedPath.getText() != null && !fileBasedPath.getText().isEmpty()) {
+                    File repoPath = new File(fileBasedPath.getText());
+                    if (repoPath != null) { 
+                        fileBasedTransPathLabel.setText("     " + ((repoPath.getPath() == null)?"":repoPath.getPath())); //$NON-NLS-1$ //$NON-NLS-2$
+                    }
+                }
+            }
+        });
+        browseFileBasedPath = new JButton();
+        browseFileBasedPath.setText(Messages.getString("KettleJobPanel.browseButton")); //$NON-NLS-1$
+        browseFileBasedPath.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	
+                JFileChooser chooser = new JFileChooser();
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                // 'saveAs' dialog has a built in 'New Folder' button, while 'Open' dialog doesn't.
+                // so here we are using 'saveAs' dialog instead of 'Open' dialog, which allows user to create a 
+                // 'New Folder' if user want to save a job to a new folder.
+                chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+                chooser.setApproveButtonText("Select");
+                File  currentDir = new java.io.File(System.getProperty("user.home")+"/Desktop");//new java.io.File(".");
+                if (fileBasedPath.getText() != null && !fileBasedPath.getText().isEmpty()) {
+                    if (new File(fileBasedPath.getText()).isDirectory()) {
+                        currentDir = new File(fileBasedPath.getText());
+                    }
+                }
+                chooser.setCurrentDirectory(currentDir);
+                chooser.setDialogTitle("Select Repository Directory");
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                // Hiding the 'saveAs' panel, as we are using 'saveAs' dialog to open the folder.
+                ArrayList<JPanel> jpanels = new ArrayList<JPanel>();
+                for(Component c : chooser.getComponents()){
+                    if( c instanceof JPanel ){
+                        jpanels.add((JPanel)c);
+                    }
+                }
+
+                jpanels.get(0).getComponent(0).setVisible(false);
+                int response = chooser.showSaveDialog(panel);
+                if (response != JFileChooser.APPROVE_OPTION) {
+                    return;
+                } else {
+                    saveFileBasedRadioButton.setSelected(true);
+                    File dir = chooser.getSelectedFile();
+                    if (!dir.exists()) {
+                        dir = dir.getParentFile();
+                    }
+                    if (dir != null) {
+                        fileBasedTransPathLabel.setText("     " + dir.getPath()); //$NON-NLS-1$
+                        fileBasedPath.setText(dir.getPath());
+                    }
+                }
+            }
+        });
+
+        File fileBased = new File(settings.getFileBasedPath());
+        if (settings == null || fileBased == null || fileBased.getPath() == null) {
+            fileBasedTransPathLabel = new JLabel(""); //$NON-NLS-1$
+        } else {
+            fileBasedTransPathLabel = new JLabel("     " + fileBased.getPath()); //$NON-NLS-1$
+        }
+    
+        //save to DatabaseRepository
+        saveReposRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToRepositoryOption"), !(settings.isSavingToFile() || settings.isSavingToFileBased())); //$NON-NLS-1$
 
         Object[] connectionArray = session.getContext().getConnections().toArray();
         reposDB = new JComboBox(connectionArray);
         if (connectionArray.length > 0) {
             reposDB.setSelectedIndex(0);
         }
+        reposDB.addItemListener(new ItemListener(){
+          @Override
+          public void itemStateChanged(ItemEvent e) {
+              if (e.getStateChange() == ItemEvent.SELECTED && !saveReposRadioButton.isSelected()) {
+                  saveReposRadioButton.setSelected(true);
+              }
+          }
+        });
+
         reposPropertiesButton = new JButton();
         reposPropertiesButton.setText(Messages.getString("KettleJobPanel.propertiesButton")); //$NON-NLS-1$
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                saveReposRadioButton.setSelected(true);
                 Window parentWindow = SPSUtils.getWindowInHierarchy(panel);
                 ASUtils.showDbcsDialog(parentWindow, (JDBCDataSource)reposDB.getSelectedItem(), null);
             }
@@ -237,6 +362,7 @@ public class KettleJobPanel implements DataEntryPanel {
         
         ButtonGroup saveByButtonGroup = new ButtonGroup();
         saveByButtonGroup.add(saveFileRadioButton);
+        saveByButtonGroup.add(saveFileBasedRadioButton);
         saveByButtonGroup.add(saveReposRadioButton);
         
         defaultJoinType = new JComboBox();
@@ -282,6 +408,23 @@ public class KettleJobPanel implements DataEntryPanel {
         builder.append(""); //$NON-NLS-1$
         builder.append(""); //$NON-NLS-1$
         builder.append(transformationPath, 3);
+        builder.nextLine();
+        builder.append(""); //$NON-NLS-1$
+        builder.append(saveFileBasedRadioButton, 3);
+        builder.nextLine();
+        builder.append(""); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleJobPanel.pathLabel")); //$NON-NLS-1$
+        builder.append(fileBasedPath);
+        builder.append(browseFileBasedPath);
+        builder.nextLine();
+        builder.append(""); //$NON-NLS-1$
+        builder.append(""); //$NON-NLS-1$
+        JLabel transPathLabel2 = new JLabel(Messages.getString("KettleJobPanel.transfomationsPathLabel")); //$NON-NLS-1$
+        builder.append(transPathLabel2, 3);
+        builder.nextLine();
+        builder.append(""); //$NON-NLS-1$
+        builder.append(""); //$NON-NLS-1$
+        builder.append(fileBasedTransPathLabel, 3);
         builder.nextLine();
         builder.append(""); //$NON-NLS-1$
         builder.append(saveReposRadioButton, 3);
@@ -334,6 +477,9 @@ public class KettleJobPanel implements DataEntryPanel {
         return saveFileRadioButton.isSelected();
     }
     
+    public boolean isSaveFileBased() {
+        return saveFileBasedRadioButton.isSelected();
+    }
     public boolean isSaveRepository() {
         return saveReposRadioButton.isSelected();
     }
@@ -359,6 +505,8 @@ public class KettleJobPanel implements DataEntryPanel {
         settings.setFilePath(filePath.getText());
         settings.setRepository((JDBCDataSource)reposDB.getSelectedItem());
         settings.setSavingToFile(isSaveFile());
+        settings.setFileBasedPath(fileBasedPath.getText());
+        settings.setSavingToFileBased(isSaveFileBased());
         session.getWorkspace().commit();
     }
 
