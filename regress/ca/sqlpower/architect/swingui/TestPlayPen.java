@@ -513,13 +513,19 @@ public class TestPlayPen extends TestCase {
         context.setPlDotIniPath("pl.regression.ini");
         DataSourceCollection<JDBCDataSource> pl = context.getPlDotIni();
         JDBCDataSource ds = pl.getDataSource("regression_test");
-        Connection con = ds.createConnection();
-        Statement stmt = con.createStatement();
-        stmt.execute("Create table newtable (newcol1 varchar(50), newcol2 varchar(50))");
-        stmt.close();
-        con.close();
-        
         SQLDatabase db = new SQLDatabase(ds);
+        Connection con = null;
+        try {
+            con = db.getConnection();
+            Statement stmt = con.createStatement();
+            stmt.execute("Create table newtable (newcol1 varchar(50), newcol2 varchar(50))");
+        } catch (Exception e) {
+            logger.error(e);
+        } finally {
+            con.close();
+            con = null;
+        }
+ 
         SQLTable table = db.getTableByName("newtable");
         
         //New play pen in same context

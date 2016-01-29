@@ -131,7 +131,7 @@ public abstract class TestPlayPenComponent<T extends PlayPenComponent> extends P
 	    copyIgnoreProperties.add("width");
 	    copyIgnoreProperties.add("x");
 	    copyIgnoreProperties.add("y");
-        
+	    copyIgnoreProperties.add("dragging");
         // no setters for this and it depends on the playpen's font
         copyIgnoreProperties.add("font");
         

@@ -600,9 +600,11 @@ public class SwingUIProjectLoader extends ProjectLoader {
                             +" not setting custom connection points"); //$NON-NLS-1$
                 }
 
-                int orientation = Integer.parseInt(attributes.getValue("orientation")); //$NON-NLS-1$
-                r.setOrientation(orientation);
-                
+                String rOrientation = attributes.getValue("orientation");
+                if (rOrientation != null) {
+                    int orientation = Integer.parseInt(rOrientation); //$NON-NLS-1$
+                    r.setOrientation(orientation);
+                }
                 String rLineColor = attributes.getValue("rLineColor"); //$NON-NLS-1$
                 if (rLineColor != null) {
                     Color relationshipLineColor = Color.decode(rLineColor);

@@ -1300,27 +1300,25 @@ public class PlayPen extends JPanel
 	    logger.info("adding table "+newTable); //$NON-NLS-1$
 	    addImpl(tp, preferredLocation);
 	    tp.revalidate();
-	    Transferable clipboardContents = getSession().getContext().getClipboardContents();
-	    // implemented for copy/paste issue#2074
-	    boolean isRelationshipLineSelected = false;
-	    try {
-	        Object object[] = (Object[]) clipboardContents.getTransferData(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
-	        for (int i= 0; i< object.length; i++) {
-	            if (object[i] instanceof SQLDatabase) {
-	                isRelationshipLineSelected = true;
-	            } 
-	        }
-	    } catch (UnsupportedFlavorException e) {
-	        e.printStackTrace();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    }
-
 	    if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.REVERSE_ENGINEER) {
 	        createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
 	        createRelationshipsFromPP(source, newTable, false, isAlreadyOnPlaypen, suffix);
-	    } else if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.COPY) {
+	    } else if (duplicateProperties.getDefaultTransferStyle() == TransferStyles.COPY && !assignTypes) {
 	        // draw/paste relationship line only if it is selected during copy process
+	        Transferable clipboardContents = getSession().getContext().getClipboardContents();
+	        boolean isRelationshipLineSelected = false;
+	        try {
+	            Object object[] = (Object[]) clipboardContents.getTransferData(SQLObjectSelection.LOCAL_SQLOBJECT_ARRAY_FLAVOUR);
+	            for (int i= 0; i< object.length; i++) {
+	                if (object[i] instanceof SQLDatabase) {
+	                    isRelationshipLineSelected = true;
+	                } 
+	            }
+	        } catch (UnsupportedFlavorException e) {
+	            e.printStackTrace();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
 	        if (isRelationshipLineSelected) {
 	            createRelationshipsFromPP(source, newTable, true, isAlreadyOnPlaypen, suffix);
 	        } else {

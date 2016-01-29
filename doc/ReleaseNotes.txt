@@ -1,10 +1,31 @@
 SQL Power Architect Community Edition Release Notes
-
+1.0.8
+	Bug Fixes :
+	* Resolved some NPE issues
+	* Fixed several issues in the cut/copy/paste  and delete operations.
+	* Improved UI for print dialog. (spinner width)
+	* Added validation check on creation of new/edit Column
+	* Implemented to display database name (SQL server database) in connection settings of Pentaho job creation store
+  Enhancement:
+   	* Added a property of quoting column name for PostgresSQL.
+   	* Added an option to save kettle job to a file based repository.
+   	* Implemented to support SQL Server 2012 for database connection.
+   Update:
+   	* Updated to support Java 7
+   	
+1.0.7
+	Bug Fixes:
+	 * Fixed several issues in the copy and paste operations. 
+	 * Improved on the undo and redo of table columns. 
+	 * Improved the straighten lines layout feature. 
+	 * Added 11g configuration to the basic database list that comes with Architect.
+	
 1.0.6
   Bug Fixes:
     * Fixed saving of files with XML characters in remarks fields.
     * Fixed a exception when right clicking in the play pen while dragging.
-    * Fixed an exception when sorting numerical value fields in the graphical viewer of profiles
+    * Fixed an exception when sorting numerical value fields in the graphical viewer of profiles.
+ 
 
 1.0.5
   Bug Fixes:
