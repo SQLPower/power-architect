@@ -87,8 +87,8 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		assertEquals(0, relComparator.compareColumns(list1, list2));
 		
 		list1.add(new SQLColumn());
-		assertEquals(1, relComparator.compareColumns(list1, list2));		
-		assertEquals(-1, relComparator.compareColumns(list2, list1));
+		assertEquals(-1, relComparator.compareColumns(list1, list2));		
+		assertEquals(1, relComparator.compareColumns(list2, list1));
 	}
 	
 	public Set<SQLColumn> generateColumnList(int num) throws SQLObjectException {
