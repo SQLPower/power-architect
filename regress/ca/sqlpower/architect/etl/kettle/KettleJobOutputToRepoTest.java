@@ -155,7 +155,6 @@ public class KettleJobOutputToRepoTest extends TestCase {
 
         kettleJob = new KettleJob(session);
         kettleJob.setSavingToFile(false);
-        kettleJob.setSavingToFileBased(false);
         kettleJob.setJobName("jobName");
         
         kettleJob.setRepository(ds);

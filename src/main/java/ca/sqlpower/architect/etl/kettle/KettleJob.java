@@ -317,10 +317,7 @@ public class KettleJob implements Monitorable {
             jm.setName(settings.getJobName());
             
             if (settings.isSavingToFile()) {
-                outputToXML(transformations, jm,false);
-            } else if (settings.isSavingToFileBased()){
-                jm.setDirectory(new RepositoryDirectory());
-                outputToXML(transformations, jm, true);
+                outputToXML(transformations, jm);
             } else {
                 jm.setDirectory(new RepositoryDirectory());
                 outputToRepository(jm, transformations, createRepository());
@@ -378,16 +375,11 @@ public class KettleJob implements Monitorable {
      * prompter provided by the ArchitectSession. This method is exposed as
      * package private for testing purposes.
      */
-    void outputToXML(List<TransMeta> transformations, JobMeta job, boolean isSavetoFileBased) throws IOException {
+    void outputToXML(List<TransMeta> transformations, JobMeta job) throws IOException {
         Map<File, String> outputs = new LinkedHashMap<File, String>();
         
         for (TransMeta transMeta : transformations) {
-            File file ;
-            if (isSavetoFileBased) {
-                file = new File(getTransFileBasedPath(transMeta.getName()));
-            } else {
-                file = new File(getTransFilePath(transMeta.getName()));
-            }
+            File file = new File(getTransFilePath(transMeta.getName()));
             transMeta.setFilename(file.getName());
             try {
                 outputs.put(file, transMeta.getXML());
@@ -405,18 +397,10 @@ public class KettleJob implements Monitorable {
         //This is done here so we know where the files are being saved and that they are saved
         for (int i = 1; i < job.nrJobEntries(); i++) {
             JobEntryTrans trans = (JobEntryTrans)(job.getJobEntry(i).getEntry());
-            if (isSavetoFileBased) {
-                trans.setFileName(getTransFileBasedPath(trans.getName()));
-            } else {
-                trans.setFileName(getTransFilePath(trans.getName()));
-            }
+            trans.setFileName(getTransFilePath(trans.getName()));
         }
-        String fileName = "";
-        if (isSavetoFileBased) {
-            fileName = settings.getFileBasedPath() + File.separator+settings.getJobName();
-        } else {
-            fileName = settings.getFilePath();
-        }
+
+        String fileName = settings.getFilePath();
         if (!fileName.toUpperCase().endsWith(".KJB")) {
             fileName += ".kjb";
         }
@@ -473,15 +457,6 @@ public class KettleJob implements Monitorable {
         return new File(parentPath, "transformation_for_table_" + transName + ".ktr").getPath();
     }
     
-    /**
-     * This returns the full path and file name for the given transformation name.
-     * The file location of the transformations is based on the location of the file based repository.
-     */
-    String getTransFileBasedPath(String transName) {
-        String fileBasedPath = new File(settings.getFileBasedPath()).getPath();
-        logger.debug("fileBasedPath is " + fileBasedPath);
-        return new File(fileBasedPath, "transformation_for_table_" + transName + ".ktr").getPath();
-    }
     /** 
      * Pass the repository a connection straight as the Repository
      * connect method loads its own drivers and we don't want to
@@ -771,36 +746,4 @@ public class KettleJob implements Monitorable {
     public SPDataSource getRepository() {
         return settings.getRepository();
     }
-    
-    /**
-     * 
-     * @return path for file based repository
-     */
-    public String getFileBasedPath() {
-        return settings.getFileBasedPath();
-    }
-    /**
-     * Set the path for file based repository
-     * @param fileBasedPath
-     */
-    public void setFileBasedPath(String fileBasedPath) {
-        settings.setFileBasedPath(fileBasedPath);
-    }
-
-    /**
-     * 
-     * @return 'true' if job is saving to file based repository
-     */
-    public boolean isSavingToFileBased() {
-        return settings.isSavingToFileBased();
-    }
-
-    /**
-     * set 'savingToFileBased'
-     * @param savingToFileBased
-     */
-    public void setSavingToFileBased(boolean savingToFileBased) {
-        settings.setSavingToFileBased(savingToFileBased);
-    }
-
 }

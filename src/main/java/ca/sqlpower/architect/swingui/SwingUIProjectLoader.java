@@ -1037,7 +1037,6 @@ public class SwingUIProjectLoader extends ProjectLoader {
         ioo.niprint(out, " schemaName=\"" + SQLPowerUtils.escapeXML(getSession().getKettleJob().getSchemaName()) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
         ioo.niprint(out, " kettleJoinType=\"" + getSession().getKettleJob().getKettleJoinType() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
         ioo.niprint(out, " savingToFile=\"" + getSession().getKettleJob().isSavingToFile() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-        ioo.niprint(out, " savingToFileBased=\"" + getSession().getKettleJob().isSavingToFileBased() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
         ioo.niprintln(out, " />"); //$NON-NLS-1$
     }
 

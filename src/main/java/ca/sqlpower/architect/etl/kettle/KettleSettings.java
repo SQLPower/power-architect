@@ -67,20 +67,8 @@ public class KettleSettings extends AbstractSPObject {
     /**
      * A flag that determines whether we will save the job to an xml file or a Kettle repository 
      */
-    private boolean savingToFile = false;
-
-  
-    /**
-     * The path to store the Kettle job at FileBased Repository
-     */
-    private String fileBasedPath = "";
-
-    /**
-     * A flag that determines whether we will save the job to a file based Kettle repository 
-     */ 
-    private boolean savingToFileBased = false;
-
- 
+    private boolean savingToFile = true;
+    
     @Constructor
     public KettleSettings() {
         setName("Kettle Settings");
@@ -176,29 +164,5 @@ public class KettleSettings extends AbstractSPObject {
     }
 
     public void removeDependency(SPObject dependency) {
-    }
-
-    @Accessor
-    public String getFileBasedPath() {
-        return fileBasedPath ;
-    }
-
-    @Mutator
-    public void setFileBasedPath(String path) {
-        String oldFileBasedPath = fileBasedPath;
-        fileBasedPath = path;
-        firePropertyChange("fileBasedPath", oldFileBasedPath, fileBasedPath);
-    }
-
-    @Accessor
-    public boolean isSavingToFileBased() {
-        return savingToFileBased ;
-    }
-
-    @Mutator
-    public void setSavingToFileBased(boolean val) {
-        boolean oldSavingToFileBased = savingToFileBased;
-        savingToFileBased = val;
-        firePropertyChange("savingToFileBased", oldSavingToFileBased, savingToFileBased);
     }
 }

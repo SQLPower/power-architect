@@ -224,7 +224,7 @@ public class CreateKettleJobTest extends TestCase {
         File outputFile = File.createTempFile("garbage", ".gbg");
         job.setFilePath(outputFile.getPath() + File.separator + "garbage.gbg.again");
         try {
-            job.outputToXML(transList, newJob,false);
+            job.outputToXML(transList, newJob);
             fail("This test was unsuccessful as it did not throw an IOException at " +
                     "the correct location");
         } catch (IOException e) {
@@ -338,7 +338,7 @@ public class CreateKettleJobTest extends TestCase {
         kettleJob.setFilePath(jobOutputFile.getPath());
         kettleJob.setSavingToFile(true);
         kettleJob.setJobName("jobName");
-        kettleJob.outputToXML(transList, newJob, false);
+        kettleJob.outputToXML(transList, newJob);
         
         if (checkOriginalXML) {
             assertEquals(transMeta.getXML(), readOutputXMLFile(transOutputFile));
