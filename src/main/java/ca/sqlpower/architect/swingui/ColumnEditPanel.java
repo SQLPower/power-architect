@@ -192,7 +192,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     private final JSpinner colPrec;
 
-    private final JComboBox colNullable;
+    private final JComboBox<Enum<?>> colNullable;
 
     private final JTextArea colRemarks;
 
@@ -200,7 +200,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     private final JCheckBox colInPK;
 
-    private final JComboBox colAutoInc;
+    private final JComboBox<Enum<?>> colAutoInc;
     
     private final JCheckBox colPrecCB;
     
@@ -524,7 +524,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         layout.appendRow(RowSpec.decode("p"));
         final JCheckBox colNullCB = new JCheckBox();
         panel.add(colNullCB, cc.xy(2, row));
-        panel.add(colNullable = new JComboBox(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
+        panel.add(colNullable = new JComboBox<Enum<?>>(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
         typeOverrideMap.put(colNullable, colNullCB);
         colNullable.addActionListener(this);
         colNullable.addActionListener(checkboxEnabler);
@@ -553,7 +553,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         layout.appendRow(RowSpec.decode("p"));
         final JCheckBox colAutoIncCB = new JCheckBox();
         panel.add(colAutoIncCB, cc.xy(2, row));
-        panel.add(colAutoInc = new JComboBox(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
+        panel.add(colAutoInc = new JComboBox<Enum<?>>(YesNoEnum.values()), cc.xy(3, row++)); //$NON-NLS-1$
         typeOverrideMap.put(colAutoInc, colAutoIncCB);
         colAutoInc.addActionListener(this);
         colAutoInc.addActionListener(checkboxEnabler);
@@ -1124,7 +1124,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JComboBox getColAutoInc() {
+    public JComboBox<Enum<?>> getColAutoInc() {
         return colAutoInc;
     }
 
@@ -1148,7 +1148,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
     }
 
     /** Only for testing. Normal client code should not need to call this. */
-    public JComboBox getColNullable() {
+    public JComboBox<Enum<?>> getColNullable() {
         return colNullable;
     }
 

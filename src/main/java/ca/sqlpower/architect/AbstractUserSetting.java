@@ -27,11 +27,11 @@ import org.apache.log4j.Logger;
 public abstract class AbstractUserSetting implements UserSettings {
     private static Logger logger = Logger.getLogger(AbstractUserSetting.class);
 
-    protected Map settings;
+    protected Map<String, Object> settings;
 
     public AbstractUserSetting() {
         super();
-        settings = new HashMap();
+        settings = new HashMap<String, Object>();
     }
 
     /**
@@ -149,7 +149,7 @@ public abstract class AbstractUserSetting implements UserSettings {
      * Returns the names of all settings currently held by this
      * SwingUserSettings object.  They will all be Strings.
      */
-    public Set getSettingNames() {
+    public Set<String> getSettingNames() {
         return settings.keySet();
     }
 }

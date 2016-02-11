@@ -46,7 +46,6 @@ public class SnapshotCollection extends AbstractSPObject {
      * 
      * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
-    @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
                     DomainCategory.class, SPObjectSnapshot.class)));

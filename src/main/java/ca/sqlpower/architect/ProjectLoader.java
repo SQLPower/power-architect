@@ -1071,8 +1071,6 @@ public class ProjectLoader {
                 return new BigDecimal(attributes.getValue("value"));
             } else if (className.equals(Timestamp.class.getName()) ) {
                 return new Timestamp( Timestamp.valueOf(attributes.getValue("value")).getTime() );
-            } else if (className.equals(String.class.getName()) ) {
-                return new String(attributes.getValue("value"));
             } else {
                 return new String(attributes.getValue("value"));
             }
@@ -1106,9 +1104,9 @@ public class ProjectLoader {
             } else if (className.equals(Timestamp.class.getName()) ) {
                 return new ColumnValueCount(new Timestamp( Timestamp.valueOf(value).getTime() ),count, percent, otherValues);
             } else if (className.equals(String.class.getName()) ) {
-                return new ColumnValueCount(new String(value),count, percent, otherValues);
+                return new ColumnValueCount(value,count, percent, otherValues);
             } else {
-                return new ColumnValueCount(new String(value),count, percent, otherValues);
+                return new ColumnValueCount(value,count, percent, otherValues);
             }
         }
     }
