@@ -52,7 +52,7 @@ public class AddLicenseToDMGTask extends Task {
      * "Developer/Tools/Rez" is the default install location for
      * the OS X developer tools package.
      */
-    private File rezExecutable = new File("/Developer/Tools/Rez");
+    private File rezExecutable = new File("/Applications/Xcode.app/Contents/Developer/usr/bin/Rez");
     
     /**
      * The text file containing the license agreement.

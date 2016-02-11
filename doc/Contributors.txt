@@ -26,6 +26,7 @@ Michelle Samuel
 Michael Hughes
 Thomas Kellerer
 Israel Rios
+Kirti Mistry
 
 ARTWORK
 -------
