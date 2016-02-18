@@ -22,12 +22,14 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -35,6 +37,7 @@ import javax.swing.filechooser.FileFilter;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.LocaleChooser;
 import ca.sqlpower.architect.UpdateCheckSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
@@ -68,6 +71,8 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
     
     private JRadioButton updateCheckOn;
     private JRadioButton updateCheckOff;
+    
+    private LocaleChooser languageCombo;
 
     private final ArchitectSwingSessionContext context;
 
@@ -148,6 +153,12 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
         checkUpdatesPanel.add(updateCheckOn);
         checkUpdatesPanel.add(updateCheckOff);
         add(checkUpdatesPanel);
+        // line 8
+//      adding languages which is currently supported by power architect
+        add(new JLabel(Messages.getString("PreferencesPanel.defaultLanguage"))); //$NON-NLS-1$
+        Locale locale = new Locale (us.getSwingSettings().getString(ArchitectSwingUserSettings.DEFAULT_LOCALE, ""));
+        languageCombo = new LocaleChooser(locale);
+        add(languageCombo);
 	}
 
 	protected void revertToUserSettings() {
@@ -174,9 +185,18 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
         } else {
             updateCheckOff.setSelected(true);
         }
+        if (us.getSwingSettings().getString(ArchitectSwingUserSettings.DEFAULT_LOCALE, "") != null) {
+            us.setDefaultLocale(new Locale(us.getSwingSettings().getString(ArchitectSwingUserSettings.DEFAULT_LOCALE, "")));
+            languageCombo.setLocale(us.getDefaultLocale(), true);
+        } else {
+            languageCombo.setLocale(Locale.getDefault(),true);
+        }
 	}
 
 	public boolean applyChanges() {
+	    if (!languageCombo.getLocale().toString().equalsIgnoreCase(us.getSwingSettings().getString(ArchitectSwingUserSettings.DEFAULT_LOCALE,""))) {
+	        JOptionPane.showMessageDialog(this,Messages.getString("PreferencesPanel.LocaleChangedMsg"), "Default Language", JOptionPane.INFORMATION_MESSAGE);
+	    }
 		context.setPlDotIniPath(plIniName.getText());
 		us.getETLUserSettings().setString(ETLUserSettings.PROP_ETL_LOG_PATH,etlLogFileName.getText());
 		us.getDDLUserSettings().setString(DDLUserSettings.PROP_DDL_LOG_PATH,ddlLogFileName.getText());
@@ -187,6 +207,7 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
         for (ArchitectSession session: context.getSessions()) {
             ((ArchitectSwingSession)session).getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
         }
+        us.getSwingSettings().setString(ArchitectSwingUserSettings.DEFAULT_LOCALE, languageCombo.getLocale().toString());
 		return true;
 	}
 

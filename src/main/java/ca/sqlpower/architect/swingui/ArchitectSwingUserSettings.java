@@ -53,4 +53,6 @@ public class ArchitectSwingUserSettings extends AbstractUserSetting {
             = "last.login.data.source"; //$NON-NLS-1$
     public static final String LAST_IMPORT_EXPORT_PATH
             = "last.importexport.path"; //$NON-NLS-1$
+    
+    public static final String DEFAULT_LOCALE = "SwingUserSettings.DEFAULT_LOCALE"; //$NON-NLS-1$
 }

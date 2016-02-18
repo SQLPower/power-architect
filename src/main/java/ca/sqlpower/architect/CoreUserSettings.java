@@ -18,6 +18,7 @@
  */
 package ca.sqlpower.architect;
 
+import java.util.Locale;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -72,8 +73,10 @@ public class CoreUserSettings {
     private QFAUserSettings qfaUserSettings;
     
     private UpdateCheckSettings updateCheckSettings;
+
+    private Locale defaultLocale = Locale.getDefault();
 	
-	public CoreUserSettings(Preferences prefs) {
+    public CoreUserSettings(Preferences prefs) {
 		super();
 		printUserSettings = new PrintUserSettings();
 		swingSettings = new ArchitectSwingUserSettings();
@@ -95,7 +98,13 @@ public class CoreUserSettings {
 
         swingSettings.setBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
             prefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
-
+//        if (getDefaultLocale() != null) {
+        String localeVal = prefs.get(ArchitectSwingUserSettings.DEFAULT_LOCALE, getDefaultLocale().getDisplayLanguage());
+           swingSettings.setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,localeVal);
+           setDefaultLocale(new Locale(localeVal));
+//        }  else {
+//            swingSettings.setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,Locale.getDefault().getDisplayName());
+//        }
         etlUserSettings.setString(ETLUserSettings.PROP_PL_ENGINE_PATH,
             prefs.get(ETLUserSettings.PROP_PL_ENGINE_PATH, ""));
         etlUserSettings.setString(ETLUserSettings.PROP_ETL_LOG_PATH,
@@ -131,6 +140,8 @@ public class CoreUserSettings {
         prefs.putBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, getUpdateCheckSettings().getBoolean(UpdateCheckSettings.AUTO_UPDATE_CHECK, true));
 
         prefs.put(PrintUserSettings.DEFAULT_PRINTER_NAME, printUserSettings.getDefaultPrinterName());
+        
+        prefs.put(ArchitectSwingUserSettings.DEFAULT_LOCALE, swingSettings.getString(ArchitectSwingUserSettings.DEFAULT_LOCALE, getDefaultLocale().toString()));
 
         try {
             prefs.flush();
@@ -196,4 +207,25 @@ public class CoreUserSettings {
     public UpdateCheckSettings getUpdateCheckSettings() {
         return updateCheckSettings;
     }
+
+    /**
+     * 
+     * @return current default Locale
+     */
+    public Locale getDefaultLocale() {
+        return defaultLocale;
+    }
+
+
+    /**
+     * Method used to set default Language
+     * @param defaultLocale the defaultLocale to set
+     */
+    public void setDefaultLocale(Locale defaultLocale) {
+        this.defaultLocale = defaultLocale;
+        Locale.setDefault(defaultLocale);
+    }
+
+  
+  
 }

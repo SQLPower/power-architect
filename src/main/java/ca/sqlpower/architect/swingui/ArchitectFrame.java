@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -522,7 +523,8 @@ public class ArchitectFrame extends JFrame {
         splitPane.setLeftComponent(stackedTabPane);
         
         final Preferences prefs = context.getPrefs();
-        
+        //set the default locale
+        Locale.setDefault(new Locale(prefs.get(ArchitectSwingUserSettings.DEFAULT_LOCALE,Locale.getDefault().getDisplayLanguage())));
         splitPane.setDividerLocation(prefs.getInt(ArchitectSwingUserSettings.DIVIDER_LOCATION,200));
         splitPane.setOneTouchExpandable(true);
 

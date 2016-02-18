@@ -4,7 +4,7 @@ SQL Power Architect Community Edition Release Notes
 	* Resolved some NPE issues
 	* Fixed several issues in the cut/copy/paste  and delete operations.
 	* Improved UI for print dialog. (spinner width)
-	* Added validation check on creation of new/edit Column
+	* Added validation check on creation of new/edit Column with empty logical name
 	* Implemented to display database name (SQL server database) in connection settings of Pentaho job creation store
   Enhancement:
    	* Added a property of quoting column name for PostgresSQL.
