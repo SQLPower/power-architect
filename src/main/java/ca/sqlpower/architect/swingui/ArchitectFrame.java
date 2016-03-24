@@ -1395,7 +1395,7 @@ public class ArchitectFrame extends JFrame {
                         for (int i = 0; i < args.length; i++) {
                             if (args[i].equalsIgnoreCase("-headless")) {
                                 headless = true;
-                            } else {
+                            } else if (new File(args[i]).exists()){
                                 File openFile = new File(args[i]);
                                 InputStream in = new BufferedInputStream(new FileInputStream(openFile));
                                 ArchitectSwingSession session = context.createSession(in);
@@ -1404,7 +1404,8 @@ public class ArchitectFrame extends JFrame {
                                 sessions.add(session);
                             }
                         }
-                    } else {
+                    } 
+                    if (args.length == 0 || sessions.size() == 0){
                         sessions.add(context.createSession());
                     }
                     if (!headless) {

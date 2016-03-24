@@ -173,11 +173,10 @@
 	    classname="net.sf.launch4j.ant.Launch4jTask"
 	    classpath="${launch4j.dir}/launch4j.jar
 	        :${launch4j.dir}/lib/xstream.jar" />
-	
-	<!-- OS X .app bundling tool: jarbundler -->
-	<taskdef name="jarbundler" 
-		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
-		classname="net.sourceforge.jarbundler.JarBundler"/>
+	<!-- OS X .app bundling tool: appbundler -->
+	<taskdef name="bundleapp" 
+		classpath="osx_packaging_utils/appbundler-1.0ea.jar"
+		classname="com.oracle.appbundler.AppBundlerTask"/> 
 
 	<!-- findbugs code checking tool -->
 	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
@@ -926,7 +925,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2010 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2016 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 	</target>
 
@@ -955,7 +954,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2010 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2016 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 		
 		<apply executable="dot" dest="${dist.dir}/doc" parallel="false">
@@ -1192,72 +1191,116 @@
 			 basedir="${build}"
 			 includes="ca/sqlpower/architect/swingui/OSXAdapter.class"/>
 	</target>
-
+	<echo message="java.home = ${java.home}" />
+	<fileset dir="${staging.dir}" id="runtime.jars">
+	    <include name="architect.jar" />
+	    <include name="lib/*.jar" />
+	    <include name="jdbc/*.jar" />
+	    <include name="jdbc/*.ini" /> 
+	</fileset>
 	<target name="osx_dist" depends="stage">
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
 		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${staging.dir}/lib"/>
+	    <bundleapp outputdirectory="${staging.dir}"
+	    	name="SQL Power Architect" 
+		    displayname="Architect" 
+		    identifier="ca.sqlpower.architect" 
+		    shortversion="0.8"
+		    jvmrequired="1.7"
+		    copyright="2016 SQL Power Architect"
+		    executableName="PowerArchitectStub"
+	    	icon = "${resources}/icons/Power Architect.icns"
+		    mainclassname="ca.sqlpower.architect.swingui.ArchitectFrame">
+		    <classpath refid="runtime.jars"/>
+		    <option value="-Xmx1024M"/>
+	<!--	    <option value="-Duser.dir=$APP_ROOT/Contents/Resources"/> -->
+		    <!-- Workaround since the icon parameter for bundleapp doesn't work -->
+	<!--	    <option value="-Xdock:icon=Contents/Resources/${bundle.icon}"/> -->
+		    <!-- Register the application with your custom format, bundled as a package -->
+		 	<bundledocument extensions="custom" icon="${bundle.icon}" name="SQL Power Architect Project"
+		 	        role="Editor"
+		 	        isPackage="true"/>
+  		</bundleapp> 
 
-		<!-- jarbundler is from sourceforge, defined near top of file -->
-		<jarbundler dir="${staging.dir}"
-           name="SQL Power Architect"
-           version="${app.version}"
-		   bundleid="ca.sqlpower.architect"
-           mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
-           icon="${resources}/icons/Power Architect.icns"
-           jvmversion="1.7+"
-           shortname="Architect"
-           stubfile="osx_packaging_utils/PowerArchitectStub"
-           vmoptions="-Xmx600m">
-			<jarfileset dir="${staging.dir}" includes="lib/*.jar"/>
-			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<javafileset dir="${staging.dir}" includes="jdbc/*.ini"/>
-			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
-			<documenttype name="SQL Power Architect Project"
-							extensions="architect"/>
-		</jarbundler>
-
-		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
-		<!--<replace file="${staging.dir}/SQL Power Architect.app/Contents/Info.plist"
-				 token="${basedir}/KICKME"
-				 value="$JAVAROOT" />-->
 	</target>
 
+	
 	<target name="osx_jdbc_dist" depends="stage">
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
 		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${staging.dir}/lib"/>
-
-		<!-- jarbundler is from sourceforge, defined near top of file -->
-		<jarbundler dir="${staging.dir}"
-           name="SQL Power Architect JDBC"
-           version="${app.version}.jdbc"
-		   bundleid="ca.sqlpower.architect"
-           mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
-           icon="${resources}/icons/Power Architect.icns"
-           jvmversion="1.7+"
-           shortname="Architect"
-           stubfile="osx_packaging_utils/PowerArchitectStub"
-           vmoptions="-Xmx600m">
-			<jarfileset dir="${staging.dir}" includes="lib/*.jar"/>
-			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<!-- Add any jdbc drivers as resources the directory jdbc is referenced
-					in the manifest as well as various targets. -->
-			<javafileset dir="${staging.dir}" includes="jdbc/*.jar jdbc/*.ini"/>
-			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
-			<documenttype name="SQL Power Architect Project"
-				extensions="architect"
-				role="Editor"/>
-		</jarbundler>
-
-		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
-		<replace file="${staging.dir}/SQL Power Architect JDBC.app/Contents/Info.plist"
-				 token="${basedir}/KICKME"
-				 value="$JAVAROOT" />
-
+		<echo message="java.home = ${java.home}" />
+		 <bundleapp outputdirectory="${staging.dir}"
+		 	name="SQL Power Architect JDBC" 
+		    displayname="Architect" 
+		    identifier="ca.sqlpower.architect.swingui.ArchitectFrame" 
+		    shortversion="${app.version}.jdbc"
+		 	jvmrequired="1.7"
+		 	executableName="PowerArchitectStub"
+			copyright="2016 SQL Power Architect"
+		 	icon = "${resources}/icons/Power Architect.icns"
+			mainclassname="ca.sqlpower.architect.swingui.ArchitectFrame">
+ 		 	<classpath refid="runtime.jars"/>
+ 	      	<!-- Workaround since the icon parameter for bundleapp doesn't work -->
+ 	<!--	    <option value="-Xdock:icon=Contents/Resources/${bundle.icon}"/> -->
+		    <option value="-Xmx1024M"/>
+	<!--	    <option value="-Duser.dir=$APP_ROOT/Contents/Resources"/> -->
+		 	<!-- Register the application with your custom format, bundled as a package -->
+		 	<bundledocument extensions="custom" 
+		 		icon="${bundle.icon}"
+		 	    name="SQL Power Architect Project"
+		 	    role="Editor"
+		 	    isPackage="true">
+ 	      </bundledocument>
+		</bundleapp> 
 	</target>
 
+	<!-- self signed certificate name certificate -->
+	<property name="macosx_CommonNameFromCertificate"  value ="SQL Power Code Signing Certificate" />
+
+	<!-- Sign application for osx_jdbc.  -->
+   	 <target name="osx_jdbc_signed_dist" if="isMac">
+
+  		<!-- code sign -->
+	    <echo message="Sign application for MacOSX"/>
+
+	  	<exec executable="codesign" dir="${staging.dir}">
+	  	    <arg line="-f -s 'SQL Power Code Signing Certificate' 'SQL Power Architect JDBC.app'"/>
+	  	</exec>
+
+	  	<!-- verify codesign -->
+	  	<exec executable="codesign" dir="${staging.dir}" failonerror="true">
+	  	    <arg line="-vv 'SQL Power Architect JDBC.app'"/>
+	  	</exec>
+
+	  	<!-- verify gatekeeper -->
+	  	<exec executable="spctl" dir="${staging.dir}" failonerror="true">
+	  	    <arg line="-vv --assess --type execute 'SQL Power Architect JDBC.app'"/>
+	  	</exec>
+	  </target>
+
+	<!-- Sign application for osx_jdbc.  -->
+   	 <target name="osx_signed_dist" if="isMac">
+
+  		<!-- code sign -->
+	    <echo message="Sign application for MacOSX"/>
+
+	  	<exec executable="codesign" dir="${staging.dir}">
+	  	    <arg line="-f -s 'SQL Power Code Signing Certificate' 'SQL Power Architect.app'"/>
+	  	</exec>
+
+	  	<!-- verify codesign -->
+	  	<exec executable="codesign" dir="${staging.dir}" failonerror="true">
+	  	    <arg line="-vv 'SQL Power Architect.app'"/>
+	  	</exec>
+
+	  	<!-- verify gatekeeper -->
+	  	<exec executable="spctl" dir="${staging.dir}" failonerror="true">
+	  	    <arg line="-vv --assess --type execute 'SQL Power Architect.app'"/>
+	  	</exec>
+	  </target>
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
 
-	<target name="osx_dmg" depends="osx_dist" if="isMac">
+	<target name="osx_dmg" depends="osx_dist, osx_signed_dist" if="isMac">
 		<!-- What this basically does is:
                      hdiutil create -size 50m -fs HFS+ -volname "SQL Power Architect" RWArchitect.dmg
 				     hdiutil attach RWArchitect.dmg
@@ -1306,7 +1349,7 @@
 		        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
     </target>
 
-	<target name="osx_jdbc_dmg" depends="osx_jdbc_dist" if="isMac">
+	<target name="osx_jdbc_dmg" depends="osx_jdbc_dist, osx_jdbc_signed_dist" if="isMac">
 			<!-- hdiutil create -size 50m -fs HFS+ -volname "SQL Power Architect" RWArchitect.dmg
 					     hdiutil attach RWArchitect.dmg
 					     (copy architect.app over, position it, etc)
@@ -1352,17 +1395,17 @@
 			<addLicenseToDMG
 					dmgFile="${dist.dir}/SQL-Power-Architect-OSX-jdbc-${app.version}.dmg"
 	                licenseFile="${staging.dir}/LICENSE"
-			        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
+			        resourceTemplateFile="osx_packaging_utils/sla_template.r"/> 
 	    </target>
 
-	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
+	<target name="osx_tgz" depends="osx_dist, osx_signed_dist" if="isNotMac">
 		<tar destfile="${dist.dir}/SQL-Power-Architect-OSX-${app.version}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="SQL Power Architect.app/**"/>
 		</tar>
 	</target>
 
-	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotWindows">
+	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist,osx_jdbc_signed_dist" if="isNotWindows">
 		<exec executable="tar" dir="${staging.dir}">
 			<arg value="-cpzf" />
 			<arg value="../${dist.dir}/SQL-Power-Architect-OSX-${app.version}.tar.gz"/>
@@ -1462,6 +1505,7 @@
 	<target name="checkAntVersion" description="Ensure that we're running ant 1.7">
 		<echo message="Checking Ant version. Using ${ant.version}"/>
 		<echo message="Note: This build script requires Ant 1.7 or newer."/>
+		<echo message="Note: ant home: ${ant.home}"/>
 		<fail message="This build script requires Ant 1.7 or newer">
 			<condition>
 				<not>

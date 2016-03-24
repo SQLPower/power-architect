@@ -69,7 +69,7 @@ will use this to check the latest version number.
 Announcing the New Release
 *Post to architect-developers mailing list, and the SQL Power allstaff mailing list
 *Update SQL Power Architect information page on the website
-*Front page of Google Code project
+*Front page of Google Code project. As of 2015 code moved from Google code to GitHub.
 *SQL Power website news item
 *Freshmeat.net
 *apple.com/downloads
