@@ -28,3 +28,7 @@
 
 # Set the output format for the Clover report.
 # clover.report.format=html
+
+
+#set the path for certificate
+sqlpower.certificate=\\set the\\absolute\\path for\\self signed\\certificate

@@ -869,6 +869,9 @@
 
     	<copy todir="${staging.dir}" file="LICENSE"/>
 
+    	<copy todir="${staging.dir}">
+    				<fileset dir="${sqlpower.certificate}" includes="*.*"/>
+    	</copy>
     	<!-- No point in signing until we have a certificate that's signed by a CA
     	<signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
     	   <fileset dir="webstart/lib"/>
