@@ -1264,21 +1264,25 @@
    	 <target name="osx_jdbc_signed_dist" if="isMac">
 
   		<!-- code sign -->
-	    <echo message="Sign application for MacOSX"/>
+	    <echo message="Sign application for MacOSX JDBC"/>
 
 	  	<exec executable="codesign" dir="${staging.dir}">
 	  	    <arg line="-f -s 'SQL Power Code Signing Certificate' 'SQL Power Architect JDBC.app'"/>
 	  	</exec>
 
 	  	<!-- verify codesign -->
+   	 	<echo message=" verify codesign for MacOSX JDBC"/>
 	  	<exec executable="codesign" dir="${staging.dir}" failonerror="true">
 	  	    <arg line="-vv 'SQL Power Architect JDBC.app'"/>
 	  	</exec>
 
 	  	<!-- verify gatekeeper -->
+   	 	<echo message=" verify gatekeeper for MacOSX JDBC"/>
 	  	<exec executable="spctl" dir="${staging.dir}" failonerror="true">
 	  	    <arg line="-vv --assess --type execute 'SQL Power Architect JDBC.app'"/>
 	  	</exec>
+   	 	
+   	 	<echo message=" signed successfully for MacOSX JDBC"/>
 	  </target>
 
 	<!-- Sign application for osx_jdbc.  -->
@@ -1292,14 +1296,17 @@
 	  	</exec>
 
 	  	<!-- verify codesign -->
+   	 	<echo message=" verify codesign for MacOSX"/>
 	  	<exec executable="codesign" dir="${staging.dir}" failonerror="true">
-	  	    <arg line="-vv 'SQL Power Architect.app'"/>
+	  	    <arg line="-vv --deep-verify 'SQL Power Architect.app'"/>
 	  	</exec>
 
 	  	<!-- verify gatekeeper -->
+   	 	<echo message=" verify gatekeeper for MacOSX"/>
 	  	<exec executable="spctl" dir="${staging.dir}" failonerror="true">
 	  	    <arg line="-vv --assess --type execute 'SQL Power Architect.app'"/>
 	  	</exec>
+   	 	<echo message=" signed successfully for MacOSX "/>
 	  </target>
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
 
