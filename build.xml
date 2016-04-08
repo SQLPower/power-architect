@@ -1273,15 +1273,15 @@
 	  	<!-- verify codesign -->
    	 	<echo message=" verify codesign for MacOSX JDBC"/>
 	  	<exec executable="codesign" dir="${staging.dir}" failonerror="true">
-	  	    <arg line="-vv 'SQL Power Architect JDBC.app'"/>
+	  	    <arg line="-vv --deep-verify 'SQL Power Architect JDBC.app'"/>
 	  	</exec>
 
-	  	<!-- verify gatekeeper -->
-   	 	<echo message=" verify gatekeeper for MacOSX JDBC"/>
+	  	<!-- Perform an assessment on the files -->
+   	 	<echo message="  Requests that spctl perform an assessment on the files for MacOSX JDBC"/>
 	  	<exec executable="spctl" dir="${staging.dir}" failonerror="true">
-	  	    <arg line="-vv --assess --type execute 'SQL Power Architect JDBC.app'"/>
+	  	    <arg line=" --assess --verbose=4  'SQL Power Architect JDBC.app'"/>
 	  	</exec>
-   	 	
+  
    	 	<echo message=" signed successfully for MacOSX JDBC"/>
 	  </target>
 
@@ -1301,11 +1301,11 @@
 	  	    <arg line="-vv --deep-verify 'SQL Power Architect.app'"/>
 	  	</exec>
 
-	  	<!-- verify gatekeeper -->
-   	 	<echo message=" verify gatekeeper for MacOSX"/>
-	  	<exec executable="spctl" dir="${staging.dir}" failonerror="true">
-	  	    <arg line="-vv --assess --type execute 'SQL Power Architect.app'"/>
-	  	</exec>
+   	 <!-- Perform an assessment on the files -->
+   	    <echo message="  Requests that spctl perform an assessment on the files for MacOSX JDBC"/>
+   	 	<exec executable="spctl" dir="${staging.dir}" failonerror="true">
+   	 	  	    <arg line=" --assess --verbose=4  'SQL Power Architect JDBC.app'"/>
+   	 	</exec>
    	 	<echo message=" signed successfully for MacOSX "/>
 	  </target>
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
