@@ -55,7 +55,9 @@ import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
@@ -178,35 +180,57 @@ public class KettleJob implements Monitorable {
                 List<SQLColumn> columnList = table.getColumns();
                 List<String> noMappingForColumn = new ArrayList<String>();
                 List<StepMeta> inputSteps = new ArrayList<StepMeta>();
-
+                JDBCDataSourceType dsType = targetDB.getDataSource().getParentType();
+                boolean isQuoting = dsType.getSupportsQuotingName();
+                String ddlGeneratorClass = dsType.getDDLGeneratorClass();
+                
+                logger.debug("isQuoting:  " +isQuoting );
                 for (SQLColumn column: columnList) {
                     SQLTable sourceTable;
                     String sourceColumn;
                     
-                    String dataType = column.getSourceDataTypeName();                 
+                    String dataType = column.getSourceDataTypeName();
                    
                     if (settings.isTimeStampExcluded() && dataType.equalsIgnoreCase("timestamp")) {
                         continue;
                     }
+                    // if quoting and not a PostgresDDLGenerator then adding square brackets for SQLServer
+                    String columnName = column.getName();
+                    if ((isQuoting) && ddlGeneratorClass!= null && !ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName())
+                            && !(columnName.startsWith("[") && columnName.endsWith("]"))) {
+                        columnName = "["+columnName+"]";
+                    }  else if ((isQuoting) && !(columnName.startsWith("\"") && columnName.endsWith("\""))) { 
+                        //else if quoting for PostgresDDLGenerator
+                        columnName = "\""+columnName+"\"";
+                    }
+                    logger.debug(" Quoted columnName: "+ columnName);
                     if (column.getSourceColumn() == null) {
                         // if we have no source table then we will get nulls as 
                         // placeholders from the target table.
                         sourceTable = table;
                         sourceColumn = "null";
-                        noMappingForColumn.add(column.getName());
+                        noMappingForColumn.add(columnName);
                     } else {
                         sourceTable = column.getSourceColumn().getParent();
                         sourceColumn = column.getSourceColumn().getName();
+                    }
+                    // if quoting and not a PostgresDDLGenerator then adding square brackets for SQLServer
+                    if ((isQuoting) && ddlGeneratorClass!= null && !ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName())
+                            && !(sourceColumn.startsWith("[") && sourceColumn.endsWith("]"))) {
+                        sourceColumn = "["+sourceColumn+"]";
+                    }  else if ((isQuoting) && !(sourceColumn.startsWith("\"") && sourceColumn.endsWith("\""))) { 
+                        //else if quoting for PostgresDDLGenerator
+                        sourceColumn = "\""+sourceColumn+"\"";
                     }
                     if (!tableMapping.containsKey(sourceTable)) {
                         StringBuffer buffer = new StringBuffer();
                         buffer.append("SELECT ");
                         buffer.append(sourceColumn);
-                        buffer.append(" AS ").append(column.getName());
+                        buffer.append(" AS ").append(columnName);
                         tableMapping.put(sourceTable, buffer);
                     } else {
                         tableMapping.get(sourceTable).append(", ").append
-                        (sourceColumn).append(" AS ").append(column.getName());
+                        (sourceColumn).append(" AS ").append(columnName);
                     }
                 }
 

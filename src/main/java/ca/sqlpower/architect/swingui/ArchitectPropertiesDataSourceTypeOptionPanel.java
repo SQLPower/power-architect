@@ -305,7 +305,10 @@ public class ArchitectPropertiesDataSourceTypeOptionPanel implements DataSourceT
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-               if (ddlGeneratorClass!= null && ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName())) {
+               if (ddlGeneratorClass!= null && ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName()) ||
+                       ddlGeneratorClass!= null && ddlGeneratorClass.equals(SQLServerDDLGenerator.class.getName()) ||
+                       ddlGeneratorClass!= null && ddlGeneratorClass.equals(SQLServer2005DDLGenerator.class.getName()) ||
+                       ddlGeneratorClass!= null && ddlGeneratorClass.equals(SQLServer2000DDLGenerator.class.getName()) ) {
                    quotesNameCheckBox.setVisible(true);
                } else {
                    quotesNameCheckBox.setVisible(false);
