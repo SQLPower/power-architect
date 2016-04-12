@@ -26,6 +26,7 @@ import java.io.File;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -83,6 +84,11 @@ public class KettleJobPanel implements DataEntryPanel {
      * This field allows the user to specify a schema if it is required for the database.
      */
     private JTextField schemaName;
+    
+    /**
+     * checkBox used to exclude a column with timeStamp datatype
+     */
+    private JCheckBox timeStampCheckBox;
     
     /**
      * This field allows the user to specify an absolute path to where the file should be
@@ -155,7 +161,7 @@ public class KettleJobPanel implements DataEntryPanel {
     private void buildUI(){
         KettleJob settings = session.getKettleJob();
         panel.setLayout(new FormLayout());
-        panel.setPreferredSize(new Dimension(450,300));
+        panel.setPreferredSize(new Dimension(500,450));
         
         nameField = new JTextField(settings.getJobName());
         databaseComboBox = new JComboBox();
@@ -249,7 +255,7 @@ public class KettleJobPanel implements DataEntryPanel {
         ButtonGroup saveByButtonGroup = new ButtonGroup();
         saveByButtonGroup.add(saveFileRadioButton);
         saveByButtonGroup.add(saveReposRadioButton);
-        
+        timeStampCheckBox = new JCheckBox("Exclude Column with 'TimeStamp' dataType");
         defaultJoinType = new JComboBox();
         for (int joinType = 0; joinType < MergeJoinMeta.join_types.length; joinType++) {
             defaultJoinType.addItem(MergeJoinMeta.join_types[joinType]);
@@ -272,6 +278,9 @@ public class KettleJobPanel implements DataEntryPanel {
         builder.append(""); //$NON-NLS-1$
         builder.append(Messages.getString("KettleJobPanel.schemaNameLabel")); //$NON-NLS-1$
         builder.append(schemaName, 3);
+        builder.nextLine();
+        builder.append(""); //$NON-NLS-1$
+        builder.append(timeStampCheckBox, 3);
         builder.nextLine();
         builder.append(""); //$NON-NLS-1$
         builder.append(Messages.getString("KettleJobPanel.defaultJoinTypeLabel")); //$NON-NLS-1$
@@ -370,6 +379,7 @@ public class KettleJobPanel implements DataEntryPanel {
         settings.setFilePath(filePath.getText());
         settings.setRepository((JDBCDataSource)reposDB.getSelectedItem());
         settings.setSavingToFile(isSaveFile());
+        settings.setTimeStampExcluded(timeStampCheckBox.isSelected());
         session.getWorkspace().commit();
     }
 

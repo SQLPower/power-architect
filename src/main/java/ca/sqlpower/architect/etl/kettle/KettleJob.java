@@ -182,6 +182,12 @@ public class KettleJob implements Monitorable {
                 for (SQLColumn column: columnList) {
                     SQLTable sourceTable;
                     String sourceColumn;
+                    
+                    String dataType = column.getSourceDataTypeName();                 
+                   
+                    if (settings.isTimeStampExcluded() && dataType.equalsIgnoreCase("timestamp")) {
+                        continue;
+                    }
                     if (column.getSourceColumn() == null) {
                         // if we have no source table then we will get nulls as 
                         // placeholders from the target table.
@@ -694,6 +700,14 @@ public class KettleJob implements Monitorable {
     }
     public void setSchemaName(String schemaName) {
         settings.setSchemaName(schemaName);
+    }
+ 
+    public boolean isTimeStampExcluded() {
+        return settings.isTimeStampExcluded();
+    }
+ 
+    public void setTimeStampExcluded(boolean isTimeStampExcluded) {
+        settings.setTimeStampExcluded(isTimeStampExcluded);
     }
 
     public List<String> getTasksToDo() {

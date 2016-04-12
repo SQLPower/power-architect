@@ -68,6 +68,8 @@ public class KettleSettings extends AbstractSPObject {
      * A flag that determines whether we will save the job to an xml file or a Kettle repository 
      */
     private boolean savingToFile = true;
+
+    private boolean isTimeStampExcluded = false;
     
     @Constructor
     public KettleSettings() {
@@ -144,6 +146,19 @@ public class KettleSettings extends AbstractSPObject {
         boolean oldSavingToFile = savingToFile;
         savingToFile = v;
         firePropertyChange("savingToFile", oldSavingToFile, savingToFile);
+    }
+    
+    
+    @Accessor
+    public boolean isTimeStampExcluded() {
+        return isTimeStampExcluded;
+    }
+
+    @Mutator
+    public void setTimeStampExcluded(boolean newValue) {
+        boolean oldValue = isTimeStampExcluded;
+        this.isTimeStampExcluded = newValue;
+        firePropertyChange("isTimeStampExcluded", oldValue, isTimeStampExcluded);
     }
     
     @Override
