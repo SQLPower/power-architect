@@ -44,6 +44,7 @@ import ca.sqlpower.sqlobject.SQLRelationship.Deferrability;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLType;
 import ca.sqlpower.sqlobject.SQLTypePhysicalProperties.SQLTypeConstraint;
+import ca.sqlpower.sqlobject.SQLTypePhysicalPropertiesProvider.PropertyType;
 import ca.sqlpower.sqlobject.UserDefinedSQLType;
 
 /**
@@ -435,10 +436,47 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     public String columnType(SQLColumn c) {
-        String type = super.columnType(c);
+        StringBuffer def = new StringBuffer();
+        UserDefinedSQLType columnType = c.getUserDefinedSQLType();
+        if (columnType.getUpstreamType() != null) {
+            def.append(columnType.getUpstreamType().getPhysicalName(getPlatformName()));
+        } else {
+            def.append(columnType.getPhysicalName(getPlatformName()));
+        }
+        
+        int precision = columnType.getPrecision(getPlatformName());
+        int scale = columnType.getScale(getPlatformName());
+        PropertyType precisionType = columnType.getPrecisionType(getPlatformName());
+        PropertyType scaleType = columnType.getScaleType(getPlatformName());
+        // In Microsoft SQL Server varchar(Max) limit is '2147483647', so its write it as varchar (2147483647) instead of varchar(Max)
+        // When doing forward engineering varchar(2147483647) will give  error and indicates a size is too large
+
+        if (precisionType != PropertyType.NOT_APPLICABLE && 
+                scaleType != PropertyType.NOT_APPLICABLE && 
+                precision > 0 && scale > 0) {
+            if (precision > 8000 && columnType.getName().equalsIgnoreCase("varchar")) {
+                logger.debug(" precision is > 8000 , replacing to Max");
+                def.append("(MAX");
+            } else {
+                def.append("("+columnType.getPrecision(getPlatformName()));
+            }
+            def.append(","+columnType.getScale(getPlatformName())+")");
+        } else if (precisionType != PropertyType.NOT_APPLICABLE && precision > 0) {
+            if (precision > 8000 && columnType.getName().equalsIgnoreCase("varchar")) {
+                def.append("(MAX)");
+            } else {
+                def.append("("+columnType.getPrecision(getPlatformName())+")");
+            }
+          
+        } else if (scaleType != PropertyType.NOT_APPLICABLE && scale > 0) {
+            def.append("("+columnType.getScale(getPlatformName())+")");
+        }
+        String type = def.toString();
+        
         if (c.isAutoIncrement()) {
             type += " IDENTITY";
         }
+        logger.debug("type is :"+type);
         return type;
     }
 
@@ -591,7 +629,8 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         StringBuffer def = new StringBuffer();
 
         // Column name
-        def.append(createPhysicalName(colNameMap, c));
+        String physicalName = createPhysicalName(colNameMap, c);
+        def.append(physicalName);
 
         def.append(" ");
         def.append(columnType(c));
