@@ -24,14 +24,17 @@ import java.util.Collections;
 import java.util.List;
 
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
-import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticFix;
 import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
+import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * Checks the names of tables, columns, indices, and relationships for reserved
@@ -57,18 +60,33 @@ public abstract class ReservedWordsCritic extends CriticAndSettings {
             final SQLObject sqlObject = (SQLObject) subject;
             String typeName = sqlObject.getClass().getSimpleName().substring(3);
             if (reservedWords.contains(sqlObject.getPhysicalName().toUpperCase())) {
-                final String newName = sqlObject.getPhysicalName() + "_1";
-                return Collections.singletonList(new Criticism(subject, 
-                        Messages.getString("ReservedWordsCritic.criticismDesc", 
-                                Messages.getString(typeName), 
-                                sqlObject.getPhysicalName() + " (" + sqlObject.getName() + ")"), 
-                        this, 
-                        new CriticFix(Messages.getString("ReservedWordsCritic.quickFixDesc", newName), FixType.QUICK_FIX) {
-                            @Override
-                            public void apply() {
-                                sqlObject.setPhysicalName(newName);
-                            }
-                        }));
+                String name = null;
+                SQLDatabase parentDb = SQLPowerUtils.getAncestor(sqlObject, SQLDatabase.class);
+                JDBCDataSourceType dsType = parentDb.getDataSource().getParentType();
+
+                if (dsType!=null && (dsType.getSupportsQuotingName()) ) {
+                    //quoting is used when user don't want to change physical name (e. name of Column)
+                    // if dsType supports quoting then don't change physical name 
+                    // SQLDDLGenerating will apply will apply a '[]' for SQLServer and
+                    // PostgreSQLDDL Generator will apply a quotes ("") around physical name
+                } else {
+                    name =  sqlObject.getPhysicalName() + "_1";
+                }
+
+                final String newName = name;
+                if (newName!= null) {
+                    return Collections.singletonList(new Criticism(subject, 
+                            Messages.getString("ReservedWordsCritic.criticismDesc", 
+                                    Messages.getString(typeName), 
+                                    sqlObject.getPhysicalName() + " (" + sqlObject.getName() + ")"), 
+                                    this, 
+                                    new CriticFix(Messages.getString("ReservedWordsCritic.quickFixDesc", newName), FixType.QUICK_FIX) {
+                        @Override
+                        public void apply() {
+                            sqlObject.setPhysicalName(newName);
+                        }
+                    }));
+                }
             }
         }
         return Collections.emptyList();

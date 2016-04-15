@@ -24,9 +24,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
+import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
+import ca.sqlpower.architect.ddl.critic.CriticFix;
+import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
 import ca.sqlpower.architect.ddl.critic.Criticism;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * Same as the {@link AlphaNumericNameCritic} but works on the sequence name
@@ -50,11 +57,38 @@ public class AlphaNumericSequenceNameCritic extends CriticAndSettings {
         
         List<Criticism> criticisms = new ArrayList<Criticism>();
         if (!pattern.matcher(physName).matches()) {
-            criticisms.add(new Criticism(
-                    so,
-                    Messages.getString("AlphaNumericSequenceNameCritic.quickFixMessage", so.getName()),
-                    this
-                    ));
+            String name = null;
+            SQLDatabase parentDb = SQLPowerUtils.getAncestor(so, SQLDatabase.class);
+            JDBCDataSourceType dsType = parentDb.getDataSource().getParentType();
+
+            if (dsType!=null && (dsType.getSupportsQuotingName()) ) {
+
+                if (dsType.getDDLGeneratorClass().equals(PostgresDDLGenerator.class.getName()) 
+                        && !(physName.startsWith("\"") && physName.endsWith("\""))) {
+                    name = "\""+physName+"\"";
+                } else if (!(physName.startsWith("[") && physName.endsWith("]")) && 
+                        dsType.getDDLGeneratorClass().equals(SQLServerDDLGenerator.class.getName()) ) {
+                    name = "["+physName+"]";
+                }
+            } else {
+                name =   physName;
+            }
+            if (name != null) {
+                final String newSequenceName = name;
+                criticisms.add(new Criticism(
+                        so,
+                        Messages.getString("AlphaNumericSequenceNameCritic.quickFixMessage", so.getName()),
+                        this,
+                        new CriticFix("Replace the sequence name with " + newSequenceName, FixType.QUICK_FIX) {
+                            @Override
+                            public void apply() {
+                                if (so instanceof SQLColumn) {
+                                    ((SQLColumn) so).setAutoIncrementSequenceName(newSequenceName);
+                                }
+                            }
+                        }
+                        ));
+            }
         }
         return criticisms;
     }

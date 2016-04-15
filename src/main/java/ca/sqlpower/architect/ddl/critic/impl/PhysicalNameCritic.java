@@ -26,18 +26,21 @@ import java.util.regex.Pattern;
 
 import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
-import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.architect.ddl.critic.CriticFix;
 import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
+import ca.sqlpower.architect.ddl.critic.Criticism;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.ConstructorParameter;
+import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLColumn;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLIndex;
-import ca.sqlpower.sqlobject.SQLObject;
-import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.sqlobject.SQLIndex.Column;
+import ca.sqlpower.sqlobject.SQLObject;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.sqlobject.SQLTable;
+import ca.sqlpower.util.SQLPowerUtils;
 
 /**
  * Criticizes the physical name of all SQLObjects based on the parameters given
@@ -115,18 +118,32 @@ public class PhysicalNameCritic extends CriticAndSettings {
         }
 		
         if (!getLegalNamePattern().matcher(physName).matches()) {
-            final String newLogicalName = correctPhysicalName(so, physName);
-            criticisms.add(new Criticism(
-                    so,
-                    "Physical name not legal for " + so.getPhysicalName(),
-                    this,
-                    new CriticFix("Replace the physical name with " + newLogicalName, FixType.QUICK_FIX) {
-                        @Override
-                        public void apply() {
-                            so.setPhysicalName(newLogicalName);
+            String name = null;
+            SQLDatabase parentDb = SQLPowerUtils.getAncestor(so, SQLDatabase.class);
+            JDBCDataSourceType dsType = parentDb.getDataSource().getParentType();
+
+            if (dsType!=null && (dsType.getSupportsQuotingName()) ) {
+                //quoting is used when user don't want to change physical name (e.g name of Column which may have a space or special character)
+                // if dsType supports quoting then don't change physical name 
+                // SQLDDLGenerating will apply will apply a square brackets ([]) around physical name and
+                // PostgreSQLDDL Generator will apply a quotes ("") around physical name
+            } else {
+                name =  correctPhysicalName(so, physName);
+            }
+            if (name != null) {
+                final String newLogicalName = name;
+                criticisms.add(new Criticism(
+                        so,
+                        "Physical name not legal for " + so.getPhysicalName(),
+                        this,
+                        new CriticFix("Replace the physical name with " + newLogicalName, FixType.QUICK_FIX) {
+                            @Override
+                            public void apply() {
+                                so.setPhysicalName(newLogicalName);
+                            }
                         }
-                    }
-                    ));
+                        ));
+            }
         }
         
         return criticisms;

@@ -764,4 +764,18 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         return sb.toString();
     }
 
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.ddl.GenericDDLGenerator#getQuotedPhysicalName(java.lang.String)
+     */
+    @Override
+    public String getQuotedPhysicalName(String name) {
+        if (name == null) return null;
+        if (getDsType()!=null && getDsType().getSupportsQuotingName() 
+                && !name.isEmpty() &&  !(name.startsWith("[") && name.endsWith("]"))) {
+            name = "["+name+"]";
+        }
+        logger.debug(" getQuotedphysical name: "+name);
+        return name;
+    }
+
 }

@@ -472,4 +472,15 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	public boolean supportsEnumeration() {
 	    return false;
 	}
+
+    @Override
+    public String getQuotedPhysicalName(String name) {
+        if (name == null) return null;
+        if (getDsType()!=null && (getDsType().getSupportsQuotingName() ||  isComparingDMForPostgres())
+                && !name.isEmpty() && !(name.startsWith("\"") && name.endsWith("\""))) {
+            name = "\""+name+"\"";
+        }
+        logger.debug(" getQuotedphysical name: "+name);
+        return name;
+    }
 }

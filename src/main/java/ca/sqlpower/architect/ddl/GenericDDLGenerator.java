@@ -42,8 +42,6 @@ import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.object.SPResolverRegistry;
 import ca.sqlpower.object.SPVariableHelper;
 import ca.sqlpower.object.SPVariableResolver;
-import ca.sqlpower.sql.DataSourceCollection;
-import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sqlobject.SQLCheckConstraint;
 import ca.sqlpower.sqlobject.SQLCheckConstraintVariableResolver;
@@ -164,6 +162,8 @@ public class GenericDDLGenerator implements DDLGenerator {
     protected boolean isComparingDMForPostgres = false;
     
     private ArchitectSwingSession session;
+
+    private JDBCDataSourceType dsType = null;
     
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
         this.allowConnection = allowConnection;
@@ -224,10 +224,10 @@ public class GenericDDLGenerator implements DDLGenerator {
         List<SQLTable> tableList = new ArrayList<SQLTable>(tables);
         DepthFirstSearch dfs = new DepthFirstSearch(tableList);
         tableList = dfs.getFinishOrder();
-
+        SQLDatabase parentDb = SQLPowerUtils.getAncestor(tableList.get(0), SQLDatabase.class);
+        dsType = parentDb.getDataSource().getParentType();
 		try {
 			if (allowConnection && tableList.size() > 0) {
-                SQLDatabase parentDb = SQLPowerUtils.getAncestor(tableList.get(0), SQLDatabase.class);
                 if (parentDb.isPlayPenDatabase()) {
                     con = null;
                 } else {
@@ -1459,25 +1459,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 
     /**
      * 
-     * @param name; a physical name of SQLObject
-     * @return name  with quotes, if database supports quoting name
+     * @param name
+     * @return
      */
     public String getQuotedPhysicalName(String name) {
-        if (name == null) return null;
-        boolean isQuoting = false;
-        if (session != null && session.getDDLGenerator() != null && session.getDDLGenerator().getClass().getName().equals(PostgresDDLGenerator.class.getName())) {
-            DataSourceCollection<JDBCDataSource> dataSourceCollection= session.getDataSources();
-            for (JDBCDataSourceType dsType : dataSourceCollection.getDataSourceTypes()) {
-                if (dsType.getDDLGeneratorClass().equals(PostgresDDLGenerator.class.getName())) {
-                    isQuoting = dsType.getSupportsQuotingName();
-                    break;
-                }
-            }
-        } 
-        if ((isQuoting || isComparingDMForPostgres())
-                && !(name.startsWith("\"") && name.endsWith("\""))) {
-            name = "\""+name+"\"";
-        }
+        logger.debug(" getQuotedphysical name: "+name);
         return name;
     }
 
@@ -1499,6 +1485,27 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     public boolean isComparingDMForPostgres() {
         return isComparingDMForPostgres;
+    }
+
+    /**
+     * @return the session
+     */
+    protected ArchitectSwingSession getSession() {
+        return session;
+    }
+
+    /**
+     * @return the dsType
+     */
+    protected JDBCDataSourceType getDsType() {
+        return dsType;
+    }
+
+    /**
+     * @param dsType the dsType to set
+     */
+    protected void setDsType(JDBCDataSourceType dsType) {
+        this.dsType = dsType;
     }
    
 }
