@@ -79,6 +79,8 @@ public class KettleUtils {
         if (database == null) {
             database = target.get(KettleOptions.KETTLE_DATABASE_KEY);
         }
+        String instancename = map.get(KettleOptions.KETTLE_INSTANCE_NAME);
+        
 
         databaseMeta = new DatabaseMeta(databaseName
                                               , connectionType
@@ -88,8 +90,10 @@ public class KettleUtils {
                                               , port==null?"":port
                                               , username
                                               , password);
-        
-
+        if (instancename!= null) {
+          //  Extra Attributes
+            databaseMeta.setSQLServerInstance(instancename);
+        }
         return databaseMeta;
     }
 }

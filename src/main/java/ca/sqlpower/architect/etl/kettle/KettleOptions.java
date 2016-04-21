@@ -78,5 +78,10 @@ public class KettleOptions {
      * The key to use in an SPDataSource for the host name.
      */
     public static final String KETTLE_HOSTNAME_KEY = "ca.sqlpower.architect.etl.kettle.hostname";
+    
+    /**
+     *  The string of the url parameter that defines the instance name   
+     */
+    public static final String KETTLE_INSTANCE_NAME = "instance_name";
 
 }
