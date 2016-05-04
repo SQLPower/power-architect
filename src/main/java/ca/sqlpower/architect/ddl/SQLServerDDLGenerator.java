@@ -448,13 +448,13 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
         int scale = columnType.getScale(getPlatformName());
         PropertyType precisionType = columnType.getPrecisionType(getPlatformName());
         PropertyType scaleType = columnType.getScaleType(getPlatformName());
-        // In Microsoft SQL Server varchar(Max) limit is '2147483647', so its write it as varchar (2147483647) instead of varchar(Max)
-        // When doing forward engineering varchar(2147483647) will give  error and indicates a size is too large
+        // In Microsoft SQL Server varchar(Max) or nvarchar(Max) limit is '2147483647', so its write it as varchar (2147483647) instead of varchar(Max)
+        // When doing forward engineering varchar/nvarchar(2147483647) will give  error and indicates a size is too large
 
         if (precisionType != PropertyType.NOT_APPLICABLE && 
                 scaleType != PropertyType.NOT_APPLICABLE && 
                 precision > 0 && scale > 0) {
-            if (precision > 8000 && columnType.getName().equalsIgnoreCase("varchar")) {
+            if (precision > 8000 && (columnType.getName().equalsIgnoreCase("varchar") || columnType.getName().equalsIgnoreCase("nvarchar"))) {
                 logger.debug(" precision is > 8000 , replacing to Max");
                 def.append("(MAX");
             } else {
@@ -462,7 +462,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
             }
             def.append(","+columnType.getScale(getPlatformName())+")");
         } else if (precisionType != PropertyType.NOT_APPLICABLE && precision > 0) {
-            if (precision > 8000 && columnType.getName().equalsIgnoreCase("varchar")) {
+            if (precision > 8000 && (columnType.getName().equalsIgnoreCase("varchar") || columnType.getName().equalsIgnoreCase("nvarchar"))) {
                 def.append("(MAX)");
             } else {
                 def.append("("+columnType.getPrecision(getPlatformName())+")");
