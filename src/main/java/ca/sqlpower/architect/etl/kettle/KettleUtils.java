@@ -94,6 +94,9 @@ public class KettleUtils {
           //  Extra Attributes
             databaseMeta.setSQLServerInstance(instancename);
         }
+        if (port!=null) {
+            databaseMeta.setDBPort(port); 
+        }
         return databaseMeta;
     }
 }

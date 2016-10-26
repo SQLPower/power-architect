@@ -108,7 +108,7 @@ public class KettleJobAction extends AbstractArchitectAction {
                         createKettleJobMonitor.setLocationRelativeTo(frame);
                         createKettleJobMonitor.setVisible(true);
                         List<SQLTable> tableList = getSession().getPlayPen().getTables();
-                        kettleJob.doExport(tableList, getSession().getTargetDatabase());
+                        kettleJob.doSplitedJobExport(tableList, getSession().getTargetDatabase());
                     }
 
                     @Override

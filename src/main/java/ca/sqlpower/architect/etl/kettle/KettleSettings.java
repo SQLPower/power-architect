@@ -71,6 +71,16 @@ public class KettleSettings extends AbstractSPObject {
 
     private boolean isTimeStampExcluded = false;
     
+    private boolean isSplittingJob = false;
+    
+    /**
+     * split job number
+     * used to split the big job into smaller batch of spliJob no
+     * minimum job number is 2
+     */
+    private int splitJobNo = 2;
+    
+   
     @Constructor
     public KettleSettings() {
         setName("Kettle Settings");
@@ -179,5 +189,35 @@ public class KettleSettings extends AbstractSPObject {
     }
 
     public void removeDependency(SPObject dependency) {
+    }
+
+    @Accessor
+    public int getSplitJobNo() {
+        return splitJobNo;
+    }
+    
+    @Mutator
+    public void setSplitJobNo(int newValue) {
+        int oldValue = splitJobNo;
+        this.splitJobNo = newValue;
+        firePropertyChange("splitJobNo", oldValue, splitJobNo);
+    }
+
+    /**
+     * @return the isSplittingJob
+     */
+    @Accessor
+    public boolean isSplittingJob() {
+        return isSplittingJob;
+    }
+
+    /**
+     * @param isSplittingJob the isSplittingJob to set
+     */
+    @Mutator
+    public void setSplittingJob(boolean newValue) {
+        boolean oldValue = isSplittingJob;
+        this.isSplittingJob = newValue;
+        firePropertyChange("isSplittingJob", oldValue, isSplittingJob);
     }
 }

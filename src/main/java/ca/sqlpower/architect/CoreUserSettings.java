@@ -97,14 +97,14 @@ public class CoreUserSettings {
         logger.debug("Preferences class = " + prefs.getClass());
 
         swingSettings.setBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
-            prefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
-//        if (getDefaultLocale() != null) {
-        String localeVal = prefs.get(ArchitectSwingUserSettings.DEFAULT_LOCALE, getDefaultLocale().getDisplayLanguage());
-           swingSettings.setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,localeVal);
-           setDefaultLocale(new Locale(localeVal));
-//        }  else {
-//            swingSettings.setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,Locale.getDefault().getDisplayName());
-//        }
+                prefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+        if (getDefaultLocale() != null) {
+            String localeVal = prefs.get(ArchitectSwingUserSettings.DEFAULT_LOCALE, getDefaultLocale().getDisplayLanguage());
+            swingSettings.setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,localeVal);
+            setDefaultLocale(new Locale(localeVal));
+        }  else {
+            swingSettings.setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,Locale.getDefault().getDisplayName());
+        }
         etlUserSettings.setString(ETLUserSettings.PROP_PL_ENGINE_PATH,
             prefs.get(ETLUserSettings.PROP_PL_ENGINE_PATH, ""));
         etlUserSettings.setString(ETLUserSettings.PROP_ETL_LOG_PATH,

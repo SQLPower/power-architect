@@ -22,19 +22,28 @@ import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.File;
+import java.util.List;
 
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -43,6 +52,8 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -72,7 +83,7 @@ public class KettleJobPanel implements DataEntryPanel {
      * The combo box that lists all of the target databases. This is used to
      * select the database to copy all of the data to.
      */
-    private JComboBox databaseComboBox;
+    private JComboBox<JDBCDataSource> databaseComboBox;
     
     /**
      * This button brings up a new DBCS panel to make a new connection to select
@@ -91,6 +102,16 @@ public class KettleJobPanel implements DataEntryPanel {
     private JCheckBox timeStampCheckBox;
     
     /**
+     * checkbox used to split the job
+     */
+    private JCheckBox splitJobCheckBox;
+    
+    /**
+     * user can select/write the number to split the job
+     */
+    private JSpinner splitSpinner;
+    
+    /**
      * This field allows the user to specify an absolute path to where the file should be
      * saved if the kettle job is to be saved as a file in XML format.
      */
@@ -105,7 +126,7 @@ public class KettleJobPanel implements DataEntryPanel {
     /**
      * The default join type to set Kettle joins to if they are required in a transformation.
      */
-    private JComboBox defaultJoinType;
+    private JComboBox<String> defaultJoinType;
     
     /**
      * The label that shows the user the path to the Job file to let them know that the 
@@ -142,6 +163,10 @@ public class KettleJobPanel implements DataEntryPanel {
      */
     private final ArchitectSwingSession session;
     
+    private List<SQLTable> tableList;
+    
+    private KettleJob settings;
+    
     /**
      * This constructor creates a Kettle job panel and displays it to the user.
      * 
@@ -159,12 +184,16 @@ public class KettleJobPanel implements DataEntryPanel {
      * Kettle job properties.
      */
     private void buildUI(){
-        KettleJob settings = session.getKettleJob();
+        settings = session.getKettleJob();
         panel.setLayout(new FormLayout());
         panel.setPreferredSize(new Dimension(500,450));
-        
+        try {
+           tableList = session.getPlayPen().getTables();
+        } catch (SQLObjectException e1) {
+             e1.printStackTrace();
+        }
         nameField = new JTextField(settings.getJobName());
-        databaseComboBox = new JComboBox();
+        databaseComboBox = new JComboBox<JDBCDataSource>();
         ASUtils.setupTargetDBComboBox(session, databaseComboBox);
         newDatabaseButton = new JButton();
         newDatabaseButton.setText(Messages.getString("KettleJobPanel.propertiesButton")); //$NON-NLS-1$
@@ -256,7 +285,49 @@ public class KettleJobPanel implements DataEntryPanel {
         saveByButtonGroup.add(saveFileRadioButton);
         saveByButtonGroup.add(saveReposRadioButton);
         timeStampCheckBox = new JCheckBox("Exclude Column with 'TimeStamp' dataType");
-        defaultJoinType = new JComboBox();
+        // to split the main job into multiple inner job
+        splitJobCheckBox = new JCheckBox("Split the job");
+        splitSpinner =  new JSpinner(new SpinnerNumberModel(settings.getSplitJobNo(), 2, null, 1));
+        splitSpinner.setEnabled(splitJobCheckBox.isSelected());
+        splitJobCheckBox.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AbstractButton abstractButton = (AbstractButton) e.getSource();
+                    splitSpinner.setEnabled(abstractButton.getModel().isSelected());
+            }
+            
+        });
+        JComponent editor = splitSpinner.getEditor();
+        final JFormattedTextField tf = ((JSpinner.DefaultEditor) editor).getTextField();
+        tf.setColumns(3);
+        tf.addFocusListener(new FocusListener() {
+
+            @Override
+            public void focusGained(FocusEvent e) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+              System.out.println(tf.getText());
+                if (!isValidSplitNo()) {
+                    tf.setFocusable(true);
+                }
+            }
+            
+        });
+        splitSpinner.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!isValidSplitNo()) {
+                    tf.setFocusable(true);
+                }
+            }
+        });
+        defaultJoinType = new JComboBox<String>();
         for (int joinType = 0; joinType < MergeJoinMeta.join_types.length; joinType++) {
             defaultJoinType.addItem(MergeJoinMeta.join_types[joinType]);
         }
@@ -281,6 +352,9 @@ public class KettleJobPanel implements DataEntryPanel {
         builder.nextLine();
         builder.append(""); //$NON-NLS-1$
         builder.append(timeStampCheckBox, 3);
+        builder.nextLine();
+        builder.append(""); //$NON-NLS-1$
+        builder.append(splitJobCheckBox, splitSpinner);
         builder.nextLine();
         builder.append(""); //$NON-NLS-1$
         builder.append(Messages.getString("KettleJobPanel.defaultJoinTypeLabel")); //$NON-NLS-1$
@@ -317,13 +391,30 @@ public class KettleJobPanel implements DataEntryPanel {
         builder.append(check, 5);
         
     }
-   
+   /**
+    * check if user entered a valid split number
+    */
+    private boolean isValidSplitNo() {
+        if (splitSpinner.getValue() instanceof Integer) {
+            int splitno = (Integer)splitSpinner.getValue();
+            if (tableList.size() <= splitno) {
+                JOptionPane.showMessageDialog(panel, "The split number must be greater then two or less then the number of tables in a PlayPen", "Invalid Split Number", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+        } else {
+            JOptionPane.showMessageDialog(panel, "Enter a valid number to split the job", "Invalid Split Number", JOptionPane.WARNING_MESSAGE);  
+           return false;
+        }
+        return true;
+    }
+
     /**
      * Copies the settings to the project and verifies that the Job name is not empty and the file path is not
      * empty if the job is to be saved to a file.
      */
     public boolean applyChanges() {
         copySettingsToProject();
+        if (!isValidSplitNo()) return false;
         if (nameField.getText().equals("")) { //$NON-NLS-1$
             JOptionPane.showMessageDialog(panel, Messages.getString("KettleJobPanel.jobNameNotSetError")); //$NON-NLS-1$
             return false;
@@ -380,6 +471,8 @@ public class KettleJobPanel implements DataEntryPanel {
         settings.setRepository((JDBCDataSource)reposDB.getSelectedItem());
         settings.setSavingToFile(isSaveFile());
         settings.setTimeStampExcluded(timeStampCheckBox.isSelected());
+        settings.setSplittingJob(splitJobCheckBox.isSelected());
+        settings.setSplitJobNo((Integer)splitSpinner.getValue());
         session.getWorkspace().commit();
     }
 

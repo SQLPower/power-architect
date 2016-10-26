@@ -132,8 +132,8 @@ public class ASUtils {
      * of "(Target Database)" if it is customized or it will make sure that only one
      * copy of the target's connection is in the list
      */
-	public static void setupTargetDBComboBox(final ArchitectSwingSession session, final JComboBox targetDB) {
-        JComboBox newTargetDB = new JComboBox();
+	public static void setupTargetDBComboBox(final ArchitectSwingSession session, final JComboBox<JDBCDataSource> databaseComboBox) {
+        JComboBox<JDBCDataSource> newTargetDB = new JComboBox<JDBCDataSource>();
         JDBCDataSource currentTarget = session.getTargetDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
         for (JDBCDataSource dbcs : session.getDataSources().getConnections()) {
@@ -142,15 +142,15 @@ public class ASUtils {
             }
         }
         newTargetDB.setSelectedIndex(0);
-        targetDB.setModel(newTargetDB.getModel());
-        targetDB.addActionListener(new ActionListener() {
+        databaseComboBox.setModel(newTargetDB.getModel());
+        databaseComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JDBCDataSource projectDS = session.getTargetDatabase().getDataSource();
-                JDBCDataSource comboBoxDS = (JDBCDataSource)((JComboBox)e.getSource()).getSelectedItem();
+                JDBCDataSource comboBoxDS = (JDBCDataSource)((JComboBox<?>)e.getSource()).getSelectedItem();
                 if(!projectDS.equals(comboBoxDS)) {
                     projectDS.copyFrom(comboBoxDS);
                 }
-                setupTargetDBComboBox(session, targetDB);
+                setupTargetDBComboBox(session, databaseComboBox);
             }
         });
     }
@@ -163,7 +163,7 @@ public class ASUtils {
     public static void showTargetDbcsDialog(
             Window parentWindow,
             final ArchitectSwingSession session,
-            final JComboBox targetDB) {
+            final JComboBox<JDBCDataSource> targetDB) {
         
         JDialog d = showDbcsDialog(parentWindow, session.getTargetDatabase().getDataSource(), null, false);
         
@@ -277,7 +277,7 @@ public class ASUtils {
         // update kettle fields if/when user picks new driver
         generalPanel.getDataSourceTypeBox().addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-                JComboBox cb = (JComboBox) e.getSource();
+                JComboBox<JDBCDataSourceType> cb = (JComboBox<JDBCDataSourceType>) e.getSource();
                 JDBCDataSourceType parentType = (JDBCDataSourceType) cb.getSelectedItem();
                 kettlePanel.parentTypeChanged(parentType);
             }

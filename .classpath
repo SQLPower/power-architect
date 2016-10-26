@@ -7,7 +7,7 @@
 	<classpathentry kind="src" path="generated"/>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/sqlpower_library"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sqlpower-library"/>
 	<classpathentry kind="lib" path="buildlib/ant.jar"/>
 	<classpathentry kind="lib" path="buildlib/gsbase-2.0.1.jar"/>
 	<classpathentry kind="lib" path="buildlib/junit.jar"/>
