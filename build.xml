@@ -235,6 +235,7 @@
 		
 		<mkdir dir="${build}"/>
 		<mkdir dir="${build_tmp}"/>
+	 	<mkdir dir="${generated}"/>
 		
 		<!-- get the version number from source code ArchitectUtils -->
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
@@ -261,7 +262,7 @@
 		<condition property="app.ver.suffix" value="-${app_ver_suffix}">
 			<not><isset property="app.ver.suffix"/></not>
 		</condition>
-
+	<!-- app_ver_minor can be found at a.sqlpower.architect.antbuild.ArchitectVersionTask -->
 		<property name="app.version" value="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}${app.ver.suffix}"/>
 		
 		<property name="dist.dir" value="${dist.base}/architect-${app.version}"/>
@@ -456,26 +457,22 @@
 	   	
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
 		
-		<apt srcdir="${src}"
-            destdir="${build_tmp}"
-            classpathref="apt.classpath"
-            debug="true"
-            compile="true"
-            factory="ca.sqlpower.object.annotation.SPAnnotationProcessorFactory"
-            preprocessdir="${generated}">
-        </apt>
-        
-		<delete dir="${build}"/>
-        
-		<move todir="${build}">
-            <fileset dir="${build_tmp}"/>
-        </move>
-        
-		<copy todir="${build}" flatten="false">
-            <fileset dir="${resources}">
-                <include name="**/*"/>
-            </fileset>
-        </copy>
+		
+		<javac srcdir="${src}" destdir="${generated}" classpathref="apt.classpath" debug="true" includeantruntime="false">
+					<compilerarg value="-proc:only" />
+					<compilerarg value="-processor" />
+					<compilerarg value="ca.sqlpower.object.annotation.SPAnnotationProcessor" />
+		</javac>
+		
+		<javac srcdir="${generated}" destdir="${build}" classpathref="compile.classpath" debug="true"/>
+  	
+		<copy flatten="false" todir="${build}">
+					<fileset dir="${resources}">
+						<include name="**/*"/>
+					</fileset>
+		</copy>
+		<delete dir="${build_tmp}"/>
+		
 	</target>
 	
 	<target name="compile-tests" depends="compile"
@@ -836,7 +833,7 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
-				<jre minVersion="1.7.0"
+				<jre minVersion="1.8.0"
 					 maxHeapSize="600"
 				/>
 			</config>
@@ -857,7 +854,7 @@
 					mutexName="SQL Power Architect Uninstaller"
 					windowTitle="SQL Power Architect Uninstaller"
 				/>
-				<jre minVersion="1.7.0"/>
+				<jre minVersion="1.8.0"/>
 			</config>
 		</launch4j>
     	
@@ -928,7 +925,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2016 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2020 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 	</target>
 
@@ -957,7 +954,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2016 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2020 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 		
 		<apply executable="dot" dest="${dist.dir}/doc" parallel="false">
@@ -983,7 +980,7 @@
 					<appname>SQL Power Architect</appname>
 					<appversion>@{app.version}</appversion>
 					<url>http://www.sqlpower.ca/</url>
-					<javaversion>1.7</javaversion>
+					<javaversion>1.8</javaversion>
 					<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
 					<!-- <pack200/> -->
 				</info>
@@ -1064,7 +1061,7 @@
 						<appname>SQL Power Architect</appname>
 						<appversion>@{app.version}</appversion>
 						<url>http://www.sqlpower.ca/</url>
-						<javaversion>1.7</javaversion>
+						<javaversion>1.8</javaversion>
 						<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
 						<!-- <pack200/> -->
 					</info>
@@ -1156,7 +1153,7 @@
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
 				/>
-				<jre minVersion="1.7.0"/>
+				<jre minVersion="1.8.0"/>
 			</config>
 		</launch4j>
 	</target>
@@ -1179,7 +1176,7 @@
 					mutexName="SQL Power Architect Installer"
 					windowTitle="SQL Power Architect Installer"
 				/>
-				<jre minVersion="1.7.0"/>
+				<jre minVersion="1.8.0"/>
 			</config>
 		</launch4j>
 	</target>
@@ -1209,8 +1206,8 @@
 		    displayname="Architect" 
 		    identifier="ca.sqlpower.architect" 
 		    shortversion="0.8"
-		    jvmrequired="1.7"
-		    copyright="2016 SQL Power Architect"
+		    jvmrequired="1.8"
+		    copyright="2020 SQL Power Architect"
 		    executableName="PowerArchitectStub"
 	    	icon = "${resources}/icons/Power Architect.icns"
 		    mainclassname="ca.sqlpower.architect.swingui.ArchitectFrame">
@@ -1237,9 +1234,9 @@
 		    displayname="Architect" 
 		    identifier="ca.sqlpower.architect.swingui.ArchitectFrame" 
 		    shortversion="${app.version}.jdbc"
-		 	jvmrequired="1.7"
+		 	jvmrequired="1.8"
 		 	executableName="PowerArchitectStub"
-			copyright="2016 SQL Power Architect"
+			copyright="2020 SQL Power Architect"
 		 	icon = "${resources}/icons/Power Architect.icns"
 			mainclassname="ca.sqlpower.architect.swingui.ArchitectFrame">
  		 	<classpath refid="runtime.jars"/>

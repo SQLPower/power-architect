@@ -24,8 +24,6 @@ import java.io.File;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl;
-import ca.sqlpower.architect.transformation.ReportTransformer;
-import ca.sqlpower.architect.transformation.TransformerFactory;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLTable;
