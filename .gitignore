@@ -1,0 +1,10 @@
+/eclipse-bin/
+/build/
+/build_examples/
+/build_tests/
+/dist/
+/staging/
+/generated/
+/build.properties
+/${cpd-results}
+/${pmd-results}
