@@ -395,15 +395,17 @@ public class KettleJobPanel implements DataEntryPanel {
     * check if user entered a valid split number
     */
     private boolean isValidSplitNo() {
-        if (splitSpinner.getValue() instanceof Integer) {
-            int splitno = (Integer)splitSpinner.getValue();
-            if (tableList.size() <= splitno) {
-                JOptionPane.showMessageDialog(panel, "The split number must be greater then two or less then the number of tables in a PlayPen", "Invalid Split Number", JOptionPane.WARNING_MESSAGE);
+        if (splitJobCheckBox.isSelected() ) { 
+            if( splitSpinner.getValue() instanceof Integer) {
+                int splitno = (Integer)splitSpinner.getValue();
+                if (tableList.size() <= splitno) {
+                    JOptionPane.showMessageDialog(panel, "The split number must be greater then two or less then the number of tables in a PlayPen", "Invalid Split Number", JOptionPane.WARNING_MESSAGE);
+                    return false;
+                }
+            } else {
+                JOptionPane.showMessageDialog(panel, "Enter a valid number to split the job", "Invalid Split Number", JOptionPane.WARNING_MESSAGE);  
                 return false;
             }
-        } else {
-            JOptionPane.showMessageDialog(panel, "Enter a valid number to split the job", "Invalid Split Number", JOptionPane.WARNING_MESSAGE);  
-           return false;
         }
         return true;
     }
@@ -472,7 +474,9 @@ public class KettleJobPanel implements DataEntryPanel {
         settings.setSavingToFile(isSaveFile());
         settings.setTimeStampExcluded(timeStampCheckBox.isSelected());
         settings.setSplittingJob(splitJobCheckBox.isSelected());
-        settings.setSplitJobNo((Integer)splitSpinner.getValue());
+        if(splitJobCheckBox.isSelected()) {
+            settings.setSplitJobNo((Integer)splitSpinner.getValue());
+        }
         session.getWorkspace().commit();
     }
 
