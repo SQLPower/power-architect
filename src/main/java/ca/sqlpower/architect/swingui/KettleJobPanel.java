@@ -311,7 +311,6 @@ public class KettleJobPanel implements DataEntryPanel {
 
             @Override
             public void focusLost(FocusEvent e) {
-              System.out.println(tf.getText());
                 if (!isValidSplitNo()) {
                     tf.setFocusable(true);
                 }
