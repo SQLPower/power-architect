@@ -353,7 +353,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
         colSourceButton = new JButton();
         colSourceButton.setAction(new PopupJTreeAction(panel, colSourceTree, colSourceButton, SQLColumn.class));
         
-        panel.add(colSourceButton, cc.xyw(2, row++, 2));
+        panel.add(colSourceButton, cc.xyw(2, row++, 5));
         componentEnabledMap.put(colSourceTree, cb);
         
         layout.appendRow(RowSpec.decode("5dlu"));
