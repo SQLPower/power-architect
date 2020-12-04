@@ -26,7 +26,9 @@ import java.io.OutputStreamWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +66,8 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
+import ca.sqlpower.sqlobject.SQLRelationship;
+import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
@@ -191,6 +195,8 @@ public class KettleJob implements Monitorable {
                 List<SQLColumn> columnList = table.getColumns();
                 List<String> noMappingForColumn = new ArrayList<String>();
                 List<StepMeta> inputSteps = new ArrayList<StepMeta>();
+                List<String[]> keyFields1 = new ArrayList<String[]>();
+                List<String[]> keyFields2 = new ArrayList<String[]>();
                 JDBCDataSourceType dsType = targetDB.getDataSource().getParentType();
                 boolean isQuoting = dsType.getSupportsQuotingName();
                 String ddlGeneratorClass = dsType.getDDLGeneratorClass();
@@ -233,15 +239,17 @@ public class KettleJob implements Monitorable {
                         //else if quoting for PostgresDDLGenerator
                         sourceColumn = "\""+sourceColumn+"\"";
                     }
-                    if (!tableMapping.containsKey(sourceTable)) {
-                        StringBuffer buffer = new StringBuffer();
-                        buffer.append("SELECT ");
-                        buffer.append(sourceColumn);
-                        buffer.append(" AS ").append(columnName);
-                        tableMapping.put(sourceTable, buffer);
-                    } else {
-                        tableMapping.get(sourceTable).append(", ").append
-                        (sourceColumn).append(" AS ").append(columnName);
+                    if(column.getSourceColumn() != null ) {
+                        if (!tableMapping.containsKey(sourceTable)) {
+                            StringBuffer buffer = new StringBuffer();
+                            buffer.append("SELECT ");
+                            buffer.append(sourceColumn);
+                            buffer.append(" AS ").append(columnName);
+                            tableMapping.put(sourceTable, buffer);
+                        } else {
+                            tableMapping.get(sourceTable).append(", ").append
+                            (sourceColumn).append(" AS ").append(columnName);
+                        }
                     }
                 }
 
@@ -252,12 +260,15 @@ public class KettleJob implements Monitorable {
                         continue;
                     } else {
                         StringBuffer buffer = new StringBuffer();
-                        buffer.append("There is no source for the column(s): ");
-                        for (String noMapForCol: noMappingForColumn) {
-                            buffer.append(noMapForCol).append(" ");
+                        if(noMappingForColumn.size() > 0) {
+                            buffer.append("There is no source for the column(s): ");
+                            for (String noMapForCol: noMappingForColumn) {
+                                buffer.append(noMapForCol).append(" ");
+                            }
+
+                            tasksToDo.add(buffer.toString() + " for the table " + table.getName());
+                            transMeta.addNote(new NotePadMeta(buffer.toString(), 0, 150, 125, 125));
                         }
-                        tasksToDo.add(buffer.toString() + " for the table " + table.getName());
-                        transMeta.addNote(new NotePadMeta(buffer.toString(), 0, 150, 125, 125));
                     }
                 }
 
@@ -267,6 +278,38 @@ public class KettleJob implements Monitorable {
                 }
 
                 for (SQLTable sourceTable: tableMapping.keySet()) {
+                  List<String> keys1 = new LinkedList<String>();
+                  List<String> keys2 = new LinkedList<String>();
+                  /**
+                   * Exported keys are different for table in Database then table id PlayPen when user create new Relationship 
+                   * manually which doesn't exists in database table.
+                   * Here When user create a kettle job it based on Playpen tables. User might create new relationship. So to get the correct exported keys
+                   * for Playpen Tables we are getting the table whose parent is PlayPen.
+                   * So here tables in tableMapping Map has the table from database (parent is database). While table from the tableList has the parent as a PlayPen.
+                   * So even though the table is dragged from database it can have different exported keys (after dragging it in the playpen)specially when user create new relationship manually.
+                   */
+                  SQLTable playpenTable = null;
+                  for(SQLTable pTable :tableList) {
+                      if (sourceTable.getName().equalsIgnoreCase(pTable.getName())) {
+                          playpenTable = pTable; 
+                          break;
+                      }
+                  }
+                  logger.debug("playpenTable name:" + (playpenTable != null ?playpenTable.getName(): "null"));
+                  if (playpenTable != null) {
+                      for (SQLRelationship exportedKeys : playpenTable.getExportedKeys()) {
+                          for (ColumnMapping mapping: exportedKeys.getMappings()) {
+                              SQLColumn pkCol = mapping.getPkColumn();
+                              SQLColumn fkCol = mapping.getFkColumn();
+                              if(pkCol != null && fkCol!= null) {
+                                  keys1.add(pkCol.getName());
+                                  keys2.add(fkCol.getName());
+                              }
+                          }
+                      }
+                  }
+                    keyFields1.add(keys1.toArray(new String[keys1.size()]));
+                    keyFields2.add(keys2.toArray(new String[keys2.size()]));
                     JDBCDataSource source = sourceTable.getParentDatabase().getDataSource();
                     DatabaseMeta databaseMeta = addDatabaseConnection(databaseNames, source);
                     transMeta.addDatabase(databaseMeta);
@@ -281,10 +324,9 @@ public class KettleJob implements Monitorable {
                     transMeta.addStep(stepMeta);
                     inputSteps.add(stepMeta);
                 }
-
                 List<StepMeta> mergeSteps;
-                mergeSteps = createMergeJoins(settings.getJoinType(), transMeta, inputSteps);
-
+               
+                mergeSteps = createMergeJoins(settings.getJoinType(), transMeta, inputSteps,keyFields1, keyFields2);
                 TableOutputMeta tableOutputMeta = new TableOutputMeta();
                 tableOutputMeta.setDatabaseMeta(targetDatabaseMeta);
                 tableOutputMeta.setTablename(table.getName());
@@ -293,23 +335,27 @@ public class KettleJob implements Monitorable {
                 stepMeta.setDraw(true);
                 stepMeta.setLocation((inputSteps.size()+1)*spacing, inputSteps.size()*spacing);
                 transMeta.addStep(stepMeta);
+                if (inputSteps.size() >0 ) {
                 TransHopMeta transHopMeta = 
                     new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
-                if (!mergeSteps.isEmpty()) {
-                    transMeta.addNote(new NotePadMeta("The final hop is disabled because the join types may need to be updated.",0,0,125,125));
-                    tasksToDo.add("Enable the final hop in " + transMeta.getName() + " after correcting the merge joins.");
-                    transHopMeta.setEnabled(false);
-                }
+                //Commented as it always disable the hop for merge join
+//                if (!mergeSteps.isEmpty()) {
+//                    transMeta.addNote(new NotePadMeta("The final hop is disabled because the join types may need to be updated.",0,0,125,125));
+//                    tasksToDo.add("Enable the final hop in " + transMeta.getName() + " after correcting the merge joins.");
+//                    transHopMeta.setEnabled(false);
+//                }
                 transMeta.addTransHop(transHopMeta);
 
                 transformations.add(transMeta);
-
+                logger.debug("Added a Trnasformation job for table "+table.getName());
+                }
+                }
                 if (monitor.isCancelled()) {
                     cancel();
                     return;
                 }
                 
-            }
+//            }
 
             if (!noTransTables.isEmpty()) {
                 StringBuffer buffer = new StringBuffer();
@@ -360,10 +406,10 @@ public class KettleJob implements Monitorable {
             successEntry.setLocation(i*spacing, spacing);
             successEntry.setDrawn();
             jm.addJobEntry(successEntry);
-          
-            JobHopMeta hop = new JobHopMeta(oldJobEntry, successEntry);
-            jm.addJobHop(hop);
-            
+            if(oldJobEntry != null) {
+                JobHopMeta hop = new JobHopMeta(oldJobEntry, successEntry);
+                jm.addJobHop(hop);
+            }
             if (monitor.isCancelled()) {
                 cancel();
                 return;
@@ -373,7 +419,7 @@ public class KettleJob implements Monitorable {
                  jobname += "_"+getJob_no();
             }
             jm.setName(jobname);
-     //       System.out.println("setting job name: "+jobname);
+            logger.debug("setting job name: "+jobname);
             if (settings.isSavingToFile()) {
                 outputToXML(transformations, jm);
             } else {
@@ -452,7 +498,7 @@ public class KettleJob implements Monitorable {
                     return;
                 }
 
-                jm.setName( settings.getJobName());
+                jm.setName(settings.getJobName());
                 job_no=0;
                 if (settings.isSavingToFile()) {
                     jobOutputToXML(jobMetaList, jm);
@@ -484,7 +530,7 @@ private void jobOutputToXML(List<JobMeta> jmList, JobMeta jm) throws IOException
     for (int i = 1; i < jm.nrJobEntries() -1; i++) {
         JobEntryJob jobs = (JobEntryJob)(jm.getJobEntry(i).getEntry());
         jobs.setFileName(getJobFilePath(jobs.getName()));
-        System.out.println("\n jobOutputToXML::jobs fileName: "+jobs.getFileName());
+        logger.debug("jobOutputToXML::jobs fileName: "+jobs.getFileName());
     }
 
     String fileName = settings.getFilePath() ;
@@ -608,7 +654,7 @@ private String getJobFilePath(String jobName) {
         
         for (TransMeta transMeta : transformations) {
             File file = new File(getTransFilePath(transMeta.getName()));
-            System.out.println("\n transformation file: "+file.getAbsolutePath());
+            logger.debug("transformation file: "+file.getAbsolutePath());
             transMeta.setFilename(file.getName());
             try {
                 outputs.put(file, transMeta.getXML());
@@ -859,7 +905,7 @@ private String getJobFilePath(String jobName) {
      * the steps in the inputSteps list. The MergeJoin steps are also put into the 
      * TransMeta. This method is package private for testing purposes.
      */
-    List<StepMeta> createMergeJoins(int defaultJoinType, TransMeta transMeta, List<StepMeta> inputSteps) {
+    List<StepMeta> createMergeJoins(int defaultJoinType, TransMeta transMeta, List<StepMeta> inputSteps, List<String[]> keyField1, List<String[]> keyField2) {
         List<StepMeta> mergeSteps = new ArrayList<StepMeta>();
         if (inputSteps.size() > 1) {
             MergeJoinMeta mergeJoinMeta = new MergeJoinMeta();
@@ -868,8 +914,15 @@ private String getJobFilePath(String jobName) {
             mergeJoinMeta.setStepMeta1(inputSteps.get(0));
             mergeJoinMeta.setStepName2(inputSteps.get(1).getName());
             mergeJoinMeta.setStepMeta2(inputSteps.get(1));
-            mergeJoinMeta.setKeyFields1(new String[]{});
-            mergeJoinMeta.setKeyFields2(new String[]{});
+            String[] keyField_1 = keyField1.get(0);
+            String[] keyField_2 = keyField2.get(0);
+            logger.debug("MergeJoin Join tables " +
+                    inputSteps.get(0).getName() + " and " + 
+                    inputSteps.get(1).getName());
+            logger.debug("Key_Field1 :"+Arrays.toString(keyField_1));
+            logger.debug("Key_Field2 :"+Arrays.toString(keyField_2));
+            mergeJoinMeta.setKeyFields1(keyField_1);
+            mergeJoinMeta.setKeyFields2(keyField_2);
             StepMeta stepMeta = new StepMeta("MergeJoin", "Join tables " +
                     inputSteps.get(0).getName() + " and " + 
                     inputSteps.get(1).getName(), mergeJoinMeta);
@@ -881,7 +934,8 @@ private String getJobFilePath(String jobName) {
             transMeta.addTransHop(transHopMeta);
             transHopMeta = new TransHopMeta(inputSteps.get(1), stepMeta);
             transMeta.addTransHop(transHopMeta);
-            tasksToDo.add("Verify the merge join " + stepMeta.getName() + " does the correct merge.");
+            //commenting it disable the final hop. So when user open transformation in Pentaho they received warning about hop
+           tasksToDo.add("Verify the merge join " + stepMeta.getName() + " does the correct merge.");
         }
 
         for (int i = 0; i < inputSteps.size()-2; i++) {
@@ -891,8 +945,16 @@ private String getJobFilePath(String jobName) {
             mergeJoinMeta.setStepMeta1(mergeSteps.get(i));
             mergeJoinMeta.setStepName2(inputSteps.get(i+2).getName());
             mergeJoinMeta.setStepMeta2(inputSteps.get(i+2));
-            mergeJoinMeta.setKeyFields1(new String[]{});
-            mergeJoinMeta.setKeyFields2(new String[]{});
+            String[] keyField_1 = keyField1.get(i+2);
+            String[] keyField_2 = keyField2.get(i+2);
+            logger.debug("*** MergeJoin Join tables " +
+                    inputSteps.get(i+2).getName() + " and " + 
+                    inputSteps.get(i+2).getName());
+            logger.debug("*** Key_Field1 :"+Arrays.toString(keyField_1));
+            logger.debug("*** Key_Field2 :"+Arrays.toString(keyField_2));
+
+            mergeJoinMeta.setKeyFields1(keyField_1);
+            mergeJoinMeta.setKeyFields2(keyField_2);
             StepMeta stepMeta = new StepMeta("MergeJoin", "Join table " + inputSteps.get(i+2).getName(), mergeJoinMeta);
             stepMeta.setDraw(true);
             stepMeta.setLocation((i + 3) * spacing, new Double((i + 2.25) * spacing).intValue());
@@ -902,6 +964,7 @@ private String getJobFilePath(String jobName) {
             transMeta.addTransHop(transHopMeta);
             transHopMeta = new TransHopMeta(inputSteps.get(i+2), stepMeta);
             transMeta.addTransHop(transHopMeta);
+            //commenting it disable the final hop. So when user open transformation in Pentaho they received warning about hop
             tasksToDo.add("Verify the merge join " + stepMeta.getName() + " does the correct merge.");
         }
         return mergeSteps;

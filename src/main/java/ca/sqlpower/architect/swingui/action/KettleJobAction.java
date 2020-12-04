@@ -165,7 +165,10 @@ public class KettleJobAction extends AbstractArchitectAction {
                         toDoListDialog.add(builder.getPanel());
                         toDoListDialog.pack();
                         toDoListDialog.setLocationRelativeTo(frame);
-                        toDoListDialog.setVisible(true);
+                        //Show only if there is a task to do
+                        if(tasksToDo.size() > 0) { 
+                            toDoListDialog.setVisible(true);
+                        }
                     }
                 };
                 

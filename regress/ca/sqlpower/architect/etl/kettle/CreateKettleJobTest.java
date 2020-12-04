@@ -235,7 +235,7 @@ public class CreateKettleJobTest extends TestCase {
     public void testCreateMergeJoinsNoInputs() {
         KettleJob job = new KettleJob(session);
         TransMeta transMeta = new TransMeta();
-        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, new ArrayList<StepMeta>());
+        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, new ArrayList<StepMeta>(), new ArrayList<String[]>(),new ArrayList<String[]>());
         assertEquals(0, mergeSteps.size());
         assertEquals(0, transMeta.nrSteps());
     }
@@ -245,7 +245,7 @@ public class CreateKettleJobTest extends TestCase {
         TransMeta transMeta = new TransMeta();
         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
         inputSteps.add(new StepMeta());
-        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, inputSteps);
+        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, inputSteps, new ArrayList<String[]>(),new ArrayList<String[]>());
         assertEquals(0, mergeSteps.size());
         assertEquals(0, transMeta.nrSteps());
         assertEquals(0, transMeta.nrTransHops());
@@ -263,7 +263,7 @@ public class CreateKettleJobTest extends TestCase {
         input2.setName("input2");
         inputSteps.add(input2);
         transMeta.addStep(input2);
-        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, inputSteps);
+        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, inputSteps,new ArrayList<String[]>(),new ArrayList<String[]>());
         assertEquals(1, mergeSteps.size());
         assertEquals(3, transMeta.nrSteps());
         assertEquals(2, transMeta.nrTransHops());
@@ -281,7 +281,7 @@ public class CreateKettleJobTest extends TestCase {
         input2.setName("input2");
         inputSteps.add(input2);
         transMeta.addStep(input2);
-        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, inputSteps);
+        List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, inputSteps, new ArrayList<String[]>(),new ArrayList<String[]>());
         assertEquals(1, mergeSteps.size());
         assertEquals(3, transMeta.nrSteps());
         assertEquals(2, transMeta.nrTransHops());
