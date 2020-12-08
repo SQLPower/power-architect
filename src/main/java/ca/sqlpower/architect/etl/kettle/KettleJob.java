@@ -68,6 +68,7 @@ import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLRelationship;
 import ca.sqlpower.sqlobject.SQLRelationship.ColumnMapping;
+import ca.sqlpower.sqlobject.SQLRelationship.SQLImportedKey;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
@@ -213,17 +214,12 @@ public class KettleJob implements Monitorable {
                     }
                     // if quoting and not a PostgresDDLGenerator then adding square brackets for SQLServer
                     String columnName = column.getName();
-                    if ((isQuoting) && ddlGeneratorClass!= null && !ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName())
-                            && !(columnName.startsWith("[") && columnName.endsWith("]"))) {
-                        columnName = "["+columnName+"]";
-                    }  else if ((isQuoting) && !(columnName.startsWith("\"") && columnName.endsWith("\""))) { 
-                        //else if quoting for PostgresDDLGenerator
-                        columnName = "\""+columnName+"\"";
-                    }
+                    columnName = getUpdatedName(isQuoting, columnName,ddlGeneratorClass);
                     logger.debug(" Quoted columnName: "+ columnName);
                     if (column.getSourceColumn() == null) {
-                        // if we have no source table then we will get nulls as 
-                        // placeholders from the target table.
+                        /** if we have no source table then we will get nulls as
+                         * placeholder from the target table.
+                         */
                         sourceTable = table;
                         sourceColumn = "null";
                         noMappingForColumn.add(columnName);
@@ -231,20 +227,47 @@ public class KettleJob implements Monitorable {
                         sourceTable = column.getSourceColumn().getParent();
                         sourceColumn = column.getSourceColumn().getName();
                     }
-                    // if quoting and not a PostgresDDLGenerator then adding square brackets for SQLServer
-                    if ((isQuoting) && ddlGeneratorClass!= null && !ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName())
-                            && !(sourceColumn.startsWith("[") && sourceColumn.endsWith("]"))) {
-                        sourceColumn = "["+sourceColumn+"]";
-                    }  else if ((isQuoting) && !(sourceColumn.startsWith("\"") && sourceColumn.endsWith("\""))) { 
-                        //else if quoting for PostgresDDLGenerator
-                        sourceColumn = "\""+sourceColumn+"\"";
-                    }
+                    /** if quoting and not a PostgresDDLGenerator then adding square brackets for SQLServer */
+                    sourceColumn = getUpdatedName(isQuoting,sourceColumn,ddlGeneratorClass);
                     if(column.getSourceColumn() != null ) {
                         if (!tableMapping.containsKey(sourceTable)) {
+                            List<String> pkCols = new ArrayList<String>();
+                            List<String> fkCols = new ArrayList<String>();
                             StringBuffer buffer = new StringBuffer();
                             buffer.append("SELECT ");
                             buffer.append(sourceColumn);
                             buffer.append(" AS ").append(columnName);
+                            pkCols.add(sourceColumn);
+                            fkCols.add(sourceColumn);
+                            List<SQLRelationship> exportedKeys = getPlaypenExportedKeys(tableList, sourceTable);
+                            for(SQLRelationship exportedKey : exportedKeys) {
+                                for (ColumnMapping mapping: exportedKey.getMappings()) {
+                                    SQLColumn pkCol = mapping.getPkColumn();
+                                    if(pkCol != null && !pkCol.getName().isEmpty()) {
+                                        String updatedPkColName = getUpdatedName(isQuoting, pkCol.getName(),ddlGeneratorClass);
+                                        if(!pkCols.contains(updatedPkColName) ){
+                                            buffer.append(", ").append
+                                            (updatedPkColName).append(" AS ").append(updatedPkColName);
+                                            pkCols.add(updatedPkColName);
+                                        }
+                                    }
+                                }
+                            }
+                            List<SQLImportedKey> importedKeys = getPlaypenImportedKeys(tableList, sourceTable);
+                            for(SQLImportedKey importedKey : importedKeys) {
+                                SQLRelationship relationShip = importedKey.getRelationship();
+                                for (ColumnMapping mapping: relationShip.getMappings()) {
+                                    SQLColumn fkCol = mapping.getFkColumn();
+                                    if(fkCol != null && !fkCol.getName().isEmpty()) {
+                                        String updatedFkColName = getUpdatedName(isQuoting, fkCol.getName(),ddlGeneratorClass);
+                                        if(!fkCols.contains(updatedFkColName) ){
+                                            buffer.append(", ").append
+                                            (updatedFkColName).append(" AS ").append(updatedFkColName);
+                                            fkCols.add(updatedFkColName);
+                                        }
+                                    }
+                                }
+                            }
                             tableMapping.put(sourceTable, buffer);
                         } else {
                             tableMapping.get(sourceTable).append(", ").append
@@ -278,36 +301,20 @@ public class KettleJob implements Monitorable {
                 }
 
                 for (SQLTable sourceTable: tableMapping.keySet()) {
-                  List<String> keys1 = new LinkedList<String>();
-                  List<String> keys2 = new LinkedList<String>();
-                  /**
-                   * Exported keys are different for table in Database then table id PlayPen when user create new Relationship 
-                   * manually which doesn't exists in database table.
-                   * Here When user create a kettle job it based on Playpen tables. User might create new relationship. So to get the correct exported keys
-                   * for Playpen Tables we are getting the table whose parent is PlayPen.
-                   * So here tables in tableMapping Map has the table from database (parent is database). While table from the tableList has the parent as a PlayPen.
-                   * So even though the table is dragged from database it can have different exported keys (after dragging it in the playpen)specially when user create new relationship manually.
-                   */
-                  SQLTable playpenTable = null;
-                  for(SQLTable pTable :tableList) {
-                      if (sourceTable.getName().equalsIgnoreCase(pTable.getName())) {
-                          playpenTable = pTable; 
-                          break;
-                      }
-                  }
-                  logger.debug("playpenTable name:" + (playpenTable != null ?playpenTable.getName(): "null"));
-                  if (playpenTable != null) {
-                      for (SQLRelationship exportedKeys : playpenTable.getExportedKeys()) {
-                          for (ColumnMapping mapping: exportedKeys.getMappings()) {
-                              SQLColumn pkCol = mapping.getPkColumn();
-                              SQLColumn fkCol = mapping.getFkColumn();
-                              if(pkCol != null && fkCol!= null) {
-                                  keys1.add(pkCol.getName());
-                                  keys2.add(fkCol.getName());
-                              }
-                          }
-                      }
-                  }
+                    List<String> keys1 = new LinkedList<String>();
+                    List<String> keys2 = new LinkedList<String>();
+                    List<SQLRelationship> exportedKeys = getPlaypenExportedKeys(tableList, sourceTable);
+                    for (SQLRelationship exportedKey : exportedKeys) {
+                        for (ColumnMapping mapping: exportedKey.getMappings()) {
+                            SQLColumn pkCol = mapping.getPkColumn();
+                            SQLColumn fkCol = mapping.getFkColumn();
+                            if(pkCol != null && fkCol!= null) {
+                                keys1.add(pkCol.getName());
+                                keys2.add(fkCol.getName());
+                            }
+                        }
+                    }
+
                     keyFields1.add(keys1.toArray(new String[keys1.size()]));
                     keyFields2.add(keys2.toArray(new String[keys2.size()]));
                     JDBCDataSource source = sourceTable.getParentDatabase().getDataSource();
@@ -1076,5 +1083,84 @@ private String getJobFilePath(String jobName) {
  
     public void setSplittingJob(boolean newValue) {
         settings.setSplittingJob(newValue);
+    }
+    
+    /**
+     * Method to get the latest exported keys in a playpen.
+     * Exported keys are different for table in Database then table in PlayPen 
+     * when user create new Relationship manually which doesn't exists in database table.
+     * When user create a kettle job with tables in a Playpen, user might create 
+     * new relationship which doesn't exists in database and limited to playpen only.
+     * So getting the correct/latest exported keys from the relationship from the table whose parent is PlayPen.
+     * Note: Even though the table is dragged from database tree it can have different exported keys 
+     * (after dragging it in the playpen)specially when user create new relationship manually.
+     * @param tableList
+     *      List of Tables in a playpen
+     * @param sourceTable
+     *          Table whose parent is Database(dbo)
+     * @return
+     */
+    private List<SQLRelationship> getPlaypenExportedKeys(List<SQLTable> tableList, SQLTable  sourceTable) {
+        List<SQLRelationship> exportedKeys = new ArrayList<>();
+        SQLTable playpenTable = null;
+        for(SQLTable pTable :tableList) {
+            if (sourceTable.getName().equalsIgnoreCase(pTable.getName())) {
+                playpenTable = pTable; 
+                break;
+            }
+        }
+        if(playpenTable != null) {
+            try {
+                exportedKeys = playpenTable.getExportedKeys();
+            } catch (SQLObjectException e) {
+                e.printStackTrace();
+            }
+        }
+        return exportedKeys;
+    }
+
+    /**
+     * Method to get the latest imported keys in a playpen.
+     * @param tableList
+     *      List of Tables in a playpen
+     * @param sourceTable
+     *      Table whose parent is Database(dbo)
+     * @return
+     */
+    private List<SQLImportedKey> getPlaypenImportedKeys(List<SQLTable> tableList, SQLTable sourceTable) {
+        List<SQLImportedKey> importedKeys = new ArrayList<>();
+        SQLTable playpenTable = null;
+        for(SQLTable pTable :tableList) {
+            if (sourceTable.getName().equalsIgnoreCase(pTable.getName())) {
+                playpenTable = pTable; 
+                break;
+            }
+        }
+        if(playpenTable != null) {
+            try {
+                importedKeys = playpenTable.getImportedKeys();
+            } catch (SQLObjectException e) {
+                e.printStackTrace();
+            }
+        }
+        return importedKeys;
+    }
+
+    /**
+     * Get the updated Colum,n name based on 
+     * @param isQuoting
+     * @param columnName
+     * @param ddlGeneratorClass
+     * @return
+     */
+    private String getUpdatedName(boolean isQuoting, String columnName, String ddlGeneratorClass) {
+        if ((isQuoting) && ddlGeneratorClass!= null && !ddlGeneratorClass.equals(PostgresDDLGenerator.class.getName())
+                && !(columnName.startsWith("[") && columnName.endsWith("]"))) {
+            columnName = "["+columnName+"]";
+        }  else if ((isQuoting) && !(columnName.startsWith("\"") && columnName.endsWith("\""))) { 
+            //else if quoting for PostgresDDLGenerator
+            columnName = "\""+columnName+"\"";
+        }
+        return columnName;
     }
 }
