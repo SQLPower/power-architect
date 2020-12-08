@@ -158,6 +158,17 @@ public class KettleJobPanel implements DataEntryPanel {
     private JComboBox reposDB;
     
     /**
+     * The radio button that denoted the output type is 'Table output'.
+     */
+    private JRadioButton tableOutputRadioButton;
+    
+    private ButtonGroup outputButtonGroup;
+    /**
+     * The radio button that denoted the output type is 'Insert/Update'.
+     */
+    private JRadioButton insertUpdateRadioButton;
+    
+    /**
      * The session that we will get the play pen from to create a Kettle job and transformations
      * for.
      */
@@ -205,7 +216,9 @@ public class KettleJobPanel implements DataEntryPanel {
         });
         
         schemaName = new JTextField(settings.getSchemaName());
-        
+        //output type
+        insertUpdateRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.inserUpdateOption"), settings.isInsertUpdate()); //$NON-NLS-1$
+        tableOutputRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.tableOutputOption"), !settings.isInsertUpdate()); //$NON-NLS-1$
         saveFileRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToFileOption"), settings.isSavingToFile()); //$NON-NLS-1$
         //saveto file(XML)
         filePath = new JTextField(settings.getFilePath());
@@ -280,6 +293,9 @@ public class KettleJobPanel implements DataEntryPanel {
                 ASUtils.showDbcsDialog(parentWindow, (JDBCDataSource)reposDB.getSelectedItem(), null);
             }
         });
+        outputButtonGroup = new ButtonGroup();
+        outputButtonGroup.add(insertUpdateRadioButton);
+        outputButtonGroup.add(tableOutputRadioButton);
         
         ButtonGroup saveByButtonGroup = new ButtonGroup();
         saveByButtonGroup.add(saveFileRadioButton);
@@ -359,6 +375,13 @@ public class KettleJobPanel implements DataEntryPanel {
         builder.append(Messages.getString("KettleJobPanel.defaultJoinTypeLabel")); //$NON-NLS-1$
         builder.append(defaultJoinType);
         builder.nextLine();
+        builder.appendSeparator();
+        builder.append(""); //$NON-NLS-1$
+        builder.append(Messages.getString("KettleJobPanel.outputTypeLabel")); //$NON-NLS-1$
+        builder.append(insertUpdateRadioButton);
+        builder.append(tableOutputRadioButton);
+        builder.nextLine();
+        builder.appendSeparator();
         builder.append(""); //$NON-NLS-1$
         builder.append(saveFileRadioButton, 3);
         builder.nextLine();
@@ -473,6 +496,7 @@ public class KettleJobPanel implements DataEntryPanel {
         settings.setSavingToFile(isSaveFile());
         settings.setTimeStampExcluded(timeStampCheckBox.isSelected());
         settings.setSplittingJob(splitJobCheckBox.isSelected());
+        settings.setIsInsertUpdate(insertUpdateRadioButton.isSelected());
         if(splitJobCheckBox.isSelected()) {
             settings.setSplitJobNo((Integer)splitSpinner.getValue());
         }

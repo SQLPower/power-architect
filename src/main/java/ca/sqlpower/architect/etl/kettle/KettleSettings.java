@@ -74,6 +74,12 @@ public class KettleSettings extends AbstractSPObject {
     private boolean isSplittingJob = false;
     
     /**
+     * Flag set to 'true' will write the output to 'Insert/Update' type
+     *  set to 'false' will write the output to the 'Table output' type
+     */
+    private boolean isInsertUpdate = true;
+    
+    /**
      * split job number
      * used to split the big job into smaller batch of spliJob no
      * minimum job number is 2
@@ -212,12 +218,31 @@ public class KettleSettings extends AbstractSPObject {
     }
 
     /**
-     * @param isSplittingJob the isSplittingJob to set
+     * @param newValue the isSplittingJob to set
      */
     @Mutator
     public void setSplittingJob(boolean newValue) {
         boolean oldValue = isSplittingJob;
         this.isSplittingJob = newValue;
         firePropertyChange("isSplittingJob", oldValue, isSplittingJob);
+    }
+
+    /**
+     * @return isInsertUpdate
+     */
+    @Accessor
+    public boolean isInsertUpdate() {
+        return isInsertUpdate;
+    }
+
+    /**
+     * 
+     * @param newValue
+     */
+    @Mutator
+    public void setIsInsertUpdate(boolean newValue) {
+        boolean oldValue = isInsertUpdate;
+        this.isInsertUpdate = newValue;
+        firePropertyChange("isInsertUpdate", oldValue, isInsertUpdate);
     }
 }

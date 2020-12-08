@@ -55,7 +55,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 import org.pentaho.di.trans.steps.tableinput.TableInputMeta;
 import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
-
+import org.pentaho.di.trans.steps.insertupdate.InsertUpdateMeta;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLUtils;
@@ -334,36 +334,47 @@ public class KettleJob implements Monitorable {
                 List<StepMeta> mergeSteps;
                
                 mergeSteps = createMergeJoins(settings.getJoinType(), transMeta, inputSteps,keyFields1, keyFields2);
-                TableOutputMeta tableOutputMeta = new TableOutputMeta();
-                tableOutputMeta.setDatabaseMeta(targetDatabaseMeta);
-                tableOutputMeta.setTablename(table.getName());
-                tableOutputMeta.setSchemaName(settings.getSchemaName());
-                StepMeta stepMeta = new StepMeta("TableOutput", "Output to " + table.getName(), tableOutputMeta);
-                stepMeta.setDraw(true);
-                stepMeta.setLocation((inputSteps.size()+1)*spacing, inputSteps.size()*spacing);
-                transMeta.addStep(stepMeta);
-                if (inputSteps.size() >0 ) {
-                TransHopMeta transHopMeta = 
-                    new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
-                //Commented as it always disable the hop for merge join
+               // boolean isInserUpdate = false;
+                StepMeta stepMeta = null; 
+                if (settings.isInsertUpdate()) {
+                    InsertUpdateMeta insertUpdateMeta = new InsertUpdateMeta();
+                     insertUpdateMeta.setDefault();
+                    insertUpdateMeta.setDatabaseMeta(targetDatabaseMeta);
+                    insertUpdateMeta.setTableName(table.getName());
+                    insertUpdateMeta.setSchemaName(settings.getSchemaName());
+                    stepMeta = new StepMeta("InsertUpdate", "Insert/Update " + table.getName(), insertUpdateMeta);
+
+                } else {
+                    TableOutputMeta tableOutputMeta = new TableOutputMeta();
+                    tableOutputMeta.setDatabaseMeta(targetDatabaseMeta);
+                    tableOutputMeta.setTablename(table.getName());
+                    tableOutputMeta.setSchemaName(settings.getSchemaName());
+                    stepMeta = new StepMeta("TableOutput", "Output to " + table.getName(), tableOutputMeta);
+                    
+                }
+                if(stepMeta != null) {
+                    stepMeta.setDraw(true);
+                    stepMeta.setLocation((inputSteps.size()+1)*spacing, inputSteps.size()*spacing);
+                    transMeta.addStep(stepMeta);
+                }
+                if (inputSteps.size() > 1 ) {
+                    TransHopMeta transHopMeta = 
+                            new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
+                    //Commented as it always disable the hop for merge join
 //                if (!mergeSteps.isEmpty()) {
 //                    transMeta.addNote(new NotePadMeta("The final hop is disabled because the join types may need to be updated.",0,0,125,125));
 //                    tasksToDo.add("Enable the final hop in " + transMeta.getName() + " after correcting the merge joins.");
 //                    transHopMeta.setEnabled(false);
 //                }
-                transMeta.addTransHop(transHopMeta);
-
-                transformations.add(transMeta);
-                logger.debug("Added a Trnasformation job for table "+table.getName());
+                    transMeta.addTransHop(transHopMeta);
+                    transformations.add(transMeta);
+                    logger.debug("Added a Trnasformation job for table "+table.getName());
                 }
-                }
-                if (monitor.isCancelled()) {
-                    cancel();
-                    return;
-                }
-                
-//            }
-
+            }
+            if (monitor.isCancelled()) {
+                cancel();
+                return;
+            }
             if (!noTransTables.isEmpty()) {
                 StringBuffer buffer = new StringBuffer();
                 buffer.append("Transformations were not created for ");
@@ -1085,6 +1096,13 @@ private String getJobFilePath(String jobName) {
         settings.setSplittingJob(newValue);
     }
     
+    public boolean isInsertUpdate() {
+        return settings.isInsertUpdate();
+    }
+    
+    public void setIsInsertUpdate(boolean newValue) {
+        settings.setIsInsertUpdate(newValue);
+    }
     /**
      * Method to get the latest exported keys in a playpen.
      * Exported keys are different for table in Database then table in PlayPen 
