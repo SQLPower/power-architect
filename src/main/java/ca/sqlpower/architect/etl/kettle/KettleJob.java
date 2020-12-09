@@ -36,6 +36,7 @@ import org.apache.log4j.Logger;
 import org.pentaho.di.core.NotePadMeta;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.gui.Point;
 import org.pentaho.di.core.logging.LogWriter;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.job.JobHopMeta;
@@ -56,6 +57,7 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 import org.pentaho.di.trans.steps.tableinput.TableInputMeta;
 import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 import org.pentaho.di.trans.steps.insertupdate.InsertUpdateMeta;
+import org.pentaho.di.trans.steps.sort.SortRowsMeta;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLUtils;
@@ -329,43 +331,38 @@ public class KettleJob implements Monitorable {
                     tableInputMeta.setDatabaseMeta(databaseMeta);
                     tableInputMeta.setSQL(tableMapping.get(sourceTable).toString());
                     transMeta.addStep(stepMeta);
-                    inputSteps.add(stepMeta);
+                    //sort the Rows
+                    StepMeta sortedStepMeta = createSortRowsStep(transMeta,stepMeta);
+                    transMeta.addStep(sortedStepMeta);
+                    inputSteps.add(sortedStepMeta);
                 }
-                List<StepMeta> mergeSteps;
-               
-                mergeSteps = createMergeJoins(settings.getJoinType(), transMeta, inputSteps,keyFields1, keyFields2);
-               // boolean isInserUpdate = false;
-                StepMeta stepMeta = null; 
+
+                List<StepMeta> mergeSteps = createMergeJoins(settings.getJoinType(), transMeta, inputSteps,keyFields1, keyFields2);
+                StepMeta outputStepMeta = null; 
                 if (settings.isInsertUpdate()) {
                     InsertUpdateMeta insertUpdateMeta = new InsertUpdateMeta();
-                     insertUpdateMeta.setDefault();
+                    insertUpdateMeta.setDefault();
                     insertUpdateMeta.setDatabaseMeta(targetDatabaseMeta);
                     insertUpdateMeta.setTableName(table.getName());
                     insertUpdateMeta.setSchemaName(settings.getSchemaName());
-                    stepMeta = new StepMeta("InsertUpdate", "Insert/Update " + table.getName(), insertUpdateMeta);
+                    outputStepMeta = new StepMeta("InsertUpdate", "Insert/Update " + table.getName(), insertUpdateMeta);
 
                 } else {
                     TableOutputMeta tableOutputMeta = new TableOutputMeta();
                     tableOutputMeta.setDatabaseMeta(targetDatabaseMeta);
                     tableOutputMeta.setTablename(table.getName());
                     tableOutputMeta.setSchemaName(settings.getSchemaName());
-                    stepMeta = new StepMeta("TableOutput", "Output to " + table.getName(), tableOutputMeta);
+                    outputStepMeta = new StepMeta("TableOutput", "Output to " + table.getName(), tableOutputMeta);
                     
                 }
-                if(stepMeta != null) {
-                    stepMeta.setDraw(true);
-                    stepMeta.setLocation((inputSteps.size()+1)*spacing, inputSteps.size()*spacing);
-                    transMeta.addStep(stepMeta);
+                if(outputStepMeta != null) {
+                    outputStepMeta.setDraw(true);
+                    outputStepMeta.setLocation((inputSteps.size()+2)*spacing, (inputSteps.size())*spacing);
+                    transMeta.addStep(outputStepMeta);
                 }
                 if (inputSteps.size() > 1 ) {
                     TransHopMeta transHopMeta = 
-                            new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
-                    //Commented as it always disable the hop for merge join
-//                if (!mergeSteps.isEmpty()) {
-//                    transMeta.addNote(new NotePadMeta("The final hop is disabled because the join types may need to be updated.",0,0,125,125));
-//                    tasksToDo.add("Enable the final hop in " + transMeta.getName() + " after correcting the merge joins.");
-//                    transHopMeta.setEnabled(false);
-//                }
+                            new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), outputStepMeta);
                     transMeta.addTransHop(transHopMeta);
                     transformations.add(transMeta);
                     logger.debug("Added a Trnasformation job for table "+table.getName());
@@ -919,6 +916,27 @@ private String getJobFilePath(String jobName) {
     }
 
     /**
+     * Create a steps to Sort the Rows and add it to transMeta
+     * @param transMeta
+     * @param inputStep
+     * @return stepMeta
+     */
+    private StepMeta createSortRowsStep(TransMeta transMeta, StepMeta inputStep) {
+        StepMeta stepMeta = null ;
+        SortRowsMeta sortRowsMeta = new SortRowsMeta();
+        sortRowsMeta.setDefault();
+        Point location = inputStep.getLocation();
+        stepMeta = new StepMeta("SortRows", "SortRows for " + inputStep.getName(), sortRowsMeta );
+        stepMeta.setDraw(true);
+        stepMeta.setLocation(location.x*2, location.y);
+        transMeta.addStep(stepMeta);
+        // add the hop
+        TransHopMeta transHopMeta = new TransHopMeta(inputStep, stepMeta);
+        transMeta.addTransHop(transHopMeta);
+        return stepMeta;
+    }
+    
+    /**
      * This creates all of the MergeJoin kettle steps as well as their hops from
      * the steps in the inputSteps list. The MergeJoin steps are also put into the 
      * TransMeta. This method is package private for testing purposes.
@@ -941,11 +959,15 @@ private String getJobFilePath(String jobName) {
             logger.debug("Key_Field2 :"+Arrays.toString(keyField_2));
             mergeJoinMeta.setKeyFields1(keyField_1);
             mergeJoinMeta.setKeyFields2(keyField_2);
+            //removing the 'SortRows for' form the previous inputsets(sortRoes steps) to make the name more meaning for merge join.
+            String table1_name = inputSteps.get(0).getName();
+            table1_name = table1_name.replaceFirst("SortRows for ","");
+            String table2_name = inputSteps.get(0).getName();
+            table2_name = table2_name.replaceFirst("SortRows for ","");
             StepMeta stepMeta = new StepMeta("MergeJoin", "Join tables " +
-                    inputSteps.get(0).getName() + " and " + 
-                    inputSteps.get(1).getName(), mergeJoinMeta);
+                    table1_name + " and " + table2_name, mergeJoinMeta);
             stepMeta.setDraw(true);
-            stepMeta.setLocation(2*spacing, new Double(1.5*spacing).intValue());
+            stepMeta.setLocation(3*spacing, new Double(1.5*spacing).intValue());
             transMeta.addStep(stepMeta);
             mergeSteps.add(stepMeta);
             TransHopMeta transHopMeta = new TransHopMeta(inputSteps.get(0), stepMeta);
@@ -953,7 +975,7 @@ private String getJobFilePath(String jobName) {
             transHopMeta = new TransHopMeta(inputSteps.get(1), stepMeta);
             transMeta.addTransHop(transHopMeta);
             //commenting it disable the final hop. So when user open transformation in Pentaho they received warning about hop
-           tasksToDo.add("Verify the merge join " + stepMeta.getName() + " does the correct merge.");
+            tasksToDo.add("Verify the merge join " + stepMeta.getName() + " does the correct merge.");
         }
 
         for (int i = 0; i < inputSteps.size()-2; i++) {
@@ -965,17 +987,14 @@ private String getJobFilePath(String jobName) {
             mergeJoinMeta.setStepMeta2(inputSteps.get(i+2));
             String[] keyField_1 = keyField1.get(i+2);
             String[] keyField_2 = keyField2.get(i+2);
-            logger.debug("*** MergeJoin Join tables " +
-                    inputSteps.get(i+2).getName() + " and " + 
-                    inputSteps.get(i+2).getName());
-            logger.debug("*** Key_Field1 :"+Arrays.toString(keyField_1));
-            logger.debug("*** Key_Field2 :"+Arrays.toString(keyField_2));
 
             mergeJoinMeta.setKeyFields1(keyField_1);
             mergeJoinMeta.setKeyFields2(keyField_2);
-            StepMeta stepMeta = new StepMeta("MergeJoin", "Join table " + inputSteps.get(i+2).getName(), mergeJoinMeta);
+            String table1_name = inputSteps.get(i+2).getName();
+            table1_name = table1_name.replaceFirst("SortRows for ","");
+            StepMeta stepMeta = new StepMeta("MergeJoin", "Join table " + table1_name, mergeJoinMeta);
             stepMeta.setDraw(true);
-            stepMeta.setLocation((i + 3) * spacing, new Double((i + 2.25) * spacing).intValue());
+            stepMeta.setLocation((i + 4) * spacing, new Double((i + 2.25) * spacing).intValue());
             transMeta.addStep(stepMeta);
             mergeSteps.add(stepMeta);
             TransHopMeta transHopMeta = new TransHopMeta(mergeSteps.get(i), stepMeta);
