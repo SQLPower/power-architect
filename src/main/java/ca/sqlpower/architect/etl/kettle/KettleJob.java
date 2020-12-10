@@ -926,7 +926,7 @@ private String getJobFilePath(String jobName) {
 
         SortRowsMeta sortRowsMeta = new SortRowsMeta();
         sortRowsMeta.setDefault();
-
+        //adding sort Key
         if (!sortKeys.isEmpty()) {
             String[] sortFields = sortKeys.get(0);
             boolean[] ascendingFields = new boolean[sortFields.length];
@@ -965,6 +965,7 @@ private String getJobFilePath(String jobName) {
             mergeJoinMeta.setStepMeta1(inputSteps.get(0));
             mergeJoinMeta.setStepName2(inputSteps.get(1).getName());
             mergeJoinMeta.setStepMeta2(inputSteps.get(1));
+            //add merge join key
             if(!keyField1.isEmpty()) {
                 String[] keyField_1 = keyField1.get(0);
                 logger.debug("Key_Field1 :"+Arrays.toString(keyField_1));
