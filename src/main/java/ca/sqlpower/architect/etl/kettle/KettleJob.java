@@ -332,7 +332,7 @@ public class KettleJob implements Monitorable {
                     tableInputMeta.setSQL(tableMapping.get(sourceTable).toString());
                     transMeta.addStep(stepMeta);
                     //sort the Rows
-                    StepMeta sortedStepMeta = createSortRowsStep(transMeta,stepMeta);
+                    StepMeta sortedStepMeta = createSortRowsStep(transMeta,stepMeta,keyFields1);
                     transMeta.addStep(sortedStepMeta);
                     inputSteps.add(sortedStepMeta);
                 }
@@ -921,10 +921,25 @@ private String getJobFilePath(String jobName) {
      * @param inputStep
      * @return stepMeta
      */
-    private StepMeta createSortRowsStep(TransMeta transMeta, StepMeta inputStep) {
+    private StepMeta createSortRowsStep(TransMeta transMeta, StepMeta inputStep, List<String[]> sortKeys) {
         StepMeta stepMeta = null ;
+
         SortRowsMeta sortRowsMeta = new SortRowsMeta();
         sortRowsMeta.setDefault();
+
+        if (!sortKeys.isEmpty()) {
+            String[] sortFields = sortKeys.get(0);
+            boolean[] ascendingFields = new boolean[sortFields.length];
+            boolean[] caseSensitive = new boolean[sortFields.length];
+            for (int i =0 ;i<sortFields.length ; i++) {
+                ascendingFields[i] = true;
+                caseSensitive[i] = false;
+            }
+            sortRowsMeta.setFieldName(sortFields);
+            sortRowsMeta.setAscending(new boolean[] {true});
+            sortRowsMeta.setCaseSensitive(new boolean[] {false});
+        }
+
         Point location = inputStep.getLocation();
         stepMeta = new StepMeta("SortRows", "SortRows for " + inputStep.getName(), sortRowsMeta );
         stepMeta.setDraw(true);
@@ -950,16 +965,20 @@ private String getJobFilePath(String jobName) {
             mergeJoinMeta.setStepMeta1(inputSteps.get(0));
             mergeJoinMeta.setStepName2(inputSteps.get(1).getName());
             mergeJoinMeta.setStepMeta2(inputSteps.get(1));
-            String[] keyField_1 = keyField1.get(0);
-            String[] keyField_2 = keyField2.get(0);
+            if(!keyField1.isEmpty()) {
+                String[] keyField_1 = keyField1.get(0);
+                logger.debug("Key_Field1 :"+Arrays.toString(keyField_1));
+                mergeJoinMeta.setKeyFields1(keyField_1);
+            }
+            if(!keyField2.isEmpty()) {
+                String[] keyField_2 = keyField2.get(0);
+                logger.debug("Key_Field2 :"+Arrays.toString(keyField_2));
+                mergeJoinMeta.setKeyFields2(keyField_2);
+            }
             logger.debug("MergeJoin Join tables " +
                     inputSteps.get(0).getName() + " and " + 
                     inputSteps.get(1).getName());
-            logger.debug("Key_Field1 :"+Arrays.toString(keyField_1));
-            logger.debug("Key_Field2 :"+Arrays.toString(keyField_2));
-            mergeJoinMeta.setKeyFields1(keyField_1);
-            mergeJoinMeta.setKeyFields2(keyField_2);
-            //removing the 'SortRows for' form the previous inputsets(sortRoes steps) to make the name more meaning for merge join.
+            //removing the text 'SortRows for' form the previous inputsets(sortRows steps) to make the name more meaning for merge join.
             String table1_name = inputSteps.get(0).getName();
             table1_name = table1_name.replaceFirst("SortRows for ","");
             String table2_name = inputSteps.get(0).getName();
@@ -985,11 +1004,14 @@ private String getJobFilePath(String jobName) {
             mergeJoinMeta.setStepMeta1(mergeSteps.get(i));
             mergeJoinMeta.setStepName2(inputSteps.get(i+2).getName());
             mergeJoinMeta.setStepMeta2(inputSteps.get(i+2));
-            String[] keyField_1 = keyField1.get(i+2);
-            String[] keyField_2 = keyField2.get(i+2);
-
-            mergeJoinMeta.setKeyFields1(keyField_1);
-            mergeJoinMeta.setKeyFields2(keyField_2);
+            if(!keyField1.isEmpty()) {
+                String[] keyField_1 = keyField1.get(i+2);
+                mergeJoinMeta.setKeyFields1(keyField_1);
+            }
+            if(!keyField2.isEmpty()) {
+                String[] keyField_2 = keyField2.get(i+2);
+                mergeJoinMeta.setKeyFields2(keyField_2);
+            }
             String table1_name = inputSteps.get(i+2).getName();
             table1_name = table1_name.replaceFirst("SortRows for ","");
             StepMeta stepMeta = new StepMeta("MergeJoin", "Join table " + table1_name, mergeJoinMeta);
