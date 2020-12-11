@@ -140,7 +140,7 @@ public class CreateKettleJobTest extends TestCase {
         job.setKettleJoinType(0);
         List<SQLTable> tableList = new ArrayList<SQLTable>();
         tableList.add(targetTableNoSource);
-        job.doExport(tableList, target);
+        job.doExport(tableList, target,tableList);
         assertTrue(new File("TestingJob.kjb").exists());
         assertFalse(new File("transformation_for_table_TargetTable1.ktr").exists());
     }
@@ -156,7 +156,7 @@ public class CreateKettleJobTest extends TestCase {
         job.setKettleJoinType(0);
         List<SQLTable> tableList = new ArrayList<SQLTable>();
         tableList.add(targetTableMixedSource);
-        job.doExport(tableList, target);
+        job.doExport(tableList, target,tableList);
         assertTrue(new File(jobFile.getPath() + ".kjb").exists());
         assertFalse(new File(jobFile.getParentFile().getPath() + "transformation_for_table_TargetTable2.ktr").exists());
     }

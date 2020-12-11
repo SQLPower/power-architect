@@ -157,9 +157,16 @@ public class KettleJob implements Monitorable {
     /**
      * This method translates the list of SQLTables to a Kettle Job and Transformations and saves
      * them to KJB and KTR files OR a repository.
+     * @param tableList
+     *      List of tables used to generate kettle job. 
+     *      It can be splitted table list if job is splitted into multiple job 
+     *      otherwise it will be table list from PlayPen.
+     * @param targetDB
+     * @param playPenTableList
+     *          List of tables in a Playpen. which can be used to find the mapping table
      * @throws KettleException 
      */
-    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws SQLObjectException, RuntimeException, IOException, KettleException, SQLException {
+    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB, List<SQLTable> playPenTableList) throws SQLObjectException, RuntimeException, IOException, KettleException, SQLException {
 
         monitor = new MonitorableImpl();
         monitor.setMessage("");
@@ -182,7 +189,7 @@ public class KettleJob implements Monitorable {
             // the target table graph, so parent tables will come before
             // their children.
             tableList = new DepthFirstSearch(tableList).getFinishOrder();
-
+            playPenTableList = new DepthFirstSearch(playPenTableList).getFinishOrder();
             Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
 
             for (SQLTable table: tableList) {
@@ -241,7 +248,7 @@ public class KettleJob implements Monitorable {
                             buffer.append(" AS ").append(columnName);
                             pkCols.add(sourceColumn);
                             fkCols.add(sourceColumn);
-                            List<SQLRelationship> exportedKeys = getPlaypenExportedKeys(tableList, sourceTable);
+                            List<SQLRelationship> exportedKeys = getPlaypenExportedKeys(playPenTableList, sourceTable);
                             for(SQLRelationship exportedKey : exportedKeys) {
                                 for (ColumnMapping mapping: exportedKey.getMappings()) {
                                     SQLColumn pkCol = mapping.getPkColumn();
@@ -255,7 +262,7 @@ public class KettleJob implements Monitorable {
                                     }
                                 }
                             }
-                            List<SQLImportedKey> importedKeys = getPlaypenImportedKeys(tableList, sourceTable);
+                            List<SQLImportedKey> importedKeys = getPlaypenImportedKeys(playPenTableList, sourceTable);
                             for(SQLImportedKey importedKey : importedKeys) {
                                 SQLRelationship relationShip = importedKey.getRelationship();
                                 for (ColumnMapping mapping: relationShip.getMappings()) {
@@ -305,7 +312,7 @@ public class KettleJob implements Monitorable {
                 for (SQLTable sourceTable: tableMapping.keySet()) {
                     List<String> keys1 = new LinkedList<String>();
                     List<String> keys2 = new LinkedList<String>();
-                    List<SQLRelationship> exportedKeys = getPlaypenExportedKeys(tableList, sourceTable);
+                    List<SQLRelationship> exportedKeys = getPlaypenExportedKeys(playPenTableList, sourceTable);
                     for (SQLRelationship exportedKey : exportedKeys) {
                         for (ColumnMapping mapping: exportedKey.getMappings()) {
                             SQLColumn pkCol = mapping.getPkColumn();
@@ -457,10 +464,11 @@ public class KettleJob implements Monitorable {
         if (settings.isSplittingJob() && tableList.size() > settings.getSplitJobNo()) {
             jobMetaList.clear();
             // split a big job into small a jobs of splitno of (table)transformation/job
-            List<List<SQLTable>> splitedTableList = chopped(tableList, settings.getSplitJobNo());
-            for (List<SQLTable> newtableList:splitedTableList) {
+            Map<String, List<String>> splijobMap = settings.getSplitMap();
+            for(List<String> job: splijobMap.values()) {
+                List<SQLTable> newtableList = getSQLTable(tableList,job);
                 job_no++;
-                doExport(newtableList,targetDB);
+                doExport(newtableList,targetDB,tableList);
             }
             try {
                 EnvUtil.environmentInit();
@@ -526,11 +534,21 @@ public class KettleJob implements Monitorable {
             }
             
         } else {
-            doExport(tableList,targetDB);
+            doExport(tableList,targetDB,tableList);
         }
     }
     
- private void jobOutputToRepository(JobMeta jm, List<JobMeta> jmList, Repository createRepository) {
+ private List<SQLTable> getSQLTable(List<SQLTable> tableList, List<String> job) {
+     List<SQLTable> jobList =  new ArrayList<SQLTable>();
+     for(SQLTable table: tableList) {
+         if(job.contains(table.getName()) /* && !jobList.contains(table)*/) {
+             jobList.add(table);
+         }
+     }
+        return jobList;
+    }
+
+private void jobOutputToRepository(JobMeta jm, List<JobMeta> jmList, Repository createRepository) {
         // TODO Auto-generated method stub
         
     }
@@ -929,6 +947,11 @@ private String getJobFilePath(String jobName) {
         //adding sort Key
         if (!sortKeys.isEmpty()) {
             String[] sortFields = sortKeys.get(0);
+            //get the 1st key only
+            if(sortFields.length > 1) {
+                String str =  sortFields[0];
+                sortFields = new String[] {str};
+            }
             boolean[] ascendingFields = new boolean[sortFields.length];
             boolean[] caseSensitive = new boolean[sortFields.length];
             for (int i =0 ;i<sortFields.length ; i++) {
@@ -969,11 +992,21 @@ private String getJobFilePath(String jobName) {
             if(!keyField1.isEmpty()) {
                 String[] keyField_1 = keyField1.get(0);
                 logger.debug("Key_Field1 :"+Arrays.toString(keyField_1));
+                //get the first key only
+                if(keyField_1.length >1) {
+                    String str =  keyField_1[0];
+                    keyField_1 = new String[] {str};
+                }
                 mergeJoinMeta.setKeyFields1(keyField_1);
             }
             if(!keyField2.isEmpty()) {
                 String[] keyField_2 = keyField2.get(0);
                 logger.debug("Key_Field2 :"+Arrays.toString(keyField_2));
+               	//get the first key only
+                if(keyField_2.length >1) {
+                    String str =  keyField_2[0];
+                    keyField_2 = new String[] {str};
+                }
                 mergeJoinMeta.setKeyFields2(keyField_2);
             }
             logger.debug("MergeJoin Join tables " +
@@ -1007,10 +1040,20 @@ private String getJobFilePath(String jobName) {
             mergeJoinMeta.setStepMeta2(inputSteps.get(i+2));
             if(!keyField1.isEmpty()) {
                 String[] keyField_1 = keyField1.get(i+2);
+                //get the first key only
+                if(keyField_1.length >1) {
+                    String str =  keyField_1[0];
+                    keyField_1 = new String[] {str};
+                }
                 mergeJoinMeta.setKeyFields1(keyField_1);
             }
             if(!keyField2.isEmpty()) {
                 String[] keyField_2 = keyField2.get(i+2);
+                //get the first key only
+                if(keyField_2.length >1) {
+                    String str =  keyField_2[0];
+                    keyField_2 = new String[] {str};
+                }
                 mergeJoinMeta.setKeyFields2(keyField_2);
             }
             String table1_name = inputSteps.get(i+2).getName();
@@ -1145,6 +1188,16 @@ private String getJobFilePath(String jobName) {
     public void setIsInsertUpdate(boolean newValue) {
         settings.setIsInsertUpdate(newValue);
     }
+    
+    public Map<String, List<String>> getSplitMap() {
+        return settings.getSplitMap();
+    }
+
+ 
+    public void setSplitMap(Map<String, List<String>> newSplitMap) {
+        settings.setSplitMap(newSplitMap);
+    }
+    
     /**
      * Method to get the latest exported keys in a playpen.
      * Exported keys are different for table in Database then table in PlayPen 

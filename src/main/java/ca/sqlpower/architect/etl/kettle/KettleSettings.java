@@ -20,7 +20,9 @@
 package ca.sqlpower.architect.etl.kettle;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import ca.sqlpower.object.AbstractSPObject;
 import ca.sqlpower.object.SPObject;
@@ -85,6 +87,8 @@ public class KettleSettings extends AbstractSPObject {
      * minimum job number is 2
      */
     private int splitJobNo = 2;
+    
+    private Map<String, List<String>> splitMap = new LinkedHashMap<String, List<String>>();
     
    
     @Constructor
@@ -244,5 +248,23 @@ public class KettleSettings extends AbstractSPObject {
         boolean oldValue = isInsertUpdate;
         this.isInsertUpdate = newValue;
         firePropertyChange("isInsertUpdate", oldValue, isInsertUpdate);
+    }
+    
+    /**
+     * @return the splitMap
+     */
+    @Accessor
+    public Map<String, List<String>> getSplitMap() {
+        return splitMap;
+    }
+
+    /**
+     * @param newSplitMap the splitMap to set
+     */
+    @Mutator
+    public void setSplitMap(Map<String, List<String>> newSplitMap) {
+        Map<String, List<String>> oldValue = splitMap;
+        this.splitMap = newSplitMap;
+        firePropertyChange("splitMap", oldValue, splitMap);
     }
 }

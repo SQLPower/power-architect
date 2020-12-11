@@ -264,7 +264,7 @@ public class DBTreeModel implements TreeModel, java.io.Serializable {
             //The UUID should only change during loading. If it changes at a different time it is likely an error.
             if (e.getPropertyName().equals("UUID")) {
                 refreshTreeStructure();
-                logger.info("Changing a UUID. This should only be done during load.");
+                logger.debug("Changing a UUID. This should only be done during load.");
             } else {
                 final TreeModelEvent evt = new TreeModelEvent(this, getPathToNode(source));
                 fireTreeNodesChanged(evt);

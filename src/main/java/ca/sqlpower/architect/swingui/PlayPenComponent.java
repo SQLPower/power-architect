@@ -521,7 +521,7 @@ implements Selectable {
     private final List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
     public final void addSelectionListener(SelectionListener l) {
-        logger.info("" + this + " is adding " + l);
+        logger.debug("" + this + " is adding " + l);
         selectionListeners.add(l);
     }
 

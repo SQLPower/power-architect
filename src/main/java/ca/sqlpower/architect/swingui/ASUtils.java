@@ -47,6 +47,8 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.etl.kettle.KettleJob;
+import ca.sqlpower.architect.swingui.action.Messages;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.SPDataSource;
@@ -254,6 +256,44 @@ public class ASUtils {
     }
 
     /**
+     * 
+     */
+    public static JDialog showSplitPropertiesDialog(List<SQLTable> tableList, 
+            KettleJob settings, Window parentWindow) {
+
+        final KettleSplitJobPanel  splitPanel = new KettleSplitJobPanel(tableList, settings);
+        logger.debug("Showing Split job  dialog"); 
+
+        Callable<Boolean> okCall = new Callable<Boolean>() {
+            public Boolean call() {
+                if (splitPanel.applyChanges()) {
+                    return Boolean.TRUE;
+                }
+                return Boolean.FALSE;
+            }
+        };
+
+        Callable<Boolean> cancelCall = new Callable<Boolean>() {
+            public Boolean call() {
+                splitPanel.discardChanges();
+                return Boolean.TRUE;
+            }
+        };
+
+        JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
+                splitPanel, parentWindow,
+                Messages.getString("ASUtils.SplitjobPanelDialogTitle"), 
+                DataEntryPanelBuilder.OK_BUTTON_LABEL,
+                okCall, cancelCall);
+
+        d.pack();
+        d.setLocationRelativeTo(parentWindow);
+        d.setVisible(true);
+        return d;
+    }
+
+
+    /**
      * Creates a tabbed panel for editing various aspects of the given data
      * source. Currently, the tabs are for General Options and Kettle Options.
      * 
@@ -386,9 +426,9 @@ public class ASUtils {
 	}
 
 
-	static double det(double a, double b, double c, double d) {
-		return a * d - b * c;
-	}
+    static double det(double a, double b, double c, double d) {
+        return a * d - b * c;
+    }
 
     /**
      * Returns an icon that is suitable for use as a frame icon image

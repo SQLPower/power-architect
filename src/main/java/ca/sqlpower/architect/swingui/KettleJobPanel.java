@@ -25,6 +25,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractButton;
@@ -52,6 +53,7 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.sql.JDBCDataSource;
+import ca.sqlpower.sqlobject.SQLDatabase;
 import ca.sqlpower.sqlobject.SQLObjectException;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.DataEntryPanel;
@@ -155,7 +157,7 @@ public class KettleJobPanel implements DataEntryPanel {
      * This combo box holds all of the connections defined in the Architect so they can
      * be used as a repository connection.
      */
-    private JComboBox reposDB;
+    private JComboBox<?> reposDB;
     
     /**
      * The radio button that denoted the output type is 'Table output'.
@@ -177,6 +179,11 @@ public class KettleJobPanel implements DataEntryPanel {
     private List<SQLTable> tableList;
     
     private KettleJob settings;
+    
+    /**
+     * This button opens a split job panel to select tables to split the job.
+     */
+    private JButton splitPropertiesButton;
     
     /**
      * This constructor creates a Kettle job panel and displays it to the user.
@@ -220,6 +227,16 @@ public class KettleJobPanel implements DataEntryPanel {
         insertUpdateRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.inserUpdateOption"), settings.isInsertUpdate()); //$NON-NLS-1$
         tableOutputRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.tableOutputOption"), !settings.isInsertUpdate()); //$NON-NLS-1$
         saveFileRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToFileOption"), settings.isSavingToFile()); //$NON-NLS-1$
+        saveFileRadioButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                browseFilePath.setSelected(true);
+                reposPropertiesButton.setEnabled(false);
+                reposDB.setEditable(false);
+            }
+            
+        });
         //saveto file(XML)
         filePath = new JTextField(settings.getFilePath());
         filePath.getDocument().addDocumentListener(new DocumentListener(){
@@ -241,6 +258,7 @@ public class KettleJobPanel implements DataEntryPanel {
            }
         });
         browseFilePath = new JButton();
+        browseFilePath.setSelected(saveFileRadioButton.isSelected());
         browseFilePath.setText(Messages.getString("KettleJobPanel.browseButton")); //$NON-NLS-1$
         browseFilePath.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -260,6 +278,7 @@ public class KettleJobPanel implements DataEntryPanel {
                     return;
                 } else {
                     saveFileRadioButton.setSelected(true);
+                    saveReposRadioButton.setSelected(false);
                     File file = chooser.getSelectedFile();
                     File parentFile = file.getParentFile();
                     filePath.setText(file.getPath());
@@ -280,11 +299,12 @@ public class KettleJobPanel implements DataEntryPanel {
         saveReposRadioButton = new JRadioButton(Messages.getString("KettleJobPanel.saveJobToRepositoryOption"), !settings.isSavingToFile()); //$NON-NLS-1$
 
         Object[] connectionArray = session.getContext().getConnections().toArray();
-        reposDB = new JComboBox(connectionArray);
+        reposDB = new JComboBox<>(connectionArray);
         if (connectionArray.length > 0) {
             reposDB.setSelectedIndex(0);
         }
         reposPropertiesButton = new JButton();
+        reposPropertiesButton.setEnabled(saveReposRadioButton.isSelected());
         reposPropertiesButton.setText(Messages.getString("KettleJobPanel.propertiesButton")); //$NON-NLS-1$
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -293,6 +313,18 @@ public class KettleJobPanel implements DataEntryPanel {
                 ASUtils.showDbcsDialog(parentWindow, (JDBCDataSource)reposDB.getSelectedItem(), null);
             }
         });
+      
+        saveReposRadioButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                reposPropertiesButton.setEnabled(true);
+                reposDB.setEditable(true);
+                browseFilePath.setSelected(false);
+            }
+            
+        });
+
         outputButtonGroup = new ButtonGroup();
         outputButtonGroup.add(insertUpdateRadioButton);
         outputButtonGroup.add(tableOutputRadioButton);
@@ -300,17 +332,39 @@ public class KettleJobPanel implements DataEntryPanel {
         ButtonGroup saveByButtonGroup = new ButtonGroup();
         saveByButtonGroup.add(saveFileRadioButton);
         saveByButtonGroup.add(saveReposRadioButton);
-        timeStampCheckBox = new JCheckBox("Exclude Column with 'TimeStamp' dataType");
+        timeStampCheckBox = new JCheckBox(Messages.getString("KettleJobPanel.excludeTimeStamp"));
         // to split the main job into multiple inner job
-        splitJobCheckBox = new JCheckBox("Split the job");
+        splitJobCheckBox = new JCheckBox(Messages.getString("KettleJobPanel.split"));
         splitSpinner =  new JSpinner(new SpinnerNumberModel(settings.getSplitJobNo(), 2, null, 1));
         splitSpinner.setEnabled(splitJobCheckBox.isSelected());
+        splitPropertiesButton = new JButton();
+        splitPropertiesButton.setEnabled(false);
+        splitPropertiesButton.setText(Messages.getString("KettleJobPanel.splitPropertiesButton")); //$NON-NLS-1$
+        splitPropertiesButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Window parentWindow = SPSUtils.getWindowInHierarchy(panel);
+                List<SQLTable> tableList = new ArrayList<>();
+                SQLDatabase targetDB = session.getTargetDatabase();
+                try {
+                     tableList = session.getPlayPen().getTables();
+                } catch (SQLObjectException e1) {
+                    e1.printStackTrace();
+                }
+                if (!isValidSplitNo()) {
+                    ((JSpinner.DefaultEditor) splitSpinner.getEditor()).getTextField().setFocusable(true);
+                } else {
+                    settings.setSplitJobNo((Integer)splitSpinner.getValue());
+                    ASUtils.showSplitPropertiesDialog(tableList,settings,parentWindow);
+                }
+            }
+        });
         splitJobCheckBox.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
                 AbstractButton abstractButton = (AbstractButton) e.getSource();
                     splitSpinner.setEnabled(abstractButton.getModel().isSelected());
+                    splitPropertiesButton.setEnabled(abstractButton.getModel().isSelected());
             }
             
         });
@@ -327,9 +381,9 @@ public class KettleJobPanel implements DataEntryPanel {
 
             @Override
             public void focusLost(FocusEvent e) {
-                if (!isValidSplitNo()) {
-                    tf.setFocusable(true);
-                }
+//                if (!isValidSplitNo()) {
+//                    tf.setFocusable(true);
+//                }
             }
             
         });
@@ -337,9 +391,9 @@ public class KettleJobPanel implements DataEntryPanel {
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                if (!isValidSplitNo()) {
-                    tf.setFocusable(true);
-                }
+//                if (!isValidSplitNo()) {
+//                    tf.setFocusable(true);
+//                }
             }
         });
         defaultJoinType = new JComboBox<String>();
@@ -370,6 +424,7 @@ public class KettleJobPanel implements DataEntryPanel {
         builder.nextLine();
         builder.append(""); //$NON-NLS-1$
         builder.append(splitJobCheckBox, splitSpinner);
+        builder.append(splitPropertiesButton);
         builder.nextLine();
         builder.append(""); //$NON-NLS-1$
         builder.append(Messages.getString("KettleJobPanel.defaultJoinTypeLabel")); //$NON-NLS-1$
