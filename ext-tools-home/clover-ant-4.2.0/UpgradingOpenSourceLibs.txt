@@ -1,0 +1,3 @@
+Clover is using a number of third party libraries.
+In case when you would like to upgrade these libraries (assuming that they are API-compatible) please see instructions on:
+https://confluence.atlassian.com/display/CLOVER/Upgrading+third+party+libraries

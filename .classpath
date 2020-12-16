@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="regress"/>
+	<classpathentry kind="src" path="generated"/>
 	<classpathentry kind="src" path="jdbc_drivers"/>
 	<classpathentry kind="src" path="ext-tools-home/resgen/src"/>
 	<classpathentry kind="src" path="example_code"/>
@@ -31,6 +32,9 @@
 	<classpathentry exported="true" kind="lib" path="lib/kettle-engine-3.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/kettle-core-3.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/kettle-db-3.2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/hamcrest-core-1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit-4.12.jar"/>
+	<classpathentry exported="true" kind="lib" path="testbed/hsqldb.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
 			<attribute name="owner.project.facets" value="java"/>

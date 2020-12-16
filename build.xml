@@ -183,12 +183,10 @@
 	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
 
 	<!-- pmd code checking tool and its helper jar files -->
-	<!--<property name="pmd.home" value="ext-tools-home/pmd"/>
-	<property name="pmd.jar" value="${pmd.home}/lib/pmd-4.2.jar"/> -->
 	<property name="pmd.home" value="ext-tools-home/pmd-bin-6.29.0"/>
 	<!-- clover test coverage tool -->
-	<property name="clover.home" value="ext-tools-home/clover"/>
-	<taskdef resource="cloverlib.xml" classpath="${clover.home}/clover.jar"/>
+	<property name="clover.home" value="ext-tools-home/clover-ant-4.2.0"/>
+	<taskdef resource="cloverlib.xml" classpath="${clover.home}/lib/clover.jar"/>
 
 	<!-- 
 		Sets if we want to actually run a build on the SQL Power Library.
@@ -236,6 +234,8 @@
 		<mkdir dir="${build}"/>
 		<mkdir dir="${build_tmp}"/>
 	 	<mkdir dir="${generated}"/>
+		<mkdir dir="${build.tests}"/>
+		<mkdir dir="${dist.dir}"/>
 		
 		<!-- get the version number from source code ArchitectUtils -->
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
@@ -318,7 +318,7 @@
 		attribute of the 'current' tag in the clover.report 
 		target.-->
 	<target name="with.clover" description="Activates Clover">
-	    <clover-setup initString="mycoverage.db" source="1.6"
+	    <clover-setup initString="mycoverage.db" source="1.8"
 	    	flushpolicy="threaded" flushinterval="500">
 	    	<!-- This fileset includes all source files that are not
 	    	tests because we do not want to see the coverage results
