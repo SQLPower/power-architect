@@ -10,7 +10,7 @@ import ca.sqlpower.testutil.GenericNewValueMaker;
 
 
 /**
- * This is class is generated from xml-to-java-classes.xsl!  Do not alter it directly.
+ * This is class is generated from xml-to-new-value-maker.xsl!  Do not alter it directly.
  */
 public class MondrianNewValueMaker extends GenericNewValueMaker {
 

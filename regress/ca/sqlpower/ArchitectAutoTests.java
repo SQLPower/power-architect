@@ -47,6 +47,11 @@ public class ArchitectAutoTests {
 		// Point this at the top-level of the output folder when running JUnit
 	    // (i.e. java -Dca.sqlpower.architect.test.dir=/path/to/tests)
 	    String compiledTestPath = System.getProperty("ca.sqlpower.architect.test.dir");
+	    if (compiledTestPath == null) { 
+	        File file = new File(".");
+	        String path  = file.getAbsolutePath();
+	        compiledTestPath = path.substring(0, path.length()-1) +"build_tests";      ;
+	      }
 	    if (compiledTestPath == null) {
 	        throw new RuntimeException(
 	                "Please define the system property ca.sqlpower.architect.test.dir" +

@@ -29,6 +29,7 @@ import ca.sqlpower.object.SPObject;
 import ca.sqlpower.object.annotation.Accessor;
 import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.Mutator;
+import ca.sqlpower.object.annotation.Transient;
 import ca.sqlpower.sql.JDBCDataSource;
 
 public class KettleSettings extends AbstractSPObject {
@@ -178,7 +179,7 @@ public class KettleSettings extends AbstractSPObject {
     public void setTimeStampExcluded(boolean newValue) {
         boolean oldValue = isTimeStampExcluded;
         this.isTimeStampExcluded = newValue;
-        firePropertyChange("isTimeStampExcluded", oldValue, isTimeStampExcluded);
+        firePropertyChange("timeStampExcluded", oldValue, isTimeStampExcluded);
     }
     
     @Override
@@ -228,7 +229,7 @@ public class KettleSettings extends AbstractSPObject {
     public void setSplittingJob(boolean newValue) {
         boolean oldValue = isSplittingJob;
         this.isSplittingJob = newValue;
-        firePropertyChange("isSplittingJob", oldValue, isSplittingJob);
+        firePropertyChange("splittingJob", oldValue, isSplittingJob);
     }
 
     /**
@@ -247,13 +248,13 @@ public class KettleSettings extends AbstractSPObject {
     public void setIsInsertUpdate(boolean newValue) {
         boolean oldValue = isInsertUpdate;
         this.isInsertUpdate = newValue;
-        firePropertyChange("isInsertUpdate", oldValue, isInsertUpdate);
+        firePropertyChange("insertUpdate", oldValue, isInsertUpdate);
     }
     
     /**
      * @return the splitMap
      */
-    @Accessor
+    @Accessor @Transient
     public Map<String, List<String>> getSplitMap() {
         return splitMap;
     }
@@ -261,7 +262,7 @@ public class KettleSettings extends AbstractSPObject {
     /**
      * @param newSplitMap the splitMap to set
      */
-    @Mutator
+    @Mutator @Transient
     public void setSplitMap(Map<String, List<String>> newSplitMap) {
         Map<String, List<String>> oldValue = splitMap;
         this.splitMap = newSplitMap;

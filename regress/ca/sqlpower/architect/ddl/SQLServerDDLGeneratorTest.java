@@ -101,8 +101,10 @@ public class SQLServerDDLGeneratorTest extends TestCase {
         } catch (Exception e) {
             logger.error(e);
         } finally {
-            con.close();
-            con = null;
+            if(con != null) {
+                con.close();
+                con = null;
+            }
         }
         
         
@@ -203,8 +205,10 @@ public class SQLServerDDLGeneratorTest extends TestCase {
         } catch (Exception e) {
             logger.error(e);
         } finally {
-            con.close();
-            con = null;
+            if(con != null) {
+                con.close();
+                con = null;
+            }
         }
         
         

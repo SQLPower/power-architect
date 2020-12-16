@@ -159,9 +159,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 /**
  * The PlayPen is the main GUI component of the SQL*Power Architect.
  */
-@SuppressWarnings(
-        justification = "PlayPen is not meant to be serializable",
-        value = {"SE_BAD_FIELD"})
+
 public class PlayPen extends JPanel
 	implements SPListener, SelectionListener, Scrollable {
 

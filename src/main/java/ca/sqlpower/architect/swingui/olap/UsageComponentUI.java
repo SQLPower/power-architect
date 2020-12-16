@@ -257,10 +257,15 @@ public class UsageComponentUI implements PlayPenComponentUI {
             throw new IllegalStateException("This delegate is already installed on a component");
         }
         UsageComponent uc = (UsageComponent) c;
-        this.c = uc;
+       
         uc.addSPListener(componentEventHandler);
-        uc.getPane1().addSPListener(componentEventHandler);
-        uc.getPane2().addSPListener(componentEventHandler);
+        if( uc.getPane1() != null) {
+            uc.getPane1().addSPListener(componentEventHandler);
+        }
+        if (uc.getPane2() != null) {
+            uc.getPane2().addSPListener(componentEventHandler);
+        }
+        this.c = uc;
     }
 
     public Point getPointForModelObject(Object modelObject) {
