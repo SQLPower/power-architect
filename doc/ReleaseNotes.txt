@@ -1,4 +1,20 @@
 SQL Power Architect Community Edition Release Notes
+1.0.9
+	Bug Fixes :
+	* Fixed issue of including Target (output) table as an input table in a generated transformation job.
+	* Fixed issue related to exporting 'MergeJoin' keys in a transformation.
+	* Resolved the issue of not populating database connection name in a kettle Job.
+	* Fixed issue of not including a [JOIN_KEY] field in a reference stream.
+	* Improved UI for column mapping in a Column properties dialog box. 
+
+  Enhancement:
+   	* Enhanced to save the transformation output to different type like 'Insert/Update' in a kettle job.
+   	* Split the big kettle job into multiple jobs by allowing user to select the desired tables for each job.
+   	* Add sort step before a 'MergeJoin' step in a generated transformation of a kettle job.
+   	
+   Update:
+   	* Updated to support Java 8
+   	
 1.0.8
 	Bug Fixes :
 	* Resolved some NPE issues
