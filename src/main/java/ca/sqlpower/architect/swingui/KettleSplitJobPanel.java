@@ -19,7 +19,6 @@
 
 package ca.sqlpower.architect.swingui;
 
-import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -82,61 +81,10 @@ public class KettleSplitJobPanel implements DataEntryPanel {
         for(SQLTable table: tableList) {
             listModel.addElement(table.getName());
         }
-        createGUI2();
+        createGUI();
     }
     
     private void createGUI() {
-        String rows= "pref, 3dlu";
-        for(int i =1;i<splitNo;i++) {
-            rows +=",pref, 3dlu";
-        }
-        rows +=", pref:grow";
-        logger.info("rows:"+rows);
-//        FormLayout mainLayout = new FormLayout(
-//                "6dlu, fill:min(160dlu;default):grow, 6dlu, pref, 6dlu",
-             //   " 6dlu,10dlu,6dlu,fill:min(180dlu;default):grow,10dlu");
-               // "2dlu, pref:grow, 2dlu, right:pref, 3dlu, pref:grow",  // columns
-              // rows);           // rows
-                FormLayout mainLayout = new FormLayout(
-                        "2dlu, pref:grow, 2dlu, right:pref, 3dlu, pref:grow",  // columns
-                        "pref, 3dlu, pref, 3dlu, pref");           // rows
-
-
-        PanelBuilder mainBuilder = new PanelBuilder(mainLayout);
-        panel = mainBuilder.getPanel();   
-        
-        
-        PanelBuilder pb = new PanelBuilder((FormLayout) panel.getLayout(), panel);
-        CellConstraints cc = new CellConstraints();
-        JList<String> list = new JList<String>(listModel);
-        
-        FormLayout allTableLayout = new FormLayout("right:pref,5dlu");
-        DefaultFormBuilder allTablebuilder = new DefaultFormBuilder(allTableLayout);
-        
-        allTablebuilder.append( createSplitList(list,"Playpen Tables"));
-//        pb.add(allTablebuilder.getPanel(), cc.xy(2, 1)); //$NON-NLS-1$
-
-        FormLayout spliPanLayout = new FormLayout("right:pref,5dlu");
-        DefaultFormBuilder builder = new DefaultFormBuilder(spliPanLayout);
-     
-        
-        for(int i =1, j =1 ; i<= splitNo; i++) {
-            DefaultListModel<String> splitListModel = new DefaultListModel<String>();
-            JList<String> splitList = new JList<String>(splitListModel);
-            splitMap.put("Job_"+i, splitList);
-            //JPanel panel = createSplitList(splitList,"Job_"+i);
-            //System.out.println("j:"+j);
-            //pb.add(panel, cc.xy(4, j));
-            j+=2;
-            builder.append(createSplitList(splitList,"Job_"+i));
-            builder.nextLine();
-        }
-        pb.add(builder.getPanel(), cc.xy(4, 4));
-        pb.add(allTablebuilder.getPanel(), cc.xy(2, 4)); 
-        
-    }
-    
-    private void createGUI2() {
         FormLayout mainLayout = new FormLayout(
                 "2dlu, pref:grow, 2dlu, right:pref, 3dlu, pref:grow",  // columns
                 "pref, 3dlu, pref, 3dlu, pref");           // rows
@@ -168,20 +116,12 @@ public class KettleSplitJobPanel implements DataEntryPanel {
     
     
     private JPanel createSplitList(JList<String> list, String name) {
-//        JList<String> list = new JList<String>(listModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         JScrollPane scrollPane = new JScrollPane(list);
-       // scrollPane.setPreferredSize(new Dimension(250,100));
         scrollPane.setWheelScrollingEnabled(true);
-      //  scrollPane.setHorizontalScrollBar(horizontalScrollBar);
         list.setDragEnabled(true);
         list.setTransferHandler(new ListTransferHandler());
-        
         JPanel splitPanel = new JPanel(new FlowLayout());
-//        Rectangle bounds = splitPanel.getBounds();
-//        logger.info("Bounds:"+ bounds.toString());
-//        bounds.width = 500;
-//        splitPanel.setBounds(bounds);
         splitPanel.add(scrollPane);
         splitPanel.setBorder(BorderFactory.createTitledBorder(name));
         return splitPanel;
@@ -195,23 +135,13 @@ public class KettleSplitJobPanel implements DataEntryPanel {
             JList<String> list = splitMap.get(key);
             DefaultListModel<String> listModel = (DefaultListModel<String>)list.getModel();
             List<String> list1 = IntStream.range(0,listModel.size()).mapToObj(listModel::get).collect(Collectors.toList());
-          //  System.out.println("after adding "+list1.toString());
             splitJobMap.put(key, list1);
-            System.out.println("key: "+key +" list :"+list1.toString());
         }
         return splitJobMap;
     }
     
     @Override
     public boolean applyChanges() {
-//        for(String key :splitMap.keySet()) {
-//            JList<String> list = splitMap.get(key);
-//            DefaultListModel<String> listModel = (DefaultListModel<String>)list.getModel();
-//            List<String> list1 = IntStream.range(0,listModel.size()).mapToObj(listModel::get).collect(Collectors.toList());
-//          //  System.out.println("after adding "+list1.toString());
-//
-//            System.out.println("key: "+key +" list :"+list1.toString());
-//        }
        settings.setSplitMap(getSplitMap());
        return true;
     }
@@ -228,7 +158,6 @@ public class KettleSplitJobPanel implements DataEntryPanel {
 
     @Override
     public boolean hasUnsavedChanges() {
-        // TODO Auto-generated method stub
         return false;
     }
 
@@ -287,15 +216,14 @@ abstract class StringTransferHandler extends TransferHandler {
  */
 class ListTransferHandler extends StringTransferHandler {
     private int[] indices = null;
-    private int addIndex = -1; //Location where items were added
-    private int addCount = 0;  //Number of items added.
+    private int addIndex = -1; 
+    private int addCount = 0; 
             
     //Bundle up the selected items in the list
     //as a single string, for export.
     protected String exportString(JComponent c) {
         JList<String> list = (JList<String>)c;
         indices = list.getSelectedIndices();
-//        Object[] values = list.getSelectedValues();
         List<String> values = list.getSelectedValuesList();
         
         StringBuffer buff = new StringBuffer();
@@ -304,30 +232,15 @@ class ListTransferHandler extends StringTransferHandler {
             buff.append(value == null ? "" : value.toString());
         }
         buff.append("\n");
-        
-//        for (int i = 0; i < values.length; i++) {
-//            Object val = values[i];
-//            buff.append(val == null ? "" : val.toString());
-//            if (i != values.length - 1) {
-//                buff.append("\n");
-//            }
-//        }
-        System.out.println("exporting: "+buff.toString());
+
         return buff.toString();
     }
 
-    //Take the incoming string and wherever there is a
-    //newline, break it into a separate item in the list.
     protected void importString(JComponent c, String str) {
         JList<String> target = (JList<String>)c;
         DefaultListModel<String> listModel = (DefaultListModel<String>)target.getModel();
         int index = target.getSelectedIndex();
 
-        //Prevent the user from dropping data back on itself.
-        //For example, if the user is moving items #4,#5,#6 and #7 and
-        //attempts to insert the items after item #5, this would
-        //be problematic when removing the original items.
-        //So this is not allowed.
         if (indices != null && index >= indices[0] - 1 &&
               index <= indices[indices.length - 1]) {
             indices = null;
@@ -347,26 +260,19 @@ class ListTransferHandler extends StringTransferHandler {
         String[] values = str.split("\n");
         addCount = values.length;
         for (int i = 0; i < values.length; i++) {
-            System.out.println("adding: "+values[i]);
             listModel.add(index++, values[i]);
         }
         List<String> list1 = IntStream.range(0,listModel.size()).mapToObj(listModel::get).collect(Collectors.toList());
-        System.out.println("after adding "+list1.toString());
 
     }
 
-    //If the remove argument is true, the drop has been
-    //successful and it's time to remove the selected items 
-    //from the list. If the remove argument is false, it
-    //was a Copy operation and the original list is left
-    //intact.
+    /**
+     * 
+     */
     protected void cleanup(JComponent c, boolean remove) {
         if (remove && indices != null) {
             JList<String> source = (JList<String>)c;
             DefaultListModel<String> model  = (DefaultListModel<String>)source.getModel();
-            //If we are moving items around in the same list, we
-            //need to adjust the indices accordingly, since those
-            //after the insertion point have moved.
             if (addCount > 0) {
                 for (int i = 0; i < indices.length; i++) {
                     if (indices[i] > addIndex) {
@@ -375,12 +281,10 @@ class ListTransferHandler extends StringTransferHandler {
                 }
             }
             for (int i = indices.length - 1; i >= 0; i--) {
-                System.out.println("removing: "+model.get(i));
                 model.remove(indices[i]);
                
             }
             List<String> list1 = IntStream.range(0,model.size()).mapToObj(model::get).collect(Collectors.toList());
-            System.out.println("after removing up:"+list1.toString());
 
         } 
         indices = null;
