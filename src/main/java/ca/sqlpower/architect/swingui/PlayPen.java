@@ -153,7 +153,6 @@ import ca.sqlpower.util.TransactionEvent.TransactionState;
 
 import com.google.common.collect.ArrayListMultimap;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 
 /**

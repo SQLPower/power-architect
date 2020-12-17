@@ -48,7 +48,6 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
-import ca.sqlpower.architect.swingui.action.Messages;
 import ca.sqlpower.sql.JDBCDataSource;
 import ca.sqlpower.sql.JDBCDataSourceType;
 import ca.sqlpower.sql.SPDataSource;
@@ -282,7 +281,7 @@ public class ASUtils {
 
         JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 splitPanel, parentWindow,
-                Messages.getString("ASUtils.SplitjobPanelDialogTitle"), 
+                Messages.getString("ASUtils.splitjobPanelDialogTitle"), 
                 DataEntryPanelBuilder.OK_BUTTON_LABEL,
                 okCall, cancelCall);
 
