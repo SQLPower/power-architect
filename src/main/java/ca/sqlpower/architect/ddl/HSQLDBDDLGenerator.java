@@ -206,10 +206,10 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
 
 	/**
 	 * Generate the SQL to rename a column.
-	 * <br/>
+	 * <br>
 	 * The default implementation works for PostgreSQL, Oracle
-	 * @param oldTable
-	 * @param newTable
+	 * @param oldCol
+	 * @param newCol
 	 */
 	public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();

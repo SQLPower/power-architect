@@ -49,7 +49,6 @@ public interface ProfileFormat {
      * 
      * @param out   The file to write to.
      * @param profile The list of SQL Tables
-     * @param pm    The ProfileManager which generated this Profile
      */
     public void format(OutputStream out, List<ProfileResult> profile) throws Exception;
 }

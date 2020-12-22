@@ -498,13 +498,11 @@ public class ArchitectFrame extends JFrame {
      * more {@link ArchitectSwingSession}s. It will not become visible until
      * {@link #init(ArchitectSwingSession)} is called.
      * 
-     * @param architectSession
-     *            The ArchitectSwingSession related to this frame.
+     * @param context
+     *            The ArchitectSwingSessionContext related to this frame.
      * @param bounds
      *            A Rectangle whose x and y properties will be used to determine
      *            the position of newly created ArchitectFrame
-     * 
-     * @throws SQLObjectException
      */
     public ArchitectFrame(ArchitectSwingSessionContext context, Rectangle bounds) {
 

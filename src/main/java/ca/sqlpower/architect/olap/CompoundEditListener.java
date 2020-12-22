@@ -29,25 +29,20 @@ public interface CompoundEditListener {
      * Called when a compound edit has begun on an OLAPObject. All property
      * change and child events from the source of this event and any of its
      * descendants should be considered part of an atomic change that ends when
-     * a {@link #compoundEditEnded(OLAPObject, String)} event is received from
+     * a {@link #compoundEditEnded(CompoundEditEvent)} event is received from
      * the same source.
      * 
-     * @param source
-     *            the object under which the following series of changes should
-     *            be considered atomic.
-     * @param presentationName
-     *            The user-visible name for the sequence of edits.
+     * @param evt
      */
     void compoundEditStarted(CompoundEditEvent evt);
 
     /**
      * Called when a compound edit has ended on an OLAPObject. This method will
      * never be called more times than
-     * {@link #compoundEditStarted(OLAPObject, String)} has already been called.
+     * {@link #compoundEditStarted(CompoundEditEvent)} has already been called.
      * 
-     * @param source
-     *            the object under which the compound edit state has ended.
-     */
+     * @param evt
+      */
     void compoundEditEnded(CompoundEditEvent evt);
     
 }

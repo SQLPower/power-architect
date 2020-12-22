@@ -32,7 +32,7 @@ public abstract class AbstractTableProfileCreator implements TableProfileCreator
     private static final Logger logger = Logger.getLogger(AbstractTableProfileCreator.class);
     
     /**
-     * A generic template for populating a profile result.  Calls {@link #doProfileImpl()}
+     * A generic template for populating a profile result.  Calls {@link #doProfileImpl(TableProfileResult)}
      * to perform the actual work of populating this profile result.
      * <p>
      * This method will fire a profileStarted event before calling the subclass's

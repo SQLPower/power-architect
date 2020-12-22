@@ -152,17 +152,9 @@ public class CriticManager extends AbstractSPObject {
      * properties set on it to decide the error level and other properties. If
      * the critic has already been registered this will do nothing.
      * <p>
-     * The {@link CriticFactory} must be able to make critics of this type to be
-     * able to actually use the critics in practice.
      * 
-     * @param criticClass
-     *            The class that defines the critic. Will be used by the
-     *            {@link CriticFactory} to create new critics.
-     * @param platformType
-     *            Normally one of the values defined in
-     *            {@link StarterPlatformTypes} but can really be any value. It
-     *            is used to group critics defined in the system logically.
-     */
+     * @param critic settings of a specific critics
+      */
     public void registerCritic(CriticAndSettings critic) {
         for (CriticGrouping grouping : criticGroupings) {
             if (grouping.getPlatformType().equals(critic.getPlatformType())) {

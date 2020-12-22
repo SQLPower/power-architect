@@ -70,7 +70,7 @@ public class Navigator extends JDialog implements SPListener, PropertyChangeList
     /**
      * Creates a Navigator dialog that displays a scaled down version of the playpen.
      * 
-     * @param session Session of the architect frame creating this dialog.
+     * @param frame Architect frame of the current session, which is used to create this dialog.
      * @param location Top right corner where this dialog should be placed.
      */
     public Navigator(final ArchitectFrame frame, Point location) {

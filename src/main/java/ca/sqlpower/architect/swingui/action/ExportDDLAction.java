@@ -278,8 +278,9 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 * @param parentDialog The JDialog we're doing this in.
 		 * @param target The target database (where to search for the conflicts).
 		 * @param ddlg The DDL Generator that we're using.
+		 * @param statements The Liust of DDLStatement
+		 * @param session  The ArchitectSwingSession
 		 * @throws SQLObjectException If there is a problem connecting to the target database
-		 * @throws SQLException If the conflict resolver chokes
 		 */
 		public ConflictFinderProcess(JDialog parentDialog, SQLDatabase target,
 				DDLGenerator ddlg, List<DDLStatement> statements, ArchitectSwingSession session)
@@ -430,8 +431,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		/**
 		 * @param d The dialog we anchor popup messages to
 		 * @param cfp The conflict finder we extract the conflict list from
-		 * @param progressBar The progress bar we show our progress in
-		 * @param progressLabel The label where we say what we're doing
+		 * @param session The ArchitectSwingSession
 		 */
 		public ConflictResolverProcess(JDialog d, ConflictFinderProcess cfp, ArchitectSwingSession session) {
 			super(session);

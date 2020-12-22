@@ -294,8 +294,8 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * listener on the system type will be used to update the snapshot in this
      * project when the system type changes.
      * 
-     * @param columnSnapshotType
-     *            This type is a type that is a snapshot of a system type used in a column.
+     * @param upstreamSnapshotType
+     *            This type is a type that is a snapshot of a UserDefinedSQlType.
      */
     private void addUpdateListener(UserDefinedSQLType upstreamSnapshotType) {
         if (upstreamSnapshotType == null) return; // Happens on undo.
@@ -540,8 +540,7 @@ public class SPObjectSnapshotHierarchyListener extends AbstractSPListener {
      * project. So we have to reassign a different snapshot, either
      * pre-existing, or a new one, depending on the situation.
      * 
-     * @return True if the type was successfully reassigned to an existing or
-     *         new snapshot type. Return false if otherwise.
+     * @param column
      */
     private void reassignType(SQLColumn column) {
         if (!session.getWorkspace().getSnapshotCollection().isMagicEnabled()) return;

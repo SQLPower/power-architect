@@ -3505,7 +3505,7 @@ public static class Dimension extends CubeDimension {
 /** 
             Defines a hierarchy.
 
-            You must specify at most one <Relation>
+            You must specify at most one  &lt; Relation &gt;
             or memberReaderClass. If you specify none, the
             hierarchy is assumed to come from the same fact table of the
             current cube.
@@ -3839,10 +3839,10 @@ public static class Hierarchy extends OLAPObject {
     }
 
     /** 
-                The {@link MondrianDef.Table table},
-                {@link MondrianDef.Join set of tables},
-                {@link MondrianDef.View SQL statement}, or
-                {@link MondrianDef.InlineTable inline table}
+                The {@link mondrian.olap.MondrianDef.Table table},
+                {@link mondrian.olap.MondrianDef.Join set of tables},
+                {@link mondrian.olap.MondrianDef.View SQL statement}, or
+                {@link mondrian.olap.MondrianDef.InlineTable inline table}
                 which populates this hierarchy.
              */
     private RelationOrJoin /* */ relation;

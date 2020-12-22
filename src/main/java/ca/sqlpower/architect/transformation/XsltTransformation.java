@@ -60,8 +60,9 @@ public class XsltTransformation
 	 * to the OutputStream result.
 	 *
 	 * @param builtInXsltName the name of the built-in XSLT (part of the classpath)
-	 * @param xml The XML that should be transformed
 	 * @param result the output stream where the result of the transformation should be written to
+	 * @param session the ArchitectSwingSession
+	 * @throws Exception
 	 */
 	public void transform(String builtInXsltName, File result, ArchitectSwingSession session)
 	  throws Exception {
@@ -74,9 +75,10 @@ public class XsltTransformation
 	 * Performs an external XSLT transformation, sending the results
 	 * to the OutputStream result.
 	 *
-	 * @param the XSLT that should be run
-	 * @param xml The XML that should be transformed
-	 * @param result the output stream where the result of the transformation should be written to
+	 * @param xsltStylesheet
+	 * @param output
+	 * @param session
+	 * @throws Exception
 	 */
 	public void transform(File xsltStylesheet, File output, ArchitectSwingSession session)
 	  throws Exception {
@@ -90,9 +92,10 @@ public class XsltTransformation
 	 * Performs an external XSLT transformation, sending the results
 	 * to the OutputStream result.
 	 *
-	 * @param the XSLT that should be run
-	 * @param xml The XML that should be transformed
-	 * @param result the output stream where the result of the transformation should be written to
+	 * @param xsltStylesheet InputStream
+	 * @param output The output File
+	 * @param session the ArchitectSwingSession
+	 * @throws Exception
 	 */
 	public void transform(InputStream xsltStylesheet, File output, ArchitectSwingSession session)
 	  throws Exception {
@@ -120,15 +123,15 @@ public class XsltTransformation
 	}
 
 	/**
-	 * Resolve embedded XSLTs (e.g: imported through <xsl:import/>
-	 * <br/>
+	 * Resolve embedded XSLTs (e.g: imported through <xsl:import>
+	 * <br>
 	 * The referenced file is first searched in the same directory as the
 	 * main XSLT. If that is not defined (because the a built-in stylesheet is
 	 * used) the referenced resource is loaded from the classloader.
-	 * <br/>
+	 * <br>
 	 * If the resource is still not found, the directory where the project file
 	 * is stored is searched for the resource.
-	 * <br/>
+	 * <br>
 	 * If the resource is still not found, null is returned
 	 * 
 	 * @param href An href attribute, which may be relative or absolute.

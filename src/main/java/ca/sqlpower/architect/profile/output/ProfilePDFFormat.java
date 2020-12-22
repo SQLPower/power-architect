@@ -330,7 +330,8 @@ public class ProfilePDFFormat implements ProfileFormat {
      * position up to the end of the current break.  The table
      * includes a header, body rows, and a subtotal row.
      *
-     * @param tProfile the profile result for the SQLTable in question
+     * @param result the profile result for the SQLTable in question
+     * @param table PDFtable
      * @param bf The BaseFont (typeface) to use for all table text
      * @param fsize The size (in points) of the table body text
      * @param widths The maximum width of each visible column in the
@@ -342,10 +343,13 @@ public class ProfilePDFFormat implements ProfileFormat {
      * each table's column widths using the final resulting widths
      * array.  If you want each table to have its own optimal widths,
      * use a new array for each invocation.
+     * @return profile The ProfileTableStructure
+     * @throws DocumentException
+     * @throws IOException
      * @throws SQLObjectException
      * @throws SQLException
-     * @throws IllegalAccessException
      * @throws InstantiationException
+     * @throws IllegalAccessException
      */
     protected ProfileTableStructure makeNextTable(TableProfileResult result,
                                                 PdfPTable table,
@@ -371,14 +375,17 @@ public class ProfilePDFFormat implements ProfileFormat {
      * single word in the heading if it is wider than the existing
      * width value for that column.  Words are split using the default
      * settings for java.util.StringTokenizer.
-     * @param headerTopNColumns reference to the null count/% inner table in the header
-     * @param headerValueColumns reference to the unique count/% inner table in the header
-     * @param headerLengthColumns reference to the length min/max/avg inner table in the header
-     * @param headerUniqueColumns reference to the value min/max/avg inner table in the header
-     * @param headerNullColumns reference to the top N Value/count inner table in the header
+     * @param result
+     * @param profile
+     * @param bf
+     * @param titleFSize
+     * @param colHeadingFSize
+     * @throws DocumentException
+     * @throws IOException
+     * @throws SQLObjectException
      * we will resert widths of these inner table after we have all rows
      */
-    private void addHeaderRow(TableProfileResult result,
+     private void addHeaderRow(TableProfileResult result,
                             ProfileTableStructure profile,
                             BaseFont bf,
                             float titleFSize,
@@ -663,11 +670,9 @@ public class ProfilePDFFormat implements ProfileFormat {
     }
 
     /**
-     * @param ProfileTableStructure the structure of main and 5 inner tables
-     * @param widths The maximum width of each column's contents in
-     * points.
-     * @param totalWidthInPoint = (page width - margins)
-     * resert table header row column widths, after we have generate table rows
+     * Reset table header row column widths, after we have generate table rows
+     * @param profile ProfileTableStructure the structure of main and 5 inner tables
+     * @param widths The maximum width of each column's contents in points.
      * @throws DocumentException
      */
     private void resetHeaderWidths( ProfileTableStructure profile, float[] widths )

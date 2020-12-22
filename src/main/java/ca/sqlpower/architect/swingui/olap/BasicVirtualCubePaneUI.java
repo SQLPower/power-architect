@@ -64,7 +64,7 @@ public class BasicVirtualCubePaneUI extends OLAPPaneUI<VirtualCube, OLAPObject> 
      * CubeUsages are a property of VirtualCube instead of a child. This means
      * OLAPUtil.listenToHierarchy() doesn't pick them up. So we have to listen
      * and unlisten to this tree of OLAPObjects separately. This situation gets
-     * set up in {@link BasicVirtualCubePaneUI#installUI()}.
+     * set up in {@link BasicVirtualCubePaneUI#installUI(PlayPenComponent)}.
      * <p>
      * But what if someone comes along and calls
      * {@link VirtualCube#setCubeUsage(CubeUsages)}? Well, it's CubeUsageWatcher

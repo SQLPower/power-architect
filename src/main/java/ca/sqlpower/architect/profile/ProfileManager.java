@@ -68,7 +68,7 @@ public interface ProfileManager extends SPObject {
      * minutes).  For use from a Swing GUI, consider
      * {@link #asynchCreateProfiles(Collection)}.
      *
-     * @param tables The database table(s) you want to profile.
+     * @param table The database table(s) you want to profile.
      */
     public TableProfileResult createProfile(SQLTable table) throws SQLException, SQLObjectException;
 

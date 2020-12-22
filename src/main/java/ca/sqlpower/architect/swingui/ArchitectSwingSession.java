@@ -116,7 +116,7 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public JDialog getProfileDialog();
     
     /**
-     * See {@link #userSettings}.
+     * See {@link ca.sqlpower.architect.swingui.ArchitectSwingSessionContextImpl#userSettings}.
      *
      * @return the value of userSettings
      */
@@ -138,14 +138,14 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public boolean saveOrSaveAs(boolean showChooser, boolean separateThread);
 
     /**
-     * See {@link #savingEntireSource}.
+     * See {@link ca.sqlpower.architect.ProjectSettings#savingEntireSource}.
      *
      * @return the value of savingEntireSource
      */
     public boolean isSavingEntireSource();
 
     /**
-     * See {@link #savingEntireSource}.
+     * See {@link ca.sqlpower.architect.ProjectSettings#savingEntireSource}.
      *
      * @param argSavingEntireSource Value to assign to this.savingEntireSource
      */
@@ -160,9 +160,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * This method must be called on the Swing Event Dispatch Thread.
      * 
      * @param parentFrame The ArchitectFrame that will contain this session
-     * @throws SQLObjectException
-     * @throws IllegalStateException if showGUI==true and this method was
-     * not called on the Event Dispatch Thread.
      */
     public void initGUI(ArchitectFrame parentFrame);
 

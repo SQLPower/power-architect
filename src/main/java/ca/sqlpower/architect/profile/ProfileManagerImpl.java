@@ -135,8 +135,8 @@ public class ProfileManagerImpl extends AbstractSPObject implements ProfileManag
 
     /**
      * All profile results in this profile manager. IMPORTANT: Do not modify this list
-     * directly. Always use {@link #addResults(List)},
-     * {@link #removeResults(List)}, and {@link #clear()}.
+     * directly. Always use {@link #addResults(List, boolean)},
+     * {@link #removeProfile(TableProfileResult)}, and {@link #clear()}.
      */
     private final List<TableProfileResult> results = new ArrayList<TableProfileResult>();
     

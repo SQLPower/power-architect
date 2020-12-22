@@ -56,7 +56,7 @@ public interface DDLGenerator {
      * their columns and primary keys, and the foreign key relationships of the
      * given database.
      *
-     * @param source The database to generate a DDL representation of.
+     * @param tables Collection of tables to generate a DDL representation of.
      * @return The list of DDL statements that can create the given database, in the
      * order they should be executed.
      * @throws SQLException If there is a problem getting type info from the target DB.
@@ -101,7 +101,7 @@ public interface DDLGenerator {
      * If the DBMS does not support renaming columns the generator
      * should create the approriate DROP/ADD sequence
      *
-	 * @param oldName the old definition of the column
+	 * @param oldColumn the old definition of the column
      * @param newColumn the new definition of the column
      */
     public void renameColumn(SQLColumn oldColumn, SQLColumn newColumn);
@@ -139,7 +139,7 @@ public interface DDLGenerator {
      * Appends the DDL statement for creating the given FK relationship
      * in this DDL Generator's target schema/catalog.
      *
-     * @param c The relationship to create a FOREIGN KEY statement for.
+     * @param r The relationship to create a FOREIGN KEY statement for.
      */
     public void addRelationship(SQLRelationship r);
 
@@ -156,7 +156,7 @@ public interface DDLGenerator {
      * Appends the DDL statement for dropping the given FK relationship
      * in this DDL Generator's target schema/catalog.
      *
-     * @param c The relationship to create a DROP FOREIGN KEY statement for.
+     * @param r The relationship to create a DROP FOREIGN KEY statement for.
      */
     public void dropRelationship(SQLRelationship r);
 
@@ -270,28 +270,26 @@ public interface DDLGenerator {
     public void setTypeMap(Map<Integer, GenericTypeDescriptor> argTypeMap);
 
     /**
-     * See {@link #targetCatalog}.
-     *
+     * See {@link ca.sqlpower.architect.ddl.GenericDDLGenerator#targetCatalog }
      * @return the value of targetCatalog
      */
     public String getTargetCatalog();
 
     /**
-     * See {@link #targetCatalog}.
+     * See {@link ca.sqlpower.architect.ddl.GenericDDLGenerator#targetCatalog }
      *
      * @param argTargetCatalog Value to assign to this.targetCatalog
      */
     public void setTargetCatalog(String argTargetCatalog);
 
     /**
-     * See {@link #targetSchema}.
-     *
+     * see {@link ca.sqlpower.architect.ddl.GenericDDLGenerator#targetSchema }
      * @return the value of targetSchema
      */
     public String getTargetSchema();
 
     /**
-     * See {@link #targetSchema}.
+     * See {@link ca.sqlpower.architect.ddl.GenericDDLGenerator#targetSchema}
      *
      * @param argTargetSchema Value to assign to this.targetSchema
      */

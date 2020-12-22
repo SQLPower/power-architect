@@ -611,17 +611,17 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
 	    return revertServerWorkspace(projectLocation, revisionNo);
 	}
     
-    /**
+	/**
      * This method reverts the server workspace specified by the given project location
      * to the specified revision number.
      * 
-     * All sessions should automatically update to the reverted revision due to their Updater.
-     * 
-     * @returns The new global revision number, right after the reversion, or -1 if the server did not revert.
-     * @throws IOException
-     * @throws URISyntaxException
-     * @throws JSONException 
-     */
+	 * @param projectLocation
+	 * @param revisionNo
+	 * @return The new global revision number, right after the reversion, or -1 if the server did not revert.
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 * @throws JSONException
+	 */
     public static int revertServerWorkspace(ProjectLocation projectLocation, int revisionNo)
     throws IOException, URISyntaxException, JSONException {
         return ClientSideSessionUtils.revertServerWorkspace(projectLocation, revisionNo, cookieStore);
@@ -632,11 +632,8 @@ public class ArchitectClientSideSession extends ArchitectSessionImpl implements 
      * old password and done by a user with the privileges to change the user's
      * password.
      * 
-     * @param session
-     *            The client session that has the correct server information to
-     *            post requests to the server.
-     * @param username
-     *            The user name of the user to update.
+     * @param user
+     *            The user whose password to update.
      * @param oldPassword
      *            The old password of the user to validate that the password can
      *            be updated correctly.

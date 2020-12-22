@@ -350,7 +350,6 @@ public class OLAPPlayPenFactory {
         
         /**
          * Synchronizes the olapTree selection with the playpen selections
-         * @throws SQLObjectException 
          * 
          */
         public void updateOLAPTree() {

@@ -872,9 +872,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
     /**
      * Do just the writing part of save, given a PrintWriter
      * @param out - the file to write to
-     * @return True iff the save completed OK
      * @throws IOException
-     * @throws SQLObjectException
      */
     public void save(PrintWriter out, String encoding) throws IOException {
         sqlObjectSaveIdMap = new IdentityHashMap<SQLObject, String>();
@@ -1130,7 +1128,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
     /**
      * Creates a &lt;source-databases&gt; element which contains zero
      * or more &lt;database&gt; elements.
-     * @param out2
+     * @param out
      */
     private void saveSourceDatabases(PrintWriter out) throws IOException {
         ioo.println(out, "<source-databases>"); //$NON-NLS-1$

@@ -141,6 +141,7 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
     /**
      * Returns a list of {@link UserDefinedSQLType}s defined in this session. Only
      * enterprise sessions should contain domains.
+     * @return List of UserDefinedSQLType
      */
     public List<UserDefinedSQLType> getDomains();
     
@@ -159,7 +160,7 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * Searches the session for a {@link UserDefinedSQLType} with the given int
      * that represents a value from {@link java.sql.Types}.
      * 
-     * @param uuid
+     * @param type
      *            The {@link Types} value of the {@link UserDefinedSQLType}
      *            desired.
      * @return Returns a {@link UserDefinedSQLType} with the given type if one
@@ -169,18 +170,17 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
 
 	/**
 	 * Return the LiquibaseSettings to be used for forward engineering a model.
-	 * <br/>
+	 * <br>
 	 * The settings for the model compared are stored in CompareDMSettings
 	 * @return liquibase settings for forward engineering
-	 * @see #getCompareDMSettings()
-	 * @see CompareDMSettings#getLiquibaseOptions()
+	 * @see ca.sqlpower.architect.swingui.CompareDMSettings#getLiquibaseSettings()
 	 */
 	public LiquibaseSettings getLiquibaseSettings();
 
 	/**
 	 * Store the LiquibaseSettings for forward engineering a model.
 	 * Settings for model compare are stored in CompareDMSettings.
-	 * @param settings
+	 * @param settings Liquibase settings
 	 */
 	public void setLiquibaseSettings(LiquibaseSettings settings);
 
@@ -188,6 +188,8 @@ public interface ArchitectSession extends UserPrompterFactory, SQLDatabaseMappin
      * Returns the status information object to update the user on different
      * kinds of progress. May return null if no status information exists (for
      * headless mode).
+     * 
+     * @return architectStatusInformation
      */
 	public ArchitectStatusInformation getStatusInformation();
 	

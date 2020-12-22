@@ -276,7 +276,7 @@ public class DataMoverPanel {
     
     /**
      * Moves the data from the table identified by 
-     * @param sourcePath
+     * @param sourceTable
      * @return The number of rows moved, or -1 if the user cancelled the operation.
      * @throws SQLException
      * @throws SQLObjectException

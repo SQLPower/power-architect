@@ -29,7 +29,7 @@ import ca.sqlpower.object.annotation.Constructor;
 import ca.sqlpower.object.annotation.Mutator;
 
 /**
- * A class that stores project settings (accessed by File -> Project Settings...),
+ * A class that stores project settings (accessed by File - Project Settings...),
  * and fires property change events when they are changed (to be listened to by
  * an ArchitectSwingSession so it can update the UI). It has the ability
  * to persist these properties to and from a server workspace.

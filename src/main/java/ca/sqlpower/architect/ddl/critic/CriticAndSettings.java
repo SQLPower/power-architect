@@ -65,6 +65,7 @@ public abstract class CriticAndSettings extends AbstractSPObject implements Crit
      * should use one of these platform types but there is no real need to restrict
      * user-defined platform types to these types in the future.
      */
+    @SuppressWarnings("unchecked")
     public enum StarterPlatformTypes {
         GENERIC("Generic", DDLGenerator.class),
         POSTGRESQL("PostgreSQL", PostgresDDLGenerator.class),

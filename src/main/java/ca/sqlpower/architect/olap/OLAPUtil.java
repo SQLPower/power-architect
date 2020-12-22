@@ -201,7 +201,7 @@ public class OLAPUtil {
      * Retrieves the SQLTable that represents the data source for the given
      * hierarchy.
      * 
-     * @param hierarchy
+     * @param hier
      *            the hierarchy whose data source to retrieve
      * @return The table whose columns represent the columns of hierarchy's source
      *         table (or view, inline table, or join), or null if the hierarchy
@@ -378,7 +378,7 @@ public class OLAPUtil {
      * 
      * @param vCube
      *            Parent of the CubeUsage, used to find OLAPSession ancestor.
-     * @param CubeUsage
+     * @param cu
      *            The CubeUsage to search by.
      * 
      * @return The Cube that the CubeUsage references, or null if not found.

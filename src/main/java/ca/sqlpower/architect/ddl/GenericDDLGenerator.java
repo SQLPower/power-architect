@@ -568,7 +568,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	/**
 	 * Generate the SQL to rename a table.
-	 * <br/>
+	 * <br>
 	 * The default implementation works for PostgreSQL, Oracle, HSQLDB, H2
 	 * 
 	 * @param oldTable
@@ -644,10 +644,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	/**
 	 * Generate the SQL to rename a column.
-	 * <br/>
+	 * <br>
 	 * The default implementation works for PostgreSQL, Oracle
-	 * @param oldTable
-	 * @param newTable
+	 * @param oldCol
+	 * @param newCol
 	 */
 	public void renameColumn(SQLColumn oldCol, SQLColumn newCol) {
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject>();
@@ -814,7 +814,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * 
      * @param c
      *            The {@link SQLColumn} the check constraint applies to.
-     * @param checkConstraint
+     * @param checkConstraints
      *            The {@link String} of check constraints that may use variables
      *            defined by the {@link SQLCheckConstraintVariable} enum and can
      *            be resolved by the {@link SQLCheckConstraintVariableResolver}.
@@ -875,7 +875,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * instead. Platforms that do not support this syntax style: CHECK (COLUMN =
      * 'ENUM1' OR COLUMN = 'ENUM2') should have their respective
      * {@link DDLGenerator} override this method. If this method is overridden,
-     * the {@link #columnCheckConstraint(SQLColumn, String)} method likely needs
+     * the {@link #columnCheckConstraint(SQLColumn, List)} method likely needs
      * to be overridden as well.
      * 
      * @param c
@@ -1284,10 +1284,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 		return null;
 	}
 
-	/**
-     * Generate, set, and return a valid identifier for this SQLObject.
-	 * @throws SQLObjectException
-     */
+	/**  
+	 * Generate, set, and return a valid identifier for this SQLObject.
+	 * @param dupCheck
+	 * @param so
+	 * @return
+	 */
 	protected String createPhysicalName(Map<String, SQLObject> dupCheck, SQLObject so) {
         logger.debug("transform identifier source: " + so.getPhysicalName());
         if ((so instanceof SQLTable || so instanceof SQLColumn) &&
@@ -1358,7 +1360,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	/**
 	 * Drop the specified index.
-	 * <br/>
+	 * <br>
 	 * The default implementation should work for all databases.
 	 * 
 	 * @param index the index to drop.

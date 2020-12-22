@@ -677,7 +677,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
      * table level, we must ensure that there are no name conflicts by
      * prepending tags to identify which SQLObject type and physical name the
      * check constraint is actually supposed to be applied on. e.g.
-     * col_<column-name>_<constraint-name> or table_<table-name>_<constraint-name>.
+     * col_&lt;column-name&gt;_&lt;constraint-name&gt; or table_&lt;table-name&gt;_&lt;constraint-name&gt;.
      * This is especially important since actual table level check constraints
      * will be added in the future.
      */

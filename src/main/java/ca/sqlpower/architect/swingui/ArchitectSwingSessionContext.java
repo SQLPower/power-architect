@@ -75,9 +75,6 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * 
      * @param in
      *            The input stream to read the XML data from
-     * @param showGUI
-     *            True if you want this session to have its own (visible)\
-     *            ArchitectFrame instance; false for an invisible session.
      * @return The newly created Session.
      */
     public abstract ArchitectSwingSession createSession(InputStream in) throws SQLObjectException, IOException;

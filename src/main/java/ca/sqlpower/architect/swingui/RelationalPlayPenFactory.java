@@ -251,7 +251,6 @@ public class RelationalPlayPenFactory {
         /**
          * Synchronizes the dbtTree selection with the playpen selections
          * 
-         * @throws SQLObjectException
          * 
          */
         public void updateDBTree() {

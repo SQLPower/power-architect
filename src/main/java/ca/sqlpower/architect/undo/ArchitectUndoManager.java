@@ -39,9 +39,6 @@ public class ArchitectUndoManager extends SPObjectUndoManager implements Notifyi
      * 
      * @param playPen
      *            The play pen to track undo/redo history for.
-     * @throws SQLObjectException
-     *             If the manager fails to listen to all objects in the play
-     *             pen's database hierarchy.
      */
     public ArchitectUndoManager(PlayPen playPen) {
         super(playPen.getSession().getTargetDatabase());

@@ -214,7 +214,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     /**
      * The prefix string that comes before the current column name in the
-     * sequence name. This is set via the {@link #discoverSequenceNamePattern()}
+     * sequence name. This is set via the {@link #discoverSequenceNamePattern(String)}
      * method, which should be called automatically whenever the user changes
      * the sequence name.
      */
@@ -222,7 +222,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
 
     /**
      * The suffix string that comes after the current column name in the
-     * sequence name. This is set via the {@link #discoverSequenceNamePattern()}
+     * sequence name. This is set via the {@link #discoverSequenceNamePattern(String)}
      * method, which should be called automatically whenever the user changes
      * the sequence name.
      */

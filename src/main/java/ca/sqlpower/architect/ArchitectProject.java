@@ -64,7 +64,6 @@ public class ArchitectProject extends AbstractSPObject {
      * 
      * IMPORTANT!: When changing this, ensure you maintain the order specified by {@link #getChildren()}
      */
-    @SuppressWarnings("unchecked")
     public static final List<Class<? extends SPObject>> allowedChildTypes = Collections
             .unmodifiableList(new ArrayList<Class<? extends SPObject>>(Arrays.asList(UserDefinedSQLType.class, 
                     SQLObjectRoot.class, ProfileManager.class, 
@@ -117,7 +116,7 @@ public class ArchitectProject extends AbstractSPObject {
      * The profile manager will be set to null with this constructor so if one
      * is needed it should be set at sometime in the future before use.
      * 
-     * @param rootObject
+     * @param root
      *            The root object that holds all of the source databases for the
      *            current project.
      */
@@ -138,9 +137,7 @@ public class ArchitectProject extends AbstractSPObject {
      * @param profileManager
      *            The default profile manager for this project. This may be null
      *            if it is set later or the profile manager is not used.
-     * @param snapshotCollection
-     *            An object that will hold all of the snapshots and copied types
-     *            and domains for the current project.
+     * @throws SQLObjectException
      */
     @Constructor
     public ArchitectProject(

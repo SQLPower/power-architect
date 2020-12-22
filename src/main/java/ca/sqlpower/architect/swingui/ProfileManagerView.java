@@ -70,7 +70,7 @@ import ca.sqlpower.swingui.SearchTextField;
  * the name of the table AND either:
  * <ul><li>the date, rows, elapsed time, and a Re-Profile button, 
  * and a "delete this profile" button
- * <li>a progressbar and a Stop button.
+ * <li>a progressbar and a Stop button. </ul>
  * <p>
  */
 public class ProfileManagerView extends JPanel implements ProfileChangeListener, Search {

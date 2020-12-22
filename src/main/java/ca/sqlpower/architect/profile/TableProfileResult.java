@@ -80,7 +80,6 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * (also taken care of by the ProfileManager that creates this result).
      * 
      * @param profiledObject
-     * @param manager
      * @param settings
      */
     @Constructor
@@ -236,7 +235,6 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     /**
      * Returns the DDL generator associated with this table profile.
      * 
-     * @param col1
      * @return
      * @throws SQLObjectException
      */

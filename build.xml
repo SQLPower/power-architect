@@ -907,6 +907,7 @@
 		depends="compile">
 		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
+		<!-- additionalparam="-Xdoclint:none" added to disable doclint for Java8 to resolve unknown tag errors -->
 		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
 			packagenames="ca.sqlpower.*"
 			maxmemory="100m"
@@ -915,6 +916,7 @@
 			Overview="html/overview.html"
 			classpathref="test.classpath"
 			access="private"
+			additionalparam="-Xdoclint:none" 
 			>
 			<packageset dir="${src}" defaultexcludes="yes">
 				<include name="ca/sqlpower/**" />

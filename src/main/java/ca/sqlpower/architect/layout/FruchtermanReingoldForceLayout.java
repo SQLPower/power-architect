@@ -277,7 +277,6 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 
 	/**
 	 * The clear radius between two nodes
-	 * @param pp a playen
 	 * @return
 	 */
 	public double getEmptyRadius() {

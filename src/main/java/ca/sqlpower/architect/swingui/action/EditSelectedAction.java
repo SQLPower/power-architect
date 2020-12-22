@@ -102,7 +102,6 @@ public class EditSelectedAction extends AbstractArchitectAction implements Selec
      * Updates the tooltip and enabledness of this action based on how
      * many items are in the selection list.  If there is only one
      * selected item, tries to put its name in the tooltip too!
-     * @throws SQLObjectException
      */
     private void setupAction(List<PlayPenComponent> selectedItems) {
         String description;

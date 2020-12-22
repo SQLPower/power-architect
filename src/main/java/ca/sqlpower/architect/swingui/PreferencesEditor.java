@@ -60,7 +60,7 @@ public class PreferencesEditor {
     
     /**
      * @param owner The Window that is the owner of this dialog
-     * @param context The application swing context, which contains the user preferences to be edited
+     * @param session The ArchitectSwingSession
      * @return The dialog containing the preference editor
      */
     public Window showPreferencesDialog(Window owner, ArchitectSwingSession session) {
@@ -130,10 +130,10 @@ public class PreferencesEditor {
     }
     
     /**
-     * Similar to {@link #showPreferencesDialog(Window, ArchitectSwingSessionContext)} except it also
+     * Similar to {@link #showPreferencesDialog(Window, ArchitectSwingSession)} except it also
      * sets the selected tab to the JDBC preferences panel
      * @param owner The Window that is the owner of this dialog
-     * @param context The application swing context, which contains the user preferences to be edited
+     * @param session The ArchitectSwingSession
      * @return The dialog containing the preference editor with the selected tab set to the JDBC preferences
      */
     public Window showJDBCDriverPreferences(Window owner, ArchitectSwingSession session) {

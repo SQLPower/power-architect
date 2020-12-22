@@ -112,7 +112,8 @@ public abstract class OLAPPaneUI<T extends OLAPObject, C extends OLAPObject> ext
     /**
      * Calculates and returns the ideal size for this OLAPPane. If you override
      * or change the {@link #paint(Graphics2D)} or
-     * {@link #drawSection(PaneSection, Graphics2D, ContainerPane, int)}
+     * {@link #drawSection(PaneSection, Graphics2D, OLAPPane, int)}
+     * 
      * methods, you will have to override this method as well to compensate.
      */
     public Dimension getPreferredSize() {

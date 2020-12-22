@@ -73,7 +73,7 @@ public class MeasureEditPanel implements ValidatableDataEntryPanel {
     /**
      * Creates a new property editor for the given OLAP Measure. 
      * 
-     * @param cube The data model of the measure to edit
+     * @param measure, The measure to edit
      * @throws SQLObjectException
      *             if populating the necessary SQLObjects fails
      */

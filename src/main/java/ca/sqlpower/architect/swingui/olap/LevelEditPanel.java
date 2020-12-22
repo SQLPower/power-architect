@@ -128,8 +128,8 @@ public class LevelEditPanel implements ValidatableDataEntryPanel {
     /**
      * Creates a new property editor for the given level of a hierarchy.
      * 
-     * @param cube
-     *            The data model of the Level to edit
+     * @param level
+     *            the Level to edit
      * @throws SQLObjectException
      *             if digging up the source table results in a database error
      */

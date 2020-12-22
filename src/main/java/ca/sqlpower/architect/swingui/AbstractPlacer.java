@@ -49,7 +49,7 @@ public abstract class AbstractPlacer extends MouseAdapter implements CancelableL
      * Creates a new table placer for the given table pane. Once constructed,
      * you have to activate this instance by calling {@link #dirtyup()}.
      * 
-     * @param tp The new tablepane to add when the user clicks the mouse
+     * @param playpen The new playpen to add when the user clicks the mouse
      */
     protected AbstractPlacer(PlayPen playpen) {
         this.playpen = playpen;

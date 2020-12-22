@@ -362,7 +362,7 @@ implements DragSourceListener, LayoutNode {
 
 
     /**
-     * Deselects the item, if i < 0, {@link #selectNone()} is called.
+     * Deselects the item, if i less then zero( i &lt; 0), {@link #selectNone()} is called.
      * 
      * @param i index to {@link #getItems()}
      */
@@ -387,7 +387,7 @@ implements DragSourceListener, LayoutNode {
     }
 
     /**
-     * Selects the item, firing an ItemSelectionEvent. If i < 0,
+     * Selects the item, firing an ItemSelectionEvent. If i less then zero (i &lt; 0),
      * {@link #selectNone()} is called.
      * 
      * @param i index to {@link #getItems()}

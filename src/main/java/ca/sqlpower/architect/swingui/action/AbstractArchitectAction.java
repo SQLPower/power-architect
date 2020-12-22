@@ -126,7 +126,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      * @param actionName The name for this action. This will appear in menu items.
      * @param actionDescription This action's description. Appears in tooltips.
      * @param iconResourceName The resource name of the icon. See
-     * {@link SPSUtils#createIcon(String, String, int))} for details.
+     * {@link SPSUtils#createIcon(String, String, int)} for details.
      */
     public AbstractArchitectAction(
             ArchitectSwingSession session,
@@ -146,11 +146,11 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      * Ensures that the session, its frame, and its frame's playpen are
      * all non-null.
      * 
-     * @param frame The ArchitectFrame that owns this action.
+     * @param session The ArchitectSwingSession that owns this action.
      * @param actionName The name for this action. This will appear in menu items.
      * @param actionDescription This action's description. Appears in tooltips.
      * @param iconResourceName The resource name of the icon. See
-     * {@link SPSUtils#createIcon(String, String, int))} for details.
+     * {@link SPSUtils#createIcon(String, String, int)} for details.
      */
     public AbstractArchitectAction(
             ArchitectSwingSession session,
@@ -196,7 +196,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
      * @param actionName The name for this action. This will appear in menu items.
      * @param actionDescription This action's description. Appears in tooltips.
      * @param iconResourceName The resource name of the icon. See
-     * {@link SPSUtils#createIcon(String, String, int))} for details.
+     * {@link SPSUtils#createIcon(String, String, int)} for details.
      */
     public AbstractArchitectAction(
             ArchitectSwingSession session,

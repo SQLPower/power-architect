@@ -484,12 +484,13 @@ public class CompareSQL implements Monitorable {
      * indices of the given tables.
      * 
      *
-     * @param sourceTable The "left side" for the comparison.  If null, then all indices
+     * @param sourceTables The "left side" for the comparison.  If null, then all indices
      * in the target table will be considered obsolete.
-     * @param targetTable The "right side" for the comparison.  If null, then all indices
+     * @param targetTables The "right side" for the comparison.  If null, then all indices
      * in the source table will be considered new.
 	 * @throws SQLObjectException If the getIndices() methods of the source or target
      * tables run into trouble.
+     * @return the list of DiffChunk
      */
 	private List<DiffChunk<SQLObject>> generateIndexDiffs(
 	        Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws SQLObjectException {

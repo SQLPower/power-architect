@@ -223,7 +223,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel {
     /**
      * Sets the table's primary key name field for this panel.
      * 
-     * @param newPKName
+     * @param newPkName
      *            new primaryKeyName for the table
      */
     public void setPkNameText(String newPkName) {

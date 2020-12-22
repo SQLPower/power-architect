@@ -39,7 +39,8 @@ import ca.sqlpower.swingui.table.PercentTableCellRenderer;
 public class ProfileCSVFormat implements ProfileFormat {
 
     /** The desired CSV column list is published in the ProfileColumn enum.
-     * @see ca.sqlpower.architect.profile.output.ProfileFormat#format(java.io.OutputStream, java.util.List, ca.sqlpower.architect.profile.TableProfileManager)
+     * 
+     * @see ca.sqlpower.architect.profile.output.ProfileFormat#format(java.io.OutputStream, java.util.List)
      */
     public void format(OutputStream nout, List<ProfileResult> profileResult) 
                                                                 throws Exception {

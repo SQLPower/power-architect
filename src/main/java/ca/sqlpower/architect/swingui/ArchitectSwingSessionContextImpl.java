@@ -357,22 +357,12 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * overloads of createSession() actually delegate their work.
      * <p>
      * This method tracks all sessions that have been successfully created in
-     * the {@link #sessions} field.
+     * the {@link ca.sqlpower.architect.swingui.ArchitectFrame#sessions} field.
      * 
      * @param projectName
      *            The name of the project being opened in the new session
-     * @param showGUI
-     *            If true, then displays the GUI. If false, do not show the GUI
-     * @param openingSession
-     *            If showGUI is true, then positions the new session window
-     *            relative to the openingSession's window. If null, then just
-     *            positions the new windows according to the most recently
-     *            stored user preference.
      * @return An new ArchitectSwingSession with the given project name.
      * @throws SQLObjectException
-     * @throws IllegalStateException
-     *             if showGUI==true and this method was not called on the Event
-     *             Dispatch Thread.
      */
     private ArchitectSwingSession createSessionImpl(String projectName) throws SQLObjectException {
         logger.debug("About to create a new session for project \"" + projectName + "\""); //$NON-NLS-1$ //$NON-NLS-2$

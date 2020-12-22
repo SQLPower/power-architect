@@ -322,7 +322,7 @@ public class CompareDMPanel extends JPanel {
              * 
              *  Else does nothing
              *  
-             * @param select The name of the item to select
+             * @param def The name of the item to select
              */
             public void setDefaultCatalog(String def) {
                 this.catalogSelect = def;
@@ -337,7 +337,7 @@ public class CompareDMPanel extends JPanel {
              *  
              *  Else does nothing
              *  
-             * @param select The name of the item to select
+             * @param def The name of the item to select
              */
             public void setDefaultSchema(String def) {
                 this.schemaSelect = def;

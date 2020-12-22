@@ -96,7 +96,10 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     /**
      * Similar to the default constructor, but we can specify a pl.ini path
      * ourselves. (This has been created in order to fully automate the JUnit test).
+     * @param PlDotIniPath
+     * @param checkPath
      * @throws BackingStoreException 
+     * @throws SQLObjectException
      */
     public ArchitectSessionContextImpl(String PlDotIniPath, boolean checkPath) throws SQLObjectException, BackingStoreException {
         if (PlDotIniPath == null) {

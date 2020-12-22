@@ -215,9 +215,7 @@ public class ConflictResolver implements Monitorable {
     /**
      * Searches for objects in the database pointed to by con that would
      * conflict with the execution of any of the given DDL statements.
-     * 
-     * @return a list of object names that need to be removed before ddlStmt
-     *         will succeed.
+     * @throws SQLException
      * @throws SQLObjectException 
      */
     public void findConflicting() throws SQLException, SQLObjectException {

@@ -145,6 +145,8 @@ public class AddLicenseToDMGTask extends Task {
      * Convenience wrapper for doing a Runtime.exec() with varargs.
      * Prints the command and its exit value to System.out if debugging
      * is on.
+     * @param args
+     * @throws IOException
      */
     private void execv(String ... args) throws IOException {
         StringBuilder command = new StringBuilder();

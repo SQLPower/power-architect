@@ -192,7 +192,7 @@ implements Selectable {
      * Shows the component's popup menu on the PlayPen that owns this component
      * because it doesn't work to show it on this component, which is not really
      * part of the swing hierarchy. Only executed if the component has a popup
-     * menu, see {@link #getPopup()}.
+     * menu, see {@link #getPopup(Point)}.
      * 
      * @param p
      *            the point (relative to this component's top-left corner) to

@@ -27,9 +27,9 @@ public interface ReportTransformer {
 	 * Applies a built in template to the current project's file, sending the results
 	 * to file identified by result
 	 *
-	 * @param builtInXsltName the name of the built-in XSLT (part of the classpath)
-	 * @param xml The XML that should be transformed
+	 * @param builtInTemplate the name of the built-in Template
 	 * @param result the output stream where the result of the transformation should be written to
+	 * @param session the ArchitectSwingSession
 	 */
 	void transform(String builtInTemplate, File result, ArchitectSwingSession session) throws Exception;
 
@@ -37,9 +37,9 @@ public interface ReportTransformer {
 	 * Applies an external template to the current project's file, sending the results
 	 * to file identified by result
 	 *
-	 * @param the XSLT that should be run
-	 * @param xml The XML that should be transformed
-	 * @param result the output stream where the result of the transformation should be written to
+	 * @param template, The template File
+	 * @param output, the output File
+	 * @param session the ArchitectSwingSession
 	 */
 	void transform(File template, File output, ArchitectSwingSession session) throws Exception;
 

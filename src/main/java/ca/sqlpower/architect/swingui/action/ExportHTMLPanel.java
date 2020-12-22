@@ -470,10 +470,10 @@ public class ExportHTMLPanel {
 
 	/**
 	 * Transforms the current playpen according to the selection that the user made.
-	 * <br/>
+	 * <br>
 	 * An xml OutputStream(using a {@link PipedOutputStream}) is generated, based on the
 	 * current playPen content and is read by a {@link PipedInputStream} which is used as the xml source.
-	 * <br/>
+	 * <br>
 	 * The stylesheet and the xml source are passed as parameters to the
 	 * {@link XsltTransformation} methods to generate an HTML report off the content
 	 * to a location specified by the user.

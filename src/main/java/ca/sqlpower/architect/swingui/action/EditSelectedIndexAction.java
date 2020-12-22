@@ -60,7 +60,7 @@ public class EditSelectedIndexAction extends EditIndexAction {
      * will be created in a particular ArchitectSession.  To create an action that
      * edits a specific index, see {@link EditSpecificIndexAction}.
      * 
-     * @param session The ArchitectSession to which this action belongs.
+     * @param frame The ArchitectFrame to which this action belongs.
      */
     public EditSelectedIndexAction(ArchitectFrame frame) {
         super(frame, Messages.getString("EditSelectedIndexAction.name"), Messages.getString("EditSelectedIndexAction.description"), "edit_index"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$

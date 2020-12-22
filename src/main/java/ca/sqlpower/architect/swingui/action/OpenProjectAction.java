@@ -64,17 +64,6 @@ public class OpenProjectAction extends AbstractArchitectAction {
      * Note that this method always returns immediately, so as the caller of
      * this method you have no way of knowing if the load has worked/will work.
      * 
-     * @param newSession
-     *            The session in which to load the project into.
-     * @param f
-     *            The project file to load.
-     * @param openingSession
-     *            The session from which this openAsynchronously call is made.
-     *            If the session being opened is the first session being
-     *            created, then simply set to null. If the
-     *            openingSession.isNew() returns true, (i.e. it's an new, empty,
-     *            and unmodified project) then openingSession.close() will be
-     *            called once the project is finished loading.
      */
     private static FileLoader fileLoader = new FileLoader() {
         public void open(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession, boolean separateThread) {

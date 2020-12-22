@@ -68,12 +68,7 @@ class Criticizer {
      * 
      * @param root
      *            The SQLObject to criticize
-     * @param criticizer
-     *            The criticizer that will examine the subtree at root and
-     *            accumulate criticisms about it
-     * @throws SQLObjectException
-     *             if the (sub)tree under root is not already populated, and an
-     *             attempt to populate it fails
+     * @return List of criticism
      */
     @SuppressWarnings("unchecked")
     private List<Criticism> recursivelyCriticize(Object root) {

@@ -454,10 +454,11 @@ public class KettleJob implements Monitorable {
     }
     
     /**
-     * 
-     * @param tableList
+     * Method used to split the big job into multiple sub jobs based on sublist.
+     * @param tableList 
+     *              list of tables to split in a sublist 
      * @param targetDB
-     * @param splitno, is a number of tables(transformation) per job
+     *              target Database
      * @throws Exception
      */
     public void doSplitedJobExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws Exception {
@@ -891,7 +892,7 @@ private String getJobFilePath(String jobName) {
     
     /**
      * This method creates a Kettle Repository instance that refers to the
-     * existing Kettle repository schema referred to by the {@link #repository}
+     * existing Kettle repository schema referred to by the {@link ca.sqlpower.architect.etl.kettle.KettleSettings#repository}
      * database connection.  This method does not attempt to actually make
      * a database connection itself; the returned Repository will attempt
      * the connection by itself later on.

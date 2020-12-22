@@ -85,10 +85,10 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	/**
 	 * Controls usage of the the &lt;addPrimaryKey&gt; tag for single column primary keys.
-	 * <br/>
+	 * <br>
 	 * If set to false, it will only be used for multi-column primary keys. For single column primary keys 
 	 * a nested &lt;constraint&gt; tag with a "primaryKey" attribute will be used instead.
-	 * <br/>
+	 * <br>
 	 * &lt;addPrimaryKey&gt; does not work when used with MySQL and autoincrement columns, so this feature
 	 * is essentially a workaround for a MySQL defiency
 	 *
@@ -100,10 +100,10 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	
 	/**
 	 * Control the usage of changeSets in the generated output.
-	 * <br/>
+	 * <br>
 	 * If true, each statement will be "enclosed" in a changeSet
 	 * If false, no changeSet tags will be generated
-	 * <br/>
+	 * <br>
 	 * If changeSet Generation is enabled, the author and id to be used
 	 * can be controlled through setAuthor() and setGenerateId()
 	 *
@@ -117,7 +117,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	/**
 	 * Define the autor name to be used in the changeSet tag.
-	 * <br/>
+	 * <br>
 	 * This is only relevant if setUseSeparateChangeSets() has been activated
 	 *
 	 * @param name the author to be used
@@ -130,12 +130,12 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	/**
 	 * Define the start value for the ID attribute of the changeSets.
-	 * <br/>
+	 * <br>
 	 * This is only used if changeSet generation has been enabled.
 	 *
 	 * @param startValue the value for the first changeSet that is generated
 	 * @see #setUseSeparateChangeSets(boolean)
-	 * @see #setGenerateId(flag)
+	 * @see #setGenerateId(boolean)
 	 */
 	public void setIdStart(int startValue) {
 		currentId = startValue;
@@ -464,7 +464,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	}
 
 	/**
-	 * Creates a <addColumn> definition tag
+	 * Creates a &lt; addColumn &gt; definition tag
 	 */
 	public void addColumn(SQLColumn c) {
 		startOfStatement();
@@ -497,7 +497,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 
 	/**
-	 * Creates a <dropColumn> definition tag
+	 * Creates a &lt; dropColumn &gt; definition tag
 	 */
 	public void dropColumn(SQLColumn c) {
 		startOfStatement();
@@ -517,7 +517,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	}
 
 	/**
-	 * Creates a <modifyColumn> definition tag
+	 * Creates a &lt; modifyColumn &gt; definition tag
 	 */
 	public void modifyColumn(SQLColumn c) {
 		startOfStatement();
@@ -532,7 +532,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 	}
 
 	/**
-	 * Creates a <dropTable> definition tag
+	 * Creates a &lt; dropTable &gt; definition tag
 	 */
 	public void dropTable(SQLTable t) {
 		startOfStatement();
@@ -558,7 +558,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
     }
 
 	/**
-	 * Creates a <column> definition tag
+	 * Creates a &lt; column &gt; definition tag
 	 */
 	protected String columnDefinition(String indent, SQLColumn c, boolean tableHasSingleColumnPK) {
         StringBuilder def = new StringBuilder(50);
@@ -680,7 +680,7 @@ public class LiquibaseDDLGenerator extends GenericDDLGenerator implements DDLGen
 
 	/**
 	 * Returns the passed string usable as the value for a tag attribute.
-	 * <br/>
+	 * <br>
 	 * The returned value is enclosed in double quotes and escapes necessary characters
 	 *
 	 * @param value

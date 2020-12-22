@@ -70,7 +70,7 @@ public class HierarchyEditPanel implements ValidatableDataEntryPanel {
     /**
      * Creates a new property editor for the given OLAP Hierarchy. 
      * 
-     * @param cube The data model of the hierarchy to edit
+     * @param hierarchy The hierarchy to edit
      */
     public HierarchyEditPanel(Hierarchy hierarchy) throws SQLObjectException {
         this.hierarchy = hierarchy;

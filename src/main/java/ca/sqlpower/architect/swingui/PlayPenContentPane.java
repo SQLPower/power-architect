@@ -370,7 +370,7 @@ public class PlayPenContentPane extends AbstractSPObject {
      * Adds a listener to this content pane that will forward a specific
      * property's events received from its children components.
      * 
-     * @param propertyName
+     * @param propertyNames
      *            The property of the components the listener is interested in.
      *            If null or an empty array, it will listen for all properties.
      * @param listener

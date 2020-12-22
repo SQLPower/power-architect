@@ -35,6 +35,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/hamcrest-core-1.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/junit-4.12.jar"/>
 	<classpathentry exported="true" kind="lib" path="testbed/hsqldb.jar"/>
+	<classpathentry kind="lib" path="lib/mondrian-3.14.0.0-12.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
 			<attribute name="owner.project.facets" value="java"/>

@@ -58,24 +58,35 @@ public interface ArchitectSessionContext {
      * 
      * @param in The input stream to read the XML data from
      * @return The new session
+     * @throws SQLObjectException
+     * @throws IOException
      */
-    public abstract ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException;
+     public abstract ArchitectSession createSession(InputStream in) throws SQLObjectException, IOException;
 
     /**
      * Returns the user preferences node associated with this context.
+     * 
+     * @return the preferences
      */
     public abstract Preferences getPrefs();
 
     /**
      * Returns a collection containing all the sessions from this context. 
+     * 
+     * @return collections of Architect Session
      */
     public Collection<ArchitectSession> getSessions();
     
+    /**
+     * 
+     * @return the PlDotIni path
+     */
     public String getPlDotIniPath();
     
     /**
      * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
-     * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.
+     * returns null and leaves the plDotIni property as null as well. See {@link ca.sqlpower.architect.ArchitectSessionContextImpl#plDotIni}.
+     * @return JDBCDataSource Collection
      */
     public DataSourceCollection<JDBCDataSource> getPlDotIni();
     
@@ -83,7 +94,7 @@ public interface ArchitectSessionContext {
     
     /**
      * Sets the plDotIniPath property, and nulls out the current plDotIni
-     * if the given value differs from the existing one.  See {@link #plDotIniPath}.
+     * if the given value differs from the existing one.  See {@link ca.sqlpower.architect.ArchitectSessionContextImpl#plDotIniPath}.
      */
     public void setPlDotIniPath(String plDotIniPath);
     

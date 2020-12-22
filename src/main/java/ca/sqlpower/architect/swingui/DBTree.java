@@ -791,7 +791,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 		
 		/**
-         * Recursively visits SQLObjects starting at {@link #source}, stopping
+         * Recursively visits SQLObjects starting at {@link #root}, stopping
          * at the first leaf node (SQLColumn) encountered.
          */
 		@Override

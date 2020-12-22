@@ -51,9 +51,10 @@ public class VelocityTransformation implements ReportTransformer {
 	 * Performs an external XSLT transformation, sending the results
 	 * to the OutputStream result.
 	 *
-	 * @param the XSLT that should be run
-	 * @param xml The XML that should be transformed
+	 * @param template
 	 * @param result the output stream where the result of the transformation should be written to
+	 * @param session ArchitectSwingSession
+	 * @throws Exception
 	 */
 	public void transform(File template, File result, ArchitectSwingSession session) throws Exception {
 		Properties props = new Properties();

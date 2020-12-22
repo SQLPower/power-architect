@@ -29,9 +29,9 @@ public class TransformerFactory {
 	/**
 	 * Creates an instance of ReportTransformer based on the extension of
 	 * the given template.
-	 * <br/>
+	 * <br>
 	 * Currently XSLT and Velocity are supported.
-	 * <br/>
+	 * <br>
 	 * The correct transformer is identified by looking at the extension of
 	 * the file. The following rules apply
 	 * <ul>

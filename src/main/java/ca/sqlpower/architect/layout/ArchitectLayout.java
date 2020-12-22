@@ -50,7 +50,9 @@ public interface ArchitectLayout {
      * but the layout should determine dimensions 
      * 
 	 * @param nodes  The list of entities to be placed on  
-	 * @param preferedFrames The prefered number of animation frames, may be ignored by the layout algorithm
+	 * @param edges 
+	 *             List of LayoutEdges
+     * @param frame
 	 */
 	public void setup(Collection<? extends LayoutNode> nodes, Collection<? extends LayoutEdge> edges, Rectangle frame);
 	

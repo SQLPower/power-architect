@@ -136,7 +136,7 @@ public class OLAPEditSession extends AbstractSPListener {
      * all belong to the given session's dbtree and playpen. This should only be called by the
      * ArchitectSwingSession, see {@link ArchitectSwingSession#getOLAPEditSession(OLAPSession)}.
      * 
-     * @param session The architect swing session this editor and the given schema belong to.
+     * @param swingSession The architect swing session this editor and the given schema belong to.
      * @param olapSession The OLAPSession of the schema to edit
      */
     public OLAPEditSession(ArchitectSwingSession swingSession, OLAPSession olapSession) {

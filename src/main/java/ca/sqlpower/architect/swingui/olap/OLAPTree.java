@@ -120,7 +120,7 @@ public class OLAPTree extends JTree{
     /**
      * Returns the TreePath built from the getParent() of the given OLAPObject.
      * 
-     * @param obj OLAPObject to build TreePath upon.
+     * @param o SPObject to build TreePath upon.
      * @return TreePath for given object.
      */
     public TreePath getTreePathForNode(SPObject o) {

@@ -443,7 +443,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
 	/**
 	 * Drop the specified index.
-	 * <br/>
+	 * <br>
 	 * The default implementation should work for all databases.
 	 *
 	 * @param index the index to drop.

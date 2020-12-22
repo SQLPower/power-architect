@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import ca.sqlpower.architect.ddl.critic.Critic;
 import ca.sqlpower.architect.ddl.critic.CriticAndSettings;
 import ca.sqlpower.architect.ddl.critic.CriticFix;
 import ca.sqlpower.architect.ddl.critic.CriticFix.FixType;
@@ -59,7 +58,7 @@ public class PhysicalNameCritic extends CriticAndSettings {
      * 
      * @param platformName
      *            The name of the platform we are criticizing. See
-     *            {@link Critic.StarterPlatformTypes} for examples.
+     *            {@link ca.sqlpower.architect.ddl.critic.CriticAndSettings.StarterPlatformTypes} for examples.
      * @param legalNamePattern
      *            A {@link Pattern} that the names must match to prevent errors.
      * @param maxNameLength

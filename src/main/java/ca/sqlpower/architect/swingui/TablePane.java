@@ -627,7 +627,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
      * When highlighting for the given column is no longer desired, remove the
      * highlight with a call to {@link #removeColumnHighlight(SQLColumn, Color)}.
      *
-     * @param i The column index to recolour
+     * @param column The column recolour
      * @param colour The new colour to show the column in.
      */
     public void addColumnHighlight(SQLColumn column, Color colour) {

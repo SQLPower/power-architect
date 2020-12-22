@@ -613,8 +613,8 @@ public class PlayPen extends JPanel
      * 
      * @param session
      *            The session this play pen belongs to. Null is not allowed.
-     * @param modelContainer This is the top-level object of 
-     * the model that this PlayPen will represent (ie: SQLDatabase, OLAPSession)     
+     * @param  ppcp PlayPenContentPane
+     *                   
      */
 	public PlayPen(ArchitectSwingSession session, PlayPenContentPane ppcp) {
         if (session == null) throw new NullPointerException("A null session is not allowed here."); //$NON-NLS-1$
@@ -712,8 +712,6 @@ public class PlayPen extends JPanel
      * @param c The component to add.  The PlayPen only accepts
      * Relationship and ContainerPane components.
      * @param constraints The Point at which to add the component
-     * @param index ignored for now, but would normally specify the
-     * index of insertion for c in the child list.
      */
     protected void addImpl(PlayPenComponent c, Object constraints) {        
         if (c instanceof Relationship || c instanceof UsageComponent || c instanceof PlayPenLabel) {
@@ -1230,24 +1228,27 @@ public class PlayPen extends JPanel
      * Adds or reverse engineers a copy of the given source table to this playpen, using
      * preferredLocation as the layout constraint.  Tries to avoid
      * adding two tables with identical names.
-     *
+     * @param source
+     * @param preferredLocation
+     * @param duplicateProperties
      * @return A reference to the newly-created TablePane.
-     * @see SQLTable#inherit
-     * @see PlayPenLayout#addLayoutComponent(Component,Object)
      */
     public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation, DuplicateProperties duplicateProperties) throws SQLObjectException {
         return importTableCopy(source, preferredLocation, duplicateProperties, true);
     }
 
     /**
-	 * Adds or reverse engineers a copy of the given source table to this playpen, using
-	 * preferredLocation as the layout constraint.  Tries to avoid
-	 * adding two tables with identical names.
-	 * 
-	 * @return A reference to the newly-created TablePane.
-	 * @see SQLTable#inherit
-	 * @see PlayPenLayout#addLayoutComponent(Component,Object)
-	 */
+     * Adds or reverse engineers a copy of the given source table to this playpen, using
+     * preferredLocation as the layout constraint.  Tries to avoid
+     * adding two tables with identical names.
+     * 
+     * @param source
+     * @param preferredLocation
+     * @param duplicateProperties
+     * @param assignTypes
+     * @return
+     * @throws SQLObjectException
+     */
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation, DuplicateProperties duplicateProperties, boolean assignTypes) throws SQLObjectException {
 	    SQLTable newTable;
 	    switch (duplicateProperties.getDefaultTransferStyle()) {
@@ -1579,7 +1580,7 @@ public class PlayPen extends JPanel
          * 
          * This method is normally called from a worker thread, so don't use any swing API on it.
 		 *
-		 * @param so
+		 * @param soList
 		 */
 		private void ensurePopulated(List<? extends SQLObject> soList) {
 			for (SQLObject so : soList) {
@@ -2666,24 +2667,11 @@ public class PlayPen extends JPanel
          * Creates a new mouse event handler that tracks mouse motion and moves
          * a container pane around on the play pen accordingly.
          * 
-         * @param ppc
-         *            The container pane that's going to be moved
-         * @param handle
-         *            The position relative to the container pane's top left
-         *            corner where the mouse pointer should be during the drag
-         *            operation. For a single container pane drag, this will
-         *            normally be inside the container pane's bounds, but for a
-         *            multi-drag, this coordinate will often be a large and/or
-         *            negative offset for all but one of the floating objects
-         *            (because the user clicked and dragged one of the selected
-         *            tables).
-         * @param addToPP
-         *            A flag indicating whether the floating table has not yet
-         *            been added to the playpen (i.e. it should be added when
-         *            the user releases the mouse button). This is for "create
-         *            table" type actions, and should be set to false for
-         *            dragging existing objects.
-         */
+         * @param pp The PlayPen
+         *           
+         * @param ppcToHandleMap
+         *            The Map of the DraggablePlayPenComponent with their Point
+        */
 		public FloatingContainerPaneListener(PlayPen pp, Map<DraggablePlayPenComponent, Point> ppcToHandleMap) {
 			this.pp = pp;
 			Point pointerLocation = MouseInfo.getPointerInfo().getLocation();
@@ -2935,7 +2923,7 @@ public class PlayPen extends JPanel
      * Selects the playpen component that represents the given SQLObject.
      * If the given SQL Object isn't in the playpen, this method has no effect.
      *
-     * @param selection A list of SQLObjects, should only have SQLColumn, SQLTable or SQLRelationship.
+     * @param selections A list of SQLObjects, should only have SQLColumn, SQLTable or SQLRelationship.
      * @throws SQLObjectException 
      */
     public void selectObjects(List<? extends SPObject> selections) throws SQLObjectException {
@@ -3042,7 +3030,8 @@ public class PlayPen extends JPanel
      * Selects the playpen component that represents the given OLAPObjects.
      * If the given OLAPObjects aren't in the playpen, this method has no effect.
      *
-     * @param selection A list of OLAPObjects.
+     * @param selections A list of OLAPObjects.
+     * @param tree
      * @throws SQLObjectException 
      */
     public void selectObjects(List<OLAPObject> selections, OLAPTree tree) throws SQLObjectException {

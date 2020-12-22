@@ -51,7 +51,8 @@ public class DnDOLAPTransferable implements Transferable, java.io.Serializable {
      * <p>
      * This has the same disadvantages described in {@link DnDTreePathTransferable}.
      *
-     * @param node The SQLObject you want the path to
+     * @param pp
+     * @param selectedCoordinates
      */
     public DnDOLAPTransferable(PlayPen pp, List<PlayPenCoordinate<? extends OLAPObject,? extends OLAPObject>> selectedCoordinates) {
         PlayPenContentPane contentPane = pp.getContentPane();

@@ -270,7 +270,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private final PreferencesEditor prefsEditor;
     
     /**
-     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
+     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, JDBCDataSource, Runnable)}
      * method.
      */
     private static final DataSourceDialogFactory dsDialogFactory = new DataSourceDialogFactory() {
@@ -287,7 +287,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     };
     
     /**
-     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
+     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, JDBCDataSource, Runnable)}
      * method.
      */
     private final DataSourceTypeDialogFactory dsTypeDialogFactory = new DataSourceTypeDialogFactory() {
@@ -889,7 +889,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     /**
-     * See {@link #savingEntireSource}.
+     * See {@link ca.sqlpower.architect.ProjectSettings#savingEntireSource}.
      *
      * @return the value of savingEntireSource
      */
@@ -898,7 +898,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     /**
-     * See {@link #savingEntireSource}.
+     * See {@link ca.sqlpower.architect.ProjectSettings#savingEntireSource}.
      *
      * @param argSavingEntireSource Value to assign to this.savingEntireSource
      */
