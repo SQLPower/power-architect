@@ -410,7 +410,7 @@
 			<class location="${build}" />
 			<sourcePath path="${src}" />
 			<!-- Classes needed by our code but that we don't want tested -->
-			<auxClasspath path="${pmd.jar}" />
+			<auxClasspath path="${pmd.classpath}" />
 			<systemProperty name="findbugs.maskedfields.locals" value='true'/>
 		</findbugs>
 	</target>
