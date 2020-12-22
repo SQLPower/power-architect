@@ -28,6 +28,7 @@ import java.util.Set;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
@@ -86,7 +87,9 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
         logger.debug("delete action detected!"); //$NON-NLS-1$
         logger.debug("ACTION COMMAND: " + evt.getActionCommand()); //$NON-NLS-1$
 
-        if (getPlaypen().getSelectedItems().size() < 1) {
+        final TreePath[] selectionPaths = getSession().getDBTree().getSelectionPaths();
+        final int selectionPathsSize = selectionPaths != null ? selectionPaths.length : 0;
+        if (getPlaypen().getSelectedItems().size() + selectionPathsSize < 1) {
             JOptionPane.showMessageDialog(getPlaypen(), Messages.getString("DeleteSelectedAction.noItemsToDelete")); //$NON-NLS-1$
             return;
         }
@@ -215,6 +218,18 @@ public class DeleteSelectedAction extends AbstractArchitectAction {
             Object model = ppc.getModel();
             if (model instanceof SQLObject) {
                 deleteItems.add((SQLObject) model);
+            }
+        }
+        
+        // Invisible elements in the PlayPen but selected in the TreeView
+        TreePath[] selectionPaths = getSession().getDBTree().getSelectionPaths();
+        if (selectionPaths != null) {
+            for (final TreePath tp : selectionPaths) {
+                final Object c = tp.getLastPathComponent();
+                if (c instanceof SQLIndex && !deleteItems.contains(c)) {
+                    final SQLIndex index = (SQLIndex) c;
+                    deleteItems.add(index);
+                }
             }
         }
         
