@@ -5,9 +5,9 @@
 	<key>CFBundleName</key>
 	<string>Architect</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.8.jdbc</string>
+	<string>1.11.2.jdbc</string>
 	<key>CFBundleGetInfoString</key>
-	<string>1.0.8.jdbc</string>
+	<string>1.11.2.jdbc</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<string>false</string>
 	<key>CFBundleInfoDictionaryVersion</key>

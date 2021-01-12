@@ -75,6 +75,15 @@
 	
 	<property name="only.copy.sqlpower.library" value="false"/>
 	
+	<property name="junit.jar" location="${lib}/junit-4.12.jar"/>
+    <property name="hamcrest.jar" location="${lib}/hamcrest-core-1.3.jar"/>
+	<property name="customjre" value="custom_jre" /> 
+	
+	<property name="macjre.dir" value="${customjre}/mac" />
+	<property name="winjre.dir" value="${customjre}/win" />
+	<property name="unixjre.dir" value="${customjre}/unix" />
+	
+
 	<path id="runtime.classpath"
 			description="All the runtime dependencies of the Architect code">
 		<fileset dir="${lib}">
@@ -83,6 +92,9 @@
 		<fileset dir="${sqlpower.library.home}/lib/main">
 			<include name="*.jar"/>
 		</fileset>
+		<!--<fileset dir="${customjre}">
+			<include name="**/*.*"/>
+		</fileset> -->
 		<pathelement location="${generated}"/>
 	</path>
 
@@ -107,6 +119,8 @@
 						including the compiles Architect code itself">
 		
 		<path refid="compile.classpath" />
+		<pathelement location="${junit.jar}"/>
+		<pathelement location="${hamcrest.jar}"/>
 		<pathelement location="${build}"/>
 		<fileset dir="${jdbclib}">
 			<include name="*.jar"/>
@@ -157,15 +171,15 @@
 		</not>
 	</condition>
 	
-	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-macosx" >
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j-3.12/launch4j-macosx" >
 		<isset property="isMac"/>
 	</condition>
 	
-	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-linux" >
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j-3.12/launch4j-linux" >
 		<isset property="isUnix"/>
 	</condition>
 	
-	<condition property="launch4j.dir" value="ext-tools-home/launch4j/launch4j-win32" >
+	<condition property="launch4j.dir" value="ext-tools-home/launch4j-3.12/launch4j-win" >
 		<isset property="isWindows"/>
 	</condition>
 	
@@ -235,7 +249,7 @@
 		<mkdir dir="${build_tmp}"/>
 	 	<mkdir dir="${generated}"/>
 		<mkdir dir="${build.tests}"/>
-		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${dist.latest}"/>
 		
 		<!-- get the version number from source code ArchitectUtils -->
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
@@ -381,7 +395,7 @@
 	        <pmd cacheLocation="${build}/pmd.cache">
 	            <ruleset>rulesets/java/quickstart.xml</ruleset>
 	        	<formatter type="${pmd.report.format}" toFile="${pmd-results}"/>
-	            <sourceLanguage name="java" version="1.8"/>
+	            <sourceLanguage name="java" version="11"/>
 	            <fileset dir="${src}">
 	                <include name="**/*.java"/>
 	            </fileset>
@@ -785,6 +799,8 @@
     		</fileset>
     		<fileset dir="${build}" includes="architecthelp.jar" />
     	</copy>
+	<!-- TODO bundle jre based on  OS
+	-->
 	</target>
 	
 	<target name="build.manifest" depends="build.stage">
@@ -811,13 +827,14 @@
 
     <target name="stage" depends="checkAntVersion,compile,build.manifest">
 
+    <echo>"Java home is: ${java.home}"</echo>
     	<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" 
     				includes="ca/** icons/** sounds/** xsltStylesheets/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
     	</jar>
-    	
-    	<launch4j>
+  <!--  	<launch4j configFile="${installer.dir}/launch4j_config.xml" /> -->
+  	<launch4j>
 			<config dontwrapjar="true" 
 					headertype="gui"
 					jarpath="architect.jar"
@@ -828,9 +845,7 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
-				<jre minVersion="1.8.0"
-					 maxHeapSize="600"
-				/>
+					<jre path ="/jre" minVersion="1.8.0"/>
 			</config>
 		</launch4j>
     	
@@ -845,11 +860,11 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					stayalive="false"
 					icon="installer/uninstall.ico">
-				<singleInstance
-					mutexName="SQL Power Architect Uninstaller"
-					windowTitle="SQL Power Architect Uninstaller"
-				/>
-				<jre minVersion="1.8.0"/>
+					<singleInstance
+						mutexName="SQL Power Architect Uninstaller"
+						windowTitle="SQL Power Architect Uninstaller"
+					/>
+					<jre path ="/jre" minVersion="1.8.0"/>
 			</config>
 		</launch4j>
     	
@@ -860,7 +875,7 @@
     	<copy todir="${staging.dir}/doc" file="doc/ReleaseNotes.txt"/>
 
     	<copy todir="${staging.dir}" file="LICENSE"/>
-
+    	<echo message="copying certificate: ${sqlpower.certificate}"/>
     	<copy todir="${staging.dir}">
     				<fileset dir="${sqlpower.certificate}" includes="*.*"/>
     	</copy>
@@ -922,7 +937,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2020 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2021 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 	</target>
 
@@ -951,7 +966,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2020 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2021 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 		
 		<apply executable="dot" dest="${dist.dir}/doc" parallel="false">
@@ -977,7 +992,7 @@
 					<appname>SQL Power Architect</appname>
 					<appversion>@{app.version}</appversion>
 					<url>http://www.sqlpower.ca/</url>
-					<javaversion>1.8</javaversion>
+					<javaversion>11</javaversion>
 					<!-- Need to figure how to pass options to the izpack pack200 compression feature -->
 					<!-- <pack200/> -->
 				</info>
@@ -1117,6 +1132,10 @@
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH/uninstaller">
 								<include name="uninstaller.exe"/>
 							</fileset>
+							<!-- TODO copy based on OS
+							 <fileset dir="../staging/jre/" targetdir="$INSTALL_PATH/jre">
+								<include name="**/**"/>
+							</fileset> -->
 						</pack>
 					</packs>
 					<native type="izpack" name="ShellLink.dll"/>
@@ -1146,12 +1165,12 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
-				<singleInstance
-					mutexName="SQL Power Architect Installer"
-					windowTitle="SQL Power Architect Installer"
-				/>
-				<jre minVersion="1.8.0"/>
-			</config>
+					<singleInstance
+						mutexName="SQL Power Architect Installer"
+						windowTitle="SQL Power Architect Installer"
+					/>
+					<jre minVersion="1.8.0"/>
+				</config>
 		</launch4j>
 	</target>
 	
@@ -1169,11 +1188,11 @@
 					supporturl="http://www.sqlpower.ca/forum"
 					stayalive="false"
 					icon="${resources}/icons/architect.ico">
-				<singleInstance
-					mutexName="SQL Power Architect Installer"
-					windowTitle="SQL Power Architect Installer"
-				/>
-				<jre minVersion="1.8.0"/>
+					<singleInstance
+						mutexName="SQL Power Architect Installer"
+						windowTitle="SQL Power Architect Installer"
+					/>
+				<jre minVersion="1.8.0" maxVersion="12.0.0" />
 			</config>
 		</launch4j>
 	</target>
@@ -1194,8 +1213,9 @@
 	    <include name="lib/*.jar" />
 	    <include name="jdbc/*.jar" />
 	    <include name="jdbc/*.ini" /> 
+	<!-- TODO include based on OS	<include name="jre/**/**" /> -->
 	</fileset>
-	<target name="osx_dist" depends="stage">
+	<target name="osx_dist" depends="stage, mac_jre">
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
 		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${staging.dir}/lib"/>
 	    <bundleapp outputdirectory="${staging.dir}"
@@ -1203,8 +1223,7 @@
 		    displayname="Architect" 
 		    identifier="ca.sqlpower.architect" 
 		    shortversion="0.8"
-		    jvmrequired="1.8"
-		    copyright="2020 SQL Power Architect"
+		    copyright="2021 SQL Power Architect"
 		    executableName="PowerArchitectStub"
 	    	icon = "${resources}/icons/Power Architect.icns"
 		    mainclassname="ca.sqlpower.architect.swingui.ArchitectFrame">
@@ -1231,9 +1250,8 @@
 		    displayname="Architect" 
 		    identifier="ca.sqlpower.architect.swingui.ArchitectFrame" 
 		    shortversion="${app.version}.jdbc"
-		 	jvmrequired="1.8"
 		 	executableName="PowerArchitectStub"
-			copyright="2020 SQL Power Architect"
+			copyright="2021 SQL Power Architect"
 		 	icon = "${resources}/icons/Power Architect.icns"
 			mainclassname="ca.sqlpower.architect.swingui.ArchitectFrame">
  		 	<classpath refid="runtime.jars"/>
@@ -1418,7 +1436,7 @@
 	</target>
 
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
-    <target name="generic_install" depends="stage">
+    <target name="generic_install" depends="stage, unix_jre">
 		<tar destfile="${dist.dir}/SQL-Power-Architect-generic-${app.version}.tar.gz"
 			compression="gzip">
 			<tarfileset
@@ -1555,4 +1573,35 @@
 		  <entry key="app.version" value="${app.version}"/>
 		</propertyfile>
 	</target>
+	
+	
+	<!-- generate custome jre for MacOS -->
+	<target name="mac_jre" if="isMac">
+		<echo message="${macjre.dir}/jre"/>
+		<delete dir="${macjre.dir}/jre" failonerror="false" includeemptydirs="true"/>
+	        <echo message="Creating jlink image in ${macjre.dir}/."/>
+	        <echo message="Executing: ${java.home}/bin/jlink ${jlink.args.concatenated}"/>
+	        <exec executable="${java.home}/bin/jlink">
+	        	<arg line="--no-header-files --no-man-pages --compress=2 --add-modules java.base,java.compiler,java.datatransfer,java.logging,java.desktop,java.prefs,java.sql,java.xml,jdk.jdeps,jdk.javadoc --output ${macjre.dir}/jre"/>
+	        </exec>
+	</target>
+	
+	<!-- generate custome jre for Windows -->
+		<target name="win_jre" if="isWindows">
+			<delete dir="${winjre.dir}" failonerror="false" includeemptydirs="true"/>
+		        <echo message="Creating jlink image in ${winjre.dir}/."/>
+		        <echo message="Executing: ${java.home}/bin/jlink.exe ${jlink.args.concatenated}"/>
+		        <exec executable="${java.home}/bin/jlink.exe">
+		        	<arg line="--no-header-files --no-man-pages --compress=2 --add-modules java.base,java.compiler,java.datatransfer,java.logging,java.desktop,java.prefs,java.sql,java.xml,jdk.jdeps,jdk.javadoc --output ${winjre.dir}/jre"/>
+		        </exec>
+		</target>
+	<!-- generate custome jre for Unix -->
+		<target name="unix_jre" if="isUnix">
+			<delete dir="${unixjre.dir}" failonerror="false" includeemptydirs="true"/>
+		        <echo message="Creating jlink image in ${linuxjre.dir}/."/>
+		        <echo message="Executing: ${jlink.command} ${jlink.args.concatenated}"/>
+		        <exec executable="${java.home}/bin/jlink">
+		        	<arg line="--no-header-files --no-man-pages --compress=2 --add-modules java.base,java.compiler,java.datatransfer,java.logging,java.desktop,java.prefs,java.sql,java.xml,jdk.jdeps,jdk.javadoc --output ${unixjre.dir}/jre"/>
+		        </exec>
+		</target>
 </project>

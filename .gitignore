@@ -8,3 +8,6 @@
 /build.properties
 /${cpd-results}
 /${pmd-results}
+/architect.log
+/.DS_Store
+/custom_jre/

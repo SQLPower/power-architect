@@ -1,46 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="regress"/>
+	<classpathentry kind="src" path="ext-tools-home/clover-ant-4.2.0"/>
 	<classpathentry kind="src" path="generated"/>
 	<classpathentry kind="src" path="jdbc_drivers"/>
 	<classpathentry kind="src" path="ext-tools-home/resgen/src"/>
 	<classpathentry kind="src" path="example_code"/>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
-	<classpathentry exported="true" kind="lib" path="buildlib/ant.jar"/>
-	<classpathentry exported="true" kind="lib" path="buildlib/gsbase-2.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="buildlib/junit.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/activation.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-beanutils-bean-collections.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-beanutils-core.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-digester.jar" sourcepath="libsrc/commons-digester-1.5-src.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-vfs-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/edtftpj-1.5.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jcommon-1.0.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jfreechart-1.0.1.jar">
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/sqlpower-library"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="buildlib/ant.jar"/>
+	<classpathentry kind="lib" path="buildlib/gsbase-2.0.1.jar"/>
+	<classpathentry kind="lib" path="buildlib/junit.jar"/>
+	<classpathentry kind="lib" path="lib/activation.jar"/>
+	<classpathentry kind="lib" path="lib/commons-beanutils-bean-collections.jar"/>
+	<classpathentry kind="lib" path="lib/commons-beanutils-core.jar"/>
+	<classpathentry kind="lib" path="lib/commons-digester.jar" sourcepath="libsrc/commons-digester-1.5-src.zip"/>
+	<classpathentry kind="lib" path="lib/commons-vfs-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/edtftpj-1.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="http://www.jfree.org/jfreechart/api/javadoc"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/iText-2.0.8.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/eigenbase-properties.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/velocity-1.6.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-io-1.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/velocity-tools-generic-1.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/kettle-engine-3.2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/kettle-core-3.2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/kettle-db-3.2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/hamcrest-core-1.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/junit-4.12.jar"/>
-	<classpathentry exported="true" kind="lib" path="testbed/hsqldb.jar"/>
+	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
+	<classpathentry kind="lib" path="lib/iText-2.0.8.jar"/>
+	<classpathentry kind="lib" path="lib/eigenbase-properties.jar"/>
+	<classpathentry kind="lib" path="lib/velocity-1.6.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/velocity-tools-generic-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/kettle-engine-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/kettle-core-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/kettle-db-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/hamcrest-core-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/junit-4.12.jar"/>
+	<classpathentry kind="lib" path="testbed/hsqldb.jar"/>
 	<classpathentry kind="lib" path="lib/mondrian-3.14.0.0-12.jar"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
-		<attributes>
-			<attribute name="owner.project.facets" value="java"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/sqlpower_library"/>
+	<classpathentry kind="lib" path="lib/httpclient-4.0.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-4.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/httpmime-4.0.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="lib/guava-11.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/spring-core.jar"/>
+	<classpathentry kind="lib" path="lib/spring-security-core-2.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/clover.jar"/>
 	<classpathentry kind="output" path="eclipse-bin"/>
 </classpath>

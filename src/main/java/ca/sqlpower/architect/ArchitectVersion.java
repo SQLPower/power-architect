@@ -40,7 +40,7 @@ public class ArchitectVersion extends Version {
      * complete and can remain stable for a period of time. Until then, we will
      * leave the major version at 0 and all bets are off.
      */
-    public static final String APP_VERSION_MAJOR  = "1";
+    public static final String APP_VERSION_MAJOR  = "2";
     
     /**
      * Minor version number. This changes when new features appear that might
@@ -53,7 +53,7 @@ public class ArchitectVersion extends Version {
      * back to 0 when the minor version changes.  All versions under the same
      * minor version number are fully compatible with each other.
      */
-    public static final String APP_VERSION_TINY   = "9";
+    public static final String APP_VERSION_TINY   = "11";
     
     /**
      * Suffixes indicate pre-release builds.  They normally progress from "alpha"
