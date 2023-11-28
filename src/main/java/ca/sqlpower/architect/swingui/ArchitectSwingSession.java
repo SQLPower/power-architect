@@ -241,6 +241,16 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Sets whether the AK Tags will be shown
      */
     public void setShowAkTag(boolean showAkTag);
+
+    /**
+     * Will DDL identifiers be quoted.
+     */
+    public boolean isQuoteIdentifiers();
+
+    /**
+     * Sets for quoted DDL identifiers.
+     */
+    public void setQuoteIdentifiers(boolean quoteIdentifiers);
     
     /**
      * Sets the choice of what columns to show

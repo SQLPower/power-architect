@@ -60,6 +60,8 @@ public class ProjectSettings extends AbstractSPObject {
     private boolean showAkTag = true;
     
     private ColumnVisibility columnVisibility = ColumnVisibility.ALL;
+
+    private boolean quoteIdentifiers = false;
     
     public static enum ColumnVisibility {
         ALL, 
@@ -169,6 +171,18 @@ public class ProjectSettings extends AbstractSPObject {
         ColumnVisibility oldValue = this.columnVisibility;
         this.columnVisibility = columnVisibility;
         firePropertyChange("columnVisibility", oldValue, columnVisibility);
+    }
+
+    @Accessor(isInteresting=true)
+    public boolean isQuoteIdentifiers() {
+        return quoteIdentifiers;
+    }
+
+    @Mutator
+    public void setQuoteIdentifiers(boolean quoteIdentifiers) {
+        boolean oldValue = this.quoteIdentifiers;
+        this.quoteIdentifiers= quoteIdentifiers;
+        firePropertyChange("quoteIdentifiers", oldValue, quoteIdentifiers);
     }
 
     @Override

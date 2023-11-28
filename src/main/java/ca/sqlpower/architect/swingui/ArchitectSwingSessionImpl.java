@@ -1023,6 +1023,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         getProjectSettings().setShowAkTag(showAkTag);
     }
 
+    public boolean isQuoteIdentifiers() {
+        return getProjectSettings().isQuoteIdentifiers();
+    }
+
+    public void setQuoteIdentifiers(boolean quoteIdentifiers) {
+        getProjectSettings().setQuoteIdentifiers(quoteIdentifiers);
+    }
+
     /**
      * Sets the visibility of columns in the playpen of this session.
      * 

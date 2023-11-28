@@ -60,11 +60,13 @@ public class DDLUtils {
      * </ul>
      * @throws NullPointerException if table is null
      */
-    public static String toQualifiedName(SQLTable table) {
+    public static String toQualifiedName(SQLTable table, String identifierQuoteChar) {
         return toQualifiedName(
                 table.getCatalogName(),
                 table.getSchemaName(),
-                table.getName());
+                table.getName(),
+                identifierQuoteChar,
+                identifierQuoteChar);
     }
     
     /**

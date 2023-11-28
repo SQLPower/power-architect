@@ -164,6 +164,8 @@ public class GenericDDLGenerator implements DDLGenerator {
     private ArchitectSwingSession session;
 
     private JDBCDataSourceType dsType = null;
+
+    protected String identifierQuoteChar = "";
     
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
         this.allowConnection = allowConnection;
@@ -183,6 +185,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 
     public String generateDDLScript(ArchitectSwingSession architectSwingSession, Collection<SQLTable> tables) throws SQLException, SQLObjectException {
         session = architectSwingSession;
+        if (session.getProjectSettings().isQuoteIdentifiers()) {
+          identifierQuoteChar = "\"";
+        }
         List<DDLStatement> statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
@@ -1140,7 +1145,12 @@ public class GenericDDLGenerator implements DDLGenerator {
      * schema are omitted if null).
 	 */
 	public String toQualifiedName(SQLTable t) {
-		return toQualifiedName(t.getPhysicalName());
+        return DDLUtils.toQualifiedName(
+                t.getCatalogName(),
+                t.getSchemaName(),
+                t.getPhysicalName(),
+                identifierQuoteChar,
+                identifierQuoteChar);
 	}
 
 	/**
@@ -1163,8 +1173,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     public String toQualifiedName(String tname) {
         String catalog = getTargetCatalog();
         String schema = getTargetSchema();
-        tname = getQuotedPhysicalName(tname);
-        return DDLUtils.toQualifiedName(catalog, schema, tname);
+        return DDLUtils.toQualifiedName(catalog, schema, tname, identifierQuoteChar, identifierQuoteChar);
     }
 
 	// ---------------------- accessors and mutators ----------------------
@@ -1466,6 +1475,9 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     public String getQuotedPhysicalName(String name) {
         logger.debug(" getQuotedphysical name: "+name);
+        if (name != null && !name.isBlank()) {
+          return identifierQuoteChar+name+identifierQuoteChar;
+        }
         return name;
     }
 

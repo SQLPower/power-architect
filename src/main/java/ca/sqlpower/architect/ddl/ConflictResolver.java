@@ -86,7 +86,7 @@ public class ConflictResolver implements Monitorable {
         }
         
         public String getQualifiedName() {
-            return DDLUtils.toQualifiedName(catalog, schema, name);
+            return DDLUtils.toQualifiedName(catalog, schema, name, "", "");
         }
         
         /**

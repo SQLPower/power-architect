@@ -515,7 +515,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
             print(" NONCLUSTERED ");
         }
         print("INDEX ");
-        print(DDLUtils.toQualifiedName(null,null,index.getName()));
+        print(DDLUtils.toQualifiedName(null,null,index.getName(),this.identifierQuoteChar, this.identifierQuoteChar));
         print("\n ON ");
         print(toQualifiedName(index.getParent()));
         print("\n ( ");
