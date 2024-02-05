@@ -723,7 +723,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                     if (selection instanceof SQLColumn) {
                         SQLColumn sourceColumn = (SQLColumn) selection;
                         colSourceButton.setText(DDLUtils.toQualifiedName(
-                                sourceColumn.getParent()) + "." + sourceColumn.getName());
+                                sourceColumn.getParent(), "") + "." + sourceColumn.getName());
                     } else {
                         colSourceButton.setText(Messages.getString("ColumnEditPanel.noneSpecified"));
                     }
@@ -794,7 +794,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
             colSourceTree.setSelectionPath(new TreePath(model.getPathToNode(sourceColumn)));
             colSourceButton.setText(
                     DDLUtils.toQualifiedName(
-                            sourceColumn.getParent()) + "." + sourceColumn.getName());
+                            sourceColumn.getParent(), "") + "." + sourceColumn.getName());
         }
         
         updateComponent(colLogicalName, col.getName());

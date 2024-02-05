@@ -306,7 +306,7 @@ public class KettleJob implements Monitorable {
 
                 for (SQLTable sourceTable: tableMapping.keySet()) {
                     StringBuffer buffer = tableMapping.get(sourceTable);
-                    buffer.append(" FROM " + DDLUtils.toQualifiedName(sourceTable));
+                    buffer.append(" FROM " + DDLUtils.toQualifiedName(sourceTable, ""));
                 }
 
                 for (SQLTable sourceTable: tableMapping.keySet()) {
@@ -331,7 +331,7 @@ public class KettleJob implements Monitorable {
                     transMeta.addDatabase(databaseMeta);
 
                     TableInputMeta tableInputMeta = new TableInputMeta();
-                    String stepName = databaseMeta.getName() + ":" + DDLUtils.toQualifiedName(sourceTable);
+                    String stepName = databaseMeta.getName() + ":" + DDLUtils.toQualifiedName(sourceTable, "");
                     StepMeta stepMeta = new StepMeta("TableInput", stepName, tableInputMeta);
                     stepMeta.setDraw(true);
                     stepMeta.setLocation(inputSteps.size()==0?spacing:(inputSteps.size())*spacing, (inputSteps.size()+1)*spacing);

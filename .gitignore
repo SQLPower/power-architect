@@ -11,3 +11,8 @@
 /architect.log
 /.DS_Store
 /custom_jre/
+/nbproject/private/
+/target
+/pom.xml
+/lib/power-lib
+/install-mvn-deps.sh

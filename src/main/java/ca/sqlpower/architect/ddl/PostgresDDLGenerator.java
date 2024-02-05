@@ -476,7 +476,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     @Override
     public String getQuotedPhysicalName(String name) {
         if (name == null) return null;
-        if (getDsType()!=null && (getDsType().getSupportsQuotingName() ||  isComparingDMForPostgres())
+        if (getDsType()!=null && (getDsType().getSupportsQuotingName() ||  isComparingDMForPostgres() ||isIdentifierQuoted())
                 && !name.isEmpty() && !(name.startsWith("\"") && name.endsWith("\""))) {
             name = "\""+name+"\"";
         }

@@ -95,7 +95,7 @@ public class LocalReservoirProfileCreator extends AbstractTableProfileCreator {
                 sql.append(col.getName());
                 first = false;
             }
-            sql.append(" FROM ").append(DDLUtils.toQualifiedName(table));
+            sql.append(" FROM ").append(DDLUtils.toQualifiedName(table, ""));
             
             logger.debug("About to execute profiling query: " + sql);
             try {

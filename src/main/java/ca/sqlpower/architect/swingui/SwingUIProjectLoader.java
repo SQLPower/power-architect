@@ -387,6 +387,15 @@ public class SwingUIProjectLoader extends ProjectLoader {
             } else {
                 getSession().setDisplayRelationshipLabel(true);
             }
+
+            String quoteIdentifiers = attributes.getValue("quoteIdentifiers"); //$NON-NLS-1$
+            if (quoteIdentifiers == null) {
+                getSession().setQuoteIdentifiers(false);
+            } else if (!Boolean.valueOf(quoteIdentifiers)) {
+                getSession().setQuoteIdentifiers(false);
+            } else {
+                getSession().setQuoteIdentifiers(true);
+            }
             
         	String relStyle = attributes.getValue("relationship-style"); //$NON-NLS-1$
             boolean direct;
@@ -1207,6 +1216,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             tagText.append(" showAlternateTag=\"").append(getSession().isShowAkTag()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" columnVisibility=\"").append(getSession().getColumnVisibility()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
             tagText.append(" relationshipLabelVisibility=\"").append(getSession().isDisplayRelationshipLabel()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+            tagText.append(" quoteIdentifiers=\"").append(getSession().isQuoteIdentifiers()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
         }
         tagText.append(">"); //$NON-NLS-1$
         ioo.println(out, tagText.toString());

@@ -405,7 +405,11 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
 		// So we only write a SQL comment with the table's comment here
 
 		if (t.getRemarks() != null && t.getRemarks().trim().length() > 0) {
-			print("\n-- Comment for table [" + getPhysicalName(t) + "]: ");
+      if (isIdentifierQuoted()) {
+			  print("\n-- Comment for table " + getPhysicalName(t) + ": ");
+      } else {
+			  print("\n-- Comment for table [" + getPhysicalName(t) + "]: ");
+      }
 			print(t.getRemarks().replaceAll(REGEX_CRLF, "\n-- "));
 			endStatement(StatementType.COMMENT, t);
 
@@ -515,7 +519,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
             print(" NONCLUSTERED ");
         }
         print("INDEX ");
-        print(DDLUtils.toQualifiedName(null,null,index.getName()));
+        print(DDLUtils.toQualifiedName(null,null,index.getName(),this.identifierQuoteChar, this.identifierQuoteChar));
         print("\n ON ");
         print(toQualifiedName(index.getParent()));
         print("\n ( ");
@@ -770,7 +774,7 @@ public abstract class SQLServerDDLGenerator extends GenericDDLGenerator {
     @Override
     public String getQuotedPhysicalName(String name) {
         if (name == null) return null;
-        if (getDsType()!=null && getDsType().getSupportsQuotingName() 
+        if ((getDsType()!=null && getDsType().getSupportsQuotingName() || isIdentifierQuoted())
                 && !name.isEmpty() &&  !(name.startsWith("[") && name.endsWith("]"))) {
             name = "["+name+"]";
         }

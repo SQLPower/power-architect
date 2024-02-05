@@ -208,7 +208,7 @@ public class DDLStatement extends AbstractSPObject {
 	}
 
     public String toString() {
-        return getType()+" "+DDLUtils.toQualifiedName(getTargetCatalog(), getTargetSchema(), object.getName());
+        return getType()+" "+DDLUtils.toQualifiedName(getTargetCatalog(), getTargetSchema(), object.getName(), "", "");
     }
 
     @Override

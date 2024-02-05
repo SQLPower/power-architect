@@ -72,6 +72,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private JCheckBox showPkTag;
     private JCheckBox showFkTag;
     private JCheckBox showAkTag;
+    private JCheckBox quoteIdentifiers;
     
     private JRadioButton showAll;
     private JRadioButton showPkFkUniqueIndexed;
@@ -165,13 +166,16 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         fb.nextLine();
         
         fb.append(showPkFk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPKFK"))); //$NON-NLS-1$
+        fb.append(quoteIdentifiers = new JCheckBox(Messages.getString("ProjectSettingsPanel.quoteIdentifiers"))); //$NON-NLS-1$
         
         fb.nextLine();
         
         fb.append(showPk = new JRadioButton(Messages.getString("ProjectSettingsPanel.showPK"))); //$NON-NLS-1$
         
         fb.nextLine();
-        
+
+        fb.nextLine();
+
         ButtonGroup column_show_settings = new ButtonGroup();
         column_show_settings.add(showAll);
         column_show_settings.add(showPkFkUniqueIndexed);
@@ -207,6 +211,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
             showPkTag.setSelected(session.isShowPkTag());
             showFkTag.setSelected(session.isShowFkTag());
             showAkTag.setSelected(session.isShowAkTag());
+            quoteIdentifiers.setSelected(session.isQuoteIdentifiers());
             
         ColumnVisibility choice = session.getProjectSettings().getColumnVisibility();
         
@@ -268,6 +273,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         settings.setShowPkTag(showPkTag.isSelected());
         settings.setShowFkTag(showFkTag.isSelected());
         settings.setShowAkTag(showAkTag.isSelected());
+        settings.setQuoteIdentifiers(quoteIdentifiers.isSelected());
         
         if (showAll.isSelected()) {
             settings.setColumnVisibility(ColumnVisibility.ALL);

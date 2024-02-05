@@ -570,7 +570,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             print("UNIQUE ");
         }
         print("INDEX ");
-        print(toIdentifier(index.getName()));
+        print(getQuotedPhysicalName(toIdentifier(index.getName())));
         if(index.getType() != null) {            
             print(" USING " + index.getType());
         }
