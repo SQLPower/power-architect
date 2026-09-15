@@ -50,6 +50,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
@@ -188,9 +189,9 @@ public class SecurityPanel {
                     }
                         
                     refreshTree();
-                    Enumeration<DefaultMutableTreeNode> userNodes = usersNode.children();
+                    Enumeration<? extends TreeNode> userNodes = usersNode.children();
                     while (userNodes.hasMoreElements()) {
-                        DefaultMutableTreeNode dmtn = userNodes.nextElement();
+                        DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) userNodes.nextElement();
                         if (((User) dmtn.getUserObject()).getUUID().equals(user.getUUID())) {
                             tree.setSelectionPath(new TreePath(dmtn.getPath()));
                         }
@@ -207,9 +208,9 @@ public class SecurityPanel {
                 if (group != null) {
                     securityWorkspace.addChild(group, securityWorkspace.getChildren(Group.class).size());
                     refreshTree();
-                    Enumeration<DefaultMutableTreeNode> userNodes = groupsNode.children();
+                    Enumeration<? extends TreeNode> userNodes = groupsNode.children();
                     while (userNodes.hasMoreElements()) {
-                        DefaultMutableTreeNode dmtn = userNodes.nextElement();
+                        DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) userNodes.nextElement();
                         if (((Group) dmtn.getUserObject()).getUUID().equals(group.getUUID())) {
                             tree.setSelectionPath(new TreePath(dmtn.getPath()));
                         }

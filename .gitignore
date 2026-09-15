@@ -11,3 +11,5 @@
 /architect.log
 /.DS_Store
 /custom_jre/
+/.gradle/
+/gradle-app.log

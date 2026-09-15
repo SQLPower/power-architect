@@ -1,0 +1,210 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// Ensure the sqlpower-library subproject is configured before this project so
+// its registered tasks (aptJar, etc.) are available at configuration time.
+evaluationDependsOn(':sqlpower-library')
+
+group = 'ca.sqlpower'
+version = '2.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application {
+    mainClass = 'ca.sqlpower.architect.swingui.ArchitectFrame'
+}
+
+// ---------------------------------------------------------------------------
+// Vendored dependency directories (mirror of the historical Ant build)
+// ---------------------------------------------------------------------------
+def appLibs = files(fileTree(dir: 'lib', include: '*.jar'))
+def appBuildLibs = files(fileTree(dir: 'buildlib', include: '*.jar'))
+def libraryVendored = files(fileTree(dir: 'sqlpower-library/lib/main', include: '*.jar'))
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+        compileClasspath += appLibs
+        compileClasspath += appBuildLibs
+        compileClasspath += libraryVendored
+    }
+    test {
+        java {
+            srcDirs = ['regress']
+        }
+        resources {
+            srcDirs = ['src/test/resources']
+        }
+        compileClasspath += sourceSets.main.output
+        compileClasspath += appLibs
+        compileClasspath += appBuildLibs
+        compileClasspath += libraryVendored
+        compileClasspath += files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
+        compileClasspath += files('testbed/hsqldb.jar')
+        runtimeClasspath += files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
+        runtimeClasspath += files('testbed/hsqldb.jar')
+    }
+    examples {
+        java {
+            srcDirs = ['example_code']
+        }
+        compileClasspath += sourceSets.main.output
+        compileClasspath += appLibs
+        compileClasspath += appBuildLibs
+        compileClasspath += libraryVendored
+    }
+}
+
+dependencies {
+    // sqlpower-library (vendored submodule): core jar includes generated classes.
+    implementation project(':sqlpower-library')
+
+    // App's own vendored runtime libs.
+    implementation appLibs
+
+    // Build-time only libs (ant, gsbase for RecursiveTestSuite, etc.).
+    implementation appBuildLibs
+
+    // sqlpower-library's vendored runtime libs (guava, log4j, spring, httpclient,
+    // jsr305, ...). The library jar does not bundle them, so the app must declare
+    // them explicitly - exactly like the historical Ant runtime.classpath did with
+    // ${sqlpower.library.home}/lib/main/*.jar.
+    runtimeOnly libraryVendored
+
+    // Test-only libs.
+    testImplementation project(':sqlpower-library')
+    testImplementation files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
+    testImplementation files('testbed/hsqldb.jar')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// ---------------------------------------------------------------------------
+// Two-pass annotation processing for the app's own @Persistable classes.
+// Mirrors the historical Ant build: compile app, run SPAnnotationProcessor
+// (-proc:only) over app sources, compile the generated sources.
+// ---------------------------------------------------------------------------
+def appGeneratedSrcDir = layout.buildDirectory.dir('generated-src')
+
+def libraryAptJar = project(':sqlpower-library').tasks.named('aptJar')
+
+tasks.register('runAppAnnotationProcessor', JavaCompile) {
+    dependsOn compileJava
+    dependsOn libraryAptJar
+    source = sourceSets.main.java
+    classpath = sourceSets.main.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir('tmp/app-proc-only')
+    options.debug = true
+    options.annotationProcessorPath = files(
+        libraryAptJar.flatMap { it.archiveFile },
+        libraryVendored,
+        project(':sqlpower-library').sourceSets.main.output
+    )
+    options.compilerArgs.addAll([
+        '-proc:only',
+        '-processor', 'ca.sqlpower.object.annotation.SPAnnotationProcessor',
+        '-s', appGeneratedSrcDir.get().asFile.absolutePath
+    ])
+    doFirst {
+        appGeneratedSrcDir.get().asFile.mkdirs()
+    }
+}
+
+def appGeneratedClassesDir = layout.buildDirectory.dir('classes/java/app-generated')
+
+tasks.register('compileAppGenerated', JavaCompile) {
+    dependsOn runAppAnnotationProcessor
+    source = fileTree(dir: appGeneratedSrcDir, include: '**/*.java')
+    classpath = files(
+        sourceSets.main.output,
+        libraryVendored,
+        project(':sqlpower-library').sourceSets.main.output
+    )
+    destinationDirectory = appGeneratedClassesDir
+    options.debug = true
+}
+
+tasks.named('compileJava') {
+    options.compilerArgs += ['-proc:none']
+}
+
+tasks.named('jar') {
+    dependsOn compileAppGenerated
+    from appGeneratedClassesDir
+    manifest {
+        attributes 'Main-Class': 'ca.sqlpower.architect.swingui.ArchitectFrame'
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Mondrian OLAP code generation from Mondrian.xml (XSLT 1.0, no Xalan needed).
+// ---------------------------------------------------------------------------
+def runXslt = { String name, String xsl, String xml, String out ->
+    tasks.register(name) {
+        def xsltFile = file("src/main/java/ca/sqlpower/architect/olap/${xsl}")
+        def xmlFile = file("src/main/java/ca/sqlpower/architect/olap/${xml}")
+        def outFile = file(out)
+        inputs.files(xsltFile, xmlFile)
+        outputs.file(outFile)
+        doLast {
+            def factory = javax.xml.transform.TransformerFactory.newInstance()
+            def transformer = factory.newTransformer(
+                new javax.xml.transform.stream.StreamSource(xsltFile))
+            transformer.transform(
+                new javax.xml.transform.stream.StreamSource(xmlFile),
+                new javax.xml.transform.stream.StreamResult(outFile))
+        }
+    }
+}
+
+runXslt('mondrianModel', 'xml-to-java-classes.xsl', 'Mondrian.xml',
+        'src/main/java/ca/sqlpower/architect/olap/MondrianModel.java')
+runXslt('mondrianParser', 'xml-to-parser.xsl', 'Mondrian.xml',
+        'src/main/java/ca/sqlpower/architect/olap/MondrianXMLReader.java')
+runXslt('mondrianFormatter', 'xml-to-formatter.xsl', 'Mondrian.xml',
+        'src/main/java/ca/sqlpower/architect/olap/MondrianXMLWriter.java')
+runXslt('mondrianNewValueMaker', 'xml-to-new-value-maker.xsl', 'Mondrian.xml',
+        'regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java')
+runXslt('mondrianPersistenceTests', 'xml-to-persister-tests.xsl', 'Mondrian.xml',
+        'regress/ca/sqlpower/architect/olap/MondrianModelTest.java')
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+test {
+    useJUnitPlatform()
+    maxHeapSize = '1024m'
+    systemProperty 'ca.sqlpower.architect.test.dir', "${buildDir}/classes/java/test"
+    systemProperty 'ca.sqlpower.headless', 'true'
+    systemProperty 'user.language', 'en'
+    systemProperty 'user.country', 'US'
+    // Swing UI suite is known to fail randomly (see AGENTS.md); the historical
+    // Ant build runs it anyway. We keep the same four suites discoverable and
+    // exclude only external-DB integration tests that need a live server.
+    exclude '**/SQLServerDDLGeneratorTest*'
+}
+
+// Validate example code (historical `ant compile-examples`).
+tasks.register('compileExamples', JavaCompile) {
+    source = sourceSets.examples.java
+    classpath = sourceSets.examples.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir('classes/examples')
+    options.debug = true
+}
