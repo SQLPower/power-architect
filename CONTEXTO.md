@@ -384,6 +384,24 @@ manual (necesitan una pantalla; no se pueden validar headless):
   language server de VSCode mantiene handles de archivos que interfieren.
 - **Estado de tests tras la migración**: app 1172/0; librería 971/2 pre-existentes.
 
+### Incidente: instalador "2.0.0-SNAPSHOT" que instalaba 1.0.9 sin las features
+- **Diagnóstico**: el `version` de Gradle era `2.0.0-SNAPSHOT`, mientras que la app reporta
+  `2.0.11` (`ArchitectVersion` + `architect.version.properties` committeado). El nombre del
+  instalador decía "2" pero el About de la app muestra la versión del jar instalado. La app
+  que el usuario veía como **1.0.9** era un jar **viejo** (1.0.9 era la versión anterior al
+  bump a 2.x en el commit `a7a435cd`), es decir: se instaló un jar obsoleto — o el usuario
+  corrió un instalador generado antes de las features, o la instalación previa (1.0.9) no fue
+  reemplazada al instalar encima.
+- **Verificación realizada**: el jar empaquetado actual (`build/staging/architect.jar`)
+  contiene `app.version=2.0.11` y todas las clases nuevas (`UIScaleManager`, `ThemeManager`,
+  `ThemePalette`, `DDLParser`, `DDLCommentUtils`, `CopyDDLAction`, `CreateTableFromDDLDialog`,
+  `ZoomOnWheelListener`, etc.), y su manifest `Class-Path` apunta a `lib/*.jar` + `jdbc/`.
+- **Corrección**: se alineó `project.version` a `2.0.11` (commit `ece2410c`). El instalador
+  ahora se genera como `dist/SQL-Power-Architect-Setup-Windows-2.0.11.exe`.
+- **Para el usuario**: desinstalar la versión 1.0.9 previa (Panel de control / uninstaller) o
+  instalar en una carpeta nueva, y luego ejecutar el instalador 2.0.11. El About mostrará
+  2.0.11 y las features (zoom, dark mode, DDL, etc.) estarán presentes.
+
 ### Instalador de Windows (HECHA)
 - **`./gradlew buildWindowsInstaller`** porta el target legacy Ant
   `windows_exe_installer` a Gradle y produce
