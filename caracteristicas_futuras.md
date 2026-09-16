@@ -142,3 +142,38 @@ Estas funcionalidades son las deseadas por el usuario.
   - [ ] Verifica nueva version del sistema en repositorio.
   - [ ] Despliega un cuadro de texto que informe de la nueva version y de botones para elegir actulizarlo de inmediato y otro boton para cancelar o para saltarse la version.
 - **Estado:** IDEA
+
+### [ ] Traducción al español latino con selector de idioma
+- **Prioridad:** MEDIA
+- **Valor para el usuario:** Poder usar la aplicación en español latino, con opción de volver al inglés.
+- **Referencia de mercado:** DbSchema, DBeaver, DataGrip (selectores de idioma).
+- **Descripción funcional:** Localización completa de la interfaz al español latinoamericano (es_419 / es-LA), con un selector de idioma en las preferencias que permita volver al inglés (u otros idiomas existentes) sin reiniciar o con recarga de la UI.
+- **Notas técnicas:** El proyecto ya usa bundles `messages*.properties` por paquete (existen `messages_de`, `messages_ko`, `messages_pt`, `messages_ru`). Añadir `messages_es.properties`/`messages_es_419.properties`, un selector en `PreferencesEditor` que cambie el `Locale` por defecto y re-cargue los bundles (limpiar caché de `Messages` y re-aplicar `SwingUtilities.updateComponentTreeUI`). Cubrir también los bundles de `swingui/action/`.
+- **Criterios de aceptación:**
+  - [ ] La UI se muestra en español latino al seleccionarlo.
+  - [ ] El selector permite volver al inglés.
+  - [ ] El cambio de idioma se persiste y aplica sin reiniciar.
+- **Estado:** IDEA
+
+### [ ] Distribución de 64 bits (x86_64)
+- **Prioridad:** MEDIA
+- **Valor para el usuario:** Instalador y aplicación nativos de 64 bits, aprovechando memoria y rendimiento de equipos modernos.
+- **Referencia de mercado:** DbSchema, DBeaver (instaladores x64).
+- **Descripción funcional:** Generar el instalador de Windows (y, en su caso, el launcher `architect.exe`) como binario **x86_64**, en lugar del x86 (32 bits) actual.
+- **Notas técnicas:** launch4j 3.12 soporta `headerType`/bitness; revisar que el binario de salida sea de 64 bits y que la app (JVM 21) no dependa de componentes de 32 bits. IzPack es independiente del bitness (el instalador `.jar` corre en la JVM instalada), por lo que el cambio principal es el launcher y la validación del JRE de 64 bits. Verificar en la máquina destino que se instale/ejecute en un JRE x64.
+- **Criterios de aceptación:**
+  - [ ] El instalador/launcher generado es de 64 bits.
+  - [ ] La app funciona en un JRE x86_64.
+- **Estado:** IDEA
+
+### [ ] Terminal integrada (panel inferior tipo VS Code) para agentes de IA
+- **Prioridad:** MEDIA
+- **Valor para el usuario:** Abrir una terminal posicionada en la carpeta del proyecto/archivo actual, y usarla para lanzar un agente de IA dentro de Power Architect.
+- **Referencia de mercado:** VS Code (panel de terminal inferior), DbSchema (scripts de automatización).
+- **Descripción funcional:** Un panel inferior (dock) con una terminal embebida que abre en el directorio del archivo de proyecto actual. Desde ahí el usuario puede ejecutar comandos (p. ej. lanzar un agente de IA de línea de comandos). Debe poder ocultarse/mostrarse, redimensionarse y arrancar con el directorio correcto.
+- **Notas técnicas:** Opciones en Swing: `pty4j` (emulación de terminal nativa), JSch (SSH) o un `JTextArea`/`JEditorPane` para un pseudo-terminal simple que ejecute procesos con `ProcessBuilder` (directorio inicial = carpeta del archivo). Integrar como un `JPanel` en `ArchitectFrame` (JSplitPane inferior), con toggle por menú/atajo. Tener en cuenta el zoom de UI y el tema (FlatLaf) para el estilo de la terminal.
+- **Criterios de aceptación:**
+  - [ ] El panel inferior muestra una terminal funcional.
+  - [ ] La terminal abre en el directorio del archivo/proyecto actual.
+  - [ ] Se puede mostrar/ocultar y redimensionar.
+- **Estado:** IDEA
