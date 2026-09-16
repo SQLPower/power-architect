@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.Types;
@@ -39,7 +40,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.log4j.BasicConfigurator;
-import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectSession;
@@ -1201,7 +1201,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     public void testParentsConnectedCoreProject() throws Exception {
         // testing using a core project, just for fun
         ArchitectSessionContext ctx = new TestingArchitectSessionContext();
-        ArchitectSession session = ctx.createSession(new BufferedInputStream(new StringInputStream(testData)));
+        ArchitectSession session = ctx.createSession(new BufferedInputStream(new ByteArrayInputStream(testData.getBytes(StandardCharsets.UTF_8))));
         ProjectLoader prj = session.getProjectLoader();
         SQLObjectRoot rootObject = session.getRootObject();
         recursiveCheckParenting(rootObject, "Root");
@@ -1243,7 +1243,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testPlayPenPropertyCoreProject() throws Exception {
         ArchitectSessionContext ctx = new TestingArchitectSessionContext();
-        ArchitectSession session = ctx.createSession(new BufferedInputStream(new StringInputStream(testData)));
+        ArchitectSession session = ctx.createSession(new BufferedInputStream(new ByteArrayInputStream(testData.getBytes(StandardCharsets.UTF_8))));
         ProjectLoader prj = session.getProjectLoader();
         SQLObjectRoot rootObject = session.getRootObject();
         SQLDatabase ppdb = (SQLDatabase) rootObject.getChild(0);

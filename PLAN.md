@@ -26,6 +26,7 @@ Modernizar Power*Architect (SQL Power Architect) sobre la versión actual del re
 | 4 | DDL (copiar por objeto, crear desde DDL, notas) | EN_PROGRESO |
 | 5 | Estilo DbSchema (tablas + diálogos) | HECHA |
 | 6 | Verificación (tests + checklist manual) | HECHA |
+| 7 | Eliminar dependencia de Ant (portar todo a Gradle) | HECHA | `build.xml` borrado; `packaging.gradle`; sin Ant en classpath |
 
 Leyenda de estados: `PENDIENTE`, `EN_PROGRESO`, `BLOQUEADA`, `HECHA`, `CANCELADA`.
 

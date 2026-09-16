@@ -49,9 +49,7 @@ sourceSets {
         resources {
             srcDirs = ['src/main/resources']
         }
-        compileClasspath += appLibs
-        compileClasspath += appBuildLibs
-        compileClasspath += libraryVendored
+        compileClasspath = files(configurations.compileClasspath, appLibs, appBuildLibs, libraryVendored)
     }
     test {
         java {
@@ -74,10 +72,7 @@ sourceSets {
         java {
             srcDirs = ['example_code']
         }
-        compileClasspath += sourceSets.main.output
-        compileClasspath += appLibs
-        compileClasspath += appBuildLibs
-        compileClasspath += libraryVendored
+        compileClasspath = files(configurations.compileClasspath, sourceSets.main.output, appLibs, appBuildLibs, libraryVendored)
     }
 }
 
@@ -131,6 +126,12 @@ def appGeneratedSrcDir = layout.buildDirectory.dir('generated-src')
 
 def libraryAptJar = project(':sqlpower-library').tasks.named('aptJar')
 
+// Classpath for the annotation-processing passes: resolved dependencies plus
+// the vendored jar trees (both the app's and the library's). Relying on
+// sourceSets.main.compileClasspath is unreliable here because the custom
+// source sets do not always see the resolved configurations.
+def appProcessorClasspath = configurations.compileClasspath + appLibs + appBuildLibs + libraryVendored
+
 tasks.register('runAppAnnotationProcessor', JavaCompile) {
     dependsOn compileJava
     dependsOn libraryAptJar
@@ -139,15 +140,14 @@ tasks.register('runAppAnnotationProcessor', JavaCompile) {
     classpath = files(
         sourceSets.main.output,
         project(':sqlpower-library').sourceSets.generated.output,
-        sourceSets.main.compileClasspath
+        appProcessorClasspath
     )
     destinationDirectory = layout.buildDirectory.dir('tmp/app-proc-only')
     options.debug = true
     options.annotationProcessorPath = files(
         libraryAptJar.flatMap { it.archiveFile },
         sourceSets.main.output,
-        sourceSets.main.compileClasspath,
-        libraryVendored,
+        appProcessorClasspath,
         project(':sqlpower-library').sourceSets.main.output
     )
     options.compilerArgs.addAll([
@@ -168,8 +168,7 @@ tasks.register('compileAppGenerated', JavaCompile) {
     source = fileTree(dir: appGeneratedSrcDir, include: '**/*.java')
     classpath = files(
         sourceSets.main.output,
-        sourceSets.main.compileClasspath,
-        libraryVendored,
+        appProcessorClasspath,
         project(':sqlpower-library').sourceSets.main.output,
         project(':sqlpower-library').sourceSets.generated.output
     )
@@ -269,6 +268,12 @@ tasks.register('compileExamples', JavaCompile) {
     destinationDirectory = layout.buildDirectory.dir('classes/examples')
     options.debug = true
 }
+
+// ---------------------------------------------------------------------------
+// Targets ported from the removed Apache Ant build (build.xml): user guide,
+// javadoc, static analysis, source archives, distributions.
+// ---------------------------------------------------------------------------
+apply from: 'packaging.gradle'
 
 // ---------------------------------------------------------------------------
 // Windows installer (legacy Ant `windows_exe_installer` target, ported to

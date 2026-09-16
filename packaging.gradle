@@ -1,0 +1,386 @@
+// ============================================================================
+// Targets ported from the legacy Apache Ant build (build.xml), which has been
+// removed. Every Ant build step now has a Gradle equivalent.
+//
+// Platform-specific targets (macOS app bundles/DMGs, JRE bundling, WebStart)
+// are reproduced but can only run on the matching platform/tooling.
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// architect.version.properties (About dialog / update check) is committed at
+// src/main/resources/ca/sqlpower/architect/architect.version.properties and is
+// packaged as-is; keep it in sync with ArchitectVersion when bumping the
+// version. The legacy Ant build regenerated it dynamically.
+// ---------------------------------------------------------------------------
+def appVersion = project.version.toString()
+def distDir = file("dist/architect-${appVersion}")
+def srcJavaDir = file('src/main/java')
+def resDir = file('src/main/resources')
+def buildDir = layout.buildDirectory.get().asFile
+def isMac = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('mac')
+def isWindows = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('win')
+
+// ---------------------------------------------------------------------------
+// Javadoc
+// ---------------------------------------------------------------------------
+tasks.named('javadoc') {
+    dependsOn tasks.named('compileJava')
+    destinationDir = file("${distDir}/doc/api")
+    options.windowTitle = 'ca.sqlpower.architect.* SQL Power Architect'
+    options.overview = file('html/overview.html')
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PRIVATE
+    options.author = true
+    options.version = true
+    options.use = true
+    options.addStringOption('Xdoclint:none', '-quiet')
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.compileClasspath
+    // The codebase has many @param/@link warnings that are fatal under JDK 21
+    // javadoc; the Ant build disabled doclint. Keep the docs but don't fail.
+    failOnError = false
+}
+
+// The vendored library has the same javadoc issues under JDK 21.
+project(':sqlpower-library').tasks.named('javadoc') {
+    failOnError = false
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+// Javadoc with UML diagrams (needs Graphviz "dot" on PATH).
+tasks.register('javadocUmlGraph', Javadoc) {
+    dependsOn tasks.named('compileJava')
+    destinationDir = file("${distDir}/doc/api")
+    options.windowTitle = 'ca.sqlpower.architect.* SQL Power Architect'
+    options.overview = file('html/overview.html')
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PRIVATE
+    options.author = true
+    options.version = true
+    options.use = true
+    options.doclet = 'gr.spinellis.umlgraph.doclet.UmlGraphDoc'
+    options.docletpath = fileTree(dir: 'buildlib', include: 'UmlGraph.jar').asPath
+    options.addStringOption('-attributes', '')
+    options.addStringOption('-operations', '')
+    options.addStringOption('-qualify', '')
+    options.addStringOption('-types', '')
+    options.addStringOption('-visibility', '')
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.compileClasspath
+    failOnError = false
+}
+
+// ---------------------------------------------------------------------------
+// User guide (DocBook XML -> JavaHelp / HTML / PDF). Vendored XSLT + FOP.
+// ---------------------------------------------------------------------------
+def stripWidthsFile = new File(buildDir, 'PowerArchitectUserGuide-nowidth.xml')
+
+tasks.register('stripGuideWidths') {
+    def xsltFile = file('doc/tools/strip-width.xsl')
+    def xmlFile = file('doc/PowerArchitectUserGuide.xml')
+    inputs.files(xsltFile, xmlFile)
+    outputs.file(stripWidthsFile)
+    doLast {
+        stripWidthsFile.parentFile.mkdirs()
+        def transformer = javax.xml.transform.TransformerFactory.newInstance()
+            .newTransformer(new javax.xml.transform.stream.StreamSource(xsltFile))
+        transformer.transform(
+            new javax.xml.transform.stream.StreamSource(xmlFile),
+            new javax.xml.transform.stream.StreamResult(stripWidthsFile))
+    }
+}
+
+def docXslt = { String taskName, String xsl, String inFile, String outFile ->
+    tasks.register(taskName) {
+        def xsltFile = file(xsl)
+        def srcFile = file(inFile)
+        def dstFile = file(outFile)
+        inputs.files(xsltFile, srcFile)
+        outputs.file(dstFile)
+        doLast {
+            dstFile.parentFile.mkdirs()
+            def transformer = javax.xml.transform.TransformerFactory.newInstance()
+                .newTransformer(new javax.xml.transform.stream.StreamSource(xsltFile))
+            transformer.transform(
+                new javax.xml.transform.stream.StreamSource(srcFile),
+                new javax.xml.transform.stream.StreamResult(dstFile))
+        }
+    }
+}
+
+// HTML user guide (into the app classpath, like the Ant build did).
+docXslt('userGuideHtml', 'doc/tools/xslt/html/docbook.xsl',
+        stripWidthsFile.absolutePath,
+        "${buildDir}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html")
+tasks.named('userGuideHtml') { dependsOn tasks.named('stripGuideWidths') }
+tasks.named('userGuideHtml') {
+    doLast {
+        copy {
+            from 'doc/images'; include '*.png'
+            into "${buildDir}/ca/sqlpower/architect/doc/doc/images"
+        }
+        copy {
+            from fileTree(dir: resDir, include: ['icons/*.gif', 'icons/*.png'])
+            into "${buildDir}/ca/sqlpower/architect/doc/src/main/resources/icons"
+        }
+    }
+}
+
+// JavaHelp (build/help + build/architecthelp.jar).
+def helpDir = new File(buildDir, 'help')
+tasks.register('userGuideHelp') {
+    dependsOn tasks.named('stripGuideWidths')
+    def xsltFile = file('doc/tools/xslt/javahelp/javahelp.xsl')
+    inputs.files(xsltFile, stripWidthsFile)
+    outputs.dir(helpDir)
+    doLast {
+        delete helpDir
+        helpDir.mkdirs()
+        def transformer = javax.xml.transform.TransformerFactory.newInstance()
+            .newTransformer(new javax.xml.transform.stream.StreamSource(xsltFile))
+        transformer.transform(
+            new javax.xml.transform.stream.StreamSource(stripWidthsFile),
+            new javax.xml.transform.stream.StreamResult(new File(helpDir, 'zzz')))
+        copy { from 'doc/jhelpidx.xml'; into helpDir }
+        def hsFile = new File(helpDir, 'jhelpset.hs')
+        if (hsFile.exists()) {
+            String content = hsFile.getText('UTF-8')
+            content = content.replace(
+                '<view><name>Search</name><label>Search</label><type>javax.help.SearchView</type><data engine="com.sun.java.help.search.DefaultSearchEngine">JavaHelpSearch</data></view>',
+                '')
+            content = content.replace('jhelpidx.xml</data></view></helpset>',
+                'jhelpidx.xml</data></view><view><name>favorites</name><label>Favorites</label><type>javax.help.FavoritesView</type></view></helpset>')
+            hsFile.text = content
+        }
+        new File(helpDir, 'doc/images').mkdirs()
+        copy { from 'doc/images'; include '*.png'; into new File(helpDir, 'doc/images') }
+        copy {
+            from fileTree(dir: resDir, include: ['icons/*.gif', 'icons/*.png'])
+            into new File(helpDir, 'src/main/resources/icons')
+        }
+    }
+}
+
+tasks.register('architectHelpJar', Jar) {
+    dependsOn tasks.named('userGuideHelp')
+    from helpDir
+    archiveFileName = 'architecthelp.jar'
+    destinationDirectory = buildDir
+}
+
+// FO -> PDF user guide.
+docXslt('userGuideFo', 'doc/tools/xslt/fo/docbook.xsl',
+        'doc/PowerArchitectUserGuide.xml',
+        "${buildDir}/doc/PowerArchitectUserGuide-${appVersion}.fo")
+
+tasks.register('userGuidePdf', JavaExec) {
+    dependsOn tasks.named('userGuideFo')
+    def foFile = file("${buildDir}/doc/PowerArchitectUserGuide-${appVersion}.fo")
+    def pdfFile = file("${buildDir}/doc/PowerArchitectUserGuide-${appVersion}.pdf")
+    inputs.file(foFile)
+    outputs.file(pdfFile)
+    classpath = files(
+        fileTree(dir: 'doc/tools/fop', include: '*.jar'),
+        fileTree(dir: 'doc/tools/xalan', include: '*.jar'))
+    mainClass = 'org.apache.fop.cli.Main'
+    args = ['-fo', foFile.absolutePath, '-pdf', pdfFile.absolutePath]
+}
+
+tasks.register('userguide') {
+    dependsOn tasks.named('userGuideHelp'), tasks.named('userGuidePdf')
+}
+
+// ---------------------------------------------------------------------------
+// Static analysis (vendored tools).
+// ---------------------------------------------------------------------------
+def pmdHome = file('ext-tools-home/pmd-bin-6.29.0')
+def reportsDir = file('build/reports')
+
+tasks.register('pmd', JavaExec) {
+    dependsOn tasks.named('compileJava')
+    classpath = fileTree(dir: new File(pmdHome, 'lib'), include: '*.jar')
+    mainClass = 'net.sourceforge.pmd.PMD'
+    args = ['-d', srcJavaDir.absolutePath,
+            '-R', 'rulesets/java/quickstart.xml',
+            '-f', 'text',
+            '-reportfile', new File(reportsDir, 'pmd-results.txt').absolutePath]
+    doFirst { reportsDir.mkdirs() }
+}
+
+tasks.register('pmdCpd', JavaExec) {
+    classpath = fileTree(dir: new File(pmdHome, 'lib'), include: '*.jar')
+    mainClass = 'net.sourceforge.pmd.cpd.CPD'
+    args = ['--minimum-tokens', '100', '--files', srcJavaDir.absolutePath,
+            '--format', 'xml', '--failOnViolation', 'false']
+    doFirst { reportsDir.mkdirs() }
+}
+
+def findbugsHome = file('ext-tools-home/findbugs')
+tasks.register('findbugs', JavaExec) {
+    dependsOn tasks.named('compileJava')
+    classpath = fileTree(dir: new File(findbugsHome, 'lib'), include: '*.jar')
+    mainClass = 'edu.umd.cs.findbugs.FindBugs2'
+    args = ['-textui', '-low', '-sourcepath', srcJavaDir.absolutePath,
+            '-auxclasspath', configurations.runtimeClasspath.asPath,
+            '-output', new File(reportsDir, 'findbugs-results.txt').absolutePath,
+            layout.buildDirectory.dir('classes/java/main').get().asFile.absolutePath]
+    jvmArgs = ['-Xmx512m']
+    doFirst { reportsDir.mkdirs() }
+}
+
+// ---------------------------------------------------------------------------
+// Source archives.
+// ---------------------------------------------------------------------------
+tasks.register('sourceTarGz', Tar) {
+    archiveFileName = "SQL-Power-Architect-src-${appVersion}.tar.gz"
+    destinationDirectory = distDir
+    compression = Compression.GZIP
+    from('.') {
+        include '**/*.java', '**/*.xml', '**/*.xsl', '**/*.properties', '**/*.png', '**/*.gif',
+                '**/*.ico', '**/*.ini', '**/*.jar', 'LICENSE', 'README*', '*.gradle', 'gradlew*',
+                'gradle/**', 'settings.gradle', 'build.gradle', 'packaging.gradle',
+                'sqlpower-library/**', 'doc/**', 'html/**', 'ext-tools-home/izpack/install.xml'
+        exclude 'build/**', '**/build/**', 'dist/**', '**/dist/**', 'staging/**', '**/staging/**',
+                '.gradle/**', '**/.gradle/**', '.git/**', '**/.git/**', '**/*.log',
+                'regress/TEST-*', '**/*.bak', '**/*~', 'webstart/**', 'eclipse-bin/**',
+                '**/bin/**', '**/generated/**'
+    }
+    into "architect-src-${appVersion}"
+}
+
+tasks.register('sourceOnlyTarGz', Tar) {
+    archiveFileName = "SQL-Power-Architect-src-only-${appVersion}.tar.gz"
+    destinationDirectory = distDir
+    compression = Compression.GZIP
+    from('.') {
+        include "${srcJavaDir.path}/**/*.java",
+                "${resDir.path}/**/*.png",
+                "${resDir.path}/**/*.gif",
+                'regress/**/*.java',
+                'LICENSE',
+                'README.sourceonly'
+    }
+    into "architect-src-only-${appVersion}"
+}
+
+// ---------------------------------------------------------------------------
+// Generic (platform-independent) distribution from the installer staging dir.
+// ---------------------------------------------------------------------------
+tasks.register('genericInstall', Tar) {
+    dependsOn tasks.named('stageForWindowsInstaller')
+    def stagingDir = layout.buildDirectory.dir('staging').get().asFile
+    archiveFileName = "SQL-Power-Architect-generic-${appVersion}.tar.gz"
+    destinationDirectory = distDir
+    compression = Compression.GZIP
+    from(stagingDir) {
+        include 'LICENSE', 'lib/*.jar', 'architect.jar', 'jdbc/*.ini'
+    }
+    from('doc') { include 'README.generic' }
+    into "architect-${appVersion}"
+}
+
+tasks.register('genericJdbcInstall', Tar) {
+    dependsOn tasks.named('stageForWindowsInstaller')
+    def stagingDir = layout.buildDirectory.dir('staging').get().asFile
+    archiveFileName = "SQL-Power-Architect-generic-jdbc-${appVersion}.tar.gz"
+    destinationDirectory = distDir
+    compression = Compression.GZIP
+    from(stagingDir) {
+        include 'LICENSE', 'lib/*.jar', 'architect.jar', 'jdbc/*.ini', 'jdbc/*.jar'
+    }
+    from('doc') { include 'README.generic' }
+    into "architect-${appVersion}"
+}
+
+// ---------------------------------------------------------------------------
+// WebStart staging.
+// ---------------------------------------------------------------------------
+tasks.register('webstartDist') {
+    dependsOn tasks.named('jar')
+    doLast {
+        def webstart = file('webstart')
+        delete fileTree(webstart) { exclude '.gitkeep' }
+        new File(webstart, 'lib').mkdirs()
+        copy {
+            from tasks.named('jar').flatMap { it.archiveFile }
+            into new File(webstart, 'lib')
+            rename { 'architect.jar' }
+        }
+        copy { from fileTree(dir: 'lib', include: '*.jar'); into webstart }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Bundled JREs (jlink runtime images) for the platform distributions.
+// ---------------------------------------------------------------------------
+def jdk21Java = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+def jlinkExe = new File(jdk21Java.get().executablePath.asFile.parentFile,
+        isWindows ? 'jlink.exe' : 'jlink')
+def jlinkArgs = ['--no-header-files', '--no-man-pages', '--compress=2',
+                 '--add-modules',
+                 'java.base,java.compiler,java.datatransfer,java.logging,java.desktop,'
+                     + 'java.prefs,java.sql,java.xml,jdk.jdeps,jdk.javadoc']
+
+def jreTask = { String name, String outDir ->
+    tasks.register(name) {
+        def outputDir = file(outDir)
+        outputs.dir(outputDir)
+        doLast {
+            delete outputDir
+            exec { commandLine([jlinkExe.absolutePath] + jlinkArgs + ['--output', outputDir.absolutePath]) }
+        }
+    }
+}
+jreTask('macJre', 'build/macjre/jre')
+jreTask('winJre', 'build/winjre/jre')
+jreTask('unixJre', 'build/unixjre/jre')
+
+// ---------------------------------------------------------------------------
+// macOS application bundles and disk images (macOS only).
+// ---------------------------------------------------------------------------
+tasks.register('osxAdapterJar', Jar) {
+    dependsOn tasks.named('compileJava')
+    archiveFileName = 'osx_adapter.jar'
+    destinationDirectory = file('osx_packaging_utils')
+    from(sourceSets.main.output) {
+        include 'ca/sqlpower/architect/swingui/OSXAdapter.class'
+    }
+}
+
+tasks.register('osxDist') {
+    dependsOn tasks.named('stageForWindowsInstaller'), tasks.named('macJre')
+    doLast {
+        def stagingDir = layout.buildDirectory.dir('staging').get().asFile
+        copy { from tasks.named('osxAdapterJar').flatMap { it.archiveFile }; into new File(stagingDir, 'lib') }
+    }
+}
+
+tasks.register('osxDmg') {
+    dependsOn tasks.named('osxDist')
+    doLast {
+        if (!isMac) {
+            throw new GradleException('osxDmg only works on macOS (needs hdiutil).')
+        }
+        def stagingDir = layout.buildDirectory.dir('staging').get().asFile
+        def dmg = new File(distDir, "SQL-Power-Architect-${appVersion}.dmg")
+        dmg.parentFile.mkdirs()
+        exec { commandLine 'hdiutil', 'create', '-size', '50m', '-fs', 'HFS+',
+                '-volname', 'SQL Power Architect', '-srcfolder', stagingDir.absolutePath, dmg.absolutePath }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Umbrella targets mirroring the Ant `dist` / `alltests`.
+// ---------------------------------------------------------------------------
+tasks.register('allDist') {
+    dependsOn tasks.named('compileExamples'),
+            tasks.named('javadoc'),
+            tasks.named('sourceOnlyTarGz'),
+            tasks.named('buildWindowsInstaller'),
+            tasks.named('genericInstall')
+    doLast {
+        println "Distribution artifacts written to ${distDir.absolutePath}"
+    }
+}
+
+tasks.register('allTests') {
+    dependsOn tasks.named('test'), tasks.named('pmd'), tasks.named('findbugs')
+}

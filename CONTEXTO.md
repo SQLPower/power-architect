@@ -356,6 +356,34 @@ manual (necesitan una pantalla; no se pueden validar headless):
 - 2 fallos pre-existentes de `TestSQLRelationship` en la librería (`testAllSettersAreUndoable`,
   `testPersisterCreatesNewObjects`); no bloquean las features.
 
+### Eliminación de la dependencia de Ant (HECHA)
+- **`build.xml` eliminado**. Todos los targets de Ant se portaron a Gradle:
+  - `packaging.gradle` (aplicado desde `build.gradle`): user guide JavaHelp/HTML/PDF
+    (`userGuideHelp`, `userGuideHtml`, `userGuidePdf`, `userguide`), `javadoc` (+`javadocUmlGraph`),
+    `pmd`, `pmdCpd`, `findbugs`, `sourceTarGz`, `sourceOnlyTarGz`, `genericInstall`,
+    `genericJdbcInstall`, `webstartDist`, `macJre`/`winJre`/`unixJre` (jlink), `osxAdapterJar`,
+    `osxDist`/`osxDmg` (macOS), `allDist`, `allTests`.
+  - El instalador de Windows ya estaba en `buildWindowsInstaller` (build.gradle).
+- **Eliminados del código**:
+  - Paquete `src/main/java/ca/sqlpower/architect/antbuild/` (`ArchitectVersionTask`,
+    `AddLicenseToDMGTask`); la generación de `architect.version.properties` se mantiene committeada
+    en `src/main/resources/ca/sqlpower/architect/` (sincronizada con `ArchitectVersion`).
+  - `buildlib/ant.jar` y `buildlib/ant-junit.jar` (dejan de estar en el classpath).
+  - Uso de `org.apache.tools.ant.filters.StringInputStream` en `TestSwingUIProject` →
+    `ByteArrayInputStream` + UTF-8.
+- **Ajuste de classpaths del annotation processing**: los source sets custom (`apt`, `generated`)
+  y los tasks de anotación de ambos proyectos usan ahora `configurations.compileClasspath` de
+  forma explícita (`= files(configurations.compileClasspath, vendoredMain, ...)`), en vez de
+  depender del `sourceSets.main.compileClasspath` que resultaba poco fiable en este build
+  multi-proyecto (a veces se resolvía vacío y javac generaba clases
+  "Unresolved compilation problems").
+- **Estabilidad en Windows**: `gradle.properties` ahora fija `org.gradle.workers.max=1`
+  (las pasadas de anotación de ambos proyectos compiten si hay varios workers) y ya tenía
+  `org.gradle.daemon=false`. Si un build se corrompe (clases generadas "Unresolved..."), detener
+  daemons (`gradlew --stop`), borrar `build/` y `sqlpower-library/build/` y reintentar; el
+  language server de VSCode mantiene handles de archivos que interfieren.
+- **Estado de tests tras la migración**: app 1172/0; librería 971/2 pre-existentes.
+
 ### Instalador de Windows (HECHA)
 - **`./gradlew buildWindowsInstaller`** porta el target legacy Ant
   `windows_exe_installer` a Gradle y produce

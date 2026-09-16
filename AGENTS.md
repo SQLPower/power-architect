@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Power*Architect — Java 21 / Swing desktop app (SQL data modeling + OLAP + profiling). Built with **Gradle** (wrapper included). The legacy Apache Ant build (`build.xml`) is **deprecated** and kept only for reference.
+Power*Architect — Java 21 / Swing desktop app (SQL data modeling + OLAP + profiling). Built with **Gradle** (wrapper included). There is no Ant build: `build.xml` was removed and every historical Ant target has a Gradle equivalent.
 
 ## Build prerequisites (non-obvious)
 
@@ -8,6 +8,7 @@ Power*Architect — Java 21 / Swing desktop app (SQL data modeling + OLAP + prof
 - **JDK 21 toolchain.** Both projects declare `java.toolchain.languageVersion = 21`. Gradle will locate/install a JDK 21 toolchain (a JDK 21 is present at `C:\Program Files\Java\jdk-21` on this machine). The `java` on `PATH` may be older — that's fine, Gradle uses the toolchain.
 - Some vendored jars under `lib/`, `buildlib/` and `sqlpower-library/lib/main/` are still on the classpath. Modernizing them to Maven coordinates is tracked in `PLAN.md`/`TAREAS.md`; a few have no clean Maven equivalent and remain vendored on purpose.
 - XSLT-based help generation historically required a path **without spaces** (paths get corrupted with `%20`). Avoid spaces in the checkout path for distribution builds.
+- On Windows, stale Gradle daemons and the IDE language server can intermittently hold file locks that corrupt compilations (see `CONTEXTO.md`). `gradle.properties` pins single-worker mode; if a build misbehaves, run `gradlew --stop`, delete `build/` and `sqlpower-library/build/`, and retry.
 
 ## Commands
 
@@ -22,8 +23,7 @@ All via the Gradle wrapper: `./gradlew <task>` (Windows: `gradlew.bat <task>`).
 - `./gradlew buildWindowsInstaller` — build the Windows installer (izpack + launch4j). Produces `dist/SQL-Power-Architect-Setup-Windows-<version>.exe`. Notes:
   - The izpack compiler (4.3.1) uses `java.util.jar.Pack200` (removed in Java 14+), so it must run on a JDK ≤ 11; the Gradle daemon runs on JDK 21, so the task points at a JDK 11 (override with `-PizpackJavaHome=<JDK 11 home>`).
   - launch4j runs on JDK 21 with a few `--add-exports`/`--add-opens` flags (handled by the task).
-
-Legacy Ant targets still exist in `build.xml` (deprecated): `ant run`, `ant junit`, `ant dist`, etc.
+- Packaging/analysis tasks ported from the removed Ant build (see `packaging.gradle`): `userguide` (JavaHelp + PDF), `userGuideHtml`, `javadoc`, `pmd`, `findbugs`, `sourceTarGz`, `genericInstall`, `allDist`.
 
 ## Tests
 
@@ -41,7 +41,7 @@ Legacy Ant targets still exist in `build.xml` (deprecated): `ant run`, `ant juni
 
 ## Layout
 
-- `src/main/java/ca/sqlpower/architect/` — app code. `swingui/` (UI incl. `ArchitectFrame`, `dbtree/`), `ddl/` (+ `ddl/critic/`), `olap/`, `etl/`, `profile/`, `diff/`, `transformation/`, `enterprise/`, `undo/`, `antbuild/`.
+- `src/main/java/ca/sqlpower/architect/` — app code. `swingui/` (UI incl. `ArchitectFrame`, `dbtree/`), `ddl/` (+ `ddl/critic/`), `olap/`, `etl/`, `profile/`, `diff/`, `transformation/`, `enterprise/`, `undo/`.
 - `src/main/resources/` — icons, sounds, XSLT stylesheets, `log4j.properties.example`.
 - `sqlpower-library/` — vendored submodule (its own Gradle build, `lib/main/` vendored jars, `src/apt/java` annotation processor).
 - `lib/` (runtime), `buildlib/` (compile), `jdbc_drivers/` (tests), `ext-tools-home/` (vendored tools: findbugs, pmd, clover, izpack, launch4j), `testbed/` (HSQLDB for tests).
