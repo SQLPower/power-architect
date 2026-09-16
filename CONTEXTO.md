@@ -244,3 +244,22 @@ Hallazgos y arreglos de la parte de build/tests:
 - Nota: `setZoom()` NO aplica clamp (hay proyectos guardados con `zoom=12.3` en los tests);
   el clamp es exclusivo del gesto de rueda.
 
+### Fase 3 — Modo oscuro + FlatLaf (HECHA)
+- **FlatLaf 3.5.4** (D3) como L&F moderno (Apache 2.0). `com.formdev:flatlaf` en `build.gradle`.
+- **`swingui/ThemeManager.java`**: temas `SYSTEM | LIGHT | DARK`. `LIGHT` → `FlatLightLaf`,
+  `DARK` → `FlatDarkLaf`, `SYSTEM` → L&F nativo del SO. Persistido en prefs
+  (`Preferences.userNodeForPackage(ArchitectFrame.class)`, clave `theme`). Aplicado en
+  `ArchitectFrame.main()` antes de crear la ventana. Safe en headless.
+- **Selector**: submenú **"Theme"** dentro del menú **View** (`ArchitectFrame.setTheme(...)`)
+  con ítems radio. Al cambiar tema: se re-aplica el factor de escala de UI contra las fuentes
+  nuevas (`UIScaleManager.invalidate() + refresh()`) y se actualiza la paleta del canvas.
+- **`swingui/ThemePalette.java`**: paletas claro/oscuro con colores para canvas (fondo/foreground),
+  cuerpo de tabla, borde, selección y fila alternada. `ThemePalette.current()` según el tema.
+- **Componentes custom-painted**:
+  - `PlayPen.applyThemePalette()`: fondo/foreground del canvas según la paleta (llamado en el
+    constructor y al cambiar tema). Las tablas y relaciones heredan esos colores vía
+    `PlayPenComponent.getBackgroundColor()/getForegroundColor()`.
+  - `BasicTablePaneUI`: reemplazados los `Color.WHITE`/`Color.BLACK` hardcodeados por colores
+    de la paleta (fondo, texto, bordes, selección).
+  - `RelationshipUI`/`BasicRelationshipUI`: usan `r.getForegroundColor()` (fallback al canvas).
+

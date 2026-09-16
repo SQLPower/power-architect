@@ -60,6 +60,15 @@ public class UIScaleManager {
     }
 
     /**
+     * Re-applies the current scale factor. Useful after the look and feel has
+     * changed: call {@link #invalidate()} first so the new theme's base fonts
+     * are used.
+     */
+    public void refresh() {
+        apply();
+    }
+
+    /**
      * Discards the cached base fonts. Call this after the look and feel changes
      * so the next {@link #apply()} rescales the new theme's fonts instead of the
      * previous theme's.

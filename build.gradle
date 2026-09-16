@@ -108,6 +108,8 @@ dependencies {
     implementation 'org.apache.httpcomponents:httpcore:4.4.16'
     implementation 'org.apache.httpcomponents:httpmime:4.5.14'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    // Modern flat look and feel with built-in light and dark themes.
+    implementation 'com.formdev:flatlaf:3.5.4'
 
     // Test-only libs.
     testImplementation project(':sqlpower-library')

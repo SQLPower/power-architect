@@ -142,7 +142,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			//builds a little buffer to reduce the clipping problem
 			//this only seams to work at a non-zoomed level. This could 
 			//use a little work (better fix)
-			g.setColor(Color.WHITE);
+			g.setColor(ThemePalette.current().getCanvasBackground());
 			g.fillRect(0, 0, tp.getWidth(), tp.getHeight());
 			
 			g.translate(insets.left, insets.top);
@@ -191,7 +191,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			// print table name
 			g2.drawString(getTitleString(tablePane), 0, y += ascent);
 			
-			g2.setColor(Color.BLACK);
+			g2.setColor(ThemePalette.current().getCanvasForeground());
 			if (fontHeight < 0) {
 				throw new IllegalStateException("FontHeight is negative"); //$NON-NLS-1$
 			}
@@ -217,18 +217,18 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			        stillNeedPKLine = false;
 			        currentColor = null;
 			        y += PK_GAP;
-			        g2.setColor(Color.BLACK);
+			        g2.setColor(ThemePalette.current().getCanvasForeground());
 			        g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
 			    }
 			    if (tp.isItemSelected(i)) {
 			        if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
-			        g2.setColor(selectedColor);
+			        g2.setColor(ThemePalette.current().getSelection());
 			        g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
 			                hwidth, fontHeight);
 			    }
 			    // draws the column
 			    currentColor = tp.getColumnHighlight(i);
-			    g2.setColor(currentColor == null ? Color.BLACK : currentColor);
+			    g2.setColor(currentColor == null ? ThemePalette.current().getCanvasForeground() : currentColor);
 			    g2.drawString(columnText(col),
 			            BOX_LINE_THICKNESS+tp.getMargin().left,
 			            y += fontHeight);
@@ -236,7 +236,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			}
 			
 			// draw box around columns
-     		g2.setColor(Color.BLACK);
+     		g2.setColor(ThemePalette.current().getCanvasForeground());
 			if (tp.isRounded()) {
 	                g2.drawRoundRect(0, fontHeight+GAP, width-BOX_LINE_THICKNESS, 
 	                        height-(fontHeight+GAP+BOX_LINE_THICKNESS), ARC_LENGTH, ARC_LENGTH);
@@ -245,7 +245,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 	                        height-(fontHeight+GAP+BOX_LINE_THICKNESS));
 	            }
 			if (currentColor != null) {
-				g2.setColor(Color.BLACK);
+				g2.setColor(ThemePalette.current().getCanvasForeground());
 			}
 
 			if (stillNeedPKLine) {

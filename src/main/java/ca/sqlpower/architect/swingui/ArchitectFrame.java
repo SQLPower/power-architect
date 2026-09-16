@@ -56,9 +56,11 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -990,6 +992,22 @@ public class ArchitectFrame extends JFrame {
         viewMenu.add(uiScaleUpAction);
         viewMenu.add(uiScaleDownAction);
         viewMenu.add(uiScaleResetAction);
+        viewMenu.addSeparator();
+
+        JMenu themeMenu = new JMenu(Messages.getString("ArchitectFrame.themeMenu")); //$NON-NLS-1$
+        ButtonGroup themeGroup = new ButtonGroup();
+        for (final ThemeManager.Theme theme : ThemeManager.Theme.values()) {
+            JRadioButtonMenuItem themeItem = new JRadioButtonMenuItem(themeLabel(theme));
+            themeItem.setSelected(ThemeManager.getCurrentTheme() == theme);
+            themeItem.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    setTheme(theme);
+                }
+            });
+            themeGroup.add(themeItem);
+            themeMenu.add(themeItem);
+        }
+        viewMenu.add(themeMenu);
         menuBar.add(viewMenu);
 
         // the connections menu is set up when a new project is created (because it depends on the current DBTree)
@@ -1414,11 +1432,7 @@ public class ArchitectFrame extends JFrame {
      */
     @SuppressWarnings("deprecation") //$NON-NLS-1$
     public static void main(final String args[]) throws SQLObjectException {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            logger.error("Unable to set native look and feel. Continuing with default.", e);
-        }
+        ThemeManager.applyTheme(ThemeManager.getSavedTheme());
         
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -1564,6 +1578,37 @@ public class ArchitectFrame extends JFrame {
                 sprefs.setObject("uiScale", new Double(scale));
             }
         }
+    }
+
+    private String themeLabel(ThemeManager.Theme theme) {
+        switch (theme) {
+        case DARK:
+            return Messages.getString("ArchitectFrame.themeDark"); //$NON-NLS-1$
+        case LIGHT:
+            return Messages.getString("ArchitectFrame.themeLight"); //$NON-NLS-1$
+        default:
+            return Messages.getString("ArchitectFrame.themeSystem"); //$NON-NLS-1$
+        }
+    }
+
+    /**
+     * Switches the application look and feel, persists the choice, re-applies
+     * the UI scale against the new theme's fonts and repaints the play pens so
+     * the custom-painted canvas follows the theme.
+     */
+    public void setTheme(ThemeManager.Theme theme) {
+        ThemeManager.saveTheme(theme);
+        ThemeManager.applyTheme(theme);
+        if (uiScaleManager != null) {
+            uiScaleManager.invalidate();
+            uiScaleManager.refresh();
+        }
+        for (ArchitectSwingSession session : sessions) {
+            if (session.getPlayPen() != null) {
+                session.getPlayPen().applyThemePalette();
+            }
+        }
+        repaint();
     }
 
     public AboutAction getAboutAction() {

@@ -646,7 +646,7 @@ public class PlayPen extends JPanel
             zoom = prefs.getDouble("zoom", 1.0);
 		}
         viewportPosition = new Point(0, 0);
-		this.setBackground(java.awt.Color.white);
+		applyThemePalette();
 		contentPane = ppcp;
 		contentPane.setPlayPen(this);
 		this.setName("Play Pen"); //$NON-NLS-1$
@@ -1095,6 +1095,19 @@ public class PlayPen extends JPanel
 
 	public double getZoom() {
 		return zoom;
+	}
+
+	/**
+	 * Updates the canvas background and foreground from the active
+	 * {@link ThemePalette}. Called on construction and whenever the theme
+	 * changes. Table panes and relationships inherit these colors through
+	 * {@link PlayPenComponent#getBackgroundColor()} / {@code getForegroundColor()}.
+	 */
+	public void applyThemePalette() {
+		ThemePalette palette = ThemePalette.current();
+		this.setBackground(palette.getCanvasBackground());
+		this.setForeground(palette.getCanvasForeground());
+		this.repaint();
 	}
 
 	public void setRenderingAntialiased(boolean v) {

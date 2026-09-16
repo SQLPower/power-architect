@@ -45,11 +45,11 @@
 
 | ID | Tarea | Estado | Notas |
 |----|-------|--------|-------|
-| 3.1 | Añadir dependencia FlatLaf y fijarla como L&F por defecto | PENDIENTE | `com.formdev:flatlaf` |
-| 3.2 | Selector Claro/Oscuro/Sistema persistido | PENDIENTE | |
-| 3.3 | Paleta de tema compartida | PENDIENTE | `ThemePalette` |
-| 3.4 | Theming de `PlayPen`, `TablePaneUI`, `RelationshipUI` | PENDIENTE | |
-| 3.5 | Commit Fase 3 | PENDIENTE | |
+| 3.1 | Añadir dependencia FlatLaf y fijarla como L&F por defecto | HECHA | `com.formdev:flatlaf:3.5.4`; `ThemeManager` en `main()` |
+| 3.2 | Selector Claro/Oscuro/Sistema persistido | HECHA | submenú "Theme" en el menú View; clave `theme` en prefs |
+| 3.3 | Paleta de tema compartida | HECHA | `swingui/ThemePalette.java` |
+| 3.4 | Theming de `PlayPen`, `TablePaneUI`, `RelationshipUI` | HECHA | `PlayPen.applyThemePalette()`; `BasicTablePaneUI` lee la paleta; relaciones heredan de PlayPen |
+| 3.5 | Commit Fase 3 | EN_PROGRESO | |
 
 ## Fase 4 — DDL
 
