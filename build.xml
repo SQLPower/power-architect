@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
+  DEPRECATED: Power*Architect is now built with Gradle (./gradlew). This Ant
+  build is kept for reference only and is not maintained; it predates the
+  JDK 21 / Gradle migration and requires the old build.properties + separate
+  sqlpower-library checkout. Do not use it for new work.
+-->
+<!--
 
  Power*Architect Ant build file
 

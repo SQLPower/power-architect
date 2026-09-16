@@ -22,13 +22,13 @@
 | 1.1 | Diagnosticar fallo `ClassNotFoundException` en tests | HECHA | Causa: clases generadas no estaban en runtime de test |
 | 1.2 | Corregir classpath de clases generadas (app + library) en test runtime | HECHA | `build.gradle` (cambios previos + test classpath) |
 | 1.3 | `gradlew test` verde o fallos acotados/documentados | HECHA | App: 1159 tests, 0 fallos. Librería: 2 fallos pre-existentes documentados |
-| 1.4 | Inventario de JARs vendidos y mapeo a coordenadas Maven | PENDIENTE | guava, log4j, httpclient, commons-*, junit, miglayout, rsyntaxtextarea |
-| 1.5 | Migrar librerías con equivalente Maven | PENDIENTE | Dejar excepciones vendidas documentadas |
-| 1.6 | Migrar superficie `org.springframework.security.*` a API propia | PENDIENTE | ~10 imports en `enterprise/` |
-| 1.7 | Retirar `spring-core` y `spring-security-core` vendidos | PENDIENTE | |
-| 1.8 | Corregir APIs eliminadas en JDK 21 + `--add-opens` | PENDIENTE | reflexión del persister/AP |
-| 1.9 | Marcar `build.xml` deprecado / portar targets necesarios | PENDIENTE | conservar archivo |
-| 1.10 | Commit Fase 1 | PENDIENTE | |
+| 1.4 | Inventario de JARs vendidos y mapeo a coordenadas Maven | HECHA | ver CONTEXTO §8 |
+| 1.5 | Migrar librerías con equivalente Maven | HECHA | guava33, reload4j, codec, io, logging, httpclient4.x, jsr305; beanutils/collections quedan vendidos (regresión de tests al migrarlos) |
+| 1.6 | Migrar superficie `org.springframework.security.*` a API propia | HECHA | interfaces locales `GrantedAuthority`/`UserDetails` + `AccessDeniedException` |
+| 1.7 | Retirar `spring-core` y `spring-security-core` vendidos | HECHA | security retirado; `spring-core` se conserva (Kettle 3.2.2 lo requiere) |
+| 1.8 | Corregir APIs eliminadas en JDK 21 + `--add-opens` | HECHA | compila en JDK21; solo warnings de `new Integer()` etc. |
+| 1.9 | Marcar `build.xml` deprecado / portar targets necesarios | HECHA | nota de deprecación al inicio de `build.xml` |
+| 1.10 | Commit Fase 1 | HECHA | ver CONTEXTO §8 |
 
 ## Fase 2 — Zoom
 

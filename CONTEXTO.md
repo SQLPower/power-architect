@@ -187,3 +187,40 @@ Hallazgos y arreglos de la parte de build/tests:
 - 2 fallos pre-existentes de `TestSQLRelationship` (librería).
 - Migrar dependencias vendidas a coordenadas Maven (en curso).
 
+### Modernización de dependencias (Fase 1, parte 2)
+- **Spring Security eliminado** (D2): se reemplazó la superficie `org.springframework.security.*`
+  por API propia en la librería:
+  - `ca.sqlpower.enterprise.AccessDeniedException` (RuntimeException).
+  - `ca.sqlpower.enterprise.client.GrantedAuthority` (interfaz con `getAuthority()`).
+  - `ca.sqlpower.enterprise.client.UserDetails` (interfaz con los 7 métodos de Spring).
+  Se actualizaron los 6 usos de `AccessDeniedException` (app + librería) y
+  `Group`/`User` (implements). Se eliminó `spring-security-core-2.0.5.RELEASE.jar`.
+- **`spring-core.jar` se conserva vendido**: Kettle 3.2.2 lo requiere en runtime
+  (`org.springframework.core.io.ResourceLoader`). Excepción documentada.
+- **Migradas a coordenadas Maven** (eliminados los JARs vendidos equivalentes):
+  - `log4j-1.2.15` → `ch.qos.reload4j:reload4j:1.2.25` (drop-in, misma API `org.apache.log4j`).
+  - `guava-11.0.2` → `com.google.guava:guava:33.3.1-jre`.
+  - `commons-codec-1.10` → 1.17.1; `commons-io-1.4` → 2.16.1; `commons-logging` → 1.3.4.
+  - `httpclient-4.0`/`httpcore-4.0.1`/`httpmime-4.0` → 4.5.14/4.4.16/4.5.14.
+  - `jsr305.jar` → `com.google.code.findbugs:jsr305:3.0.2`.
+  - `mail-1.4.1.jar` eliminado (ya reemplazado por jakarta.mail).
+- **Excepciones vendidas documentadas** (sin equivalente Maven limpio o cambio de API
+  riesgoso): kettle 3.2.2, mondrian, olap4j, iText2, edtftpj, forms/piccolo, velocity,
+  jfreechart/jcommon, eigenbase, jakarta-regexp, gsbase, UmlGraph, ant,
+  commons-httpclient-3.1 (1 uso), commons-lang 2.4, commons-digester, miglayout,
+  rsyntaxtextarea, jmdns, opencsv, servlet-api 3.0, commons-vfs, xercesImpl,
+  **commons-beanutils + commons-collections** (migrarlos a 1.9.4/3.2.2 rompió tests de
+  rollback por cambio en el orden de introspección de `PropertyUtils`; se revirtió).
+- **Ajustes de build requeridos por la migración:**
+  - Los source sets custom (`apt`, `generated`) y los tasks de anotación ahora incluyen
+    `sourceSets.main.compileClasspath` (guava/log4j ya no están en los fileTrees vendidos).
+  - `distTar`/`distZip` con `duplicatesStrategy = EXCLUDE` (jars duplicados entre las
+    carpetas vendidas).
+- **Estado final de tests tras la migración:**
+  - App: 1159 tests / 0 fallos.
+  - Librería: 971 tests / 2 fallos pre-existentes (`testAllSettersAreUndoable`,
+    `testPersisterCreatesNewObjects`), documentados.
+  - `GenericNewValueMaker` corregido para manejar un `Color` nulo (el test-util fallaba con
+    NPE cuando una propiedad de color tenía valor null).
+  - `TestSQLColumn` ajustado al retorno genérico de `BeanUtils.describe`.
+
