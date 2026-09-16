@@ -64,11 +64,11 @@
 | 4b.3 | Acción de menú + manejo de errores con línea/columna | HECHA | `CreateTableFromDDLAction` en menú Tools; errores con línea/columna; sin tablas parciales (rollback) |
 | 4b.4 | Tests `DDLParserTest` | HECHA | 8 tests, 0 fallos |
 | 4b.5 | Commit Fase 4b | EN_PROGRESO | |
-| 4c.1 | Campo de notas por tabla (propiedad de `SQLObject`) | PENDIENTE | sin tocar annotation processor |
-| 4c.2 | UI de notas en Table Properties y diálogo de copia | PENDIENTE | |
-| 4c.3 | Anexar notas al DDL con validación/sanitización | PENDIENTE | |
-| 4c.4 | Tests de validación de notas | PENDIENTE | |
-| 4c.5 | Commit Fase 4c | PENDIENTE | |
+| 4c.1 | Campo de notas por tabla (propiedad de `SQLObject`) | HECHA | `SQLTable.ddlNotes` (`@Accessor`/`@Mutator`, persistido) |
+| 4c.2 | UI de notas en Table Properties y diálogo de copia | HECHA | campo "DDL notes" en `TableEditPanel` |
+| 4c.3 | Anexar notas al DDL con validación/sanitización | HECHA | `DDLCommentUtils` + `GenericDDLGenerator.addDdlNotes` |
+| 4c.4 | Tests de validación de notas | HECHA | `DDLCommentUtilsTest` (5 tests) |
+| 4c.5 | Commit Fase 4c | EN_PROGRESO | |
 
 ## Fase 5 — Estilo DbSchema
 

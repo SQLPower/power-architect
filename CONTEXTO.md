@@ -295,3 +295,19 @@ Hallazgos y arreglos de la parte de build/tests:
 - **`regress/.../ddl/DDLParserTest.java`**: 8 tests (tipos, constraints, comentarios,
   identificadores, multi-statement, error de sintaxis, build).
 
+### Fase 4c — Notas por tabla anexadas al DDL (HECHA)
+- **`SQLTable.ddlNotes`** (librería): propiedad persistida con `@Accessor(isInteresting=true)`/
+  `@Mutator`; el persister generado la maneja. El loader de proyecto la guarda/lee:
+  `SwingUIProjectLoader` escribe `<ddlNotes>` y `ProjectLoader` (Digester) la mapea a
+  `setDdlNotes`.
+- **`ddl/DDLCommentUtils.java`**: `validate(notes)` (rechaza caracteres de control) y
+  `toCommentBlock(notes)` (emite cada línea como `-- `, de modo que las notas **nunca**
+  pueden romper la sentencia SQL).
+- **`GenericDDLGenerator.addDdlNotes(t)`**: después del CREATE TABLE y comentarios del
+  dialecto, anexa las notas como sentencia `COMMENT`; si la validación falla, las omite con
+  un warning. Aplica a export completo y a "Copy DDL" (mismo generador).
+- **UI**: campo **"DDL notes (appended as comments)"** en `TableEditPanel` (propiedades de la
+  tabla); valida al aplicar cambios.
+- **`regress/.../ddl/DDLCommentUtilsTest.java`**: 5 tests (validación, formato, anexado al
+  DDL generado, ausencia de notas).
+

@@ -990,6 +990,24 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print("\n)");
 		endStatement(StatementType.CREATE, t);
         addComment(t, true);
+        addDdlNotes(t);
+	}
+
+	/**
+	 * Appends the table's free-form {@link SQLTable#getDdlNotes()} as safe SQL
+	 * line comments. Notes that fail {@link DDLCommentUtils#validate(String)}
+	 * are skipped with a warning so they can never corrupt the generated SQL.
+	 */
+	protected void addDdlNotes(SQLTable t) {
+		String notes = t.getDdlNotes();
+		if (notes == null || notes.trim().isEmpty()) return;
+		String validationError = DDLCommentUtils.validate(notes);
+		if (validationError != null) {
+			logger.warn("Skipping DDL notes on table " + t.getName() + ": " + validationError);
+			return;
+		}
+		print(DDLCommentUtils.toCommentBlock(notes));
+		endStatement(StatementType.COMMENT, t);
 	}
 
 	/**
