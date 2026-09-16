@@ -311,3 +311,18 @@ Hallazgos y arreglos de la parte de build/tests:
 - **`regress/.../ddl/DDLCommentUtilsTest.java`**: 5 tests (validación, formato, anexado al
   DDL generado, ausencia de notas).
 
+### Fase 5 — Estilo visual tipo DbSchema (HECHA)
+- **`BasicTablePaneUI` reescrito visualmente** (la matemática de layout de filas se
+  conserva; `pointToItemIndex` sigue pasando):
+  - Tarjeta con **sombra** sutil y **esquinas redondeadas** (según `isRounded()`).
+  - **Header** con esquinas superiores redondeadas, base cuadrada, línea separadora bajo el
+    título y título en **negrita**; colores según `tp.getBackgroundColor()/getForegroundColor()`
+    (selección = oscurecido, como antes).
+  - **Filas alternas** (par/ impar) usando `ThemePalette.getAlternatingRow()`.
+  - Bordes y selección desde `ThemePalette`.
+- **Búsqueda de tipos en `ColumnEditPanel`**: `PopupJTreeAction` (librería) ganó un
+  constructor con `withSearch`; el popup muestra un campo de texto arriba del árbol y al
+  escribir se hace scroll + selección del primer nodo que contiene el texto
+  (busca recursivamente). `ColumnEditPanel` lo activa al elegir el tipo.
+- Estado de tests: app 1172 tests / 0 fallos (con los tests nuevos de parser y notas).
+

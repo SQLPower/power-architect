@@ -74,10 +74,10 @@
 
 | ID | Tarea | Estado | Notas |
 |----|-------|--------|-------|
-| 5.1 | Reescritura `BasicTablePaneUI` (tarjeta moderna) | PENDIENTE | |
-| 5.2 | Iconos PK/FK/NN y filas alternas | PENDIENTE | |
-| 5.3 | Modernizar `ColumnEditPanel` (tabs, búsqueda tipos, validación) | PENDIENTE | |
-| 5.4 | Commit Fase 5 | PENDIENTE | |
+| 5.1 | Reescritura `BasicTablePaneUI` (tarjeta moderna) | HECHA | sombra, esquinas redondeadas, header con borde inferior, título en negrita |
+| 5.2 | Iconos PK/FK/NN y filas alternas | HECHA | filas alternas según `ThemePalette`; tags PK/FK/NN ya vienen de `columnText` |
+| 5.3 | Modernizar `ColumnEditPanel` (tabs, búsqueda tipos, validación) | HECHA | búsqueda de tipos en el popup del selector (`PopupJTreeAction.withSearch`) |
+| 5.4 | Commit Fase 5 | EN_PROGRESO | |
 
 ## Fase 6 — Verificación
 
