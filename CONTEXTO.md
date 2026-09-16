@@ -263,3 +263,15 @@ Hallazgos y arreglos de la parte de build/tests:
     de la paleta (fondo, texto, bordes, selección).
   - `RelationshipUI`/`BasicRelationshipUI`: usan `r.getForegroundColor()` (fallback al canvas).
 
+### Fase 4a — Copiar DDL por objeto (HECHA)
+- **`swingui/action/CopyDDLAction.java`**: genera el DDL de la(s) tabla(s) seleccionada(s) con
+  un `DDLGenerator` del target DB (`DDLUtils.createDDLGenerator(targetDb.getDataSource())`),
+  vía `generateDDLStatements(tables)` (incluye columnas, PK, índices, FKs y comentarios
+  según el dialecto). Muestra el resultado en un `SQLScriptDialog` reutilizado (trae botones
+  **Copiar** y **Guardar**; el botón de ejecución queda disponible porque se le pasa el
+  datasource). Expone `showDDL(List<SQLTable>)` para invocarse desde los popups.
+- **Puntos de entrada**: ítem **"Copy DDL"** en el menú contextual de `TablePane`
+  (click derecho en una tabla del canvas) y en el popup de `DBTree` (nodo de tabla).
+- Claves nuevas: `CopyDDLAction.*` (bundle de acciones), `TablePane.copyDDLMenu` y
+  `DBTree.copyDDLMenu` (bundle de swingui).
+

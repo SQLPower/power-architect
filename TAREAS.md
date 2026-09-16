@@ -55,10 +55,10 @@
 
 | ID | Tarea | Estado | Notas |
 |----|-------|--------|-------|
-| 4a.1 | Acción `CopyDDLAction` en popup de `TablePane` y `DBTree` | PENDIENTE | |
-| 4a.2 | Diálogo preview DDL con Copiar/Guardar | PENDIENTE | reutilizar `SQLScriptDialog` |
-| 4a.3 | Generar DDL del objeto con índices/FKs/comentarios relacionados | PENDIENTE | |
-| 4a.4 | Commit Fase 4a | PENDIENTE | |
+| 4a.1 | Acción `CopyDDLAction` en popup de `TablePane` y `DBTree` | HECHA | ítem "Copy DDL" en ambos popups |
+| 4a.2 | Diálogo preview DDL con Copiar/Guardar | HECHA | reutiliza `SQLScriptDialog` |
+| 4a.3 | Generar DDL del objeto con índices/FKs/comentarios relacionados | HECHA | `generateDDLStatements(lista)` por tabla |
+| 4a.4 | Commit Fase 4a | EN_PROGRESO | |
 | 4b.1 | `ddl/DDLParser.java` (tokenizer + recursive descent) | PENDIENTE | multi-dialecto |
 | 4b.2 | Diálogo "Crear tabla desde DDL" (dialecto + preview + crear) | PENDIENTE | |
 | 4b.3 | Acción de menú + manejo de errores con línea/columna | PENDIENTE | sin tablas parciales |

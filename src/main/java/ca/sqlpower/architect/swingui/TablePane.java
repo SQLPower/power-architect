@@ -1144,6 +1144,17 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
 
         tablePanePopup.addSeparator();
 
+        final SQLTable popupTable = model;
+        mi = new JMenuItem(Messages.getString("TablePane.copyDDLMenu")); //$NON-NLS-1$
+        mi.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                af.getCopyDDLAction().showDDL(java.util.Collections.singletonList(popupTable));
+            }
+        });
+        tablePanePopup.add(mi);
+
+        tablePanePopup.addSeparator();
+
         JMenu align = new JMenu(Messages.getString("TablePane.alignTablesMenu")); //$NON-NLS-1$
         mi = new JMenuItem();
         mi.setAction(af.getAlignTableHorizontalAction()); 

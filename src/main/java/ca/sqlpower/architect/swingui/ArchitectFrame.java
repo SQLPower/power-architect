@@ -99,6 +99,7 @@ import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CheckForUpdateAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
+import ca.sqlpower.architect.swingui.action.CopyDDLAction;
 import ca.sqlpower.architect.swingui.action.CopySelectedAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
@@ -265,6 +266,7 @@ public class ArchitectFrame extends JFrame {
     private FocusToChildOrParentTableAction focusToParentAction;
     
     private Action exportDDLAction;
+    private CopyDDLAction copyDDLAction;
     private Action compareDMAction;
     private Action dataMoverAction;
     private Action sqlQueryAction;
@@ -785,6 +787,7 @@ public class ArchitectFrame extends JFrame {
         autoLayout = new FruchtermanReingoldForceLayout();
         autoLayoutAction.setLayout(autoLayout);
         exportDDLAction = new ExportDDLAction(this);
+        copyDDLAction = new CopyDDLAction(this);
         
         compareDMAction = new CompareDMAction(this);
         
@@ -1537,6 +1540,10 @@ public class ArchitectFrame extends JFrame {
 
     public ZoomResetAction getZoomResetAction() {
         return zoomNormalAction;
+    }
+
+    public CopyDDLAction getCopyDDLAction() {
+        return copyDDLAction;
     }
 
     /**
