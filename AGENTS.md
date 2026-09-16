@@ -1,45 +1,56 @@
 # AGENTS.md
 
-Power*Architect — Java 11 / Swing desktop app (SQL data modeling + OLAP + profiling). Built with **Apache Ant ≥ 1.7** (`build.xml`). No Maven/Gradle, no CI workflows.
+Power*Architect — Java 21 / Swing desktop app (SQL data modeling + OLAP + profiling). Built with **Gradle** (wrapper included). The legacy Apache Ant build (`build.xml`) is **deprecated** and kept only for reference.
 
 ## Build prerequisites (non-obvious)
 
-- **`sqlpower-library` is required and is a separate repo** (github.com/SQLPower/sqlpower-library). Copy `build.properties.example` → `build.properties` and set `sqlpower.library.home` to its path. The build copies its jars into `buildlib/`. It is **not** vendored here — `ant compile` fails without it.
-- **The build path must NOT contain spaces** (XSLT help generation corrupts paths with `%20`). This repo itself lives under a path with a space (`D:\DRIVE\REPOSITORIO\...`) — use a temp checkout/worktree on a spaceless path for any build that runs `help`/`dist`.
-- Targets Java 11 (PMD source language and izpack `javaversion` are 11). Runtime min is Java 8.
-- `build.properties` is gitignored; `eclipse-bin/`, `build/`, `generated/`, `dist/`, `staging/` are all gitignored build outputs.
+- **`sqlpower-library` is a vendored git submodule** at `sqlpower-library/` (from github.com/SQLPower/sqlpower-library). It is included as a Gradle subproject by `settings.gradle`; you do **not** need a separate checkout or `build.properties`. Run `git submodule update --init` after cloning.
+- **JDK 21 toolchain.** Both projects declare `java.toolchain.languageVersion = 21`. Gradle will locate/install a JDK 21 toolchain (a JDK 21 is present at `C:\Program Files\Java\jdk-21` on this machine). The `java` on `PATH` may be older — that's fine, Gradle uses the toolchain.
+- Some vendored jars under `lib/`, `buildlib/` and `sqlpower-library/lib/main/` are still on the classpath. Modernizing them to Maven coordinates is tracked in `PLAN.md`/`TAREAS.md`; a few have no clean Maven equivalent and remain vendored on purpose.
+- XSLT-based help generation historically required a path **without spaces** (paths get corrupted with `%20`). Avoid spaces in the checkout path for distribution builds.
 
 ## Commands
 
-All build via Ant: `ant <target>`.
+All via the Gradle wrapper: `./gradlew <task>` (Windows: `gradlew.bat <task>`).
 
-- `ant run` — compile + launch the Swing app (main class `ca.sqlpower.architect.swingui.ArchitectFrame`)
-- `ant compile` — build app classes into `build/`
-- `ant junit` — compile + run test suites (writes XML+HTML reports under `dist/.../reports/junit`)
-- `ant alltests` — `junit` + `pmd` + `findbugs`
-- `ant compile-examples` — validate code under `example_code/`
-- `ant clean` / `ant dist-clean` — remove build outputs
-- `ant dist` — full distribution (all platforms, javadoc, source tarballs) — heavy, not for quick iteration
+- `./gradlew run` — compile + launch the Swing app (main class `ca.sqlpower.architect.swingui.ArchitectFrame`)
+- `./gradlew build` — compile + assemble (includes the annotation-processing passes)
+- `./gradlew test` — compile + run the test suites
+- `./gradlew compileExamples` — validate code under `example_code/`
+- `./gradlew clean` — remove build outputs
+- `./gradlew mondrianModel mondrianParser mondrianFormatter` — regenerate Mondrian OLAP sources from `Mondrian.xml`
+
+Legacy Ant targets still exist in `build.xml` (deprecated): `ant run`, `ant junit`, `ant dist`, etc.
 
 ## Tests
 
-- Tests live in `regress/` (JUnit 4, ~100 files), compiled to `build_tests`.
-- Entry suites run by `junit`: `ca.sqlpower.ArchitectBusinessTestSuite`, `ca.sqlpower.ArchitectSwingTestSuite`, `ca.sqlpower.ArchitectAutoTests`, `ca.sqlpower.architect.profile.ProfileTests`.
-- The Swing UI suite **fails randomly** (known issue, commented in `build.xml`) — don't chase flaky failures there.
-- Build runs tests headless (`ca.sqlpower.headless=true`) and points `ca.sqlpower.architect.test.dir` at `build_tests`. DB-touching tests need JDBC drivers from `jdbc_drivers/`; HSQLDB test DB comes from `testbed/hsqldb.jar`.
+- Tests live in `regress/` (JUnit 4 + JUnit 5 via the vintage engine), compiled into the app's `test` source set. The library's own tests live in `sqlpower-library/src/test/java`.
+- Entry suites: `ca.sqlpower.ArchitectBusinessTestSuite`, `ca.sqlpower.ArchitectSwingTestSuite`, `ca.sqlpower.ArchitectAutoTests`, `ca.sqlpower.architect.profile.ProfileTests`.
+- The Swing UI suite **fails randomly** (known issue) — don't chase flaky failures there.
+- Tests run headless (`ca.sqlpower.headless=true`). DB-touching tests need JDBC drivers from `jdbc_drivers/`; the HSQLDB test DB comes from `testbed/hsqldb.jar`.
+- The app's generated persister classes must be on the test runtime classpath (see `compileAppGenerated` in `build.gradle`).
 
 ## Generated code (do not hand-edit)
 
-- `compile` runs an annotation processor (`ca.sqlpower.object.annotation.SPAnnotationProcessor`) in a second javac pass and writes sources to `generated/` (gitignored), then compiles them into the build. After editing annotated model classes, always run `ant compile`.
-- Mondrian OLAP classes are **XSLT-generated from `src/main/java/ca/sqlpower/architect/olap/Mondrian.xml`** and **checked in**. Regenerate with `ant mondrianModel mondrianParser mondrianFormatter` (and `mondrianNewValueMaker mondrianPersistenceTests` for the test copies under `regress/`). Don't edit these files directly; edit `Mondrian.xml` or the XSLT, then regenerate.
-- App version comes from constants in `ArchitectVersion` (read by the Ant `ArchitectVersionTask`), not from a properties file.
+- The build runs an annotation processor (`ca.sqlpower.object.annotation.SPAnnotationProcessor`) in a second javac pass (`runAppAnnotationProcessor` + `compileAppGenerated`), writing sources to `build/generated-src` and compiling them into the build. After editing annotated model classes, re-run `./gradlew build`.
+- Mondrian OLAP classes are **XSLT-generated from `src/main/java/ca/sqlpower/architect/olap/Mondrian.xml`** and **checked in**. Regenerate with `./gradlew mondrianModel mondrianParser mondrianFormatter` (and the `mondrianNewValueMaker`/`mondrianPersistenceTests` tasks for the test copies under `regress/`). Don't edit these files directly; edit `Mondrian.xml` or the XSLT, then regenerate.
+- App version comes from constants in `ArchitectVersion`, not from a properties file.
 
 ## Layout
 
 - `src/main/java/ca/sqlpower/architect/` — app code. `swingui/` (UI incl. `ArchitectFrame`, `dbtree/`), `ddl/` (+ `ddl/critic/`), `olap/`, `etl/`, `profile/`, `diff/`, `transformation/`, `enterprise/`, `undo/`, `antbuild/`.
 - `src/main/resources/` — icons, sounds, XSLT stylesheets, `log4j.properties.example`.
+- `sqlpower-library/` — vendored submodule (its own Gradle build, `lib/main/` vendored jars, `src/apt/java` annotation processor).
 - `lib/` (runtime), `buildlib/` (compile), `jdbc_drivers/` (tests), `ext-tools-home/` (vendored tools: findbugs, pmd, clover, izpack, launch4j), `testbed/` (HSQLDB for tests).
 - `doc/` — user guide as DocBook XML (`PowerArchitectUserGuide.xml`) + XSLT toolchain; `html/overview.html` for javadoc.
+
+## Project tracking files
+
+- `PLAN.md` — high-level execution plan and per-phase status.
+- `TAREAS.md` — atomic tasks and their states.
+- `CONTEXTO.md` — accumulated context, decisions, and technical specs.
+- `caracteristicas_futuras.md` — backlog of not-yet-planned features.
+- `preguntas.md` — open questions for the user (created only when needed).
 
 ## Conventions
 
