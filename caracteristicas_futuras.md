@@ -124,3 +124,21 @@ DBeaver, DataGrip, Navicat y ER/Studio. No están aprobadas: son candidatas.
 - **Criterios de aceptación:**
   - [ ] Genera PDF/Markdown con tablas y relaciones.
 - **Estado:** IDEA
+
+
+---
+
+## Funcionalidades futuras del usuario
+
+Estas funcionalidades son las deseadas por el usuario.
+
+### [ ] Busqueda y Actulización dentro del mismo sistema
+- **Prioridad:** MEDIA
+- **Valor para el usuario:** El Sistema podra verificar la version actual y proponer actualizar al usuario a la nueva version, debe buscar el ultimo release en https://github.com/SQLPower/power-architect.
+- **Referencia de mercado:** DBeaver.
+- **Descripción funcional:** Al primer inicio de sesion del día consultar si hay un nuevo release del sistema en github, si es así lanzar un popup avisando de la nueva version y si se desea actualizar, saltar esta version o simplemente cancelar para seguir tal y como esta.
+- **Notas técnicas:** La instalacion de la nueva version no debe romper la anterior ni modificar el lugar de instalacion original, debe ser lo mas transparente posible.
+- **Criterios de aceptación:**
+  - [ ] Verifica nueva version del sistema en repositorio.
+  - [ ] Despliega un cuadro de texto que informe de la nueva version y de botones para elegir actulizarlo de inmediato y otro boton para cancelar o para saltarse la version.
+- **Estado:** IDEA
