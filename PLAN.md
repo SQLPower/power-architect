@@ -19,8 +19,8 @@ Modernizar Power*Architect (SQL Power Architect) sobre la versión actual del re
 
 | Fase | Descripción | Estado |
 |------|-------------|--------|
-| 0 | Persistencia y saneamiento | EN_PROGRESO |
-| 1 | Cerrar JDK 21 + Gradle y modernizar dependencias | PENDIENTE |
+| 0 | Persistencia y saneamiento | HECHA |
+| 1 | Cerrar JDK 21 + Gradle y modernizar dependencias | EN_PROGRESO |
 | 2 | Zoom (canvas + escala global UI) | PENDIENTE |
 | 3 | Modo oscuro + FlatLaf | PENDIENTE |
 | 4 | DDL (copiar por objeto, crear desde DDL, notas) | PENDIENTE |

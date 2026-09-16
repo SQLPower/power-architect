@@ -56,6 +56,7 @@ sourceSets {
         compileClasspath += libraryVendored
         compileClasspath += files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
         compileClasspath += files('testbed/hsqldb.jar')
+        runtimeClasspath += sourceSets.main.output
         runtimeClasspath += files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
         runtimeClasspath += files('testbed/hsqldb.jar')
     }
@@ -88,6 +89,7 @@ dependencies {
 
     // Test-only libs.
     testImplementation project(':sqlpower-library')
+    testImplementation project(path: ':sqlpower-library', configuration: 'testClasses')
     testImplementation files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
     testImplementation files('testbed/hsqldb.jar')
 
@@ -108,12 +110,18 @@ def libraryAptJar = project(':sqlpower-library').tasks.named('aptJar')
 tasks.register('runAppAnnotationProcessor', JavaCompile) {
     dependsOn compileJava
     dependsOn libraryAptJar
+    dependsOn project(':sqlpower-library').tasks.named('compileGeneratedJava')
     source = sourceSets.main.java
-    classpath = sourceSets.main.compileClasspath
+    classpath = files(
+        sourceSets.main.output,
+        project(':sqlpower-library').sourceSets.generated.output,
+        sourceSets.main.compileClasspath
+    )
     destinationDirectory = layout.buildDirectory.dir('tmp/app-proc-only')
     options.debug = true
     options.annotationProcessorPath = files(
         libraryAptJar.flatMap { it.archiveFile },
+        sourceSets.main.output,
         libraryVendored,
         project(':sqlpower-library').sourceSets.main.output
     )
@@ -131,11 +139,13 @@ def appGeneratedClassesDir = layout.buildDirectory.dir('classes/java/app-generat
 
 tasks.register('compileAppGenerated', JavaCompile) {
     dependsOn runAppAnnotationProcessor
+    dependsOn project(':sqlpower-library').tasks.named('compileGeneratedJava')
     source = fileTree(dir: appGeneratedSrcDir, include: '**/*.java')
     classpath = files(
         sourceSets.main.output,
         libraryVendored,
-        project(':sqlpower-library').sourceSets.main.output
+        project(':sqlpower-library').sourceSets.main.output,
+        project(':sqlpower-library').sourceSets.generated.output
     )
     destinationDirectory = appGeneratedClassesDir
     options.debug = true
@@ -151,6 +161,12 @@ tasks.named('jar') {
     manifest {
         attributes 'Main-Class': 'ca.sqlpower.architect.swingui.ArchitectFrame'
     }
+}
+
+// Generated SPPersisterHelper classes must be on the test runtime classpath.
+tasks.named('test') {
+    dependsOn compileAppGenerated
+    classpath += files(appGeneratedClassesDir)
 }
 
 // ---------------------------------------------------------------------------
@@ -195,10 +211,14 @@ test {
     systemProperty 'ca.sqlpower.headless', 'true'
     systemProperty 'user.language', 'en'
     systemProperty 'user.country', 'US'
-    // Swing UI suite is known to fail randomly (see AGENTS.md); the historical
-    // Ant build runs it anyway. We keep the same four suites discoverable and
-    // exclude only external-DB integration tests that need a live server.
-    exclude '**/SQLServerDDLGeneratorTest*'
+    // Mirror the historical Ant `junit` target, which ran exactly these four
+    // entry suites (see AGENTS.md). Relying on Gradle's default discovery would
+    // also pick up JUnit3 support/base classes (e.g. ArchitectTestCase) that
+    // declare no test methods, producing spurious "No tests found in ...".
+    include '**/ArchitectBusinessTestSuite.class'
+    include '**/ArchitectSwingTestSuite.class'
+    include '**/ArchitectAutoTests.class'
+    include '**/ProfileTests.class'
 }
 
 // Validate example code (historical `ant compile-examples`).

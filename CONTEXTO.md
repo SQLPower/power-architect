@@ -138,3 +138,52 @@ Requerimientos de proceso (permanentes):
 - DbSchema: https://dbschema.com/ (scrapeado: ER diagrams, documentación HTML5, sync de
   esquema, diseño visual, SQL editor, generación de datos, AI assistant, Git workflow).
 - `AGENTS.md` (convenciones del repo: logger primero, 4 espacios, sin prefijo `I`).
+
+## 8. Bitácora de avance
+
+### Fase 0 — Persistencia y saneamiento (HECHA, commit `1f370cc1`)
+- Creados `PLAN.md`, `TAREAS.md`, `CONTEXTO.md`, `caracteristicas_futuras.md`.
+- Limpiados artefactos de la raíz (`app-test*.log`, `TestingJob.kjb`, `testKettle*`).
+- `AGENTS.md` actualizado a Gradle/JDK 21.
+
+### Fase 1 — JDK 21 + Gradle + dependencias (EN_PROGRESO)
+Hallazgos y arreglos de la parte de build/tests:
+- **Causa de los fallos `SPPersistenceException/ClassNotFoundException`:** las clases
+  generadas por el annotation processor (`*SPPersisterHelper`) no estaban en el
+  *runtime classpath* de los tests. Ya corregido en `build.gradle`
+  (`runtimeClasspath += sourceSets.main.output`, `compileAppGenerated` output en
+  `test.classpath`, y `testImplementation` de la configuración `testClasses` de la
+  librería).
+- **Bloqueos de archivos en Windows:** el language server de VSCode (redhat.java) y/o
+  daemons residuales de Gradle mantenían handles sobre `build/`, provocando
+  `AccessDeniedException` / `Unable to delete directory`. Solución operativa: correr sin
+  procesos Java externos y, si aparece, borrar `build/` manualmente y reintentar.
+- **Selección de tests:** Ant corría solo las 4 suites de entrada
+  (`ArchitectBusinessTestSuite`, `ArchitectSwingTestSuite`, `ArchitectAutoTests`,
+  `ProfileTests`). Gradle descubría *todas* las clases, incluyendo clases base JUnit3 sin
+  métodos de test (`ArchitectTestCase`, `TestArchitectSwingWorker`) que producían
+  `No tests found in ...`. Se configuró `test { include ... }` con esas 4 suites en
+  `build.gradle`.
+- **Layering `ddl` ↔ `swingui`:** `DDLGenerator`/`GenericDDLGenerator` importaban
+  `ArchitectSwingSession` solo para asignarlo a un campo nunca leído. Se eliminó el
+  parámetro `ArchitectSwingSession` de `generateDDLScript(...)` (y el campo/getter
+  vestigial). Corrige `ArchitectCoreDependencyTest.testDDLDependencies`.
+- **Tests de BD externa excluidos** del suite auto (`ArchitectAutoTests`): 
+  `SQLServerDDLGeneratorTest` (requiere SQL Server vivo en `dhcp-110:1433`) y
+  `KettleJobOutputToRepoTest` (Kettle 3.2.2 genera `ALTER TABLE ... MODIFY`, incompatible
+  con HSQLDB, y deja estado persistente). Documentado; alineado con la intención de
+  `build.gradle`.
+- **`SQLRelationshipComparatorTest.testCompareColumn`:** fallaba por dependencia de orden
+  de ejecución (estado estático `SQLColumn.defaultName`, que otros tests cambian). Se
+  resetea `SQLColumn.setDefaultName(null)` en `setUp` y se usan aserciones por signo.
+- **Librería `sqlpower-library`:** se anotó `SQLRelationship.getMappings()` como
+  `@Transient @Accessor` (era un getter sin anotar; 5 de los 7 fallos pre-existentes
+  bajaron). Quedan **2 fallos pre-existentes** en `TestSQLRelationship`
+  (`testAllSettersAreUndoable`, `testPersisterCreatesNewObjects`), en la capa de
+  persistencia/undo, ajenos a las 7 features solicitadas; documentados como pendientes.
+- **Estado de tests:** App 1159 tests / 0 fallos. Librería 971 tests / 2 fallos.
+
+### Pendientes conocidos
+- 2 fallos pre-existentes de `TestSQLRelationship` (librería).
+- Migrar dependencias vendidas a coordenadas Maven (en curso).
+

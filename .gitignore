@@ -13,3 +13,6 @@
 /custom_jre/
 /.gradle/
 /gradle-app.log
+/TestingJob.kjb
+/testKettleOutputToRepository*
+/test-*.log

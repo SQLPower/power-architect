@@ -37,7 +37,6 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.object.SPResolverRegistry;
 import ca.sqlpower.object.SPVariableHelper;
@@ -161,8 +160,6 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     protected boolean isComparingDMForPostgres = false;
     
-    private ArchitectSwingSession session;
-
     private JDBCDataSourceType dsType = null;
     
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
@@ -181,8 +178,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    this(true);
 	}
 
-    public String generateDDLScript(ArchitectSwingSession architectSwingSession, Collection<SQLTable> tables) throws SQLException, SQLObjectException {
-        session = architectSwingSession;
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
         List<DDLStatement> statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
@@ -1487,13 +1483,6 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     public boolean isComparingDMForPostgres() {
         return isComparingDMForPostgres;
-    }
-
-    /**
-     * @return the session
-     */
-    protected ArchitectSwingSession getSession() {
-        return session;
     }
 
     /**

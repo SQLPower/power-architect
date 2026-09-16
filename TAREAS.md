@@ -13,15 +13,15 @@
 | 0.4 | Crear `caracteristicas_futuras.md` | HECHA | Plantilla con sugerencias de mercado |
 | 0.5 | Limpiar artefactos de la raíz | HECHA | `app-test*.log`, `TestingJob.kjb`, `testKettle*` |
 | 0.6 | Actualizar `AGENTS.md` a Gradle/JDK 21 | HECHA | |
-| 0.7 | Commit Fase 0 | EN_PROGRESO | |
+| 0.7 | Commit Fase 0 | HECHA | `1f370cc1` |
 
 ## Fase 1 — JDK 21 + Gradle + dependencias
 
 | ID | Tarea | Estado | Notas |
 |----|-------|--------|-------|
-| 1.1 | Diagnosticar fallo `ClassNotFoundException` en tests | PENDIENTE | `SPSessionPersister`/`SPPersisterHelper` generados |
-| 1.2 | Corregir classpath de clases generadas (app + library) en test runtime | PENDIENTE | `build.gradle` sin commitear ya lo intenta |
-| 1.3 | `gradlew test` verde o fallos acotados/documentados | PENDIENTE | Suite Swing es flaky (conocido) |
+| 1.1 | Diagnosticar fallo `ClassNotFoundException` en tests | HECHA | Causa: clases generadas no estaban en runtime de test |
+| 1.2 | Corregir classpath de clases generadas (app + library) en test runtime | HECHA | `build.gradle` (cambios previos + test classpath) |
+| 1.3 | `gradlew test` verde o fallos acotados/documentados | HECHA | App: 1159 tests, 0 fallos. Librería: 2 fallos pre-existentes documentados |
 | 1.4 | Inventario de JARs vendidos y mapeo a coordenadas Maven | PENDIENTE | guava, log4j, httpclient, commons-*, junit, miglayout, rsyntaxtextarea |
 | 1.5 | Migrar librerías con equivalente Maven | PENDIENTE | Dejar excepciones vendidas documentadas |
 | 1.6 | Migrar superficie `org.springframework.security.*` a API propia | PENDIENTE | ~10 imports en `enterprise/` |
