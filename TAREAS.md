@@ -34,12 +34,12 @@
 
 | ID | Tarea | Estado | Notas |
 |----|-------|--------|-------|
-| 2.1 | `MouseWheelListener` Ctrl+rueda → `PlayPen.setZoom` anclado al cursor | PENDIENTE | |
-| 2.2 | Teclado numérico `+` / `-` → zoom del canvas | PENDIENTE | conservar acciones actuales |
-| 2.3 | `UIScaleManager` con factor global persistido | PENDIENTE | reescala fuentes `UIManager` |
-| 2.4 | Reaplicar escala a todas las ventanas (`updateComponentTreeUI`) | PENDIENTE | |
-| 2.5 | Nuevos iconos + menú de zoom (subir/bajar/reset UI y canvas) | PENDIENTE | |
-| 2.6 | Commit Fase 2 | PENDIENTE | |
+| 2.1 | `MouseWheelListener` Ctrl+rueda → `PlayPen.setZoom` anclado al cursor | HECHA | `ZoomOnWheelListener` en `PlayPen` |
+| 2.2 | Teclado numérico `+` / `-` → zoom del canvas | HECHA | bindings `VK_ADD`/`VK_SUBTRACT` en `ArchitectFrame`; conserva Ctrl+Shift+= y Ctrl+- |
+| 2.3 | `UIScaleManager` con factor global persistido | HECHA | `swingui/UIScaleManager.java`; clave `uiScale` en prefs |
+| 2.4 | Reaplicar escala a todas las ventanas (`updateComponentTreeUI`) | HECHA | en `UIScaleManager.apply()` |
+| 2.5 | Nuevos iconos + menú de zoom (subir/bajar/reset UI y canvas) | HECHA | toolbar `ppBar` + nuevo menú "View" |
+| 2.6 | Commit Fase 2 | EN_PROGRESO | |
 
 ## Fase 3 — Modo oscuro + FlatLaf
 

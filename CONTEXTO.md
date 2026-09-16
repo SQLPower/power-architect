@@ -224,3 +224,23 @@ Hallazgos y arreglos de la parte de build/tests:
     NPE cuando una propiedad de color tenía valor null).
   - `TestSQLColumn` ajustado al retorno genérico de `BeanUtils.describe`.
 
+### Fase 2 — Zoom (HECHA)
+- **Ctrl+rueda** sobre el canvas: nuevo `PlayPen.ZoomOnWheelListener`. Hace zoom del canvas
+  **anclado al cursor** (el punto del modelo bajo el cursor permanece fijo ajustando el
+  scroll del `JScrollPane`). Usa `setZoom(zoom * 2^0.25)` por notch, con clamp `[0.05, 100]`
+  solo para la rueda.
+- **Teclado numérico + / −**: bindings `VK_ADD`/`VK_SUBTRACT` (sin modificador) en el root
+  pane de `ArchitectFrame` → `zoomInAction`/`zoomOutAction`. Se conservan los atajos
+  existentes `Ctrl+Shift+=` y `Ctrl+-` de `ZoomAction`.
+- **Escala global de UI** (D4): nuevo `swingui/UIScaleManager.java` que re-deriva todas las
+  fuentes de `UIManager` (desde un caché de fuentes base) y re-aplica `updateComponentTreeUI`
+  + repaint a todas las ventanas. Rango `[0.6, 2.5]`; safe en headless.
+- **Acciones**: nuevo `swingui/action/UIScaleAction.java` (paso geométrico 1.08). Tres
+  acciones: aumentar / disminuir / resetear escala. Persistidas bajo la clave `uiScale`
+  (mismo mecanismo que `zoom` en `PlayPen`).
+- **UI**: las 3 acciones de escala + las 4 de zoom del canvas se añadieron al toolbar del
+  playpen (`ppBar`) y a un nuevo menú **"View"** (`ArchitectFrame.viewMenu`). Se reutilizan
+  los iconos `zoom_in`/`zoom_out`/`zoom_reset`.
+- Nota: `setZoom()` NO aplica clamp (hay proyectos guardados con `zoom=12.3` en los tests);
+  el clamp es exclusivo del gesto de rueda.
+

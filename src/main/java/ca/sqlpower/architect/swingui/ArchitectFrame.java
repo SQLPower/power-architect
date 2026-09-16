@@ -58,6 +58,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -81,6 +82,7 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UpdateCheckSettings;
 import ca.sqlpower.architect.UserSettings;
@@ -137,6 +139,7 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
+import ca.sqlpower.architect.swingui.action.UIScaleAction;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.architect.swingui.enterprise.ArchitectServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.enterprise.ProjectSecurityPanel;
@@ -228,6 +231,10 @@ public class ArchitectFrame extends JFrame {
     private ZoomAction zoomOutAction;
     private ZoomResetAction zoomNormalAction;
     private ZoomToFitAction zoomToFitAction;
+    private UIScaleManager uiScaleManager;
+    private UIScaleAction uiScaleUpAction;
+    private UIScaleAction uiScaleDownAction;
+    private UIScaleAction uiScaleResetAction;
     private AutoLayoutAction autoLayoutAction;
     
     private EditSelectedAction editSelectedAction;
@@ -758,6 +765,18 @@ public class ArchitectFrame extends JFrame {
         zoomToFitAction = new ZoomToFitAction(this);
         zoomToFitAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.zoomToFitActionDescription")); //$NON-NLS-1$
 
+        uiScaleManager = new UIScaleManager();
+        uiScaleUpAction = new UIScaleAction(this, 1.0,
+                Messages.getString("UIScaleAction.increaseActionName"), //$NON-NLS-1$
+                Messages.getString("UIScaleAction.increaseActionDescription"), "zoom_in"); //$NON-NLS-1$ //$NON-NLS-2$
+        uiScaleDownAction = new UIScaleAction(this, -1.0,
+                Messages.getString("UIScaleAction.decreaseActionName"), //$NON-NLS-1$
+                Messages.getString("UIScaleAction.decreaseActionDescription"), "zoom_out"); //$NON-NLS-1$ //$NON-NLS-2$
+        uiScaleResetAction = new UIScaleAction(this, 0.0,
+                Messages.getString("UIScaleAction.resetActionName"), //$NON-NLS-1$
+                Messages.getString("UIScaleAction.resetActionDescription"), "zoom_reset"); //$NON-NLS-1$ //$NON-NLS-2$
+        restoreUIScale();
+
         undoAction = new UndoAction(currentSession, this, currentSession.getUndoManager());
         redoAction = new RedoAction(currentSession, this, currentSession.getUndoManager());
         autoLayoutAction = new AutoLayoutAction(this, Messages.getString("ArchitectFrame.autoLayoutActionName"), Messages.getString("ArchitectFrame.autoLayoutActionDescription"), "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -807,6 +826,15 @@ public class ArchitectFrame extends JFrame {
         menuBar = createNewMenuBar();        
         setJMenuBar(menuBar);
 
+        // Numpad + and - zoom the play pen canvas (kept separate from the
+        // existing Ctrl+Shift+= / Ctrl+- accelerators on the zoom actions).
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), "zoomInNumpad"); //$NON-NLS-1$
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, 0), "zoomOutNumpad"); //$NON-NLS-1$
+        getRootPane().getActionMap().put("zoomInNumpad", zoomInAction); //$NON-NLS-1$
+        getRootPane().getActionMap().put("zoomOutNumpad", zoomOutAction); //$NON-NLS-1$
+
         projectBar = new JToolBar(JToolBar.HORIZONTAL);
         ppBar = new JToolBar(JToolBar.VERTICAL);
 
@@ -843,6 +871,10 @@ public class ArchitectFrame extends JFrame {
         ppBar.add(zoomOutAction);
         ppBar.add(zoomNormalAction);
         ppBar.add(zoomToFitAction);
+        ppBar.addSeparator();
+        ppBar.add(uiScaleUpAction);
+        ppBar.add(uiScaleDownAction);
+        ppBar.add(uiScaleResetAction);
         ppBar.addSeparator();
         tempButton = ppBar.add(deleteSelectedAction);
         tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
@@ -947,6 +979,18 @@ public class ArchitectFrame extends JFrame {
         editMenu.addSeparator();
         editMenu.add(searchReplaceAction);
         menuBar.add(editMenu);
+
+        JMenu viewMenu = new JMenu(Messages.getString("ArchitectFrame.viewMenu")); //$NON-NLS-1$
+        viewMenu.setMnemonic('v');
+        viewMenu.add(zoomInAction);
+        viewMenu.add(zoomOutAction);
+        viewMenu.add(zoomNormalAction);
+        viewMenu.add(zoomToFitAction);
+        viewMenu.addSeparator();
+        viewMenu.add(uiScaleUpAction);
+        viewMenu.add(uiScaleDownAction);
+        viewMenu.add(uiScaleResetAction);
+        menuBar.add(viewMenu);
 
         // the connections menu is set up when a new project is created (because it depends on the current DBTree)
         connectionsMenu = new JMenu(Messages.getString("ArchitectFrame.connectionsMenu")); //$NON-NLS-1$
@@ -1479,6 +1523,47 @@ public class ArchitectFrame extends JFrame {
 
     public ZoomResetAction getZoomResetAction() {
         return zoomNormalAction;
+    }
+
+    /**
+     * Multiplies the current global UI scale by the given factor and persists
+     * the result. Called by the {@link UIScaleAction}s.
+     */
+    public void adjustUIScale(double factor) {
+        uiScaleManager.setScale(uiScaleManager.getScale() * factor);
+        saveUIScale();
+    }
+
+    /**
+     * Resets the global UI scale to 100% and persists the result.
+     */
+    public void resetUIScale() {
+        uiScaleManager.reset();
+        saveUIScale();
+    }
+
+    private void restoreUIScale() {
+        double savedScale = 1.0;
+        if (currentSession.isEnterpriseSession()) {
+            savedScale = currentSession.getEnterpriseSession().getPrefDouble("uiScale", 1.0);
+        } else {
+            Preferences p = Preferences.userNodeForPackage(ArchitectSessionImpl.class);
+            Preferences prefs = p.node(currentSession.getWorkspace().getName());
+            savedScale = prefs.getDouble("uiScale", 1.0);
+        }
+        uiScaleManager.setScale(savedScale);
+    }
+
+    private void saveUIScale() {
+        double scale = uiScaleManager.getScale();
+        if (currentSession.isEnterpriseSession()) {
+            currentSession.getEnterpriseSession().putPref("uiScale", scale);
+        } else {
+            UserSettings sprefs = currentSession.getUserSettings().getSwingSettings();
+            if (sprefs != null) {
+                sprefs.setObject("uiScale", new Double(scale));
+            }
+        }
     }
 
     public AboutAction getAboutAction() {
