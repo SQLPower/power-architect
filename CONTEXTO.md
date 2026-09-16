@@ -275,3 +275,23 @@ Hallazgos y arreglos de la parte de build/tests:
 - Claves nuevas: `CopyDDLAction.*` (bundle de acciones), `TablePane.copyDDLMenu` y
   `DBTree.copyDDLMenu` (bundle de swingui).
 
+### Fase 4b — Crear tabla desde DDL (HECHA)
+- **`ddl/DDLParser.java`**: parser propio (tokenizer + recursive descent) para
+  `CREATE TABLE` multi-dialecto (PostgreSQL/MySQL/SQL Server/Oracle/Genérico). Soporta:
+  columnas con tipos y parámetros, `NOT NULL`/`NULL`, `DEFAULT`, `PRIMARY KEY` (inline y de
+  tabla), `UNIQUE`, `CHECK`, `FOREIGN KEY ... REFERENCES`, `CONSTRAINT`, `COLLATE`,
+  `AUTO_INCREMENT`/`IDENTITY`; ignora comentarios `--` y `/* */`; identificadores entre
+  comillas (`"x"`, `` `x` ``, `[x]`); varias sentencias separadas por `;`; nombres
+  cualificados (catálogo/esquema.tabla). Errores con **línea/columna**
+  (`DDLParser.DDLParseException`). AST en clases anidadas `ParsedTable/ParsedColumn/
+  ParsedForeignKey/ParsedUniqueConstraint`.
+- **`ddl/DDLTableBuilder.java`**: convierte el AST en `SQLTable` (columnas, PK, nullability,
+  default, nombre de tipo original) mapeando los tipos comunes a `java.sql.Types`
+  (`OTHER` + nombre original para desconocidos). Crea las relaciones FK (best-effort: si una
+  tabla referenciada no está en el lote o el mapping falla, se omite y se loguea).
+- **`swingui/CreateTableFromDDLDialog.java`**: pegar DDL, **Parse** (muestra preview) y
+  **Create Tables** (crea en el target DB + playpen dentro de una transacción del workspace;
+  rollback ante error). **`action/CreateTableFromDDLAction.java`** en el menú **Tools**.
+- **`regress/.../ddl/DDLParserTest.java`**: 8 tests (tipos, constraints, comentarios,
+  identificadores, multi-statement, error de sintaxis, build).
+

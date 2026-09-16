@@ -59,11 +59,11 @@
 | 4a.2 | Diálogo preview DDL con Copiar/Guardar | HECHA | reutiliza `SQLScriptDialog` |
 | 4a.3 | Generar DDL del objeto con índices/FKs/comentarios relacionados | HECHA | `generateDDLStatements(lista)` por tabla |
 | 4a.4 | Commit Fase 4a | EN_PROGRESO | |
-| 4b.1 | `ddl/DDLParser.java` (tokenizer + recursive descent) | PENDIENTE | multi-dialecto |
-| 4b.2 | Diálogo "Crear tabla desde DDL" (dialecto + preview + crear) | PENDIENTE | |
-| 4b.3 | Acción de menú + manejo de errores con línea/columna | PENDIENTE | sin tablas parciales |
-| 4b.4 | Tests `DDLParserTest` | PENDIENTE | |
-| 4b.5 | Commit Fase 4b | PENDIENTE | |
+| 4b.1 | `ddl/DDLParser.java` (tokenizer + recursive descent) | HECHA | multi-dialecto, comentarios, identificadores entre comillas, multi-statement |
+| 4b.2 | Diálogo "Crear tabla desde DDL" (dialecto + preview + crear) | HECHA | `CreateTableFromDDLDialog` con Parse/Preview/Create |
+| 4b.3 | Acción de menú + manejo de errores con línea/columna | HECHA | `CreateTableFromDDLAction` en menú Tools; errores con línea/columna; sin tablas parciales (rollback) |
+| 4b.4 | Tests `DDLParserTest` | HECHA | 8 tests, 0 fallos |
+| 4b.5 | Commit Fase 4b | EN_PROGRESO | |
 | 4c.1 | Campo de notas por tabla (propiedad de `SQLObject`) | PENDIENTE | sin tocar annotation processor |
 | 4c.2 | UI de notas en Table Properties y diálogo de copia | PENDIENTE | |
 | 4c.3 | Anexar notas al DDL con validación/sanitización | PENDIENTE | |

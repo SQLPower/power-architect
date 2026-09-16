@@ -103,6 +103,7 @@ import ca.sqlpower.architect.swingui.action.CopyDDLAction;
 import ca.sqlpower.architect.swingui.action.CopySelectedAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
+import ca.sqlpower.architect.swingui.action.CreateTableFromDDLAction;
 import ca.sqlpower.architect.swingui.action.CutSelectedAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
 import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
@@ -254,6 +255,7 @@ public class ArchitectFrame extends JFrame {
     
     private DeleteSelectedAction deleteSelectedAction;
     private CreateTableAction createTableAction;
+    private CreateTableFromDDLAction createTableFromDDLAction;
     private CreateRelationshipAction createIdentifyingRelationshipAction;
     private CreateRelationshipAction createNonIdentifyingRelationshipAction;
     private EditRelationshipAction editRelationshipAction;
@@ -799,6 +801,7 @@ public class ArchitectFrame extends JFrame {
         createNonIdentifyingRelationshipAction = new CreateRelationshipAction(this, false);
         editRelationshipAction = new EditRelationshipAction(this);
         createTableAction = new CreateTableAction(this);
+        createTableFromDDLAction = new CreateTableFromDDLAction(this);
         editColumnAction = new EditColumnAction(this);
         editSelectedAction = new EditSelectedAction(this);
         insertColumnAction = new InsertColumnAction(this);
@@ -1124,6 +1127,8 @@ public class ArchitectFrame extends JFrame {
         toolsMenu.setName("TOOLS_MENU");
         toolsMenu.setMnemonic('t');
         toolsMenu.add(exportDDLAction);
+        toolsMenu.add(copyDDLAction);
+        toolsMenu.add(createTableFromDDLAction);
         toolsMenu.add(compareDMAction);
         toolsMenu.add(sqlQueryAction);
         toolsMenu.add(dataMoverAction);
