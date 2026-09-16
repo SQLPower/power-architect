@@ -8,7 +8,8 @@ plugins {
 evaluationDependsOn(':sqlpower-library')
 
 group = 'ca.sqlpower'
-version = '2.0.0-SNAPSHOT'
+// Keep in sync with ArchitectVersion (ca.sqlpower.architect.ArchitectVersion).
+version = '2.0.11'
 
 repositories {
     mavenCentral()
