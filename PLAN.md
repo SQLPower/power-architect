@@ -24,8 +24,8 @@ Modernizar Power*Architect (SQL Power Architect) sobre la versión actual del re
 | 2 | Zoom (canvas + escala global UI) | HECHA |
 | 3 | Modo oscuro + FlatLaf | HECHA |
 | 4 | DDL (copiar por objeto, crear desde DDL, notas) | EN_PROGRESO |
-| 5 | Estilo DbSchema (tablas + diálogos) | PENDIENTE |
-| 6 | Verificación (tests + checklist manual) | PENDIENTE |
+| 5 | Estilo DbSchema (tablas + diálogos) | HECHA |
+| 6 | Verificación (tests + checklist manual) | HECHA |
 
 Leyenda de estados: `PENDIENTE`, `EN_PROGRESO`, `BLOQUEADA`, `HECHA`, `CANCELADA`.
 

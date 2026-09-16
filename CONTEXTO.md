@@ -326,3 +326,39 @@ Hallazgos y arreglos de la parte de build/tests:
   (busca recursivamente). `ColumnEditPanel` lo activa al elegir el tipo.
 - Estado de tests: app 1172 tests / 0 fallos (con los tests nuevos de parser y notas).
 
+## 9. Checklist manual de UI (verificación humana pendiente)
+
+La suite automatizada cubre la lógica, pero estos puntos requieren verificación visual
+manual (necesitan una pantalla; no se pueden validar headless):
+
+- [ ] **Zoom canvas:** Ctrl+rueda hacia arriba/abajo sobre el diagrama agranda/achica
+  anclado al cursor; el teclado numérico `+`/`−` también. Conserva los botones/atajos de
+  zoom existentes (Ctrl+Shift+=, Ctrl+-).
+- [ ] **Escala global UI:** botones/toolbar y menú View → aumentar/disminuir/resetear el
+  tamaño de fuentes y controles de TODA la app; persiste entre sesiones.
+- [ ] **Modo oscuro/claro:** View → Theme → System/Light/Dark. Los menús, diálogos y el
+  árbol cambian; el canvas y las tablas dibujadas siguen el tema.
+- [ ] **Copiar DDL por objeto:** click derecho en una tabla del canvas → "Copy DDL" y en el
+  árbol DB (nodo tabla) → "Copy DDL". El diálogo muestra el DDL de esa tabla con sus
+  índices/FKs/comentarios; los botones Copiar y Guardar funcionan.
+- [ ] **Crear tablas desde DDL:** Tools → "Create Tables from DDL...". Pegar DDL multi-
+  dialecto, Parse (preview), Create. Las tablas aparecen en el canvas y en el modelo;
+  errores muestran línea/columna.
+- [ ] **Notas por tabla:** abrir propiedades de una tabla → campo "DDL notes"; guardar; el
+  DDL exportado/copiado incluye las notas como comentarios `--`; recargar el proyecto
+  conserva las notas.
+- [ ] **Estilo de tablas:** las tarjetas muestran header redondeado con título en negrita,
+  filas alternas y borde; selección y dark mode coherentes.
+- [ ] **Búsqueda de tipos:** en el editor de columnas, el selector de tipo permite escribir
+  y hace scroll/selección del tipo que coincide.
+
+### Pendientes conocidos
+- 2 fallos pre-existentes de `TestSQLRelationship` en la librería (`testAllSettersAreUndoable`,
+  `testPersisterCreatesNewObjects`); no bloquean las features.
+- Dependencias que siguen vendidas (documentadas en §8): kettle, mondrian, olap4j, iText2,
+  edtftpj, forms/piccolo, velocity, jfreechart, eigenbase, jakarta-regexp, gsbase, UmlGraph,
+  ant, commons-httpclient-3.1, commons-lang 2.4, commons-digester, miglayout,
+  rsyntaxtextarea, jmdns, opencsv, servlet-api 3.0, commons-vfs, xercesImpl,
+  commons-beanutils + commons-collections, spring-core (para Kettle).
+- `caracteristicas_futuras.md` mantiene el backlog de ideas alineadas con productos de mercado.
+

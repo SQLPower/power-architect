@@ -77,13 +77,13 @@
 | 5.1 | Reescritura `BasicTablePaneUI` (tarjeta moderna) | HECHA | sombra, esquinas redondeadas, header con borde inferior, título en negrita |
 | 5.2 | Iconos PK/FK/NN y filas alternas | HECHA | filas alternas según `ThemePalette`; tags PK/FK/NN ya vienen de `columnText` |
 | 5.3 | Modernizar `ColumnEditPanel` (tabs, búsqueda tipos, validación) | HECHA | búsqueda de tipos en el popup del selector (`PopupJTreeAction.withSearch`) |
-| 5.4 | Commit Fase 5 | EN_PROGRESO | |
+| 5.4 | Commit Fase 5 | HECHA | `68020f0c` + submódulo `e3d9d6b0` |
 
 ## Fase 6 — Verificación
 
 | ID | Tarea | Estado | Notas |
 |----|-------|--------|-------|
-| 6.1 | Tests unitarios nuevos | PENDIENTE | |
-| 6.2 | `gradlew test` + documentar fallos flaky | PENDIENTE | |
-| 6.3 | Checklist manual de UI | PENDIENTE | |
-| 6.4 | Commit final | PENDIENTE | |
+| 6.1 | Tests unitarios nuevos | HECHA | `DDLParserTest`, `DDLCommentUtilsTest` |
+| 6.2 | `gradlew test` + documentar fallos flaky | HECHA | App 1172/0; Librería 971/2 pre-existentes documentados |
+| 6.3 | Checklist manual de UI | HECHA | ver CONTEXTO §9 |
+| 6.4 | Commit final | EN_PROGRESO | |
