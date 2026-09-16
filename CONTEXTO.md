@@ -355,6 +355,29 @@ manual (necesitan una pantalla; no se pueden validar headless):
 ### Pendientes conocidos
 - 2 fallos pre-existentes de `TestSQLRelationship` en la librería (`testAllSettersAreUndoable`,
   `testPersisterCreatesNewObjects`); no bloquean las features.
+
+### Instalador de Windows (HECHA)
+- **`./gradlew buildWindowsInstaller`** porta el target legacy Ant
+  `windows_exe_installer` a Gradle y produce
+  `dist/SQL-Power-Architect-Setup-Windows-<version>.exe`:
+  1. `stageForWindowsInstaller`: arma `build/staging/` con `architect.jar` (jar de la app,
+     cuyo manifest `Class-Path` referencia `lib/*.jar` y `jdbc/`), `architect.exe` (launcher
+     launch4j, `dontWrapJar`, requiere Java 21), `lib/` (runtime deps, excluye jars de
+     build/test: gsbase, junit, hamcrest, UmlGraph, ant-junit), `jdbc/` (drivers), `LICENSE`
+     e iconos.
+  2. **launch4j** crea `architect.exe` (corre en JDK 21 con `--add-exports
+     java.desktop/com.sun.java.swing.plaf.windows` y `--add-opens java.base/*`).
+  3. **izpack 4.3.1** compila `build/installer-work/install.xml` (config Windows con
+     listeners de registro, shortcuts, packs Core) → instalador `.jar`. El compilador usa
+     `Pack200` (eliminado en Java 14+), por lo que corre en un **JDK ≤ 11**
+     (`C:/Program Files/Microsoft/jdk-11.0.16.101-hotspot`; `-PizpackJavaHome=...` para
+     sobreescribir).
+  4. **launch4j** envuelve el instalador `.jar` en el `.exe` final y lo copia a `dist/`.
+- El instalador izpack 4.3.1 generado arranca correctamente en Java 21 (probado). Requiere
+  Java 21 instalado en la máquina destino (el launcher `architect.exe` exige `minVersion
+  21.0.0`).
+- Nota: en esta máquina el language server de VSCode suele mantener manejos transitorios
+  sobre `build/staging`; la tarea tolera la limpieza fallida y sobrescribe.
 - Dependencias que siguen vendidas (documentadas en §8): kettle, mondrian, olap4j, iText2,
   edtftpj, forms/piccolo, velocity, jfreechart, eigenbase, jakarta-regexp, gsbase, UmlGraph,
   ant, commons-httpclient-3.1, commons-lang 2.4, commons-digester, miglayout,

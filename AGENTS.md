@@ -19,6 +19,9 @@ All via the Gradle wrapper: `./gradlew <task>` (Windows: `gradlew.bat <task>`).
 - `./gradlew compileExamples` — validate code under `example_code/`
 - `./gradlew clean` — remove build outputs
 - `./gradlew mondrianModel mondrianParser mondrianFormatter` — regenerate Mondrian OLAP sources from `Mondrian.xml`
+- `./gradlew buildWindowsInstaller` — build the Windows installer (izpack + launch4j). Produces `dist/SQL-Power-Architect-Setup-Windows-<version>.exe`. Notes:
+  - The izpack compiler (4.3.1) uses `java.util.jar.Pack200` (removed in Java 14+), so it must run on a JDK ≤ 11; the Gradle daemon runs on JDK 21, so the task points at a JDK 11 (override with `-PizpackJavaHome=<JDK 11 home>`).
+  - launch4j runs on JDK 21 with a few `--add-exports`/`--add-opens` flags (handled by the task).
 
 Legacy Ant targets still exist in `build.xml` (deprecated): `ant run`, `ant junit`, `ant dist`, etc.
 
