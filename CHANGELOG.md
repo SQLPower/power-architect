@@ -36,8 +36,15 @@ for numeric comparison.
   it with a small project-local API (`GrantedAuthority`, `UserDetails`,
   `AccessDeniedException`). `spring-core` remains vendored only because Kettle
   3.2.2 requires it at runtime.
-- Added the Windows installer task (`buildWindowsInstaller`), producing
-  `dist/SQL-Power-Architect-Setup-Windows-<version>.exe` via izpack + launch4j.
+- Added the Windows installer task (`buildWindowsInstaller`, later replaced by
+  `jpackageExe`), producing `dist/SQL-Power-Architect-Setup-Windows-<version>.exe`.
+- Replaced the legacy **launch4j 3.12 + izpack 4.3.1** packaging (32-bit only,
+  Pack200/`--add-exports` workarounds, JDK 11 requirement for izpack) with
+  native **jpackage** (JDK 14+): `jpackageAppImage` (Windows app-image 64-bit),
+  `jpackageExe` (Windows `.exe` installer, 64-bit, embedded JRE, WiX vendored
+  under `ext-tools-home/wix311`), and cross-platform `jpackageMacDmg` /
+  `jpackageLinuxDeb` / `jpackageLinuxRpm`. This fixes the installer bitness and
+  the Windows uninstaller registration.
 - Ported the packaging/analysis targets (userguide, javadoc, pmd, pmdCpd,
   findbugs, source tar.gz, generic install, all dist) to `packaging.gradle`.
 - Aligned the Gradle `project.version` with `ArchitectVersion` (2.0.11) so the

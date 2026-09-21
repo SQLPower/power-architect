@@ -147,10 +147,10 @@
 | 11a.2 | Validar runtime jlink (Swing, JDBC, i18n, jars vendidos) | HECHA | exe nativo x86-64; `app/SQL Power Architect.cfg` classpath correcto; la app arranca y permanece viva |
 | 11a.3 | Commit Fase 11a | PENDIENTE | app-image funcional en Windows (`build/jpackage/SQL Power Architect/`) |
 | 11b.1 | Task `jpackageExe`/`jpackageMsi` (instalador Windows 64-bit) | HECHA | `./gradlew jpackageExe`; requiere WiX Toolset 3.11 vendido en `ext-tools-home/wix311` (en PATH del exec); genera `dist/SQL Power Architect-2.0.11.exe` **x86-64 (64-bit)** |
-| 11b.2 | Verificar instalación + desinstalación en Windows 11 | PENDIENTE | ejecutar el instalador jpackage 64-bit; confirmar `C:\Program Files` y desinstalación en Configuración→Apps |
-| 11b.3 | Commit Fase 11b | PENDIENTE | instalador nativo desinstala correctamente |
-| 11c.1 | Empaquetado macOS (`dmg`/`pkg`) | PENDIENTE | requiere CI en macOS (hdiutil/productbuild) |
-| 11c.2 | Empaquetado Linux (`deb`/`rpm`) | PENDIENTE | requiere CI en Linux (fpm/dpkg) |
-| 11d.1 | Retirar launch4j/izpack del build (build.gradle + packaging.gradle) | PENDIENTE | eliminar `buildWindowsInstaller` legacy y `ext-tools-home/launch4j*`, `izpack` |
-| 11d.2 | Actualizar docs (AGENTS.md, README, CHANGELOG, CONTEXTO) | PENDIENTE | reflejar el nuevo flujo de empaquetado |
-| 11d.3 | Pruebas de regresión (suite completa + manual) | PENDIENTE | app 1180/2 flaky; librería 973/2 pre-existentes |
+| 11b.2 | Verificar instalación + desinstalación en Windows 11 | HECHA | verificado por el usuario: instala en `C:\Program Files` y desinstala correctamente en Configuración→Apps |
+| 11b.3 | Commit Fase 11b | HECHA | commit `1c64b3cb` (WiX vendido incluido) |
+| 11c.1 | Empaquetado macOS (`dmg`/`pkg`) | HECHA (esqueleto) | task `jpackageMacDmg` con guarda `requirePlatform('mac')`; requiere CI en macOS para generar el artefacto |
+| 11c.2 | Empaquetado Linux (`deb`/`rpm`) | HECHA (esqueleto) | tasks `jpackageLinuxDeb`/`jpackageLinuxRpm` con guarda `requirePlatform('linux')`; requieren CI en Linux |
+| 11d.1 | Retirar launch4j/izpack del build (build.gradle + packaging.gradle) | HECHA | eliminado `buildWindowsInstaller` legacy; retiradas `installer/`, `ext-tools-home/launch4j*`, `ext-tools-home/izpack` |
+| 11d.2 | Actualizar docs (AGENTS.md, README, CHANGELOG, CONTEXTO) | HECHA | comandos jpackage; layout sin izpack/launch4j; CHANGELOG y CONTEXTO §13.6 |
+| 11d.3 | Pruebas de regresión (suite completa + manual) | PENDIENTE | `./gradlew test`; app 1180/2 flaky; librería 973/2 pre-existentes |

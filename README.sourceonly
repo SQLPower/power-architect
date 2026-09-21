@@ -27,13 +27,14 @@ Build and run:
     ./gradlew run        # compile + launch the Swing application
     ./gradlew test       # compile + run the test suites
 
-Building the Windows installer:
+Building the native Windows installer:
 
-    ./gradlew buildWindowsInstaller
+    ./gradlew jpackageExe
 
-Produces `dist/SQL-Power-Architect-Setup-Windows-<version>.exe`.
-The izpack compiler must run on a JDK 11 or lower (override with
-`-PizpackJavaHome=<JDK 11 home>`); launch4j runs on JDK 21.
+Produces `dist/SQL Power Architect-<version>.exe` (64-bit, embedded JRE).
+Requires the vendored WiX Toolset at `ext-tools-home/wix311/` (on PATH by
+the task). Cross-platform packages: `jpackageMacDmg` (macOS), `jpackageLinuxDeb`
+and `jpackageLinuxRpm` (Linux) — run each on its target OS.
 
 See `AGENTS.md` for detailed build prerequisites, commands, and project
 conventions, and `CHANGELOG.md` for the change history.

@@ -20,9 +20,9 @@ All via the Gradle wrapper: `./gradlew <task>` (Windows: `gradlew.bat <task>`).
 - `./gradlew compileExamples` — validate code under `example_code/`
 - `./gradlew clean` — remove build outputs
 - `./gradlew mondrianModel mondrianParser mondrianFormatter` — regenerate Mondrian OLAP sources from `Mondrian.xml`
-- `./gradlew buildWindowsInstaller` — build the Windows installer (izpack + launch4j). Produces `dist/SQL-Power-Architect-Setup-Windows-<version>.exe`. Notes:
-  - The izpack compiler (4.3.1) uses `java.util.jar.Pack200` (removed in Java 14+), so it must run on a JDK ≤ 11; the Gradle daemon runs on JDK 21, so the task points at a JDK 11 (override with `-PizpackJavaHome=<JDK 11 home>`).
-  - launch4j runs on JDK 21 with a few `--add-exports`/`--add-opens` flags (handled by the task).
+- `./gradlew jpackageAppImage` — build the native Windows app-image (64-bit, embedded JRE) via `jpackage` (JDK 14+). Produces `build/jpackage/SQL Power Architect/`.
+- `./gradlew jpackageExe` — build the native Windows installer (64-bit `.exe`) via `jpackage`. Produces `dist/SQL Power Architect-<version>.exe`. Requires the vendored WiX Toolset at `ext-tools-home/wix311/` (put on PATH by the task).
+- `./gradlew jpackageMacDmg` / `jpackageLinuxDeb` / `jpackageLinuxRpm` — cross-platform packages; **must run on the target OS** (jpackage builds the host platform's native type only).
 - Packaging/analysis tasks ported from the removed Ant build (see `packaging.gradle`): `userguide` (JavaHelp + PDF), `userGuideHtml`, `javadoc`, `pmd`, `findbugs`, `sourceTarGz`, `genericInstall`, `allDist`.
 
 ## Tests
@@ -44,7 +44,7 @@ All via the Gradle wrapper: `./gradlew <task>` (Windows: `gradlew.bat <task>`).
 - `src/main/java/ca/sqlpower/architect/` — app code. `swingui/` (UI incl. `ArchitectFrame`, `dbtree/`), `ddl/` (+ `ddl/critic/`), `olap/`, `etl/`, `profile/`, `diff/`, `transformation/`, `enterprise/`, `undo/`.
 - `src/main/resources/` — icons, sounds, XSLT stylesheets, `log4j.properties.example`.
 - `sqlpower-library/` — vendored submodule (its own Gradle build, `lib/main/` vendored jars, `src/apt/java` annotation processor).
-- `lib/` (runtime), `buildlib/` (compile), `jdbc_drivers/` (tests), `ext-tools-home/` (vendored tools: findbugs, pmd, clover, izpack, launch4j), `testbed/` (HSQLDB for tests).
+- `lib/` (runtime), `buildlib/` (compile), `jdbc_drivers/` (tests), `ext-tools-home/` (vendored tools: findbugs, pmd, clover, wix311), `testbed/` (HSQLDB for tests).
 - `doc/` — user guide as DocBook XML (`PowerArchitectUserGuide.xml`) + XSLT toolchain; `html/overview.html` for javadoc.
 
 ## Project tracking files

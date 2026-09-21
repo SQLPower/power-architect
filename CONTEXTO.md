@@ -697,22 +697,34 @@ Tareas en `TAREAS.md` (Fase 9).
 - **Fase 11a — Windows app-image con jpackage:** task Gradle `jpackageAppImage` (64-bit,
   `--type app-image`), validación de jlink y arranque de la app. **HECHA** (11a.1-11a.2).
 - **Fase 11b — Instalador Windows nativo:** `--type exe`; verificación de instalación y
-  **desinstalación**. **En curso:**
+  **desinstalación**. **HECHA**:
   - jpackage en Windows requiere **WiX Toolset** para `exe`/`msi` (el error "Invalid or
     unsupported type" en realidad es "Can not find WiX tools").
   - **WiX 3.11.2 binarios vendidos** en `ext-tools-home/wix311/` (candle.exe, light.exe) y
     añadido al PATH del exec del task `jpackageExe`.
   - `./gradlew jpackageExe` genera `dist/SQL Power Architect-2.0.11.exe` **x86-64 (64-bit)**
     (jpackage nombra el output como `<name>-<app-version>.exe`).
-  - Pendiente: verificación manual de instalación en `C:\Program Files` y desinstalación
-    (Configuración→Apps) en Windows 11.
-- **Fase 11c — Multi-plataforma (opcional):** macOS/Linux en CI.
-- **Fase 11d — Limpieza:** eliminar launch4j/izpack del build y sus configs; actualizar docs.
+  - **Verificado por el usuario en Windows 11:** instala en `C:\Program Files` y
+    **desinstala correctamente** en Configuración→Apps.
+- **Fase 11c — Multi-plataforma (opcional):** tasks Gradle `jpackageMacDmg` (macOS),
+  `jpackageLinuxDeb`/`jpackageLinuxRpm` (Linux) con guardas de plataforma (`requirePlatform`);
+  jpackage solo empaqueta el tipo nativo del host, por lo que cada uno corre en su SO (CI).
+- **Fase 11d — Limpieza:** **HECHA** — eliminado el bloque legacy
+  `buildWindowsInstaller` (launch4j 3.12 + izpack 4.3.1) de `build.gradle`; retiradas las
+  carpetas `installer/`, `ext-tools-home/launch4j*` y `ext-tools-home/izpack`. Actualizados
+  `AGENTS.md`, `README.sourceonly` y `CHANGELOG.md`.
 
 ### 13.5 Riesgos
 - jlink puede omitir módulos usados por reflection (p.ej. algunos jars vendidos); mitigar con
   `--add-modules` si el app-image falla al arrancar.
-- `--type msi` requiere WiX Toolset (descarga externa); `exe` es la ruta sin dependencias nuevas.
+- `--type msi` requiere WiX Toolset (vendido); `exe` es la ruta utilizada.
 - El app-image empaqueta el JRE completo recortado (~60-100 MB); puede ser mayor que el
-  instalador actual (32 MB) pero a cambio es autónomo (no requiere JRE externo).
+  instalador anterior (32 MB) pero a cambio es autónomo (no requiere JRE externo).
+
+### 13.6 Estado final (Fase 11)
+- Empaquetado Windows: `./gradlew jpackageAppImage` (app-image 64-bit) y
+  `./gradlew jpackageExe` (instalador `.exe` 64-bit con JRE embebido y desinstalador WiX).
+- El flujo legacy (launch4j + izpack) se retiró del build; ya no se usan
+  `ext-tools-home/launch4j*` ni `ext-tools-home/izpack` ni `installer/`.
+- Resta verificar `jpackageMacDmg`/`jpackageLinuxDeb`/`jpackageLinuxRpm` en sus SO (CI).
 
