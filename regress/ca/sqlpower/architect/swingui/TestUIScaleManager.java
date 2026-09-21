@@ -23,6 +23,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 
 import junit.framework.TestCase;
 
@@ -31,13 +32,17 @@ import junit.framework.TestCase;
  */
 public class TestUIScaleManager extends TestCase {
 
-    public void testScaledIconProducesLargerIcon() {
-        BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+    private static ImageIcon icon(int size) {
+        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();
         g2.setColor(Color.RED);
-        g2.fillRect(0, 0, 16, 16);
+        g2.fillRect(0, 0, size, size);
         g2.dispose();
-        ImageIcon base = new ImageIcon(img);
+        return new ImageIcon(img);
+    }
+
+    public void testScaledIconProducesLargerIcon() {
+        ImageIcon base = icon(16);
 
         ImageIcon scaled = UIScaleManager.scaledIcon(base, 2.0);
 
@@ -48,12 +53,35 @@ public class TestUIScaleManager extends TestCase {
     }
 
     public void testScaledIconWithUnityFactorReturnsSameSize() {
-        BufferedImage img = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
-        ImageIcon base = new ImageIcon(img);
+        ImageIcon base = icon(8);
 
         ImageIcon scaled = UIScaleManager.scaledIcon(base, 1.0);
 
         assertEquals(8, scaled.getIconWidth());
         assertEquals(8, scaled.getIconHeight());
+    }
+
+    /**
+     * The global UI zoom must be able to zoom in and then reset to 100% without
+     * permanently growing the toolbar/menu icons. Scaling must always start
+     * from the ORIGINAL icon, not from the currently-scaled one. This was the
+     * bug that broke the UI zoom after several +/- clicks (icons compounded).
+     */
+    public void testRescaleButtonIconIsIdempotentFromOriginal() {
+        JButton button = new JButton();
+        button.setIcon(icon(16));
+
+        // Click + (factor 1.5): accumulated scale becomes 1.5.
+        UIScaleManager.rescaleButtonIcon(button, 1.5);
+        assertEquals(24, button.getIcon().getIconWidth());
+
+        // Click + again (accumulated scale 1.5*1.5 = 2.25).
+        UIScaleManager.rescaleButtonIcon(button, 2.25);
+        assertEquals(36, button.getIcon().getIconWidth());
+
+        // Reset to 100%: must restore the ORIGINAL 16px icon, not 36px.
+        UIScaleManager.rescaleButtonIcon(button, 1.0);
+        assertEquals("Reset must restore the ORIGINAL icon size",
+                16, button.getIcon().getIconWidth());
     }
 }

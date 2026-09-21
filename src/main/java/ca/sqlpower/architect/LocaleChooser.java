@@ -48,7 +48,8 @@ public class LocaleChooser extends JComboBox<String> implements ItemListener {
 //      currently power-architect supports only few languages, so not adding all languages
 //      availableLocales = NumberFormat.getAvailableavailableLocales();
         availableLocales = new Locale[] { new Locale("en"), new Locale("de"),
-                new Locale("ko"), new Locale("ru"),new Locale("pt") }; 
+                new Locale("ko"), new Locale("ru"), new Locale("pt"),
+                new Locale("es"), new Locale("zh"), new Locale("ja") }; 
 
         for (int i = 0; i < availableLocales.length; i++) {
             // Uncomment if need to add a same language for different country, currently adding languages as in common

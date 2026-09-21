@@ -508,6 +508,19 @@ ver §10.8.
   labels de todas las ventanas al aplicar el factor.
 - **Test:** `TestUIScaleManager` (escalado 2x y factor 1).
 
+### 10.9 Regresión: zoom de UI rompe los iconos tras varios clics (corregido)
+- **Síntoma:** tras el fix 10.6, al usar el zoom global (`+`/`-`/`100%`) en la barra derecha y
+  el menú View, los iconos crecían descontroladamente y el reset a 100% no los restauraba.
+- **Causa raíz:** `rescaleIcons` re-escalaba el icono **actual** (ya escalado) en cada `apply()`.
+  El escalado se acumulaba (16→24→36→...) y al resetear (scale=1.0) `scaledIcon(iconoYaEscalado,
+  1.0)` devolvía el tamaño actual, no el original.
+- **Corrección aplicada:** `UIScaleManager` guarda el icono **original** de cada componente en un
+  `WeakHashMap` (`baseIcons`) y siempre deriva el escalado desde ese original (`scaledIcon(original,
+  scale)`). Así el zoom es idempotente: `+`, `+` y reset vuelven exactamente al tamaño original.
+  Helper testable `rescaleButtonIcon(AbstractButton, double)`.
+- **Test:** `TestUIScaleManager.testRescaleButtonIconIsIdempotentFromOriginal` (16 → 24 → 36 →
+  reset → 16).
+
 ### 10.7 `CheckForUpdateAction` timeout
 - **Síntoma:** al pulsar "Check for updates" → `java.net.ConnectException: Connection timed
   out` en `CheckForUpdateAction.checkForUpdate` (línea 77).
@@ -535,4 +548,164 @@ ver §10.8.
 - **Compatibilidad:** archivos de proyecto guardados como `2.0.11` (sin `V`) se siguen leyendo;
   la comparación (`2.0.11 > 1.9.0`) no cambia.
 - **Tests:** `VersionTest` (4, librería) y `ArchitectVersionTest` (13, app, con `testAppFullVersionUsesVendorVPrefixConvention`).
+
+## 11. Localización multi-idioma (es, en, pt, zh, ja, de) — Fase 9
+
+Implementada según el diseño `docs/superpowers/specs/2026-09-21-localizacion-multi-idioma-design.md`.
+Tareas en `TAREAS.md` (Fase 9).
+
+### 11.1 Bundles de traducción (ResourceBundle estándar de Java)
+- El proyecto ya usaba `messages*.properties` + `ResourceBundle` (estándar Java). Existían
+  `_de`, `_ko`, `_pt`, `_ru`.
+- **Nuevos** `messages_es.properties`, `messages_zh.properties`, `messages_ja.properties` en los
+  6 paquetes con bundle base (app: `architect`, `swingui`, `swingui/action`; librería: `swingui`,
+  `swingui/query`, `sqlobject`). Traducciones completas (~840 claves × 3 idiomas).
+- **Completados** `_de` y `_pt` con las claves faltantes. Se corrigió la clave corrupta
+  `SPSUtils.SPSUtils.velocityFileType` (doble prefijo) en `messages_de.properties` de la librería.
+- Codificación UTF-8 con caracteres directos (zh/ja sin escapes `\uXXXX`), coherente con JDK 21.
+- Verificado por `MessagesLocalizationTest`: todos los bundles app+lib cargan en los 6 idiomas y
+  contienen las claves del base.
+
+### 11.2 Selector de idioma en Preferences
+- `LocaleChooser.availableLocales` ahora lista: en, de, ko, ru, pt, **es, zh, ja**.
+- `PreferencesPanel` ya persistía `DEFAULT_LOCALE`; el cambio aplica al reiniciar (comportamiento
+  aceptado). `ArchitectFrame` aplica `Locale.setDefault` desde prefs al arrancar.
+
+### 11.3 Instalador izpack multi-idioma
+- `build.gradle` → `install.xml` ahora declara: `<langpack iso3="eng|spa|por|chn|jpn|deu"/>`.
+- izpack 4.3.1 muestra automáticamente el selector de idioma al inicio cuando hay más de un
+  langpack; paneles y botones del instalador se muestran en el idioma elegido.
+- Verificado que `standalone-compiler.jar` incluye los 6 langpacks y que el jar del instalador los
+  empaqueta.
+
+### 11.4 Estado de tests / instalador
+- App: 1180 tests / 2 fallos flaky pre-existentes (`TestAutoLayoutAction`, `TestRelationship`).
+- Librería: 973 / 2 pre-existentes (`TestSQLRelationship`).
+- Instalador regenerado: `dist/SQL-Power-Architect-Setup-Windows-V2.0.11.exe` con langpacks y
+  bundles nuevos empaquetados.
+
+## 12. Instalador Windows: directorio de instalación y desinstalación (Fase 10)
+
+### 12.1 Diagnóstico del error reportado
+- **Síntoma:** en Windows 11 el instalador instala en `C:\Program Files` en vez de
+  `C:\Program Files (x86)` como antes; además el usuario no lo encuentra al desinstalar.
+- **Hallazgos verificados en el código/build:**
+  - El `architect.exe` (launch4j wrapper de la app) y el `.exe` del instalador son **x86 (32-bit)**
+    (PE Machine `0x014C`). launch4j usa `headerType gui` sin bitness explícito.
+  - El proyecto ya corre en **JDK 21** (64-bit). `architect.exe` exige `minVersion 21.0.0`.
+  - El instalador izpack (`buildWindowsInstaller`) empaqueta `architect.exe` + `architect.jar` +
+    `lib/*.jar` + `jdbc/`. El `install.xml` NO fija un directorio de instalación explícito
+    (usa el default de izpack, derivado de la JVM que ejecuta el instalador).
+- **Causa raíz (directorio):** la elección entre `Program Files` y `Program Files (x86)` depende
+  de la redirección **WOW64**: un proceso 32-bit que escribe en `%ProgramFiles%` es redirigido a
+  `Program Files (x86)`. El wrapper `.exe` es 32-bit, pero al lanzar la JVM de 64 bits (JDK 21)
+  izpack 4.3.1 deriva el directorio por defecto desde la JVM (variable `PROGRAMFILES`), que en un
+  proceso 64-bit apunta a `C:\Program Files`. Por eso ya no cae en `(x86)`.
+- **Causa raíz (desinstalación):** con la mezcla actual (instalador 32-bit + JVM 64-bit), la
+  entrada de desinstalación que registra izpack puede quedar en la vista `WOW6432Node` del
+  registro y no ser visible/listada por el sistema 64-bit, o quedar apuntando a una ruta que el
+  usuario no asocia con la instalación. Hay que validar la clave `HKLM\Software\...
+  \CurrentVersion\Uninstall\...` generada.
+
+### 12.2 Opciones de corrección
+- **Opción A — Migrar a 64 bits (recomendada a largo plazo):**
+  - Generar `architect.exe` y el wrapper del instalador como **x86_64** (launch4j con bitness 64
+    y JRE path de 64 bits). La app ya es JDK 21 (64-bit); no hay dependencias de 32 bits
+    documentadas en el código (mondrian/olap4j/kettle son jars, no DLLs nativas).
+  - El directorio por defecto pasaría a ser `C:\Program Files` de forma consistente (nativo 64-bit),
+    y la desinstalación se registra en la vista nativa del registro.
+  - Afecta a `build.gradle` (config launch4j), validación del JRE de 64 bits, y prueba manual.
+  - Estimación: media (bajo/medio riesgo); ver plan en TAREAS.md Fase 10.
+- **Opción B — Mantener x86 y forzar el directorio correcto:**
+  - Fijar explícitamente `C:\Program Files (x86)\SQL Power Architect` como directorio de
+    instalación del instalador izpack (evitar depender de WOW64 / de la JVM que lo lanza).
+  - Mantener `architect.exe` en 32-bit (compatible con JVM 32/64 de arranque).
+  - La desinstalación debe validarse en la clave `WOW6432Node` correspondiente.
+  - Estimación: pequeña (bajo riesgo), solo config del instalador + prueba manual.
+
+### 12.3 Resolución adoptada (Fase 10)
+- **Decisión del usuario:** Opción **A-pragmática** — mantener los wrappers de 32 bits pero
+  fijar la instalación y desinstalación de forma consistente en `C:\Program Files`.
+- **Hallazgo clave:** el launch4j 3.12 vendido **solo genera ejecutables de 32 bits** (cabeceras
+  `head/guihead.o`, `head/head.o`, `consolehead.o` COFF `0x014C`; `ld.exe`/`windres.exe` x86).
+  El paquete `launch4j-3.50-win32.zip` también es solo 32-bit (verificado empíricamente con
+  `<runtimeBits>64</runtimeBits>` → el `.exe` sale x86). Generar un `.exe` x86_64 real requeriría
+  compilar las cabeceras desde `head_src/` con MinGW-w64 (no disponible), por lo que la migración
+  completa a 64-bit queda pendiente (ver `caracteristicas_futuras.md`).
+- **Cambios aplicados en `build.gradle`:**
+  1. `install.xml` → `<variable name="TargetPanel.dir.windows" value="${ENV[PROGRAMFILES]}\SQL Power Architect"/>`
+     para fijar el directorio por defecto. Como la JVM que ejecuta el instalador es 64-bit (JDK 21),
+     `PROGRAMFILES` resuelve a `C:\Program Files` (consistente con la app).
+  2. Nuevo `installer/uac-installer.exe.manifest` con `requestedExecutionLevel=requireAdministrator`,
+     referenciado vía `<manifest>` en el wrapper launch4j del instalador. Así el instalador corre
+     con elevación, puede escribir en `C:\Program Files` y registrar la desinstalación correctamente.
+  3. Se mantiene `<runtimeBits>64</runtimeBits>` en ambos wrappers: fuerza buscar JRE 64-bit,
+     coherente con la app (JDK 21) y con la resolución de `PROGRAMFILES`.
+- **Verificación:** el `.exe` del instalador contiene el manifest `requireAdministrator`; el
+  `install.xml` generado incluye la variable y los 6 langpacks de idioma. Pendiente: prueba manual
+  en Windows 11 (instalar en `Program Files`, localizar en Panel de control, desinstalar).
+
+### 12.4 Nota
+- La entrada "Distribución de 64 bits (x86_64)" ya existía en `caracteristicas_futuras.md`
+  (Prioridad MEDIA, Estado IDEA). Este incidente la reactiva como candidata real; la migración
+  completa a 64-bit sigue pendiente de un launch4j con cabeceras x64 (o toolchain MinGW-w64).
+
+## 13. Migración de empaquetado/instaladores a jpackage (Fase 11)
+
+### 13.1 Motivación
+- El build de instaladores usa **launch4j 3.12 (2018)** e **izpack 4.3.1 (2016)**, ambos antiguos:
+  - launch4j solo genera wrappers **x86 (32-bit)** (verificado: cabeceras COFF 0x14C, ld/windres x86).
+  - izpack usa `java.util.jar.Pack200` (eliminado en JDK 14+) → requiere un **JDK ≤11** externo.
+  - launch4j exige `--add-exports/--add-opens` y el wrapper de 32 bits mezcla el registro de
+    desinstalación en `WOW6432Node` → **desinstalación inconsistente** (problema reportado).
+- **jpackage** es nativo desde JDK 14+ y está disponible en el JDK 21 del proyecto (v21.0.7):
+  genera `app-image`, `exe`/`msi` (Windows), `dmg`/`pkg` (macOS), `deb`/`rpm` (Linux), con
+  **JRE embebido** (jlink) y desinstalación nativa correcta.
+
+### 13.2 Hallazgos del análisis
+- **App no-modular** (sin `module-info.java` en app ni librería): jpackage la empaqueta con
+  `--input` + `--main-jar` + `--main-class` (genera jlink automáticamente). Main:
+  `ca.sqlpower.architect.swingui.ArchitectFrame`.
+- **Classpath a empaquetar:** `architect.jar` (manifest `Class-Path` legacy), `lib/` (19 jars,
+  ~12.5 MB), `sqlpower-library/lib/main/` (20 jars) y `jdbc_drivers/` (7 jars). jpackage usa
+  `--input` (todo el contenido se copia) y `--java-options` para classpath si hace falta.
+- **Módulos jlink a validar:** `java.desktop` (Swing), `java.sql`/`java.xml` (JDBC/DDL),
+  `java.management`, etc. Riesgo bajo; se valida ejecutando el app-image.
+- **Windows `--type msi`** requiere **WiX Toolset** (no instalado en esta máquina). `--type exe`
+  no lo requiere. `--type app-image` es el paso más simple para validar.
+- **Idioma del instalador:** los langpacks de izpack (Fase 9.6) no aplican a jpackage (los
+  instaladores nativos usan el idioma del SO). El selector de idioma de la app sigue funcionando.
+- **Iconos:** `architect.ico` (Windows) y `Power Architect.icns` (macOS) ya existen en
+  `src/main/resources/icons/`.
+
+### 13.3 Estimación de esfuerzo (orden recomendado)
+| Tarea | Esfuerzo |
+|-------|----------|
+| 11a.1 Task `jpackageAppImage` (Windows app-image 64-bit) | 0.5–1 día |
+| 11a.2 Validar runtime jlink (Swing/JDBC/i18n/vendidos) | 0.5 día |
+| 11b.1 Task `jpackageExe`/`jpackageMsi` (instalador 64-bit; WiX para msi) | 1–1.5 días |
+| 11b.2 Verificar instalar + desinstalar en Windows 11 | 0.5 día |
+| 11c.1 macOS `dmg`/`pkg` (CI en macOS) | 1–2 días |
+| 11c.2 Linux `deb`/`rpm` (CI en Linux) | 1–2 días |
+| 11d.1 Retirar launch4j/izpack del build | 0.5 día |
+| 11d.2 Actualizar docs (AGENTS/README/CHANGELOG) | 0.5 día |
+| 11d.3 Pruebas de regresión | 0.5–1 día |
+| **Total Windows** | **2.5–4 días** |
+| **Total multi-plataforma** | **5–9 días** |
+
+### 13.4 Plan por fases
+- **Fase 11a — Windows app-image con jpackage:** task Gradle `jpackageAppImage` (64-bit,
+  `--type app-image`), validación de jlink y arranque de la app.
+- **Fase 11b — Instalador Windows nativo:** `--type exe` (sin WiX) o `msi` (instalar WiX);
+  verificación de instalación y **desinstalación**; retira la mitigación de la Fase 10
+  (elevación UAC + `TargetPanel.dir`).
+- **Fase 11c — Multi-plataforma (opcional):** macOS/Linux en CI.
+- **Fase 11d — Limpieza:** eliminar launch4j/izpack del build y sus configs; actualizar docs.
+
+### 13.5 Riesgos
+- jlink puede omitir módulos usados por reflection (p.ej. algunos jars vendidos); mitigar con
+  `--add-modules` si el app-image falla al arrancar.
+- `--type msi` requiere WiX Toolset (descarga externa); `exe` es la ruta sin dependencias nuevas.
+- El app-image empaqueta el JRE completo recortado (~60-100 MB); puede ser mayor que el
+  instalador actual (32 MB) pero a cambio es autónomo (no requiere JRE externo).
 

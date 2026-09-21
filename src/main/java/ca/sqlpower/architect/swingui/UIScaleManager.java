@@ -26,6 +26,7 @@ import java.awt.Window;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
@@ -50,6 +51,15 @@ public class UIScaleManager {
 
     private double scale = 1.0;
     private Map<Object, Font> baseFonts;
+
+    /**
+     * The ORIGINAL (unscaled) icon of every toolbar/menu/label component that
+     * has been rescaled. Keyed weakly so components can be garbage collected.
+     * Scaling always derives from these originals so that zooming in and
+     * resetting to 100% is idempotent (icons never compound).
+     */
+    private static final Map<java.awt.Component, ImageIcon> baseIcons =
+            new WeakHashMap<java.awt.Component, ImageIcon>();
 
     public double getScale() {
         return scale;
@@ -126,15 +136,47 @@ public class UIScaleManager {
     }
 
     /**
+     * Returns the ORIGINAL (unscaled) icon of the given component, remembering
+     * it the first time it is seen. Used so icon rescaling always starts from
+     * the base icon and is therefore idempotent (see {@link #baseIcons}).
+     */
+    private static ImageIcon originalIconOf(java.awt.Component component, Icon current) {
+        ImageIcon remembered = baseIcons.get(component);
+        if (remembered != null) {
+            return remembered;
+        }
+        if (current instanceof ImageIcon) {
+            ImageIcon original = (ImageIcon) current;
+            baseIcons.put(component, original);
+            return original;
+        }
+        return null;
+    }
+
+    /**
+     * Re-scales the icon of a single button, always starting from the button's
+     * ORIGINAL icon. Exposed (package-private) for testing: zooming in and then
+     * resetting must restore the original icon size, never compound.
+     */
+    static void rescaleButtonIcon(AbstractButton button, double factor) {
+        ImageIcon original = originalIconOf(button, button.getIcon());
+        if (original != null) {
+            button.setIcon(scaledIcon(original, factor));
+        }
+    }
+
+    /**
      * Re-scales the icons of every button, menu item and label under the given
      * component so the global UI scale applies to them too (not just fonts).
+     * Scaling always derives from each component's ORIGINAL icon so repeated
+     * zoom in/out and reset to 100% never degrade or grow the icons.
      */
     private void rescaleIcons(java.awt.Component component) {
         if (component instanceof JMenu) {
             JMenu menu = (JMenu) component;
-            Icon icon = menu.getIcon();
-            if (icon instanceof ImageIcon) {
-                menu.setIcon(scaledIcon((ImageIcon) icon, scale));
+            ImageIcon original = originalIconOf(component, menu.getIcon());
+            if (original != null) {
+                menu.setIcon(scaledIcon(original, scale));
             }
             for (int i = 0; i < menu.getItemCount(); i++) {
                 JMenuItem item = menu.getItem(i);
@@ -144,18 +186,18 @@ public class UIScaleManager {
             }
         } else if (component instanceof AbstractButton) {
             AbstractButton button = (AbstractButton) component;
-            Icon icon = button.getIcon();
-            if (icon instanceof ImageIcon) {
-                button.setIcon(scaledIcon((ImageIcon) icon, scale));
+            ImageIcon original = originalIconOf(component, button.getIcon());
+            if (original != null) {
+                button.setIcon(scaledIcon(original, scale));
             }
-            Icon rolloverIcon = button.getRolloverIcon();
-            if (rolloverIcon instanceof ImageIcon) {
-                button.setRolloverIcon(scaledIcon((ImageIcon) rolloverIcon, scale));
+            ImageIcon rolloverOriginal = originalIconOf(component, button.getRolloverIcon());
+            if (rolloverOriginal != null) {
+                button.setRolloverIcon(scaledIcon(rolloverOriginal, scale));
             }
         } else if (component instanceof JLabel) {
-            Icon icon = ((JLabel) component).getIcon();
-            if (icon instanceof ImageIcon) {
-                ((JLabel) component).setIcon(scaledIcon((ImageIcon) icon, scale));
+            ImageIcon original = originalIconOf(component, ((JLabel) component).getIcon());
+            if (original != null) {
+                ((JLabel) component).setIcon(scaledIcon(original, scale));
             }
         }
         if (component instanceof java.awt.Container) {
