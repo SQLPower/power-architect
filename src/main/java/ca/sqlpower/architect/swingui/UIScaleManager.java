@@ -21,11 +21,18 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.Window;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.AbstractButton;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
@@ -100,8 +107,62 @@ public class UIScaleManager {
 
         for (Window window : Window.getWindows()) {
             SwingUtilities.updateComponentTreeUI(window);
+            rescaleIcons(window);
             window.validate();
             window.repaint();
+        }
+    }
+
+    /**
+     * Returns a copy of the given icon whose dimensions are multiplied by the
+     * given factor. Used to scale toolbar/menu icons along with the fonts.
+     */
+    public static ImageIcon scaledIcon(ImageIcon icon, double factor) {
+        int newWidth = Math.max(1, (int) Math.round(icon.getIconWidth() * factor));
+        int newHeight = Math.max(1, (int) Math.round(icon.getIconHeight() * factor));
+        Image scaled = icon.getImage().getScaledInstance(
+                newWidth, newHeight, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaled);
+    }
+
+    /**
+     * Re-scales the icons of every button, menu item and label under the given
+     * component so the global UI scale applies to them too (not just fonts).
+     */
+    private void rescaleIcons(java.awt.Component component) {
+        if (component instanceof JMenu) {
+            JMenu menu = (JMenu) component;
+            Icon icon = menu.getIcon();
+            if (icon instanceof ImageIcon) {
+                menu.setIcon(scaledIcon((ImageIcon) icon, scale));
+            }
+            for (int i = 0; i < menu.getItemCount(); i++) {
+                JMenuItem item = menu.getItem(i);
+                if (item != null) {
+                    rescaleIcons(item);
+                }
+            }
+        } else if (component instanceof AbstractButton) {
+            AbstractButton button = (AbstractButton) component;
+            Icon icon = button.getIcon();
+            if (icon instanceof ImageIcon) {
+                button.setIcon(scaledIcon((ImageIcon) icon, scale));
+            }
+            Icon rolloverIcon = button.getRolloverIcon();
+            if (rolloverIcon instanceof ImageIcon) {
+                button.setRolloverIcon(scaledIcon((ImageIcon) rolloverIcon, scale));
+            }
+        } else if (component instanceof JLabel) {
+            Icon icon = ((JLabel) component).getIcon();
+            if (icon instanceof ImageIcon) {
+                ((JLabel) component).setIcon(scaledIcon((ImageIcon) icon, scale));
+            }
+        }
+        if (component instanceof java.awt.Container) {
+            java.awt.Component[] children = ((java.awt.Container) component).getComponents();
+            for (java.awt.Component child : children) {
+                rescaleIcons(child);
+            }
         }
     }
 }

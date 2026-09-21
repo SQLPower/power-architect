@@ -87,3 +87,17 @@
 | 6.2 | `gradlew test` + documentar fallos flaky | HECHA | App 1172/0; Librería 971/2 pre-existentes documentados |
 | 6.3 | Checklist manual de UI | HECHA | ver CONTEXTO §9 |
 | 6.4 | Commit final | EN_PROGRESO | |
+
+## Fase 8 — Corrección de errores detectados en uso
+
+> Causas raíz y detalle en CONTEXTO §10. Cada tarea es independiente y commiteable por separado.
+
+| ID | Tarea | Estado | Notas |
+|----|-------|--------|-------|
+| 8.1 | Corregir `PopupJTreeAction.searchTree` (ClassCastException en búsqueda de tipos) | HECHA | `sqlpower-library` `PopupJTreeAction.java` ahora recorre el `TreeModel` (no castea a `TreeNode`). Test: `PopupJTreeActionTest` (2). Ver CONTEXTO §10.1 |
+| 8.2 | Arreglar estela del nombre de tabla al arrastrar | HECHA | `PlayPen.FloatingContainerPaneListener` repinta el playpen completo durante el drag. Ver CONTEXTO §10.2 |
+| 8.3 | Ancho mínimo de tabla según texto más largo + mínimo estándar | HECHA | `BasicTablePaneUI.getPreferredSize` mide el título en negrita y aplica mínimo de ~30 chars. Tests: `TestTablePane` (2). Ver CONTEXTO §10.3 |
+| 8.4 | Color de tabla por defecto celeste (no blanco) | HECHA | `ContainerPane` usa `ThemePalette.getDefaultTableColour()` (celeste claro/oscuro según tema). Test: `TestTablePane` (1). Ver CONTEXTO §10.4 |
+| 8.5 | Texto/tooltip correcto en botones `-`/`+` de escala UI | HECHA | `ArchitectFrame` ppBar muestra texto `+`/`-`/`100%` en los botones de escala. Ver CONTEXTO §10.5 |
+| 8.6 | Escalado UI global debe cubrir menús e iconos de Project Toolbar | HECHA | `UIScaleManager` re-escala iconos (`scaledIcon`) de botones/menús/labels al aplicar escala. Test: `TestUIScaleManager` (2). Ver CONTEXTO §10.6 |
+| 8.7 | `CheckForUpdateAction` apuntar a GitHub Releases (evita timeout) | HECHA | usa `https://api.github.com/repos/SQLPower/power-architect/releases/latest`, parsea `tag_name` (strip `v`), abre `https://github.com/SQLPower/power-architect/releases`. Test: `TestCheckForUpdateAction` (3). Ver CONTEXTO §10.7 |

@@ -35,7 +35,8 @@ public final class ThemePalette {
             new Color(0xE8, 0xE8, 0xE8), // tableBodyBackground
             new Color(0xB0, 0xB0, 0xB0), // tableBorder
             new Color(0xCC, 0xCC, 0xFF), // selection
-            new Color(0xF3, 0xF3, 0xF3)); // alternatingRow
+            new Color(0xF3, 0xF3, 0xF3), // alternatingRow
+            new Color(0xBF, 0xD6, 0xFF)); // defaultTableColour (celeste)
 
     private static final ThemePalette DARK = new ThemePalette(
             new Color(0x2B, 0x2B, 0x2B), // canvasBackground
@@ -43,7 +44,8 @@ public final class ThemePalette {
             new Color(0x3C, 0x3F, 0x41), // tableBodyBackground
             new Color(0x5A, 0x5A, 0x5A), // tableBorder
             new Color(0x21, 0x4F, 0x78), // selection
-            new Color(0x34, 0x37, 0x39)); // alternatingRow
+            new Color(0x34, 0x37, 0x39), // alternatingRow
+            new Color(0x2A, 0x4A, 0x6E)); // defaultTableColour (dark celeste)
 
     private final Color canvasBackground;
     private final Color canvasForeground;
@@ -51,16 +53,18 @@ public final class ThemePalette {
     private final Color tableBorder;
     private final Color selection;
     private final Color alternatingRow;
+    private final Color defaultTableColour;
 
     private ThemePalette(Color canvasBackground, Color canvasForeground,
             Color tableBodyBackground, Color tableBorder, Color selection,
-            Color alternatingRow) {
+            Color alternatingRow, Color defaultTableColour) {
         this.canvasBackground = canvasBackground;
         this.canvasForeground = canvasForeground;
         this.tableBodyBackground = tableBodyBackground;
         this.tableBorder = tableBorder;
         this.selection = selection;
         this.alternatingRow = alternatingRow;
+        this.defaultTableColour = defaultTableColour;
     }
 
     public static ThemePalette light() {
@@ -100,5 +104,13 @@ public final class ThemePalette {
 
     public Color getAlternatingRow() {
         return alternatingRow;
+    }
+
+    /**
+     * The colour used for newly created tables by default. Light blue
+     * (celeste) in the light theme, a matching muted blue in the dark theme.
+     */
+    public Color getDefaultTableColour() {
+        return defaultTableColour;
     }
 }

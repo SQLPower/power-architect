@@ -352,6 +352,21 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 				}
 				logger.debug("new width is: " + width); //$NON-NLS-1$
 			}
+			// The title is painted in bold, so it can be wider than the same
+			// text measured with the regular font. Make sure the width fits the
+			// bold title too, otherwise a long table name overflows the card.
+			String title = getTitleString(c);
+			Font titleFont = font.deriveFont(Font.BOLD);
+			int titleWidth = frc == null
+					? c.getFontMetrics(titleFont).stringWidth(title)
+					: (int) titleFont.getStringBounds(title, frc).getWidth();
+			width = Math.max(width, titleWidth);
+			// A standard minimum width (about 30 characters of the current
+			// font) so tables with few/short columns and a short name still
+			// look like a proper card.
+			int minStandardWidth = metrics.stringWidth(
+			        "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"); // 30 X characters
+			width = Math.max(width, minStandardWidth);
 			width += insets.left + c.getMargin().left + BOX_LINE_THICKNESS*2 + c.getMargin().right + insets.right;
 		} catch (SQLObjectException e) {
 			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e); //$NON-NLS-1$

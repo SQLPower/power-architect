@@ -1,4 +1,33 @@
 SQL Power Architect Community Edition Release Notes
+2.0.11
+	Modernization:
+	* Migrated the build from Apache Ant to Gradle (build.xml removed; all Ant targets ported).
+	* Upgraded to JDK 21 (toolchain) and Gradle 8.14.2; vendored sqlpower-library as a git submodule.
+	* Modernized vendored dependencies to Maven coordinates where a clean equivalent exists (reload4j, Guava 33, Commons Codec/IO/Logging, HttpClient 4.5, JSR 305, Jakarta Mail).
+	* Removed the org.springframework.security.* dependency surface, replaced by a small project-local API.
+	* Added the Windows installer task (buildWindowsInstaller) via izpack + launch4j.
+	* Ported packaging/analysis targets (userguide, javadoc, pmd, pmdCpd, findbugs, dists) to packaging.gradle.
+	* Aligned Gradle project.version with ArchitectVersion (2.0.11).
+	
+  UI:
+	* Ctrl + mouse wheel zooms the canvas anchored to the cursor; numeric keypad +/- also zooms the canvas.
+	* Added a persistent global UI scale (fonts, dialogs, tree) with toolbar buttons and a View menu.
+	* Added dark mode via FlatLaf (Light / Dark / System themes, persisted).
+	* Added a shared theme palette so PlayPen, TablePaneUI and RelationshipUI follow the active theme.
+	* Modernized table cards (rounded header, bold title, shadow, alternating rows) in a DbSchema style.
+	* Added type search to the column editor type selector.
+
+  DDL:
+	* Added a per-object "Copy DDL" action (table context menu and DB tree) with a preview dialog.
+	* Added a multi-dialect CREATE TABLE parser and a "Create Tables from DDL..." dialog with line/column errors.
+	* Added per-table DDL notes appended to generated DDL as validated -- comments.
+
+  Bug Fixes / Maintenance:
+	* Updated to run on Java OpenJDK 11.2.0 and Launch4j 3.12.
+	* Resolved a javadoc generation error and fixed the findbugs target classpath for PMD.
+	* Improved Kettle/PDI jobs: split large jobs by selecting tables, sort step before MergeJoin, sort key for SortRow steps, transformation output type, join key export and [JOIN_KEY] reference stream.
+	* Updated PMD for Java 8 and Clover to clover-ant-4.2.0.
+
 1.0.9
 	Bug Fixes :
 	* Fixed issue of including Target (output) table as an input table in a generated transformation job.

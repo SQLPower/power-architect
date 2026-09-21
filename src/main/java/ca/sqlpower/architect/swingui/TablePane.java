@@ -201,7 +201,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         setParent(parent);
         setModel(m);
         this.hiddenColumns = new HashSet<SQLColumn>();
-        setInsertionPoint(ITEM_INDEX_NONE);	    
+        setInsertionPoint(ITEM_INDEX_NONE);
 		updateUI();
 	}
 	

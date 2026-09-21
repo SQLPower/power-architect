@@ -431,3 +431,91 @@ manual (necesitan una pantalla; no se pueden validar headless):
   commons-beanutils + commons-collections, spring-core (para Kettle).
 - `caracteristicas_futuras.md` mantiene el backlog de ideas alineadas con productos de mercado.
 
+## 10. Errores detectados en uso (corrección en Fase 8)
+
+Detectados por el usuario tras la modernización. Cada causa raíz se investigó en el
+código actual; las tareas de corrección viven en `TAREAS.md` (Fase 8). Estado: todas
+HECHAS con sus tests; verificación final: app 1180 tests / 2 fallos flaky pre-existentes
+(`TestAutoLayoutAction.testNoCrossingLinesEasy`, `TestRelationship.testCopyConstructor`,
+confirmados fallar también sin estos cambios); librería 973 / 2 pre-existentes
+(`TestSQLRelationship`).
+
+### 10.1 ClassCastException en la búsqueda de tipos (`PopupJTreeAction`)
+- **Síntoma:** al escribir en el campo de búsqueda del selector de tipos en el editor de
+  columnas: `ArchitectSwingProject cannot be cast to TreeNode`.
+- **Causa raíz:** el nuevo modo `withSearch` de `PopupJTreeAction` (librería,
+  `sqlpower-library/src/main/java/ca/sqlpower/swingui/PopupJTreeAction.java`) asume en
+  `searchTree()`/`findMatch()` que la raíz del modelo es un `TreeNode`
+  (`(TreeNode) tree.getModel().getRoot()`). Pero `ColumnEditPanel` usa `SQLTypeTreeModel`
+  (app), cuya raíz es un `ArchitectProject`, no un `TreeNode`.
+- **Corrección aplicada:** `searchTree()`/`findMatch()` recorren el árbol con la API de
+  `TreeModel` (`getRoot()`, `getChildCount()`, `getChild()`); `findMatch` es ahora
+  `static` y testable. Funciona con cualquier modelo de árbol.
+- **Test:** `PopupJTreeActionTest` (librería): coincidencia con root no-`TreeNode`, sin
+  coincidencia.
+
+### 10.2 Estela del nombre de tabla al arrastrar
+- **Síntoma:** al arrastrar una tabla cuyo nombre sobresale del ancho, se ve una "estela"
+  del texto que solo desaparece al soltar la tabla.
+- **Causa raíz probable:** durante el arrastre (`PlayPen.FloatingContainerPaneListener`)
+  la tabla se mueve con `setChildPosition` + `revalidate`, pero el área sucia repintada no
+  cubre siempre la extensión completa del título (el título se dibuja en negrita y puede
+  exceder el ancho calculado), dejando restos al redibujar la posición anterior.
+- **Corrección aplicada:** durante el drag se repinta el playpen completo
+  (`pp.repaint()`), cubriendo posición anterior y nueva.
+- **Test:** sin test automatizado (comportamiento visual); verificado con checklist manual.
+
+### 10.3 Ancho mínimo de tabla
+- **Síntoma:** el ancho de una tabla puede quedar menor que su texto más largo (nombre o
+  columna); se desea un mínimo estándar de ~30 caracteres y que un nombre largo ajuste bien.
+- **Causa raíz:** `BasicTablePaneUI.getPreferredSize()` parte de `minimumSize` (por defecto
+  `Dimension()` = 0) y solo considera columnas + título, sin garantizar un mínimo de
+  caracteres; además el título en negrita puede medirse más ancho que el cálculo con la
+  fuente normal.
+- **Corrección aplicada:** en `getPreferredSize`, se mide el título con la fuente negrita
+  (mismo estilo con el que se dibuja) y se impone un ancho mínimo equivalente a 30
+  caracteres de la fuente actual.
+- **Test:** `TestTablePane.testPreferredWidthHasStandardMinimum` y
+  `testPreferredWidthFitsLongTableName`.
+
+### 10.4 Color de tabla por defecto
+- **Síntoma:** las tablas nuevas aparecen blancas; se desea color celeste por defecto.
+- **Causa raíz:** `ContainerPane` (base de `TablePane`) fijaba
+  `backgroundColor = new Color(240,240,240)` en su constructor; no había celeste por defecto.
+- **Corrección aplicada:** `ContainerPane` usa ahora `ThemePalette.getDefaultTableColour()`
+  (celeste `#BFD6FF` en claro, azul `#2A4A6E` en oscuro). Nuevo acceso en `ThemePalette`.
+- **Test:** `TestTablePane.testNewTableHasCelesteBackgroundByDefault`.
+
+### 10.5 Texto/tooltip de los botones de escala UI (`-`/`+`)
+- **Síntoma:** los botones de la barra derecha que agrandan/achican la UI global no
+  muestran texto acorde; solo se ve el componente en el tooltip.
+- **Causa raíz:** las acciones `UIScaleAction` se agregan al `ppBar` (JToolBar) solo con
+  icono; el texto del botón queda oculto.
+- **Corrección aplicada:** los botones del `ppBar` se configuran con `setHideActionText(false)`
+  y texto corto `+` / `-` / `100%`.
+- **Test:** sin test automatizado (comportamiento visual).
+
+### 10.6 Alcance del escalado UI global
+- **Síntoma:** el escalado UI solo afecta el nombre de la página, no el texto de los menús
+  ni los iconos de la Project Toolbar.
+- **Causa raíz probable:** `UIScaleManager.apply()` re-derivaba las fuentes de `UIManager`
+  pero no re-escalaba los iconos (imágenes fijas de 16px) ni repintaba todos los contenedores.
+- **Corrección aplicada:** `UIScaleManager` ahora re-escala los iconos
+  (`ImageIcon.getScaledInstance` vía helper `scaledIcon`) de botones, menús, ítems de menú y
+  labels de todas las ventanas al aplicar el factor.
+- **Test:** `TestUIScaleManager` (escalado 2x y factor 1).
+
+### 10.7 `CheckForUpdateAction` timeout
+- **Síntoma:** al pulsar "Check for updates" → `java.net.ConnectException: Connection timed
+  out` en `CheckForUpdateAction.checkForUpdate` (línea 77).
+- **Causa raíz:** la acción usaba URLs HTTP antiguas y muertas
+  (`http://power-architect.sqlpower.ca/current_version` y
+  `http://download.sqlpower.ca/architect/current.html`). El proyecto vive ahora en
+  `https://github.com/SQLPower/power-architect` y sus releases en
+  `https://github.com/SQLPower/power-architect/releases`.
+- **Corrección aplicada:** consulta `https://api.github.com/repos/SQLPower/power-architect/releases/latest`
+  (timeout 15s, `User-Agent` propio), parsea `tag_name` (quito el prefijo `v` si existe),
+  compara con `ArchitectVersion.APP_FULL_VERSION` y abre la página de releases si hay
+  actualización. Errores de red muestran el mensaje `failedToCheckForUpdate` existente.
+- **Test:** `TestCheckForUpdateAction` (extracción de `tag_name`, con `v` y ausente).
+

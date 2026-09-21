@@ -177,3 +177,83 @@ Estas funcionalidades son las deseadas por el usuario.
   - [ ] La terminal abre en el directorio del archivo/proyecto actual.
   - [ ] Se puede mostrar/ocultar y redimensionar.
 - **Estado:** IDEA
+
+
+---
+
+## WISHLIST del creador (portada del archivo WISHLIST)
+
+Esta sección porta las tareas técnicas concretas del archivo `WISHLIST` original del
+proyecto (listado de deseos de los desarrolladores del código), actualizadas a la
+modernización en curso (Gradle, JDK 21, GitHub, sin Ant). Se excluye la parte de
+"bugs / comunidad" por no ser funcionalidades; los ítems de refactorización/código y
+funciones nuevas se desglosan como tareas independientes, sin dependencias bloqueantes,
+en el orden secuencial sugerido de desarrollo. Las referencias obsoletas del WISHLIST
+(`build.xml`, repos Google Code, listas de correo) se reemplazan por sus equivalentes
+actuales (`./gradlew pmd`/`pmdCpd`, GitHub).
+
+### [ ] Reportes de calidad de código PMD y CPD en Gradle
+- **Prioridad:** ALTA
+- **Valor para el usuario:** Base medible de duplicación y problemas de programación para las tareas 2 y 3; reemplaza las referencias muertas del WISHLIST a `build.xml`.
+- **Referencia de mercado:** N/A (herramientas de análisis estático PMD/CPD).
+- **Descripción funcional:** Ejecutar `./gradlew pmd` y `./gradlew pmdCpd` (ya portados en `packaging.gradle`, PMD 6.29.0 vendido en `ext-tools-home/`) y documentar el estado inicial: duplicaciones CPD a refactorizar y hallazgos del ruleset básico de PMD a corregir.
+- **Notas técnicas:** Sustituye a los targets `pmd` / `pmd-cpd` de `build.xml` (eliminado). Verificar que los reportes se generen correctamente en Windows (paths sin espacios). Los reportes son el insumo de las tareas siguientes, pero no las bloquean: cada una puede regenerar su propio reporte.
+- **Criterios de aceptación:**
+  - [ ] `./gradlew pmd` y `./gradlew pmdCpd` generan reportes sin errores de build.
+  - [ ] Se documenta en CONTEXTO el número y tipo de hallazgos iniciales.
+- **Estado:** IDEA
+
+### [ ] Refactor de superclases comunes señaladas por CPD
+- **Prioridad:** MEDIA
+- **Valor para el usuario:** Eliminar código duplicado (copia-y-pega) que CPD detecta, facilitando el mantenimiento.
+- **Referencia de mercado:** N/A (deuda técnica interna).
+- **Descripción funcional:** Extraer superclases comunes en los puntos que el reporte CPD revela, eligiendo uno por uno los duplicados más grandes y verificando que no cambien el comportamiento.
+- **Notas técnicas:** Reporte generado con `./gradlew pmdCpd`. Se puede abordar por grupos aislados (cada extracción es una tarea unitaria). Requiere entender las convenciones del repo (Sun-style, ver `DEVELOPERS`).
+- **Criterios de aceptación:**
+  - [ ] Cada duplicado refactorizado pasa la suite de tests correspondiente.
+  - [ ] El número de duplicaciones reportadas por CPD baja en los módulos tocados.
+- **Estado:** IDEA
+
+### [ ] Corrección de hallazgos del ruleset básico de PMD
+- **Prioridad:** MEDIA
+- **Valor para el usuario:** Reducir bugs potenciales y malas prácticas de programación detectadas estáticamente.
+- **Referencia de mercado:** N/A (deuda técnica interna).
+- **Descripción funcional:** Tomar los hallazgos del ruleset básico de PMD y proponer/corregir cada uno, eligiendo por prioridad los de mayor riesgo.
+- **Notas técnicas:** Reporte generado con `./gradlew pmd`. Cada corrección es independiente y debe validarse con la suite de tests; respetar las convenciones del repo.
+- **Criterios de aceptación:**
+  - [ ] Los hallazgos corregidos desaparecen del reporte PMD.
+  - [ ] La suite de tests sigue en verde (app 1172/0; librería 971/2 pre-existentes documentados).
+- **Estado:** IDEA
+
+### [ ] Refactor del generador DDL (eliminar clases concretas por plataforma)
+- **Prioridad:** ALTA
+- **Valor para el usuario:** Facilitar soportar nuevas plataformas y mantener el DDL sin duplicar lógica por dialecto.
+- **Referencia de mercado:** El WISHLIST original menciona el generador DDL del proyecto Jakarta (parte de DBUtils, Apache) como referencia a evaluar.
+- **Descripción funcional:** Reemplazar el enfoque actual (una clase concreta por plataforma, con la mayoría del código como literales de String) por una configuración basada en datos/plantillas para los dialectos, conservando el API de `DDLGenerator` y la salida existente.
+- **Notas técnicas:** `GenericDDLGenerator` (1520 líneas) es la base; clases por plataforma: `OracleDDLGenerator`, `MySqlDDLGenerator`, `SQLServerDDLGenerator`, `DB2DDLGenerator`, `H2DDLGenerator`, `HSQLDBDDLGenerator`, `PostgresDDLGenerator`, `LiquibaseDDLGenerator`. Evaluar Apache DBUtils / generadores de dialectos modernos antes de decidir el diseño. Riesgo alto: muchos tests dependen del DDL generado. Se recomienda hacerlo por fases, un dialecto a la vez.
+- **Criterios de aceptación:**
+  - [ ] El DDL generado por cada dialecto es idéntico al actual (diff de scripts de los tests).
+  - [ ] Añadir un dialecto nuevo no requiere duplicar la clase completa.
+- **Estado:** IDEA
+
+### [ ] Algoritmos de layout de grafos avanzados para el canvas
+- **Prioridad:** BAJA
+- **Valor para el usuario:** Diagramas más legibles y auto-organizados para modelos grandes.
+- **Referencia de mercado:** yEd, Graphviz (fuerza, capas/hierárquico, circular, ortogonal).
+- **Descripción funcional:** Añadir más algoritmos de layout al paquete `layout/` (además de los existentes) y permitir seleccionarlos desde el menú de auto-layout.
+- **Notas técnicas:** Ya existen `FruchtermanReingoldForceLayout`, `BasicTreeAutoLayout`, `ArchitectGridLayout`, `LineStraightenerLayout` y la interfaz `ArchitectLayout`. El WISHLIST original sugiere algoritmos de teoría de grafos más avanzados; evaluar literatura (fuerza dirigida mejorada, capas/Sugiyama) antes de implementar. Integración vía `AutoLayoutAction`/`LayoutAnimator`.
+- **Criterios de aceptación:**
+  - [ ] Al menos un algoritmo nuevo de layout es seleccionable y produce un diagrama válido.
+  - [ ] No rompe el layout de fuerza existente ni los tests de `PlayPen`.
+- **Estado:** IDEA
+
+### [ ] Soporte de nuevas plataformas de base de datos
+- **Prioridad:** MEDIA
+- **Valor para el usuario:** Poder modelar/generar DDL en más motores de BD.
+- **Referencia de mercado:** DbSchema, DataGrip (soporte multi-dialecto).
+- **Descripción funcional:** Añadir soporte para plataformas de BD no cubiertas (o mejorar el existente), incluyendo generador DDL, mapeo de tipos y críticos asociados.
+- **Notas técnicas:** Se beneficia directamente del refactor del generador DDL (va después en el orden sugerido, pero sin bloqueo: un dialecto nuevo puede implementarse sobre el esquema actual si se prefiere). Reutilizar `DDLUtils`, `TypeMap` y el patrón de críticos (`ddl/critic/`). Cada plataforma es una tarea unitaria independiente.
+- **Criterios de aceptación:**
+  - [ ] El nuevo dialecto genera DDL correcto para tablas, columnas, índices y FKs.
+  - [ ] Incluye tests del generador y críticos de la plataforma.
+- **Estado:** IDEA

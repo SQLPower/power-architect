@@ -2794,10 +2794,11 @@ public class PlayPen extends JPanel
 		        }
 		        logger.debug(viewport.getViewPosition());
 		        pp.scrollRectToVisible(view);
-		        // Necessary to stop tables from flashing.
-		        if (ppc != null) {
-		            ppc.repaint();
-		        }
+		        // Necessary to stop tables from flashing. Repaint the whole
+		        // play pen (not just the component's bounds) so text that
+		        // overflows the table bounds (e.g. a long bold title) is not
+		        // left behind as a trail while dragging. See CONTEXTO 10.2.
+		        pp.repaint();
 		    }
 		}
 

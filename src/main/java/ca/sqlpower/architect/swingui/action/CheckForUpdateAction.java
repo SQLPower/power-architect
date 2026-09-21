@@ -20,11 +20,15 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Properties;
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
@@ -44,9 +48,20 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(CheckForUpdateAction.class);
 
-    private static final String VERSION_FILE_URL = "http://power-architect.sqlpower.ca/current_version"; //$NON-NLS-1$
+    /**
+     * GitHub API endpoint for the latest published release of Power*Architect.
+     */
+    private static final String VERSION_FILE_URL = "https://api.github.com/repos/SQLPower/power-architect/releases/latest"; //$NON-NLS-1$
 
-    private static final String UPDATE_URL = "http://download.sqlpower.ca/architect/current.html"; //$NON-NLS-1$
+    /**
+     * The public releases page, opened in the browser when an update is accepted.
+     */
+    private static final String UPDATE_URL = "https://github.com/SQLPower/power-architect/releases"; //$NON-NLS-1$
+
+    /**
+     * Matches the {@code "tag_name":"..."} field in the GitHub API JSON response.
+     */
+    private static final Pattern TAG_NAME_PATTERN = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^\"]+)\""); //$NON-NLS-1$
 
     private String versionPropertyString;
 
@@ -72,14 +87,28 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             urlc = (HttpURLConnection) url.openConnection();
             urlc.setAllowUserInteraction(false);
             urlc.setRequestMethod("GET"); //$NON-NLS-1$
+            urlc.setRequestProperty("Accept", "application/vnd.github+json"); //$NON-NLS-1$
+            urlc.setRequestProperty("User-Agent", "Power-Architect/" + ArchitectVersion.APP_FULL_VERSION); //$NON-NLS-1$
+            urlc.setConnectTimeout(15000);
+            urlc.setReadTimeout(15000);
             urlc.setDoInput(true);
             urlc.setDoOutput(false);
             urlc.connect();
-            propertyInputStream = urlc.getInputStream();
-            Properties properties = new Properties();
-            properties.load(propertyInputStream);
 
-            versionPropertyString = properties.getProperty("app.version"); //$NON-NLS-1$
+            int responseCode = urlc.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("GitHub API returned HTTP " + responseCode); //$NON-NLS-1$
+            }
+
+            propertyInputStream = urlc.getInputStream();
+            String body = readBody(propertyInputStream);
+
+            String tagName = extractTagName(body);
+            if (tagName == null) {
+                throw new IOException("No tag_name found in GitHub releases response"); //$NON-NLS-1$
+            }
+
+            versionPropertyString = tagName;
             ArchitectVersion latestVersion = new ArchitectVersion(versionPropertyString);
             ArchitectVersion userVersion = ArchitectVersion.APP_FULL_VERSION;
 
@@ -113,6 +142,42 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
                 throw new RuntimeException(ex2);
             }
         }
+    }
+
+    /**
+     * Reads the response body as a UTF-8 string.
+     */
+    private static String readBody(InputStream in) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(in, StandardCharsets.UTF_8));
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } finally {
+            reader.close();
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Extracts the {@code tag_name} from a GitHub API releases/latest JSON body.
+     * A leading {@code v} on the tag (e.g. {@code v1.0.9}) is stripped so the
+     * result can be parsed by {@link ArchitectVersion}. Returns null if the
+     * field is absent.
+     */
+    static String extractTagName(String jsonBody) {
+        Matcher m = TAG_NAME_PATTERN.matcher(jsonBody);
+        if (!m.find()) {
+            return null;
+        }
+        String tag = m.group(1);
+        if (tag.startsWith("v")) { //$NON-NLS-1$
+            tag = tag.substring(1);
+        }
+        return tag;
     }
 
     /**

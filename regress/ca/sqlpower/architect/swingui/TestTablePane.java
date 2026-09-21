@@ -466,6 +466,66 @@ public class TestTablePane extends TestPlayPenComponent<TablePane> {
         assertNotNull(rel.getMappingByFkCol(col));
     }
 
+    /**
+     * The table's preferred width must be at least the width of a standard
+     * minimum number of characters (30) even when the table has no columns and
+     * a short name.
+     */
+    public void testPreferredWidthHasStandardMinimum() throws Exception {
+        SQLTable emptyTable = new SQLTable(db, true);
+        emptyTable.setName("T");
+        db.addTable(emptyTable);
+        TablePane emptyPane = new TablePane(emptyTable, pp.getContentPane());
+        pp.addTablePane(emptyPane, new Point(0, 0));
+
+        java.awt.Dimension ps = emptyPane.getPreferredSize();
+        java.awt.Font font = emptyPane.getFont();
+        int thirtyCharsWidth = emptyPane.getFontMetrics(font).stringWidth(
+                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        assertTrue("preferred width " + ps.width
+                + " should be at least the width of 30 characters ("
+                + thirtyCharsWidth + ")",
+                ps.width >= thirtyCharsWidth);
+    }
+
+    /**
+     * The table's preferred width must not be smaller than the width of its
+     * title (the table name), even when the title is longer than the widest
+     * column text.
+     */
+    public void testPreferredWidthFitsLongTableName() throws Exception {
+        SQLTable longNameTable = new SQLTable(db, true);
+        longNameTable.setName("A Table With A Very Long Name That Exceeds The Columns");
+        db.addTable(longNameTable);
+        TablePane longNamePane = new TablePane(longNameTable, pp.getContentPane());
+        pp.addTablePane(longNamePane, new Point(0, 0));
+
+        java.awt.Dimension ps = longNamePane.getPreferredSize();
+        java.awt.Font titleFont = longNamePane.getFont().deriveFont(java.awt.Font.BOLD);
+        int titleWidth = longNamePane.getFontMetrics(titleFont).stringWidth(
+                longNameTable.getName());
+        assertTrue("preferred width " + ps.width
+                + " should fit the bold title (width " + titleWidth + ")",
+                ps.width >= titleWidth);
+    }
+
+    /**
+     * A newly created table must have the light blue (celeste) default
+     * background colour, not the white/canvas colour.
+     */
+    public void testNewTableHasCelesteBackgroundByDefault() throws Exception {
+        SQLTable freshTable = new SQLTable(db, true);
+        freshTable.setName("Fresh Table");
+        db.addTable(freshTable);
+        TablePane freshPane = new TablePane(freshTable, pp.getContentPane());
+        pp.addTablePane(freshPane, new Point(0, 0));
+
+        java.awt.Color defaultColour = ThemePalette.current().getDefaultTableColour();
+        assertNotNull("ThemePalette must define a default table colour", defaultColour);
+        assertEquals("New table should use the celeste default colour",
+                defaultColour, freshPane.getBackgroundColor());
+    }
+
     @Override
     protected TablePane getTargetCopy() {
         return new TablePane(tp, (PlayPenContentPane) tp.getParent());

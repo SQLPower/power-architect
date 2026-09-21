@@ -880,9 +880,17 @@ public class ArchitectFrame extends JFrame {
         ppBar.add(zoomNormalAction);
         ppBar.add(zoomToFitAction);
         ppBar.addSeparator();
-        ppBar.add(uiScaleUpAction);
-        ppBar.add(uiScaleDownAction);
-        ppBar.add(uiScaleResetAction);
+        JButton uiScaleUpButton = ppBar.add(uiScaleUpAction);
+        JButton uiScaleDownButton = ppBar.add(uiScaleDownAction);
+        JButton uiScaleResetButton = ppBar.add(uiScaleResetAction);
+        // The +/- buttons must show a short label (not just the tooltip) so
+        // the user can tell them apart. See CONTEXTO 10.5.
+        uiScaleUpButton.setHideActionText(false);
+        uiScaleUpButton.setText("+");
+        uiScaleDownButton.setHideActionText(false);
+        uiScaleDownButton.setText("-");
+        uiScaleResetButton.setHideActionText(false);
+        uiScaleResetButton.setText("100%");
         ppBar.addSeparator();
         tempButton = ppBar.add(deleteSelectedAction);
         tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);

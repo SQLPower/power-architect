@@ -37,6 +37,8 @@ import ca.sqlpower.architect.swingui.TestRelationship;
 import ca.sqlpower.architect.swingui.TestSwingUIProject;
 import ca.sqlpower.architect.swingui.TestTableEditPane;
 import ca.sqlpower.architect.swingui.TestTablePane;
+import ca.sqlpower.architect.swingui.TestUIScaleManager;
+import ca.sqlpower.architect.swingui.action.TestCheckForUpdateAction;
 import ca.sqlpower.architect.swingui.action.TestCreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.TestDeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.TestEditColumnAction;
@@ -75,6 +77,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestCreateRelationshipAction.class);
 		suite.addTestSuite(TestDeleteSelectedAction.class);
 		suite.addTestSuite(TestEditColumnAction.class);
+		suite.addTestSuite(TestCheckForUpdateAction.class);
 		suite.addTestSuite(TestFruchtermanReingoldForceLayout.class);
 		suite.addTestSuite(TestPlayPen.class);
 		suite.addTestSuite(TestPlayPenContentPane.class);
@@ -82,6 +85,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestSwingUIProject.class);
 		suite.addTestSuite(TestTableEditPane.class);
 		suite.addTestSuite(TestTablePane.class);
+		suite.addTestSuite(TestUIScaleManager.class);
 		suite.addTestSuite(TestUsageComponent.class);
 		suite.addTestSuite(TestVirtualCubePane.class);
 		//$JUnit-END$
