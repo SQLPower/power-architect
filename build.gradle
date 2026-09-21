@@ -503,18 +503,26 @@ tasks.register('buildWindowsInstaller') {
 // installer (architect.jar + lib/ + jdbc/), so the jar's manifest Class-Path
 // (lib/*.jar and jdbc/) keeps working inside the app-image.
 // ---------------------------------------------------------------------------
+// Locate jpackage inside a JDK 14+. The Gradle daemon does not reliably inherit
+// JAVA_HOME from the shell (toolchains), and File.exists() can report false for
+// the JDK bin dir in some daemon contexts even though ProcessBuilder can run it.
+// We therefore pick a known path and let the exec fail with jpackage's own
+// error if it is genuinely unavailable. Override with -PjpackageJavaHome=<JDK home>.
+def jpackageExecutable = { ->
+    def override = project.findProperty('jpackageJavaHome')
+    if (override) return new File(override, 'bin/jpackage')
+    def env = System.getenv('JAVA_HOME')
+    if (env) return new File(env, 'bin/jpackage')
+    return new File('C:/Program Files/Java/jdk-21/bin/jpackage')
+}
+
 tasks.register('jpackageAppImage') {
     dependsOn tasks.named('stageForWindowsInstaller')
     doLast {
-        // jpackage ships with the JDK. Use JAVA_HOME (must be a JDK 14+); the
-        // toolchain launcher used by Gradle may point at a shim without it.
-        def javaHome = System.getenv('JAVA_HOME')
-        def jpackageExe = new File(javaHome, 'bin/jpackage')
-        if (!jpackageExe.exists()) {
-            throw new GradleException('jpackage not found at ' + jpackageExe
-                    + '. Set JAVA_HOME to a JDK 14+ (e.g. C:/Program Files/Java/jdk-21).')
-        }
+        def jpackageExe = jpackageExecutable()
         def appImageDir = layout.buildDirectory.dir('jpackage/SQL Power Architect').get().asFile
+        // jpackage refuses to overwrite an existing app-image; clean first.
+        delete appImageDir.parentFile
         appImageDir.parentFile.mkdirs()
         def args = [
             '--type', 'app-image',
@@ -530,5 +538,46 @@ tasks.register('jpackageAppImage') {
         exec { commandLine jpackageExe.absolutePath, *args }
         println "jpackage app-image created: ${appImageDir.absolutePath}"
         println "Run with: ${new File(appImageDir, 'SQL Power Architect.exe').absolutePath}"
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Fase 11b: native Windows installer (exe) built from the app-image by
+// jpackage. Generates a 64-bit installer with a proper uninstaller (registry
+// entry, Add/Remove Programs). Unlike the legacy launch4j+izpack flow it does
+// not need WiX and runs entirely on JDK 21.
+// ---------------------------------------------------------------------------
+tasks.register('jpackageExe') {
+    dependsOn tasks.named('jpackageAppImage')
+    doLast {
+        def jpackageExe = jpackageExecutable()
+        def appImageDir = layout.buildDirectory.dir('jpackage/SQL Power Architect').get().asFile
+        def distDir = file('dist')
+        distDir.mkdirs()
+        // jpackage builds the Windows installer with WiX Toolset (candle/light).
+        // Vendored under ext-tools-home/wix311; put it on PATH for the process.
+        def wixDir = file('ext-tools-home/wix311')
+        // jpackage names the output "<name>-<app-version>.exe" (e.g.
+        // "SQL Power Architect-2.0.11.exe"); --dest is the output dir.
+        def installerExe = new File(distDir,
+                "SQL Power Architect-${installerVersion.replaceAll('^[Vv]', '')}.exe")
+        def args = [
+            '--type', 'exe',
+            '--app-image', appImageDir.absolutePath,
+            '--dest', distDir.absolutePath,
+            '--name', 'SQL Power Architect',
+            '--app-version', installerVersion.replaceAll('^[Vv]', ''),
+            '--vendor', 'SQL Power Group',
+            '--description', 'SQL Power Architect - data modeling, OLAP and profiling',
+            '--icon', file('src/main/resources/icons/architect.ico').absolutePath,
+            '--win-dir-chooser',
+            '--win-shortcut',
+            '--win-menu'
+        ]
+        exec {
+            environment 'PATH', wixDir.absolutePath + File.pathSeparator + System.getenv('PATH')
+            commandLine jpackageExe.absolutePath, *args
+        }
+        println "jpackage installer created: ${installerExe.absolutePath}"
     }
 }

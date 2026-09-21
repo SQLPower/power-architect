@@ -146,8 +146,8 @@
 | 11a.1 | Task Gradle `jpackageAppImage` (Windows app-image x86_64, no-modular) | HECHA | `./gradlew jpackageAppImage`; `JAVA_HOME` JDK 21; `--input` staging (architect.jar+lib+jdbc), `--main-jar`, `--main-class`; app-version numérico (sin V) |
 | 11a.2 | Validar runtime jlink (Swing, JDBC, i18n, jars vendidos) | HECHA | exe nativo x86-64; `app/SQL Power Architect.cfg` classpath correcto; la app arranca y permanece viva |
 | 11a.3 | Commit Fase 11a | PENDIENTE | app-image funcional en Windows (`build/jpackage/SQL Power Architect/`) |
-| 11b.1 | Task `jpackageExe`/`jpackageMsi` (instalador Windows 64-bit) | PENDIENTE | `--type exe` (sin WiX) o `msi` (instalar WiX Toolset) |
-| 11b.2 | Verificar instalación + desinstalación en Windows 11 | PENDIENTE | reemplaza el fix de elevación UAC + TargetPanel.dir de la Fase 10 |
+| 11b.1 | Task `jpackageExe`/`jpackageMsi` (instalador Windows 64-bit) | HECHA | `./gradlew jpackageExe`; requiere WiX Toolset 3.11 vendido en `ext-tools-home/wix311` (en PATH del exec); genera `dist/SQL Power Architect-2.0.11.exe` **x86-64 (64-bit)** |
+| 11b.2 | Verificar instalación + desinstalación en Windows 11 | PENDIENTE | ejecutar el instalador jpackage 64-bit; confirmar `C:\Program Files` y desinstalación en Configuración→Apps |
 | 11b.3 | Commit Fase 11b | PENDIENTE | instalador nativo desinstala correctamente |
 | 11c.1 | Empaquetado macOS (`dmg`/`pkg`) | PENDIENTE | requiere CI en macOS (hdiutil/productbuild) |
 | 11c.2 | Empaquetado Linux (`deb`/`rpm`) | PENDIENTE | requiere CI en Linux (fpm/dpkg) |

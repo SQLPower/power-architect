@@ -695,10 +695,17 @@ Tareas en `TAREAS.md` (Fase 9).
 
 ### 13.4 Plan por fases
 - **Fase 11a — Windows app-image con jpackage:** task Gradle `jpackageAppImage` (64-bit,
-  `--type app-image`), validación de jlink y arranque de la app.
-- **Fase 11b — Instalador Windows nativo:** `--type exe` (sin WiX) o `msi` (instalar WiX);
-  verificación de instalación y **desinstalación**; retira la mitigación de la Fase 10
-  (elevación UAC + `TargetPanel.dir`).
+  `--type app-image`), validación de jlink y arranque de la app. **HECHA** (11a.1-11a.2).
+- **Fase 11b — Instalador Windows nativo:** `--type exe`; verificación de instalación y
+  **desinstalación**. **En curso:**
+  - jpackage en Windows requiere **WiX Toolset** para `exe`/`msi` (el error "Invalid or
+    unsupported type" en realidad es "Can not find WiX tools").
+  - **WiX 3.11.2 binarios vendidos** en `ext-tools-home/wix311/` (candle.exe, light.exe) y
+    añadido al PATH del exec del task `jpackageExe`.
+  - `./gradlew jpackageExe` genera `dist/SQL Power Architect-2.0.11.exe` **x86-64 (64-bit)**
+    (jpackage nombra el output como `<name>-<app-version>.exe`).
+  - Pendiente: verificación manual de instalación en `C:\Program Files` y desinstalación
+    (Configuración→Apps) en Windows 11.
 - **Fase 11c — Multi-plataforma (opcional):** macOS/Linux en CI.
 - **Fase 11d — Limpieza:** eliminar launch4j/izpack del build y sus configs; actualizar docs.
 
