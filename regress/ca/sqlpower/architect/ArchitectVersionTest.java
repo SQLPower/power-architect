@@ -48,6 +48,34 @@ public class ArchitectVersionTest extends TestCase {
         assertEquals(3, version.getParts()[2]);
         assertEquals(4, version.getParts()[3]);
     }
+
+    public void testParseWithVendorVPrefix() {
+        version = new ArchitectVersion("V1.9.0");
+
+        assertEquals(3, version.getParts().length);
+        assertEquals(1, version.getParts()[0]);
+        assertEquals(9, version.getParts()[1]);
+        assertEquals(0, version.getParts()[2]);
+        assertEquals("V1.9.0", version.toString());
+    }
+
+    public void testParseWithLowercaseVPrefix() {
+        version = new ArchitectVersion("v2.0.11");
+
+        assertEquals(3, version.getParts().length);
+        assertEquals(2, version.getParts()[0]);
+        assertEquals(0, version.getParts()[1]);
+        assertEquals(11, version.getParts()[2]);
+        assertEquals("V2.0.11", version.toString());
+    }
+
+    public void testAppFullVersionUsesVendorVPrefixConvention() {
+        assertEquals("V2.0.11", ArchitectVersion.APP_FULL_VERSION.toString());
+        assertEquals(3, ArchitectVersion.APP_FULL_VERSION.getParts().length);
+        assertEquals(2, ArchitectVersion.APP_FULL_VERSION.getParts()[0]);
+        assertEquals(0, ArchitectVersion.APP_FULL_VERSION.getParts()[1]);
+        assertEquals(11, ArchitectVersion.APP_FULL_VERSION.getParts()[2]);
+    }
     
     public void testBadPatternWithDotBeforeSuffix() {
         try {
@@ -90,6 +118,15 @@ public class ArchitectVersionTest extends TestCase {
         
         assertTrue(older.compareTo(newer) < 0);
         assertTrue(newer.compareTo(older) > 0);
+    }
+
+    public void testLocalNewerThanVendorBase() {
+        ArchitectVersion local = new ArchitectVersion("2.0.11");
+        ArchitectVersion vendorBase = new ArchitectVersion("1.9.0");
+
+        assertTrue("2.0.11 should be newer than the 1.9.0 vendor base",
+                local.compareTo(vendorBase) > 0);
+        assertTrue(vendorBase.compareTo(local) < 0);
     }
     
     public void testNoSuffixNewerThanSuffix() {

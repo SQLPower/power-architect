@@ -40,7 +40,7 @@ public class ArchitectVersion extends Version {
      * complete and can remain stable for a period of time. Until then, we will
      * leave the major version at 0 and all bets are off.
      */
-    public static final String APP_VERSION_MAJOR  = "2";
+    public static final String APP_VERSION_MAJOR  = "V2";
     
     /**
      * Minor version number. This changes when new features appear that might
@@ -89,6 +89,10 @@ public class ArchitectVersion extends Version {
      * least one numeric component, so <tt>1suffix</tt> is legal but
      * <tt>suffix</tt> on its own is not. A suffix may contain any sequence of
      * characters, but every <tt>.</tt> in the suffix must be followed with a number.
+     * <p>
+     * A leading "V" or "v" (e.g. "V1.9.0") is accepted and preserved in the
+     * {@link #toString()} representation, matching the vendor's release tag
+     * convention, but is ignored for numeric comparison.
      * 
      * @param version The version string
      */

@@ -398,6 +398,8 @@ manual (necesitan una pantalla; no se pueden validar headless):
   `ZoomOnWheelListener`, etc.), y su manifest `Class-Path` apunta a `lib/*.jar` + `jdbc/`.
 - **Corrección**: se alineó `project.version` a `2.0.11` (commit `ece2410c`). El instalador
   ahora se genera como `dist/SQL-Power-Architect-Setup-Windows-2.0.11.exe`.
+  (Nota: desde §10.8 la versión sigue la convención `V` del repo, por lo que el instalador
+  actual se genera como `dist/SQL-Power-Architect-Setup-Windows-V2.0.11.exe`.)
 - **Para el usuario**: desinstalar la versión 1.0.9 previa (Panel de control / uninstaller) o
   instalar en una carpeta nueva, y luego ejecutar el instalador 2.0.11. El About mostrará
   2.0.11 y las features (zoom, dark mode, DDL, etc.) estarán presentes.
@@ -438,7 +440,8 @@ código actual; las tareas de corrección viven en `TAREAS.md` (Fase 8). Estado:
 HECHAS con sus tests; verificación final: app 1180 tests / 2 fallos flaky pre-existentes
 (`TestAutoLayoutAction.testNoCrossingLinesEasy`, `TestRelationship.testCopyConstructor`,
 confirmados fallar también sin estos cambios); librería 973 / 2 pre-existentes
-(`TestSQLRelationship`).
+(`TestSQLRelationship`). Además, la versión sigue la convención `V` del repo (V2.0.11),
+ver §10.8.
 
 ### 10.1 ClassCastException en la búsqueda de tipos (`PopupJTreeAction`)
 - **Síntoma:** al escribir en el campo de búsqueda del selector de tipos en el editor de
@@ -517,5 +520,19 @@ confirmados fallar también sin estos cambios); librería 973 / 2 pre-existentes
   (timeout 15s, `User-Agent` propio), parsea `tag_name` (quito el prefijo `v` si existe),
   compara con `ArchitectVersion.APP_FULL_VERSION` y abre la página de releases si hay
   actualización. Errores de red muestran el mensaje `failedToCheckForUpdate` existente.
-- **Test:** `TestCheckForUpdateAction` (extracción de `tag_name`, con `v` y ausente).
+- **Test:** `TestCheckForUpdateAction` (extracción de `tag_name`, con `v`/`V` y ausente).
+
+### 10.8 Convención de versión con prefijo `V`
+- **Motivo:** el repo base usa tags de release con prefijo `V` (p. ej. `V1.9.0`); se alineó la
+  versión nueva a esa convención: **V2.0.11**.
+- **Cambios:**
+  - `Version` (librería): acepta y conserva el prefijo `V`/`v` en `toString()`, lo ignora para
+    comparación numérica; el copy-constructor copia el prefijo.
+  - `ArchitectVersion`: `APP_VERSION_MAJOR = "V2"` → `APP_FULL_VERSION` = `V2.0.11`; delega en
+    `Version` para el parseo.
+  - `build.gradle`: `version = 'V2.0.11'` (nombre del instalador con `V`).
+  - `architect.version.properties`: `app.version=V2.0.11` (About).
+- **Compatibilidad:** archivos de proyecto guardados como `2.0.11` (sin `V`) se siguen leyendo;
+  la comparación (`2.0.11 > 1.9.0`) no cambia.
+- **Tests:** `VersionTest` (4, librería) y `ArchitectVersionTest` (13, app, con `testAppFullVersionUsesVendorVPrefixConvention`).
 

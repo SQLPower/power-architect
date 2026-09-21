@@ -164,9 +164,9 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
 
     /**
      * Extracts the {@code tag_name} from a GitHub API releases/latest JSON body.
-     * A leading {@code v} on the tag (e.g. {@code v1.0.9}) is stripped so the
-     * result can be parsed by {@link ArchitectVersion}. Returns null if the
-     * field is absent.
+     * A leading {@code v} on the tag (e.g. {@code v1.0.9} or {@code V1.9.0}) is
+     * stripped so the result can be parsed by {@link ArchitectVersion}. Returns
+     * null if the field is absent.
      */
     static String extractTagName(String jsonBody) {
         Matcher m = TAG_NAME_PATTERN.matcher(jsonBody);
@@ -174,7 +174,7 @@ public class CheckForUpdateAction extends AbstractArchitectAction {
             return null;
         }
         String tag = m.group(1);
-        if (tag.startsWith("v")) { //$NON-NLS-1$
+        if (tag.length() > 0 && (tag.charAt(0) == 'v' || tag.charAt(0) == 'V')) { //$NON-NLS-1$
             tag = tag.substring(1);
         }
         return tag;

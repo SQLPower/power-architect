@@ -37,6 +37,11 @@ public class TestCheckForUpdateAction extends TestCase {
         assertEquals("1.0.9", CheckForUpdateAction.extractTagName(body));
     }
 
+    public void testExtractTagNameWithUppercaseVPrefix() {
+        String body = "{\"tag_name\":\"V1.9.0\"}";
+        assertEquals("1.9.0", CheckForUpdateAction.extractTagName(body));
+    }
+
     public void testExtractTagNameReturnsNullWhenMissing() {
         String body = "{\"message\":\"Not Found\"}";
         assertNull(CheckForUpdateAction.extractTagName(body));

@@ -6,12 +6,17 @@ file. See `doc/ReleaseNotes.txt` for the release history prior to 1.0.9.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.11] - Current
+## [V2.0.11] - Current
 
-Version 2.0.11 bundles the 2021 maintenance work plus the 2026 modernization
+Version V2.0.11 bundles the 2021 maintenance work plus the 2026 modernization
 effort (Gradle + JDK 21). The version number itself was introduced in commit
 `a7a435cd` (2021-01-12) together with the switch to Java OpenJDK 11.2.0; there
 were no intermediate public releases between 1.0.9 and 2.0.11.
+
+The version follows the repository's release-tag convention with a leading `V`
+(e.g. `V1.9.0`), so the current release is reported as **V2.0.11**. `Version`
+and `ArchitectVersion` accept and preserve the `V`/`v` prefix while ignoring it
+for numeric comparison.
 
 ### Modernization (2026)
 
@@ -98,6 +103,9 @@ were no intermediate public releases between 1.0.9 and 2.0.11.
 
 - Versioning jumped directly from `1.0.9` to `2.0.11` (no 1.1.x or 2.0.0-2.0.10
   releases were published).
+- Version now uses the repository's leading-`V` release-tag convention
+  (`V2.0.11`); `Version`/`ArchitectVersion` parse and preserve the prefix
+  without affecting comparisons.
 
 ## [1.0.9] - 2020-12-22
 
