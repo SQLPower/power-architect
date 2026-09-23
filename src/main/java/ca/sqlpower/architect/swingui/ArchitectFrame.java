@@ -1458,6 +1458,24 @@ public class ArchitectFrame extends JFrame {
                     // don't take it as encouragement to call it in other places!
                     // unless you like being attacked by screaming monkeys, that is.
                     ArchitectSwingSessionContext context = ASUtils.getContext();
+
+                    // First-run language selection: the jpackage installer does
+                    // not offer a language picker (the legacy izpack one did),
+                    // so prompt for it once, before the main window is built.
+                    // Persisted in the same setting Preferences uses, so this
+                    // only shows when no language has been chosen yet.
+                    String savedLocale = context.getUserSettings().getSwingSettings()
+                            .getString(ArchitectSwingUserSettings.DEFAULT_LOCALE, "");
+                    if (savedLocale == null || savedLocale.isEmpty()) {
+                        FirstRunLanguageDialog langDialog = new FirstRunLanguageDialog(null);
+                        Locale chosen = langDialog.showDialog();
+                        if (chosen != null) {
+                            context.getUserSettings().getSwingSettings()
+                                    .setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,
+                                            chosen.toString());
+                            Locale.setDefault(chosen);
+                        }
+                    }
                     
                     Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(context));
                     

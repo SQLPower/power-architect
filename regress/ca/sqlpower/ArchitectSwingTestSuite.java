@@ -35,6 +35,7 @@ import ca.sqlpower.architect.swingui.TestPlayPen;
 import ca.sqlpower.architect.swingui.TestPlayPenContentPane;
 import ca.sqlpower.architect.swingui.TestRelationship;
 import ca.sqlpower.architect.swingui.TestSwingUIProject;
+import ca.sqlpower.architect.swingui.TestSupportedLanguages;
 import ca.sqlpower.architect.swingui.TestTableEditPane;
 import ca.sqlpower.architect.swingui.TestTablePane;
 import ca.sqlpower.architect.swingui.TestUIScaleManager;
@@ -83,6 +84,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestPlayPenContentPane.class);
 		suite.addTestSuite(TestRelationship.class);
 		suite.addTestSuite(TestSwingUIProject.class);
+		suite.addTestSuite(TestSupportedLanguages.class);
 		suite.addTestSuite(TestTableEditPane.class);
 		suite.addTestSuite(TestTablePane.class);
 		suite.addTestSuite(TestUIScaleManager.class);

@@ -119,6 +119,7 @@
 | 9.6 | Declarar langpacks multi-idioma en el instalador izpack | HECHA | `build.gradle` → `install.xml`: `<langpack iso3="eng|spa|por|chn|jpn|deu"/>`; izpack muestra selector al inicio |
 | 9.7 | Tests de carga de bundles por idioma | HECHA | `MessagesLocalizationTest` (3 tests): todos los bundles app+lib cargan en los 6 idiomas y contienen las claves del base |
 | 9.8 | Verificación manual: selector Preferences + instalador | HECHA | suite app 1180/2 flaky; librería 973/2 pre-existentes; instalador regenerado con langpacks y bundles nuevos empaquetados |
+| 9.8b | Selector de idioma en primer arranque (recupera el que perdió jpackage) | HECHA | `FirstRunLanguageDialog` + `SupportedLanguages`; se muestra en `ArchitectFrame.main` si no hay `DEFAULT_LOCALE` persistido; persiste y aplica el `Locale` antes de crear la ventana. Tests: `TestSupportedLanguages` (2). Ver CONTEXTO §11.5 |
 
 ## Fase 10 — Instalador Windows: directorio de instalación y desinstalación
 
@@ -154,3 +155,5 @@
 | 11d.1 | Retirar launch4j/izpack del build (build.gradle + packaging.gradle) | HECHA | eliminado `buildWindowsInstaller` legacy; retiradas `installer/`, `ext-tools-home/launch4j*`, `ext-tools-home/izpack` |
 | 11d.2 | Actualizar docs (AGENTS.md, README, CHANGELOG, CONTEXTO) | HECHA | comandos jpackage; layout sin izpack/launch4j; CHANGELOG y CONTEXTO §13.6 |
 | 11d.3 | Pruebas de regresión (suite completa + manual) | PENDIENTE | `./gradlew test`; app 1180/2 flaky; librería 973/2 pre-existentes |
+| 11e.1 | Workflow GitHub Actions para empaquetar los 3 SO | HECHA | `.github/workflows/package.yml`: matriz windows/macos/linux-deb/linux-rpm, `jpackage*`, artifacts de `dist/`. Disparo manual o por tag `V*` |
+| 11e.2 | Icono portable por plataforma en `jpackageAppImage` | HECHA | `.ico` (Windows), `.icns` (macOS), `.png` (Linux) según el SO del runner |

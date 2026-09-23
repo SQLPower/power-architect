@@ -584,6 +584,18 @@ Tareas en `TAREAS.md` (Fase 9).
 - Instalador regenerado: `dist/SQL-Power-Architect-Setup-Windows-V2.0.11.exe` con langpacks y
   bundles nuevos empaquetados.
 
+### 11.5 Selector de idioma en primer arranque (tras migrar a jpackage)
+- **Motivo:** los instaladores jpackage (Fase 11) **no** ofrecen selector de idioma (era exclusivo
+  de izpack). Se recupera la selección "al inicio" con un diálogo en el primer arranque de la app.
+- **Implementación:**
+  - `SupportedLanguages`: lista única de locales soportados (en, de, ko, ru, pt, es, zh, ja),
+    fuente de verdad compartida con `LocaleChooser`.
+  - `FirstRunLanguageDialog`: diálogo Swing modal con combo de idiomas (etiquetados en su propio
+    idioma + inglés). `showDialog()` devuelve el `Locale` elegido.
+  - `ArchitectFrame.main`: si no hay `ArchitectSwingUserSettings.DEFAULT_LOCALE` persistido,
+    muestra el diálogo antes de crear la ventana, persiste la elección y aplica `Locale.setDefault`.
+- **Tests:** `TestSupportedLanguages` (2): incluye los 6 idiomas objetivo y locales no nulos.
+
 ## 12. Instalador Windows: directorio de instalación y desinstalación (Fase 10)
 
 ### 12.1 Diagnóstico del error reportado
@@ -713,6 +725,10 @@ Tareas en `TAREAS.md` (Fase 9).
   `buildWindowsInstaller` (launch4j 3.12 + izpack 4.3.1) de `build.gradle`; retiradas las
   carpetas `installer/`, `ext-tools-home/launch4j*` y `ext-tools-home/izpack`. Actualizados
   `AGENTS.md`, `README.sourceonly` y `CHANGELOG.md`.
+- **Fase 11e — CI para empaquetar los 3 SO:** **HECHA** — `.github/workflows/package.yml`
+  (matriz windows/macos/linux-deb/linux-rpm; disparo manual o tag `V*`; sube artifacts de
+  `dist/`). `jpackageAppImage` elige icono por plataforma (`.ico`/`.icns`/`.png`). No afecta
+  el ambiente local (es solo un archivo de workflow).
 
 ### 13.5 Riesgos
 - jlink puede omitir módulos usados por reflection (p.ej. algunos jars vendidos); mitigar con
@@ -726,5 +742,8 @@ Tareas en `TAREAS.md` (Fase 9).
   `./gradlew jpackageExe` (instalador `.exe` 64-bit con JRE embebido y desinstalador WiX).
 - El flujo legacy (launch4j + izpack) se retiró del build; ya no se usan
   `ext-tools-home/launch4j*` ni `ext-tools-home/izpack` ni `installer/`.
-- Resta verificar `jpackageMacDmg`/`jpackageLinuxDeb`/`jpackageLinuxRpm` en sus SO (CI).
+- Multi-plataforma: tasks `jpackageMacDmg`/`jpackageLinuxDeb`/`jpackageLinuxRpm` listos; el
+  workflow de CI (11e) los ejecuta en sus SO.
+- El selector de idioma del instalador izpack se recuperó como diálogo de primer arranque
+  (CONTEXTO §11.5).
 

@@ -347,6 +347,14 @@ tasks.register('jpackageAppImage') {
         // jpackage refuses to overwrite an existing app-image; clean first.
         delete appImageDir.parentFile
         appImageDir.parentFile.mkdirs()
+        // Icon format depends on the target platform (.ico Windows, .icns macOS,
+        // .png Linux). Pick it from the OS the task runs on.
+        def osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+        def appIcon = osName.contains('mac')
+                ? file('src/main/resources/icons/Power Architect.icns')
+                : osName.contains('linux')
+                        ? file('src/main/resources/icons/architect128.png')
+                        : file('src/main/resources/icons/architect.ico')
         def args = [
             '--type', 'app-image',
             '--input', stagingDir.absolutePath,
@@ -356,11 +364,10 @@ tasks.register('jpackageAppImage') {
             '--app-version', installerVersion.replaceAll('^[Vv]', ''),
             '--main-jar', 'architect.jar',
             '--main-class', 'ca.sqlpower.architect.swingui.ArchitectFrame',
-            '--icon', file('src/main/resources/icons/architect.ico').absolutePath
+            '--icon', appIcon.absolutePath
         ]
         exec { commandLine jpackageExe.absolutePath, *args }
         println "jpackage app-image created: ${appImageDir.absolutePath}"
-        println "Run with: ${new File(appImageDir, 'SQL Power Architect.exe').absolutePath}"
     }
 }
 
