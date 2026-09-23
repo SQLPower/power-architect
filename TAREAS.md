@@ -157,3 +157,12 @@
 | 11d.3 | Pruebas de regresión (suite completa + manual) | PENDIENTE | `./gradlew test`; app 1180/2 flaky; librería 973/2 pre-existentes |
 | 11e.1 | Workflow GitHub Actions para empaquetar los 3 SO | HECHA | `.github/workflows/package.yml`: matriz windows/macos/linux-deb/linux-rpm, `jpackage*`, artifacts de `dist/`. Disparo manual o por tag `V*` |
 | 11e.2 | Icono portable por plataforma en `jpackageAppImage` | HECHA | `.ico` (Windows), `.icns` (macOS), `.png` (Linux) según el SO del runner |
+
+## Fase 12 — Documentación de contribución (flujo GitHub)
+
+| ID | Tarea | Estado | Notas |
+|----|-------|--------|-------|
+| 12.1 | Crear `CONTRIBUTING.md` (fork + PR, build/tests, convenciones, qué no romper) | HECHA | reemplaza el flujo SVN/Google Code obsoleto |
+| 12.2 | Plantilla de PR `.github/pull_request_template.md` | HECHA | checklist de build/tests/convenciones |
+| 12.3 | Blindar `.gitignore` contra artefactos (logs, bin/, IDE) | HECHA | `noant-compile.log`, `/*.log`, `/bin/`, `.project`, `.classpath`, `.settings/`, `*.iml` |
+| 12.4 | Referenciar CONTRIBUTING en AGENTS/README/DEVELOPERS | HECHA | nota en `DEVELOPERS` de que Ant/patches son históricos |

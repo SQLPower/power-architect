@@ -49,6 +49,7 @@ All via the Gradle wrapper: `./gradlew <task>` (Windows: `gradlew.bat <task>`).
 
 ## Project tracking files
 
+- `CONTRIBUTING.md` — how to contribute (fork + PR workflow, build, conventions).
 - `PLAN.md` — high-level execution plan and per-phase status.
 - `TAREAS.md` — atomic tasks and their states.
 - `CONTEXTO.md` — accumulated context, decisions, and technical specs.

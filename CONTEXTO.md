@@ -747,3 +747,23 @@ Tareas en `TAREAS.md` (Fase 9).
 - El selector de idioma del instalador izpack se recuperó como diálogo de primer arranque
   (CONTEXTO §11.5).
 
+## 14. Documentación de contribución (Fase 12)
+
+- **Motivo:** la documentación histórica (`DEVELOPERS`, `WISHLIST`,
+  `doc/ReleaseChecklist.txt`) describe un flujo obsoleto (SVN, Google Code,
+  parches por mailing list). El flujo actual es Git + GitHub pull requests.
+- **Creado:**
+  - `CONTRIBUTING.md` — fork + PR, ramas (base `master`), build/tests,
+    convenciones de `DEVELOPERS`, código generado (no editar), qué no romper,
+    archivos de seguimiento.
+  - `.github/pull_request_template.md` — plantilla con tipo de cambio, testing
+    y checklist (build, tests, convenciones, bundles, docs).
+- **Blindaje del `.gitignore`:** se añadieron `noant-compile.log`, `/*.log`,
+  `/bin/`, `.project`, `.classpath`, `.settings/`, `*.iml` para que los
+  artefactos de build/IDE no se cuelen en futuros PR (hubo un `noant-compile.log`
+  que se coló una vez). Nota: `.project`/`.classpath`/`.settings` ya estaban
+  trackeados históricamente, así que el ignore solo evita nuevos.
+- **Referencias cruzadas:** `AGENTS.md` y `README.sourceonly` apuntan a
+  `CONTRIBUTING.md`; `DEVELOPERS` tiene una nota de que el flujo de
+  contribución actual está en `CONTRIBUTING.md`.
+

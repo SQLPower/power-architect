@@ -39,6 +39,9 @@ and `jpackageLinuxRpm` (Linux) — run each on its target OS.
 See `AGENTS.md` for detailed build prerequisites, commands, and project
 conventions, and `CHANGELOG.md` for the change history.
 
+Contributions are welcome: see `CONTRIBUTING.md` for the fork + pull request
+workflow, build/test instructions, and coding conventions.
+
 For additional support, visit the SQL Power forums at
 http://www.sqlpower.ca/forum/forums/list.page
 
