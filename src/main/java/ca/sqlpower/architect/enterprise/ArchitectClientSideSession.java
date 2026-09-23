@@ -40,7 +40,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.olap4j.metadata.Datatype;
-import org.springframework.security.AccessDeniedException;
+import ca.sqlpower.enterprise.AccessDeniedException;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;

@@ -40,7 +40,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
-import org.springframework.security.AccessDeniedException;
+import ca.sqlpower.enterprise.AccessDeniedException;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;

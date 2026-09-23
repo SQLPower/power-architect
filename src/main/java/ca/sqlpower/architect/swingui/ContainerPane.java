@@ -121,7 +121,7 @@ implements DragSourceListener, LayoutNode {
     
     protected ContainerPane(String name) {
         super(name);
-        this.backgroundColor = new Color(240, 240, 240);
+        this.backgroundColor = ThemePalette.current().getDefaultTableColour();
         this.foregroundColor = Color.BLACK;
         setOpaque(true);
     }

@@ -5,12 +5,45 @@ intended only for automatic packaging systems that manage their own
 library dependencies.
 
 If you are looking for the source code with the dependencies included,
-you can check out a copy of the project using Subversion.
+you can check out a copy of the project from GitHub. The official
+repositories are:
 
-You can anonymously check out a read-only copy using Subversion with 
-the following command:
-svn checkout http://power-architect.googlecode.com/svn/trunk/ power-architect
+- Power*Architect:  https://github.com/SQLPower/power-architect
+- SQL Power Library: https://github.com/SQLPower/sqlpower-library
 
-If you are interested in commiting changes to the project source, you can
-visit our project website at http://code.google.com/p/power-architect/
+The SQL Power Library is required to build Power*Architect and is
+included as a git submodule at `sqlpower-library/`. After cloning, run:
 
+    git submodule update --init
+
+Requirements:
+
+- JDK 21 (a JDK 21 toolchain is located automatically by Gradle)
+- Gradle (wrapper included)
+
+Build and run:
+
+    ./gradlew build      # compile + assemble (includes annotation processing)
+    ./gradlew run        # compile + launch the Swing application
+    ./gradlew test       # compile + run the test suites
+
+Building the native Windows installer:
+
+    ./gradlew jpackageExe
+
+Produces `dist/SQL Power Architect-<version>.exe` (64-bit, embedded JRE).
+Requires the vendored WiX Toolset at `ext-tools-home/wix311/` (on PATH by
+the task). Cross-platform packages: `jpackageMacDmg` (macOS), `jpackageLinuxDeb`
+and `jpackageLinuxRpm` (Linux) — run each on its target OS.
+
+See `AGENTS.md` for detailed build prerequisites, commands, and project
+conventions, and `CHANGELOG.md` for the change history.
+
+Contributions are welcome: see `CONTRIBUTING.md` for the fork + pull request
+workflow, build/test instructions, and coding conventions.
+
+For additional support, visit the SQL Power forums at
+http://www.sqlpower.ca/forum/forums/list.page
+
+This project is licensed under the GNU General Public License version 3
+(see the LICENSE file).

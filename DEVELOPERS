@@ -196,3 +196,7 @@ Outline:
 -how to create a patch
 -how to submit a patch
 -how to become a committer
+
+NOTE: The build is now Gradle (not Ant) and contributions go through GitHub
+pull requests. See CONTRIBUTING.md for the current workflow; the historical
+checkout/patch instructions above are kept for reference only.

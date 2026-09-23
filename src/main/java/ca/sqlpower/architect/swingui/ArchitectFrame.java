@@ -56,8 +56,11 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -81,6 +84,7 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UpdateCheckSettings;
 import ca.sqlpower.architect.UserSettings;
@@ -95,9 +99,11 @@ import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CheckForUpdateAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
+import ca.sqlpower.architect.swingui.action.CopyDDLAction;
 import ca.sqlpower.architect.swingui.action.CopySelectedAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
+import ca.sqlpower.architect.swingui.action.CreateTableFromDDLAction;
 import ca.sqlpower.architect.swingui.action.CutSelectedAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
 import ca.sqlpower.architect.swingui.action.DataSourcePropertiesAction;
@@ -137,6 +143,7 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
+import ca.sqlpower.architect.swingui.action.UIScaleAction;
 import ca.sqlpower.architect.swingui.action.enterprise.RefreshProjectAction;
 import ca.sqlpower.architect.swingui.enterprise.ArchitectServerProjectsManagerPanel;
 import ca.sqlpower.architect.swingui.enterprise.ProjectSecurityPanel;
@@ -228,6 +235,10 @@ public class ArchitectFrame extends JFrame {
     private ZoomAction zoomOutAction;
     private ZoomResetAction zoomNormalAction;
     private ZoomToFitAction zoomToFitAction;
+    private UIScaleManager uiScaleManager;
+    private UIScaleAction uiScaleUpAction;
+    private UIScaleAction uiScaleDownAction;
+    private UIScaleAction uiScaleResetAction;
     private AutoLayoutAction autoLayoutAction;
     
     private EditSelectedAction editSelectedAction;
@@ -244,6 +255,7 @@ public class ArchitectFrame extends JFrame {
     
     private DeleteSelectedAction deleteSelectedAction;
     private CreateTableAction createTableAction;
+    private CreateTableFromDDLAction createTableFromDDLAction;
     private CreateRelationshipAction createIdentifyingRelationshipAction;
     private CreateRelationshipAction createNonIdentifyingRelationshipAction;
     private EditRelationshipAction editRelationshipAction;
@@ -256,6 +268,7 @@ public class ArchitectFrame extends JFrame {
     private FocusToChildOrParentTableAction focusToParentAction;
     
     private Action exportDDLAction;
+    private CopyDDLAction copyDDLAction;
     private Action compareDMAction;
     private Action dataMoverAction;
     private Action sqlQueryAction;
@@ -758,12 +771,25 @@ public class ArchitectFrame extends JFrame {
         zoomToFitAction = new ZoomToFitAction(this);
         zoomToFitAction.putValue(AbstractAction.SHORT_DESCRIPTION, Messages.getString("ArchitectFrame.zoomToFitActionDescription")); //$NON-NLS-1$
 
+        uiScaleManager = new UIScaleManager();
+        uiScaleUpAction = new UIScaleAction(this, 1.0,
+                Messages.getString("UIScaleAction.increaseActionName"), //$NON-NLS-1$
+                Messages.getString("UIScaleAction.increaseActionDescription"), "zoom_in"); //$NON-NLS-1$ //$NON-NLS-2$
+        uiScaleDownAction = new UIScaleAction(this, -1.0,
+                Messages.getString("UIScaleAction.decreaseActionName"), //$NON-NLS-1$
+                Messages.getString("UIScaleAction.decreaseActionDescription"), "zoom_out"); //$NON-NLS-1$ //$NON-NLS-2$
+        uiScaleResetAction = new UIScaleAction(this, 0.0,
+                Messages.getString("UIScaleAction.resetActionName"), //$NON-NLS-1$
+                Messages.getString("UIScaleAction.resetActionDescription"), "zoom_reset"); //$NON-NLS-1$ //$NON-NLS-2$
+        restoreUIScale();
+
         undoAction = new UndoAction(currentSession, this, currentSession.getUndoManager());
         redoAction = new RedoAction(currentSession, this, currentSession.getUndoManager());
         autoLayoutAction = new AutoLayoutAction(this, Messages.getString("ArchitectFrame.autoLayoutActionName"), Messages.getString("ArchitectFrame.autoLayoutActionDescription"), "auto_layout"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         autoLayout = new FruchtermanReingoldForceLayout();
         autoLayoutAction.setLayout(autoLayout);
         exportDDLAction = new ExportDDLAction(this);
+        copyDDLAction = new CopyDDLAction(this);
         
         compareDMAction = new CompareDMAction(this);
         
@@ -775,6 +801,7 @@ public class ArchitectFrame extends JFrame {
         createNonIdentifyingRelationshipAction = new CreateRelationshipAction(this, false);
         editRelationshipAction = new EditRelationshipAction(this);
         createTableAction = new CreateTableAction(this);
+        createTableFromDDLAction = new CreateTableFromDDLAction(this);
         editColumnAction = new EditColumnAction(this);
         editSelectedAction = new EditSelectedAction(this);
         insertColumnAction = new InsertColumnAction(this);
@@ -806,6 +833,15 @@ public class ArchitectFrame extends JFrame {
         
         menuBar = createNewMenuBar();        
         setJMenuBar(menuBar);
+
+        // Numpad + and - zoom the play pen canvas (kept separate from the
+        // existing Ctrl+Shift+= / Ctrl+- accelerators on the zoom actions).
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), "zoomInNumpad"); //$NON-NLS-1$
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, 0), "zoomOutNumpad"); //$NON-NLS-1$
+        getRootPane().getActionMap().put("zoomInNumpad", zoomInAction); //$NON-NLS-1$
+        getRootPane().getActionMap().put("zoomOutNumpad", zoomOutAction); //$NON-NLS-1$
 
         projectBar = new JToolBar(JToolBar.HORIZONTAL);
         ppBar = new JToolBar(JToolBar.VERTICAL);
@@ -843,6 +879,18 @@ public class ArchitectFrame extends JFrame {
         ppBar.add(zoomOutAction);
         ppBar.add(zoomNormalAction);
         ppBar.add(zoomToFitAction);
+        ppBar.addSeparator();
+        JButton uiScaleUpButton = ppBar.add(uiScaleUpAction);
+        JButton uiScaleDownButton = ppBar.add(uiScaleDownAction);
+        JButton uiScaleResetButton = ppBar.add(uiScaleResetAction);
+        // The +/- buttons must show a short label (not just the tooltip) so
+        // the user can tell them apart. See CONTEXTO 10.5.
+        uiScaleUpButton.setHideActionText(false);
+        uiScaleUpButton.setText("+");
+        uiScaleDownButton.setHideActionText(false);
+        uiScaleDownButton.setText("-");
+        uiScaleResetButton.setHideActionText(false);
+        uiScaleResetButton.setText("100%");
         ppBar.addSeparator();
         tempButton = ppBar.add(deleteSelectedAction);
         tempButton.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
@@ -947,6 +995,34 @@ public class ArchitectFrame extends JFrame {
         editMenu.addSeparator();
         editMenu.add(searchReplaceAction);
         menuBar.add(editMenu);
+
+        JMenu viewMenu = new JMenu(Messages.getString("ArchitectFrame.viewMenu")); //$NON-NLS-1$
+        viewMenu.setMnemonic('v');
+        viewMenu.add(zoomInAction);
+        viewMenu.add(zoomOutAction);
+        viewMenu.add(zoomNormalAction);
+        viewMenu.add(zoomToFitAction);
+        viewMenu.addSeparator();
+        viewMenu.add(uiScaleUpAction);
+        viewMenu.add(uiScaleDownAction);
+        viewMenu.add(uiScaleResetAction);
+        viewMenu.addSeparator();
+
+        JMenu themeMenu = new JMenu(Messages.getString("ArchitectFrame.themeMenu")); //$NON-NLS-1$
+        ButtonGroup themeGroup = new ButtonGroup();
+        for (final ThemeManager.Theme theme : ThemeManager.Theme.values()) {
+            JRadioButtonMenuItem themeItem = new JRadioButtonMenuItem(themeLabel(theme));
+            themeItem.setSelected(ThemeManager.getCurrentTheme() == theme);
+            themeItem.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    setTheme(theme);
+                }
+            });
+            themeGroup.add(themeItem);
+            themeMenu.add(themeItem);
+        }
+        viewMenu.add(themeMenu);
+        menuBar.add(viewMenu);
 
         // the connections menu is set up when a new project is created (because it depends on the current DBTree)
         connectionsMenu = new JMenu(Messages.getString("ArchitectFrame.connectionsMenu")); //$NON-NLS-1$
@@ -1059,6 +1135,8 @@ public class ArchitectFrame extends JFrame {
         toolsMenu.setName("TOOLS_MENU");
         toolsMenu.setMnemonic('t');
         toolsMenu.add(exportDDLAction);
+        toolsMenu.add(copyDDLAction);
+        toolsMenu.add(createTableFromDDLAction);
         toolsMenu.add(compareDMAction);
         toolsMenu.add(sqlQueryAction);
         toolsMenu.add(dataMoverAction);
@@ -1370,11 +1448,7 @@ public class ArchitectFrame extends JFrame {
      */
     @SuppressWarnings("deprecation") //$NON-NLS-1$
     public static void main(final String args[]) throws SQLObjectException {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            logger.error("Unable to set native look and feel. Continuing with default.", e);
-        }
+        ThemeManager.applyTheme(ThemeManager.getSavedTheme());
         
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -1384,6 +1458,24 @@ public class ArchitectFrame extends JFrame {
                     // don't take it as encouragement to call it in other places!
                     // unless you like being attacked by screaming monkeys, that is.
                     ArchitectSwingSessionContext context = ASUtils.getContext();
+
+                    // First-run language selection: the jpackage installer does
+                    // not offer a language picker (the legacy izpack one did),
+                    // so prompt for it once, before the main window is built.
+                    // Persisted in the same setting Preferences uses, so this
+                    // only shows when no language has been chosen yet.
+                    String savedLocale = context.getUserSettings().getSwingSettings()
+                            .getString(ArchitectSwingUserSettings.DEFAULT_LOCALE, "");
+                    if (savedLocale == null || savedLocale.isEmpty()) {
+                        FirstRunLanguageDialog langDialog = new FirstRunLanguageDialog(null);
+                        Locale chosen = langDialog.showDialog();
+                        if (chosen != null) {
+                            context.getUserSettings().getSwingSettings()
+                                    .setString(ArchitectSwingUserSettings.DEFAULT_LOCALE,
+                                            chosen.toString());
+                            Locale.setDefault(chosen);
+                        }
+                    }
                     
                     Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(context));
                     
@@ -1479,6 +1571,82 @@ public class ArchitectFrame extends JFrame {
 
     public ZoomResetAction getZoomResetAction() {
         return zoomNormalAction;
+    }
+
+    public CopyDDLAction getCopyDDLAction() {
+        return copyDDLAction;
+    }
+
+    /**
+     * Multiplies the current global UI scale by the given factor and persists
+     * the result. Called by the {@link UIScaleAction}s.
+     */
+    public void adjustUIScale(double factor) {
+        uiScaleManager.setScale(uiScaleManager.getScale() * factor);
+        saveUIScale();
+    }
+
+    /**
+     * Resets the global UI scale to 100% and persists the result.
+     */
+    public void resetUIScale() {
+        uiScaleManager.reset();
+        saveUIScale();
+    }
+
+    private void restoreUIScale() {
+        double savedScale = 1.0;
+        if (currentSession.isEnterpriseSession()) {
+            savedScale = currentSession.getEnterpriseSession().getPrefDouble("uiScale", 1.0);
+        } else {
+            Preferences p = Preferences.userNodeForPackage(ArchitectSessionImpl.class);
+            Preferences prefs = p.node(currentSession.getWorkspace().getName());
+            savedScale = prefs.getDouble("uiScale", 1.0);
+        }
+        uiScaleManager.setScale(savedScale);
+    }
+
+    private void saveUIScale() {
+        double scale = uiScaleManager.getScale();
+        if (currentSession.isEnterpriseSession()) {
+            currentSession.getEnterpriseSession().putPref("uiScale", scale);
+        } else {
+            UserSettings sprefs = currentSession.getUserSettings().getSwingSettings();
+            if (sprefs != null) {
+                sprefs.setObject("uiScale", new Double(scale));
+            }
+        }
+    }
+
+    private String themeLabel(ThemeManager.Theme theme) {
+        switch (theme) {
+        case DARK:
+            return Messages.getString("ArchitectFrame.themeDark"); //$NON-NLS-1$
+        case LIGHT:
+            return Messages.getString("ArchitectFrame.themeLight"); //$NON-NLS-1$
+        default:
+            return Messages.getString("ArchitectFrame.themeSystem"); //$NON-NLS-1$
+        }
+    }
+
+    /**
+     * Switches the application look and feel, persists the choice, re-applies
+     * the UI scale against the new theme's fonts and repaints the play pens so
+     * the custom-painted canvas follows the theme.
+     */
+    public void setTheme(ThemeManager.Theme theme) {
+        ThemeManager.saveTheme(theme);
+        ThemeManager.applyTheme(theme);
+        if (uiScaleManager != null) {
+            uiScaleManager.invalidate();
+            uiScaleManager.refresh();
+        }
+        for (ArchitectSwingSession session : sessions) {
+            if (session.getPlayPen() != null) {
+                session.getPlayPen().applyThemePalette();
+            }
+        }
+        repaint();
     }
 
     public AboutAction getAboutAction() {

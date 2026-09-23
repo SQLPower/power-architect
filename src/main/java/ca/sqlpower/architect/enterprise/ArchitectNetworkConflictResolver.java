@@ -30,7 +30,7 @@ import org.apache.http.client.HttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.springframework.security.AccessDeniedException;
+import ca.sqlpower.enterprise.AccessDeniedException;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;

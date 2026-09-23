@@ -142,7 +142,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			//builds a little buffer to reduce the clipping problem
 			//this only seams to work at a non-zoomed level. This could 
 			//use a little work (better fix)
-			g.setColor(Color.WHITE);
+			g.setColor(ThemePalette.current().getCanvasBackground());
 			g.fillRect(0, 0, tp.getWidth(), tp.getHeight());
 			
 			g.translate(insets.left, insets.top);
@@ -163,35 +163,30 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			int maxDescent = metrics.getMaxDescent();
 			int y = 0;
 			
-			g2.setColor(tp.getPlayPen().getBackground());
-			g2.fillRect(0, 0, width, height);
-			// no need to reset to foreground: next operation always changes the colour
+			ThemePalette palette = ThemePalette.current();
+			int arc = tp.isRounded() ? ARC_LENGTH : 0;
 
-			// highlight title if table is selected
-			if (tp.selected == true) {
-				g2.setColor(tp.getBackgroundColor().darker());
-			} else {
-				g2.setColor(tp.getBackgroundColor());
-			}
-			
-			if (tp.isRounded()) {
-			    g2.fillRoundRect(0, 0, tp.getWidth(), fontHeight, ARC_LENGTH, ARC_LENGTH);
-			} else {
-			    g2.fillRect(0, 0, tp.getWidth(), fontHeight);
-			}
-			
-			// also darken title text if table is selected
-			if (tp.selected){
-			    g2.setColor(tp.getForegroundColor().darker());
-			} else {
-			    g2.setColor(tp.getForegroundColor());
-			}
-			
+			// Card body: a subtle drop shadow and a rounded background.
+			g2.setColor(new Color(0, 0, 0, 28));
+			g2.fillRoundRect(2, 2, width, height, arc, arc);
+			g2.setColor(palette.getTableBodyBackground());
+			g2.fillRoundRect(0, 0, width, height, arc, arc);
 
-			// print table name
-			g2.drawString(getTitleString(tablePane), 0, y += ascent);
-			
-			g2.setColor(Color.BLACK);
+			// Header bar: rounded top, squared bottom so it meets the body.
+			Color headerColor = tp.selected ? tp.getBackgroundColor().darker() : tp.getBackgroundColor();
+			g2.setColor(headerColor);
+			g2.fillRoundRect(0, 0, width, fontHeight + arc, arc, arc);
+			g2.fillRect(0, fontHeight, width, arc + 1);
+
+			// Title, in bold, with a separator line under the header.
+			Font titleFont = font.deriveFont(Font.BOLD);
+			g2.setFont(titleFont);
+			g2.setColor(tp.selected ? tp.getForegroundColor().darker() : tp.getForegroundColor());
+			g2.drawString(getTitleString(tablePane), 4, y += ascent);
+			g2.setFont(font);
+			g2.setColor(palette.getTableBorder());
+			g2.drawLine(0, fontHeight, width, fontHeight);
+			g2.setColor(palette.getCanvasForeground());
 			if (fontHeight < 0) {
 				throw new IllegalStateException("FontHeight is negative"); //$NON-NLS-1$
 			}
@@ -217,18 +212,23 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			        stillNeedPKLine = false;
 			        currentColor = null;
 			        y += PK_GAP;
-			        g2.setColor(Color.BLACK);
+			        g2.setColor(ThemePalette.current().getCanvasForeground());
 			        g2.drawLine(0, y+maxDescent-(PK_GAP/2), width-1, y+maxDescent-(PK_GAP/2));
+			    }
+			    int rowTop = y - ascent + fontHeight;
+			    if ((i % 2) == 1) {
+			        g2.setColor(palette.getAlternatingRow());
+			        g2.fillRect(0, rowTop, width, fontHeight);
 			    }
 			    if (tp.isItemSelected(i)) {
 			        if (logger.isDebugEnabled()) logger.debug("Column "+i+" is selected"); //$NON-NLS-1$ //$NON-NLS-2$
-			        g2.setColor(selectedColor);
+			        g2.setColor(palette.getSelection());
 			        g2.fillRect(BOX_LINE_THICKNESS+tp.getMargin().left, y-ascent+fontHeight,
 			                hwidth, fontHeight);
 			    }
 			    // draws the column
 			    currentColor = tp.getColumnHighlight(i);
-			    g2.setColor(currentColor == null ? Color.BLACK : currentColor);
+			    g2.setColor(currentColor == null ? ThemePalette.current().getCanvasForeground() : currentColor);
 			    g2.drawString(columnText(col),
 			            BOX_LINE_THICKNESS+tp.getMargin().left,
 			            y += fontHeight);
@@ -236,7 +236,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 			}
 			
 			// draw box around columns
-     		g2.setColor(Color.BLACK);
+     		g2.setColor(palette.getTableBorder());
 			if (tp.isRounded()) {
 	                g2.drawRoundRect(0, fontHeight+GAP, width-BOX_LINE_THICKNESS, 
 	                        height-(fontHeight+GAP+BOX_LINE_THICKNESS), ARC_LENGTH, ARC_LENGTH);
@@ -245,7 +245,7 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 	                        height-(fontHeight+GAP+BOX_LINE_THICKNESS));
 	            }
 			if (currentColor != null) {
-				g2.setColor(Color.BLACK);
+				g2.setColor(ThemePalette.current().getCanvasForeground());
 			}
 
 			if (stillNeedPKLine) {
@@ -352,6 +352,21 @@ public class BasicTablePaneUI extends TablePaneUI implements java.io.Serializabl
 				}
 				logger.debug("new width is: " + width); //$NON-NLS-1$
 			}
+			// The title is painted in bold, so it can be wider than the same
+			// text measured with the regular font. Make sure the width fits the
+			// bold title too, otherwise a long table name overflows the card.
+			String title = getTitleString(c);
+			Font titleFont = font.deriveFont(Font.BOLD);
+			int titleWidth = frc == null
+					? c.getFontMetrics(titleFont).stringWidth(title)
+					: (int) titleFont.getStringBounds(title, frc).getWidth();
+			width = Math.max(width, titleWidth);
+			// A standard minimum width (about 30 characters of the current
+			// font) so tables with few/short columns and a short name still
+			// look like a proper card.
+			int minStandardWidth = metrics.stringWidth(
+			        "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"); // 30 X characters
+			width = Math.max(width, minStandardWidth);
 			width += insets.left + c.getMargin().left + BOX_LINE_THICKNESS*2 + c.getMargin().right + insets.right;
 		} catch (SQLObjectException e) {
 			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e); //$NON-NLS-1$

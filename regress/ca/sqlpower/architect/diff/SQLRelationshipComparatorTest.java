@@ -40,6 +40,11 @@ public class SQLRelationshipComparatorTest extends TestCase {
 	SQLRelationship left;
 	
 	protected void setUp() throws Exception {
+		// testCompareColumn adds a bare SQLColumn() and expects it to sort before
+		// the generated "colN" columns. The default column name is a process-wide
+		// static that other tests may have changed, so reset it to null to make
+		// this test independent of execution order.
+		SQLColumn.setDefaultName(null);
 		table1L = makeTable(1);
 		table2L = makeTable(3);
 		left= new SQLRelationship();
@@ -87,8 +92,8 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		assertEquals(0, relComparator.compareColumns(list1, list2));
 		
 		list1.add(new SQLColumn());
-		assertEquals(-1, relComparator.compareColumns(list1, list2));		
-		assertEquals(1, relComparator.compareColumns(list2, list1));
+		assertTrue("A longer source column list should compare as less", relComparator.compareColumns(list1, list2) < 0);
+		assertTrue("A longer target column list should compare as greater", relComparator.compareColumns(list2, list1) > 0);
 	}
 	
 	public Set<SQLColumn> generateColumnList(int num) throws SQLObjectException {

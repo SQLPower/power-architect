@@ -34,6 +34,7 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ddl.DDLCommentUtils;
 import ca.sqlpower.sqlobject.SQLIndex;
 import ca.sqlpower.sqlobject.SQLTable;
 import ca.sqlpower.swingui.ChangeListeningDataEntryPanel;
@@ -53,6 +54,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel {
 	private JTextField physicalName;
 	private JTextField pkName;
 	private JTextArea remarks;
+	private JTextArea ddlNotes;
 	private JComboBox bgColor;
 	private JComboBox fgColor;
 	private JCheckBox rounded;
@@ -92,6 +94,10 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel {
 		panel.add(new JScrollPane(remarks = new JTextArea(4, 30)));
 		remarks.setLineWrap(true);
 		remarks.setWrapStyleWord(true);
+		panel.add(new JLabel(Messages.getString("TableEditPanel.ddlNotesLabel"))); //$NON-NLS-1$
+		panel.add(new JScrollPane(ddlNotes = new JTextArea(4, 30)));
+		ddlNotes.setLineWrap(true);
+		ddlNotes.setWrapStyleWord(true);
 		
 		panel.add(new JLabel(Messages.getString("TableEditPanel.tableColourLabel"))); //$NON-NLS-1$		
 		ColorCellRenderer renderer = new ColorCellRenderer(40, 20);
@@ -126,6 +132,7 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel {
             pkName.setEnabled(true);
         }
 		remarks.setText(t.getRemarks());
+		ddlNotes.setText(t.getDdlNotes());
 		logicalName.selectAll();
 		
 		if (tablePane != null) {
@@ -154,9 +161,16 @@ public class TableEditPanel extends ChangeListeningDataEntryPanel {
 	            table.getPrimaryKeyIndex().setName(pkName.getText());
 	        }
 
-	        table.setPhysicalName(physicalName.getText());
+		table.setPhysicalName(physicalName.getText());
 	        table.setName(logicalName.getText());
 	        table.setRemarks(remarks.getText());   
+
+	        String ddlNotesError = DDLCommentUtils.validate(ddlNotes.getText());
+	        if (ddlNotesError != null) {
+	            JOptionPane.showMessageDialog(panel, ddlNotesError);
+	            return false;
+	        }
+	        table.setDdlNotes(ddlNotes.getText());
 
 	        if (tablePane != null) {
 	            tablePane.begin("TableEditPanel.compoundEditName");

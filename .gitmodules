@@ -1,0 +1,4 @@
+[submodule "sqlpower-library"]
+	path = sqlpower-library
+	url = https://github.com/SQLPower/sqlpower-library.git
+	branch = develop

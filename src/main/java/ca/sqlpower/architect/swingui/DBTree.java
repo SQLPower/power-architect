@@ -633,6 +633,15 @@ public class DBTree extends JTree implements DragSourceListener {
                 newMenu.add(selectAllChildTables);
                 newMenu.add(new JMenuItem(new ShowTableContentsAction(session, (SQLTable) p.getLastPathComponent())));
                 newMenu.addSeparator();
+                final SQLTable ddlTable = (SQLTable) p.getLastPathComponent();
+                JMenuItem copyDDL = new JMenuItem(new AbstractAction(Messages.getString("DBTree.copyDDLMenu")) { //$NON-NLS-1$
+                    public void actionPerformed(ActionEvent e) {
+                        session.getArchitectFrame().getCopyDDLAction().showDDL(
+                                Collections.singletonList(ddlTable));
+                    }
+                });
+                newMenu.add(copyDDL);
+                newMenu.addSeparator();
             }
 			
             JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);

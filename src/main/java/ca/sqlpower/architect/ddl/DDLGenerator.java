@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.sqlobject.SQLColumn;
 import ca.sqlpower.sqlobject.SQLIndex;
@@ -71,14 +70,13 @@ public interface DDLGenerator {
      * and transaction start and end statements (if supported by the target platform).
      * This script is appropriate to feed into a target database using a vendor-supplied
      * tool for executing SQL scripts.
-     * @param architectSwingSession 
-     * 
+     *
      * @param tables The collection of tables the generated script should create.
      * @return The String representation of the generated DDL script.
      * @throws SQLException If there is a problem getting type info from the target DB.
      * @throws SQLObjectException If there are problems with the Architect objects.
      */
-    public String generateDDLScript(ArchitectSwingSession architectSwingSession, Collection<SQLTable> tables) throws SQLException, SQLObjectException;
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException;
 
 
     /**

@@ -201,7 +201,7 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         setParent(parent);
         setModel(m);
         this.hiddenColumns = new HashSet<SQLColumn>();
-        setInsertionPoint(ITEM_INDEX_NONE);	    
+        setInsertionPoint(ITEM_INDEX_NONE);
 		updateUI();
 	}
 	
@@ -1140,6 +1140,17 @@ public class TablePane extends ContainerPane<SQLTable, SQLColumn> {
         mi = new JMenuItem();
         mi.setAction(af.getEditColumnAction());
         mi.setActionCommand(PlayPen.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
+
+        tablePanePopup.addSeparator();
+
+        final SQLTable popupTable = model;
+        mi = new JMenuItem(Messages.getString("TablePane.copyDDLMenu")); //$NON-NLS-1$
+        mi.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                af.getCopyDDLAction().showDDL(java.util.Collections.singletonList(popupTable));
+            }
+        });
         tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();

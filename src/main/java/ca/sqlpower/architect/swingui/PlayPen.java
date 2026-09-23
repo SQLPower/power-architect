@@ -54,6 +54,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -83,6 +85,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
@@ -500,6 +503,21 @@ public class PlayPen extends JPanel
 	protected double zoom;
 
 	/**
+	 * Clamps applied to the mouse-wheel zoom factor so a held Ctrl+wheel
+	 * cannot zoom the canvas into an unusable state. Saved project zoom values
+	 * (e.g. 12.3 in the regression tests) are unaffected because setZoom() is
+	 * not clamped.
+	 */
+	protected static final double MIN_ZOOM = 0.05;
+	protected static final double MAX_ZOOM = 100.0;
+
+	/**
+	 * Zoom multiplier per wheel notch, expressed as an exponent of 2 (matches
+	 * {@code ArchitectFrame.ZOOM_STEP}).
+	 */
+	protected static final double ZOOM_WHEEL_STEP = 0.25;
+
+	/**
 	 * Contains the child components of this playpen.
 	 */
 	protected PlayPenContentPane contentPane;
@@ -628,7 +646,7 @@ public class PlayPen extends JPanel
             zoom = prefs.getDouble("zoom", 1.0);
 		}
         viewportPosition = new Point(0, 0);
-		this.setBackground(java.awt.Color.white);
+		applyThemePalette();
 		contentPane = ppcp;
 		contentPane.setPlayPen(this);
 		this.setName("Play Pen"); //$NON-NLS-1$
@@ -645,6 +663,7 @@ public class PlayPen extends JPanel
 		ppMouseListener = new PPMouseListener();
 		this.addMouseListener(ppMouseListener);
 		this.addMouseMotionListener(ppMouseListener);
+		this.addMouseWheelListener(new ZoomOnWheelListener());
 		
 		cursorManager = new CursorManager(this);
 		fontRenderContext = null;
@@ -1076,6 +1095,19 @@ public class PlayPen extends JPanel
 
 	public double getZoom() {
 		return zoom;
+	}
+
+	/**
+	 * Updates the canvas background and foreground from the active
+	 * {@link ThemePalette}. Called on construction and whenever the theme
+	 * changes. Table panes and relationships inherit these colors through
+	 * {@link PlayPenComponent#getBackgroundColor()} / {@code getForegroundColor()}.
+	 */
+	public void applyThemePalette() {
+		ThemePalette palette = ThemePalette.current();
+		this.setBackground(palette.getCanvasBackground());
+		this.setForeground(palette.getCanvasForeground());
+		this.repaint();
 	}
 
 	public void setRenderingAntialiased(boolean v) {
@@ -2466,6 +2498,36 @@ public class PlayPen extends JPanel
 	}
 	
 	/**
+	 * Zooms the play pen with the mouse wheel while Ctrl is held. The model
+	 * point under the cursor stays under the cursor, so the user can zoom
+	 * directly into the area they are pointing at.
+	 */
+	protected class ZoomOnWheelListener implements MouseWheelListener {
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			if (!e.isControlDown()) return;
+			double factor = e.getWheelRotation() < 0
+					? Math.pow(2.0, ZOOM_WHEEL_STEP)
+					: Math.pow(2.0, -ZOOM_WHEEL_STEP);
+			double newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * factor));
+			if (newZoom == zoom) return;
+			Point cursor = e.getPoint();
+			JScrollPane scrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(
+					JScrollPane.class, PlayPen.this);
+			if (scrollPane != null) {
+				int scrollX = scrollPane.getHorizontalScrollBar().getValue();
+				int scrollY = scrollPane.getVerticalScrollBar().getValue();
+				double modelX = (cursor.x + scrollX) / zoom;
+				double modelY = (cursor.y + scrollY) / zoom;
+				setZoom(newZoom);
+				scrollPane.getHorizontalScrollBar().setValue((int) (modelX * newZoom - cursor.x));
+				scrollPane.getVerticalScrollBar().setValue((int) (modelY * newZoom - cursor.y));
+			} else {
+				setZoom(newZoom);
+			}
+		}
+	}
+
+	/**
 	 * The PPMouseListener class receives all mouse and mouse motion
 	 * events in the PlayPen.  It tries to dispatch them to the
 	 * ppcomponents, and also handles playpen-specific behaviour like
@@ -2732,10 +2794,11 @@ public class PlayPen extends JPanel
 		        }
 		        logger.debug(viewport.getViewPosition());
 		        pp.scrollRectToVisible(view);
-		        // Necessary to stop tables from flashing.
-		        if (ppc != null) {
-		            ppc.repaint();
-		        }
+		        // Necessary to stop tables from flashing. Repaint the whole
+		        // play pen (not just the component's bounds) so text that
+		        // overflows the table bounds (e.g. a long bold title) is not
+		        // left behind as a trail while dragging. See CONTEXTO 10.2.
+		        pp.repaint();
 		    }
 		}
 

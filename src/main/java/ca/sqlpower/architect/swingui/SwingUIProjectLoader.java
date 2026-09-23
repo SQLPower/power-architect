@@ -1596,6 +1596,7 @@ public class SwingUIProjectLoader extends ProjectLoader {
             if (o instanceof SQLTable) {
                 SQLTable table = (SQLTable) o;
                 ioo.println(out, "<remarks>" + SQLPowerUtils.escapeXML(table.getRemarks()) + "</remarks>");
+                ioo.println(out, "<ddlNotes>" + SQLPowerUtils.escapeXML(table.getDdlNotes()) + "</ddlNotes>");
                 String exception;
                 if (table.getChildrenInaccessibleReason(SQLColumn.class) != null) {
                     exception = "sql-exception=\"" + 

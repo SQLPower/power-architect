@@ -1,0 +1,3 @@
+rootProject.name = 'power-architect'
+
+include 'sqlpower-library'

@@ -11,3 +11,21 @@
 /architect.log
 /.DS_Store
 /custom_jre/
+/.gradle/
+/gradle-app.log
+/TestingJob.kjb
+/testKettleOutputToRepository*
+/test-*.log
+
+# IDE and editor files
+/.project
+/.classpath
+/.settings/
+*.iml
+.idea/
+.vscode/
+
+# Loose build/log artifacts (not project source)
+/noant-compile.log
+/*.log
+/bin/

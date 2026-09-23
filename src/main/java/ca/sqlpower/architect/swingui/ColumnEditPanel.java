@@ -459,7 +459,7 @@ public class ColumnEditPanel extends ChangeListeningDataEntryPanel implements Ac
                 TreeSelectionModel.SINGLE_TREE_SELECTION);
         
         typeChooserButton.setAction(
-                new PopupJTreeAction(panel, colType, typeChooserButton, UserDefinedSQLType.class));
+                new PopupJTreeAction(panel, colType, typeChooserButton, UserDefinedSQLType.class, true));
 
         componentEnabledMap.put(colType, cb);
         panel.add(typeChooserButton, cc.xyw(2, row++, 2));

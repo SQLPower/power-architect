@@ -82,6 +82,22 @@ public class ArchitectAutoTests {
                     return false;
                 }
 
+                // External-database integration tests are excluded from the auto
+                // suite: they need a live server or a specific external setup that
+                // is not available in the standard CI/test environment (see also
+                // the Gradle `exclude '**/SQLServerDDLGeneratorTest*'` in build.gradle).
+                if (name.equals("ca.sqlpower.architect.ddl.SQLServerDDLGeneratorTest")
+                        || name.equals("ca.sqlpower.architect.etl.kettle.KettleJobOutputToRepoTest")) {
+                    return false;
+                }
+
+                // TestArchitectSwingWorker matches the *Test pattern but declares no
+                // test methods, so the RecursiveTestSuite would otherwise fail with
+                // "No tests found in ...". It is not a real test class.
+                if (name.equals("ca.sqlpower.architect.swingui.TestArchitectSwingWorker")) {
+                    return false;
+                }
+
                 // No reject conditions found, so...
                 return true;
             }

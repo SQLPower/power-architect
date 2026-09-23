@@ -1,0 +1,508 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// Ensure the sqlpower-library subproject is configured before this project so
+// its registered tasks (aptJar, etc.) are available at configuration time.
+evaluationDependsOn(':sqlpower-library')
+
+group = 'ca.sqlpower'
+// Keep in sync with ArchitectVersion (ca.sqlpower.architect.ArchitectVersion).
+version = 'V2.0.11'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application {
+    mainClass = 'ca.sqlpower.architect.swingui.ArchitectFrame'
+}
+
+// Some jars are still vendored in more than one of the legacy lib directories
+// (e.g. junit-4.12.jar in lib/ and sqlpower-library/lib/main/), which produces
+// duplicate entries when the application distribution is assembled.
+tasks.withType(Tar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+tasks.withType(Zip).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// ---------------------------------------------------------------------------
+// Vendored dependency directories (mirror of the historical Ant build)
+// ---------------------------------------------------------------------------
+def appLibs = files(fileTree(dir: 'lib', include: '*.jar'))
+def appBuildLibs = files(fileTree(dir: 'buildlib', include: '*.jar'))
+def libraryVendored = files(fileTree(dir: 'sqlpower-library/lib/main', include: '*.jar'))
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+        compileClasspath = files(configurations.compileClasspath, appLibs, appBuildLibs, libraryVendored)
+    }
+    test {
+        java {
+            srcDirs = ['regress']
+        }
+        resources {
+            srcDirs = ['src/test/resources']
+        }
+        compileClasspath += sourceSets.main.output
+        compileClasspath += appLibs
+        compileClasspath += appBuildLibs
+        compileClasspath += libraryVendored
+        compileClasspath += files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
+        compileClasspath += files('testbed/hsqldb.jar')
+        runtimeClasspath += sourceSets.main.output
+        runtimeClasspath += files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
+        runtimeClasspath += files('testbed/hsqldb.jar')
+    }
+    examples {
+        java {
+            srcDirs = ['example_code']
+        }
+        compileClasspath = files(configurations.compileClasspath, sourceSets.main.output, appLibs, appBuildLibs, libraryVendored)
+    }
+}
+
+dependencies {
+    // sqlpower-library (vendored submodule): core jar includes generated classes.
+    implementation project(':sqlpower-library')
+
+    // App's own vendored runtime libs.
+    implementation appLibs
+
+    // Build-time only libs (ant, gsbase for RecursiveTestSuite, etc.).
+    implementation appBuildLibs
+
+    // sqlpower-library's vendored runtime libs (guava, log4j, spring, httpclient,
+    // jsr305, ...). The library jar does not bundle them, so the app must declare
+    // them explicitly - exactly like the historical Ant runtime.classpath did with
+    // ${sqlpower.library.home}/lib/main/*.jar.
+    runtimeOnly libraryVendored
+
+    // Libraries formerly vendored as jars (lib/ and sqlpower-library/lib/main/),
+    // now resolved from Maven. reload4j is the maintained drop-in for log4j 1.2.
+    implementation 'ch.qos.reload4j:reload4j:1.2.25'
+    implementation 'com.google.guava:guava:33.3.1-jre'
+    implementation 'commons-codec:commons-codec:1.17.1'
+    implementation 'commons-io:commons-io:2.16.1'
+    implementation 'commons-logging:commons-logging:1.3.4'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+    implementation 'org.apache.httpcomponents:httpcore:4.4.16'
+    implementation 'org.apache.httpcomponents:httpmime:4.5.14'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    // Modern flat look and feel with built-in light and dark themes.
+    implementation 'com.formdev:flatlaf:3.5.4'
+
+    // Test-only libs.
+    testImplementation project(':sqlpower-library')
+    testImplementation project(path: ':sqlpower-library', configuration: 'testClasses')
+    testImplementation files(fileTree(dir: 'jdbc_drivers', include: '*.jar'))
+    testImplementation files('testbed/hsqldb.jar')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// ---------------------------------------------------------------------------
+// Two-pass annotation processing for the app's own @Persistable classes.
+// Mirrors the historical Ant build: compile app, run SPAnnotationProcessor
+// (-proc:only) over app sources, compile the generated sources.
+// ---------------------------------------------------------------------------
+def appGeneratedSrcDir = layout.buildDirectory.dir('generated-src')
+
+def libraryAptJar = project(':sqlpower-library').tasks.named('aptJar')
+
+// Classpath for the annotation-processing passes: resolved dependencies plus
+// the vendored jar trees (both the app's and the library's). Relying on
+// sourceSets.main.compileClasspath is unreliable here because the custom
+// source sets do not always see the resolved configurations.
+def appProcessorClasspath = configurations.compileClasspath + appLibs + appBuildLibs + libraryVendored
+
+tasks.register('runAppAnnotationProcessor', JavaCompile) {
+    dependsOn compileJava
+    dependsOn libraryAptJar
+    dependsOn project(':sqlpower-library').tasks.named('compileGeneratedJava')
+    source = sourceSets.main.java
+    classpath = files(
+        sourceSets.main.output,
+        project(':sqlpower-library').sourceSets.generated.output,
+        appProcessorClasspath
+    )
+    destinationDirectory = layout.buildDirectory.dir('tmp/app-proc-only')
+    options.debug = true
+    options.annotationProcessorPath = files(
+        libraryAptJar.flatMap { it.archiveFile },
+        sourceSets.main.output,
+        appProcessorClasspath,
+        project(':sqlpower-library').sourceSets.main.output
+    )
+    options.compilerArgs.addAll([
+        '-proc:only',
+        '-processor', 'ca.sqlpower.object.annotation.SPAnnotationProcessor',
+        '-s', appGeneratedSrcDir.get().asFile.absolutePath
+    ])
+    doFirst {
+        appGeneratedSrcDir.get().asFile.mkdirs()
+    }
+}
+
+def appGeneratedClassesDir = layout.buildDirectory.dir('classes/java/app-generated')
+
+tasks.register('compileAppGenerated', JavaCompile) {
+    dependsOn runAppAnnotationProcessor
+    dependsOn project(':sqlpower-library').tasks.named('compileGeneratedJava')
+    source = fileTree(dir: appGeneratedSrcDir, include: '**/*.java')
+    classpath = files(
+        sourceSets.main.output,
+        appProcessorClasspath,
+        project(':sqlpower-library').sourceSets.main.output,
+        project(':sqlpower-library').sourceSets.generated.output
+    )
+    destinationDirectory = appGeneratedClassesDir
+    options.debug = true
+}
+
+tasks.named('compileJava') {
+    options.compilerArgs += ['-proc:none']
+}
+
+// Build/test-only jars that must not ship with the installer (used by both the
+// jar manifest Class-Path and the installer staging).
+def installerLibExcludes = ['gsbase-2.0.1.jar', 'junit-4.12.jar', 'junit.jar',
+                            'hamcrest-core-1.3.jar', 'UmlGraph.jar', 'ant-junit.jar']
+def installerLibJars = {
+    configurations.runtimeClasspath.files
+        .findAll { it.name.endsWith('.jar') && !installerLibExcludes.contains(it.name) }
+}
+
+tasks.named('jar') {
+    dependsOn compileAppGenerated
+    from appGeneratedClassesDir
+    manifest {
+        attributes 'Main-Class': 'ca.sqlpower.architect.swingui.ArchitectFrame'
+    }
+    doFirst {
+        // The installed application finds its dependencies via the manifest
+        // Class-Path, exactly like the historical Ant `build.manifest` target.
+        def libEntries = installerLibJars().collect { 'lib/' + it.name }
+        manifest.attributes(['Class-Path': (libEntries + ['jdbc/']).join(' ')])
+    }
+}
+
+// Generated SPPersisterHelper classes must be on the test runtime classpath.
+tasks.named('test') {
+    dependsOn compileAppGenerated
+    classpath += files(appGeneratedClassesDir)
+}
+
+// ---------------------------------------------------------------------------
+// Mondrian OLAP code generation from Mondrian.xml (XSLT 1.0, no Xalan needed).
+// ---------------------------------------------------------------------------
+def runXslt = { String name, String xsl, String xml, String out ->
+    tasks.register(name) {
+        def xsltFile = file("src/main/java/ca/sqlpower/architect/olap/${xsl}")
+        def xmlFile = file("src/main/java/ca/sqlpower/architect/olap/${xml}")
+        def outFile = file(out)
+        inputs.files(xsltFile, xmlFile)
+        outputs.file(outFile)
+        doLast {
+            def factory = javax.xml.transform.TransformerFactory.newInstance()
+            def transformer = factory.newTransformer(
+                new javax.xml.transform.stream.StreamSource(xsltFile))
+            transformer.transform(
+                new javax.xml.transform.stream.StreamSource(xmlFile),
+                new javax.xml.transform.stream.StreamResult(outFile))
+        }
+    }
+}
+
+runXslt('mondrianModel', 'xml-to-java-classes.xsl', 'Mondrian.xml',
+        'src/main/java/ca/sqlpower/architect/olap/MondrianModel.java')
+runXslt('mondrianParser', 'xml-to-parser.xsl', 'Mondrian.xml',
+        'src/main/java/ca/sqlpower/architect/olap/MondrianXMLReader.java')
+runXslt('mondrianFormatter', 'xml-to-formatter.xsl', 'Mondrian.xml',
+        'src/main/java/ca/sqlpower/architect/olap/MondrianXMLWriter.java')
+runXslt('mondrianNewValueMaker', 'xml-to-new-value-maker.xsl', 'Mondrian.xml',
+        'regress/ca/sqlpower/architect/util/MondrianNewValueMaker.java')
+runXslt('mondrianPersistenceTests', 'xml-to-persister-tests.xsl', 'Mondrian.xml',
+        'regress/ca/sqlpower/architect/olap/MondrianModelTest.java')
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+test {
+    useJUnitPlatform()
+    maxHeapSize = '1024m'
+    systemProperty 'ca.sqlpower.architect.test.dir', "${buildDir}/classes/java/test"
+    systemProperty 'ca.sqlpower.headless', 'true'
+    systemProperty 'user.language', 'en'
+    systemProperty 'user.country', 'US'
+    // Mirror the historical Ant `junit` target, which ran exactly these four
+    // entry suites (see AGENTS.md). Relying on Gradle's default discovery would
+    // also pick up JUnit3 support/base classes (e.g. ArchitectTestCase) that
+    // declare no test methods, producing spurious "No tests found in ...".
+    include '**/ArchitectBusinessTestSuite.class'
+    include '**/ArchitectSwingTestSuite.class'
+    include '**/ArchitectAutoTests.class'
+    include '**/ProfileTests.class'
+}
+
+// Validate example code (historical `ant compile-examples`).
+tasks.register('compileExamples', JavaCompile) {
+    source = sourceSets.examples.java
+    classpath = sourceSets.examples.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir('classes/examples')
+    options.debug = true
+}
+
+// ---------------------------------------------------------------------------
+// Targets ported from the removed Apache Ant build (build.xml): user guide,
+// javadoc, static analysis, source archives, distributions.
+// ---------------------------------------------------------------------------
+apply from: 'packaging.gradle'
+
+// ---------------------------------------------------------------------------
+// jpackage-based packaging (Fase 11): native 64-bit packages generated by the
+// JDK's own jpackage tool (no launch4j/izpack, no external JRE required).
+//
+// The app is non-modular, so jpackage is invoked with --input + --main-jar +
+// --main-class. The input is the staging layout (architect.jar + lib/ +
+// jdbc/), so the jar's manifest Class-Path (lib/*.jar and jdbc/) keeps
+// working inside the app-image.
+// ---------------------------------------------------------------------------
+def installerVersion = project.version.toString()
+def stagingDir = layout.buildDirectory.dir('staging').get().asFile
+def jdk21Launcher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+
+tasks.register('stageForWindowsInstaller') {
+    dependsOn tasks.named('jar')
+    doLast {
+        // On Windows another process (e.g. the IDE language server) may briefly
+        // hold a handle on a previously produced file; clean what we can and
+        // fall back to overwriting.
+        try {
+            delete stagingDir
+        } catch (Exception e) {
+            logger.warn('Could not fully clean the installer staging dir: ' + e.message)
+        }
+        stagingDir.mkdirs()
+        new File(stagingDir, 'lib').mkdirs()
+        new File(stagingDir, 'jdbc').mkdirs()
+        copy {
+            from tasks.named('jar').flatMap { it.archiveFile }
+            into stagingDir
+            rename { 'architect.jar' }
+        }
+        installerLibJars().each { f ->
+            copy { from f; into new File(stagingDir, 'lib') }
+        }
+        copy { from fileTree(dir: 'jdbc_drivers', include: '*.jar'); into new File(stagingDir, 'jdbc') }
+        copy { from 'LICENSE'; into stagingDir }
+        copy { from fileTree(dir: 'src/main/resources/icons', include: '*.ico'); into stagingDir }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// jpackage-based packaging (Fase 11): native 64-bit app-image generated by the
+// JDK's own jpackage tool (no launch4j/izpack, no external JRE required).
+//
+// The app is non-modular, so jpackage is invoked with --input + --main-jar +
+// --main-class. The input is the same staging layout used by the legacy
+// installer (architect.jar + lib/ + jdbc/), so the jar's manifest Class-Path
+// (lib/*.jar and jdbc/) keeps working inside the app-image.
+// ---------------------------------------------------------------------------
+// Locate jpackage inside a JDK 14+. The Gradle daemon does not reliably inherit
+// JAVA_HOME from the shell (toolchains), and File.exists() can report false for
+// the JDK bin dir in some daemon contexts even though ProcessBuilder can run it.
+// We therefore pick a known path and let the exec fail with jpackage's own
+// error if it is genuinely unavailable. Override with -PjpackageJavaHome=<JDK home>.
+def jpackageExecutable = { ->
+    def override = project.findProperty('jpackageJavaHome')
+    if (override) return new File(override, 'bin/jpackage')
+    def env = System.getenv('JAVA_HOME')
+    if (env) return new File(env, 'bin/jpackage')
+    return new File('C:/Program Files/Java/jdk-21/bin/jpackage')
+}
+
+tasks.register('jpackageAppImage') {
+    dependsOn tasks.named('stageForWindowsInstaller')
+    doLast {
+        def jpackageExe = jpackageExecutable()
+        def appImageDir = layout.buildDirectory.dir('jpackage/SQL Power Architect').get().asFile
+        // jpackage refuses to overwrite an existing app-image; clean first.
+        delete appImageDir.parentFile
+        appImageDir.parentFile.mkdirs()
+        // Icon format depends on the target platform (.ico Windows, .icns macOS,
+        // .png Linux). Pick it from the OS the task runs on.
+        def osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+        def appIcon = osName.contains('mac')
+                ? file('src/main/resources/icons/Power Architect.icns')
+                : osName.contains('linux')
+                        ? file('src/main/resources/icons/architect128.png')
+                        : file('src/main/resources/icons/architect.ico')
+        def args = [
+            '--type', 'app-image',
+            '--input', stagingDir.absolutePath,
+            '--dest', appImageDir.parentFile.absolutePath,
+            '--name', 'SQL Power Architect',
+            // jpackage requires a numeric version (no leading "V").
+            '--app-version', installerVersion.replaceAll('^[Vv]', ''),
+            '--main-jar', 'architect.jar',
+            '--main-class', 'ca.sqlpower.architect.swingui.ArchitectFrame',
+            '--icon', appIcon.absolutePath
+        ]
+        exec { commandLine jpackageExe.absolutePath, *args }
+        println "jpackage app-image created: ${appImageDir.absolutePath}"
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Fase 11b: native Windows installer (exe) built from the app-image by
+// jpackage. Generates a 64-bit installer with a proper uninstaller (registry
+// entry, Add/Remove Programs). Unlike the legacy launch4j+izpack flow it does
+// not need WiX and runs entirely on JDK 21.
+// ---------------------------------------------------------------------------
+tasks.register('jpackageExe') {
+    dependsOn tasks.named('jpackageAppImage')
+    doLast {
+        def jpackageExe = jpackageExecutable()
+        def appImageDir = layout.buildDirectory.dir('jpackage/SQL Power Architect').get().asFile
+        def distDir = file('dist')
+        distDir.mkdirs()
+        // jpackage builds the Windows installer with WiX Toolset (candle/light).
+        // Vendored under ext-tools-home/wix311; put it on PATH for the process.
+        def wixDir = file('ext-tools-home/wix311')
+        // jpackage names the output "<name>-<app-version>.exe" (e.g.
+        // "SQL Power Architect-2.0.11.exe"); --dest is the output dir.
+        def installerExe = new File(distDir,
+                "SQL Power Architect-${installerVersion.replaceAll('^[Vv]', '')}.exe")
+        def args = [
+            '--type', 'exe',
+            '--app-image', appImageDir.absolutePath,
+            '--dest', distDir.absolutePath,
+            '--name', 'SQL Power Architect',
+            '--app-version', installerVersion.replaceAll('^[Vv]', ''),
+            '--vendor', 'SQL Power Group',
+            '--description', 'SQL Power Architect - data modeling, OLAP and profiling',
+            '--icon', file('src/main/resources/icons/architect.ico').absolutePath,
+            '--win-dir-chooser',
+            '--win-shortcut',
+            '--win-menu'
+        ]
+        exec {
+            environment 'PATH', wixDir.absolutePath + File.pathSeparator + System.getenv('PATH')
+            commandLine jpackageExe.absolutePath, *args
+        }
+        println "jpackage installer created: ${installerExe.absolutePath}"
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Fase 11c: cross-platform packages with jpackage. jpackage can only build the
+// native type of the host platform (dmg/pkg on macOS, deb/rpm on Linux), so
+// these tasks assert the platform and produce the corresponding artifact.
+// They share the app-image produced by jpackageAppImage.
+// ---------------------------------------------------------------------------
+def requirePlatform(String want) {
+    def os = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+    if (!os.contains(want)) {
+        throw new GradleException("jpackage ${want} packaging requires running on ${want} "
+                + "(current OS: ${os}). Run this task on a ${want} build host.")
+    }
+}
+
+tasks.register('jpackageMacDmg') {
+    dependsOn tasks.named('jpackageAppImage')
+    doLast {
+        requirePlatform('mac')
+        def jpackageExe = jpackageExecutable()
+        def appImageDir = layout.buildDirectory.dir('jpackage/SQL Power Architect.app').get().asFile
+        // The mac app-image name ends in ".app"; derive it from the actual dir.
+        def macApp = layout.buildDirectory.dir('jpackage').get().asFile.listFiles()
+                ?.find { it.name.endsWith('.app') }
+        def destDir = file('dist')
+        destDir.mkdirs()
+        def args = ['--type', 'dmg']
+        if (macApp != null) {
+            args.addAll(['--app-image', macApp.absolutePath])
+        } else {
+            args.addAll(['--input', stagingDir.absolutePath,
+                         '--main-jar', 'architect.jar',
+                         '--main-class', 'ca.sqlpower.architect.swingui.ArchitectFrame'])
+        }
+        args.addAll([
+            '--dest', destDir.absolutePath,
+            '--name', 'SQL Power Architect',
+            '--app-version', installerVersion.replaceAll('^[Vv]', ''),
+            '--vendor', 'SQL Power Group',
+            '--icon', file('src/main/resources/icons/Power Architect.icns').absolutePath
+        ])
+        exec { commandLine jpackageExe.absolutePath, *args }
+        println "jpackage macOS dmg created in ${destDir.absolutePath}"
+    }
+}
+
+tasks.register('jpackageLinuxDeb') {
+    dependsOn tasks.named('jpackageAppImage')
+    doLast {
+        requirePlatform('linux')
+        def jpackageExe = jpackageExecutable()
+        def appImageDir = layout.buildDirectory.dir('jpackage/SQL Power Architect').get().asFile
+        def destDir = file('dist')
+        destDir.mkdirs()
+        def args = [
+            '--type', 'deb',
+            '--app-image', appImageDir.absolutePath,
+            '--dest', destDir.absolutePath,
+            '--name', 'sql-power-architect',
+            '--app-version', installerVersion.replaceAll('^[Vv]', ''),
+            '--vendor', 'SQL Power Group',
+            '--description', 'SQL Power Architect - data modeling, OLAP and profiling',
+            '--icon', file('src/main/resources/icons/architect128.png').absolutePath,
+            '--linux-menu-group', 'Development',
+            '--linux-shortcut'
+        ]
+        exec { commandLine jpackageExe.absolutePath, *args }
+        println "jpackage Linux deb created in ${destDir.absolutePath}"
+    }
+}
+
+tasks.register('jpackageLinuxRpm') {
+    dependsOn tasks.named('jpackageAppImage')
+    doLast {
+        requirePlatform('linux')
+        def jpackageExe = jpackageExecutable()
+        def appImageDir = layout.buildDirectory.dir('jpackage/SQL Power Architect').get().asFile
+        def destDir = file('dist')
+        destDir.mkdirs()
+        def args = [
+            '--type', 'rpm',
+            '--app-image', appImageDir.absolutePath,
+            '--dest', destDir.absolutePath,
+            '--name', 'sql-power-architect',
+            '--app-version', installerVersion.replaceAll('^[Vv]', ''),
+            '--vendor', 'SQL Power Group',
+            '--description', 'SQL Power Architect - data modeling, OLAP and profiling',
+            '--icon', file('src/main/resources/icons/architect128.png').absolutePath,
+            '--linux-menu-group', 'Development',
+            '--linux-shortcut'
+        ]
+        exec { commandLine jpackageExe.absolutePath, *args }
+        println "jpackage Linux rpm created in ${destDir.absolutePath}"
+    }
+}

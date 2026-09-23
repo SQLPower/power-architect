@@ -37,7 +37,6 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.diff.DiffChunk;
 import ca.sqlpower.object.SPResolverRegistry;
 import ca.sqlpower.object.SPVariableHelper;
@@ -161,8 +160,6 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     protected boolean isComparingDMForPostgres = false;
     
-    private ArchitectSwingSession session;
-
     private JDBCDataSourceType dsType = null;
     
     public GenericDDLGenerator(boolean allowConnection) throws SQLException {
@@ -181,8 +178,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    this(true);
 	}
 
-    public String generateDDLScript(ArchitectSwingSession architectSwingSession, Collection<SQLTable> tables) throws SQLException, SQLObjectException {
-        session = architectSwingSession;
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, SQLObjectException {
         List<DDLStatement> statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
@@ -994,6 +990,24 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print("\n)");
 		endStatement(StatementType.CREATE, t);
         addComment(t, true);
+        addDdlNotes(t);
+	}
+
+	/**
+	 * Appends the table's free-form {@link SQLTable#getDdlNotes()} as safe SQL
+	 * line comments. Notes that fail {@link DDLCommentUtils#validate(String)}
+	 * are skipped with a warning so they can never corrupt the generated SQL.
+	 */
+	protected void addDdlNotes(SQLTable t) {
+		String notes = t.getDdlNotes();
+		if (notes == null || notes.trim().isEmpty()) return;
+		String validationError = DDLCommentUtils.validate(notes);
+		if (validationError != null) {
+			logger.warn("Skipping DDL notes on table " + t.getName() + ": " + validationError);
+			return;
+		}
+		print(DDLCommentUtils.toCommentBlock(notes));
+		endStatement(StatementType.COMMENT, t);
 	}
 
 	/**
@@ -1487,13 +1501,6 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     public boolean isComparingDMForPostgres() {
         return isComparingDMForPostgres;
-    }
-
-    /**
-     * @return the session
-     */
-    protected ArchitectSwingSession getSession() {
-        return session;
     }
 
     /**
