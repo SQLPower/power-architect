@@ -35,6 +35,11 @@ the codebase and how to get your changes merged via a GitHub pull request.
    cd power-architect
    git remote add upstream https://github.com/SQLPower/power-architect.git
    ```
+   > In this working checkout the remotes are named differently:
+   > `origin` → `SQLPower/power-architect` (upstream, read-only) and
+   > `fork` → `clvillarob/power-architect` (the fork). `develop` tracks
+   > `fork/develop`. Commands below use `upstream`/`origin` generically; adjust
+   > the remote name to match your setup.
 2. **Sync the vendored submodule** (required to build):
    ```bash
    git submodule update --init

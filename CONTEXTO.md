@@ -767,3 +767,19 @@ Tareas en `TAREAS.md` (Fase 9).
   `CONTRIBUTING.md`; `DEVELOPERS` tiene una nota de que el flujo de
   contribución actual está en `CONTRIBUTING.md`.
 
+## 15. Estado del checkout (fork + PR abierto)
+
+- **Seguimos en la misma carpeta local**, en la rama `develop` (no es una copia
+  separada del fork).
+- **Remotos:**
+  - `origin` → `github.com/SQLPower/power-architect` (repo original, solo lectura).
+  - `fork` → `github.com/clvillarob/power-architect` (fork de trabajo).
+- `develop` trackea `fork/develop`; `master` local trackea `origin/master`.
+- **PR abierto:** https://github.com/SQLPower/power-architect/pull/37
+  (base `master`, head `clvillarob:develop`, Fases 0–12).
+- Para continuar trabajando: editar en `develop`, commitear, y `git push fork develop`
+  (actualiza el PR automáticamente). Para sincronizar con upstream:
+  `git fetch origin` y mergear `origin/master` si hace falta.
+- GitHub CLI (`gh`) instalado y autenticado como `clvillarob` (keyring).
+- El token de GitHub **no** se expuso en el chat; el login se hizo en la terminal.
+
